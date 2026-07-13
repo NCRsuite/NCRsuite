@@ -1,83 +1,68 @@
-# NCR Suite — V1.5.0
+# NCR Suite — V1.7.0
 
-NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Une seule base technique affiche des outils différents selon le métier de l’entreprise connectée, sans mélanger les données.
+NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Chaque entreprise dispose de son espace, de ses données isolées et des modules correspondant à son activité.
 
-## Fonctionnalités opérationnelles du pack Coiffure & beauté
+## Pack Coiffure & beauté opérationnel
 
 - Authentification Supabase et création d’entreprise.
-- Isolation multi-entreprises avec RLS.
-- Clients : création, recherche et archivage.
-- Prestations : durée, tarif, description et statut.
-- Collaborateurs : contacts, prestations réalisées, horaires et pauses.
-- Rendez-vous internes : création, modification, planning jour/semaine et statuts.
-- Tableau de bord alimenté par les données réelles Supabase.
-- Réservation publique sans compte client.
-- Créneaux calculés selon les horaires, pauses, durées et rendez-vous existants.
-- Choix d’un collaborateur ou de l’option « Peu importe ».
-- Confirmation automatique ou validation manuelle.
-- Consultation, déplacement et annulation via un lien privé.
+- Clients, prestations et profils collaborateurs.
+- Horaires, pauses et prestations attribuées.
+- Rendez-vous internes et planning jour/semaine.
+- Réservation publique selon les disponibilités réelles.
+- Modification et annulation via un lien privé.
+- Confirmations, alertes et rappels par Brevo.
+- Comptes d’équipe séparés avec rôles et permissions.
+- Isolation multi-entreprises et RLS Supabase.
 - PWA responsive pour mobile et ordinateur.
+
+## Offres d’accès équipe
+
+- **Découverte** : 1 compte propriétaire.
+- **Essentielle** : jusqu’à 3 utilisateurs, rôle Collaborateur.
+- **Professionnelle** : jusqu’à 10 utilisateurs, rôles Responsable et Collaborateur.
+- **Métier** : rôles avancés et limite personnalisable dans une future administration NCR.
 
 ## Migrations Supabase
 
-Pour une nouvelle installation, exécuter dans cet ordre dans le SQL Editor :
+Pour une nouvelle installation, exécuter dans l’ordre :
 
-1. `supabase/migrations/001_core.sql`
-2. `supabase/migrations/002_booking_pack.sql`
-3. `supabase/migrations/003_staff_availability.sql`
-4. `supabase/migrations/004_appointments.sql`
-5. `supabase/migrations/005_public_booking.sql`
+1. `001_core.sql`
+2. `002_booking_pack.sql`
+3. `003_staff_availability.sql`
+4. `004_appointments.sql`
+5. `005_public_booking.sql`
+6. `006_email_notifications.sql`
+7. `007_team_access.sql`
 
-Pour une installation déjà en V1.4, exécuter uniquement `005_public_booking.sql`.
+Pour une installation déjà en V1.6.1, exécuter uniquement `007_team_access.sql`.
 
-## Activation de la page publique
+## Mise à jour de l’Edge Function
 
-Après la migration et le déploiement :
+La V1.7 ajoute l’e-mail d’invitation d’équipe. Remplacer le code de la fonction Supabase `process-email-queue` par :
 
-1. Ouvrir **Paramètres** dans NCR Suite.
-2. Activer **Prise de rendez-vous en ligne**.
-3. Régler le mode de confirmation et les délais.
-4. Enregistrer.
-5. Ouvrir ou copier le lien affiché : `/reserver/identifiant-entreprise`.
+`supabase/functions/process-email-queue/index.ts`
 
-## E-mails
+Puis enregistrer et redéployer la fonction. Les secrets Brevo existants restent inchangés.
 
-La réservation, l’affichage dans le planning et le lien de gestion sont fonctionnels sans service supplémentaire. L’envoi automatique d’un e-mail personnalisé nécessite ensuite la connexion d’un fournisseur d’e-mail transactionnel. Aucun envoi n’est simulé par la V1.5.
-
-## Installation locale
+## Développement local
 
 ```bash
 npm install
 npm run dev
 ```
 
-Variables d’environnement :
+Variables :
 
 ```env
 VITE_SUPABASE_URL=https://votre-projet.supabase.co
 VITE_SUPABASE_ANON_KEY=votre-cle-publique
 ```
 
-## Déploiement Cloudflare Pages
+## Cloudflare Pages
 
 ```text
 Build command: npm run build
 Build output directory: dist
 ```
 
-## Sécurité V1.5
-
-Les tables privées ne sont pas ouvertes aux visiteurs. La page publique utilise uniquement des fonctions PostgreSQL `security definer` dédiées qui contrôlent l’entreprise, les prestations, les collaborateurs, les horaires, les pauses, les délais et les conflits. Les liens de gestion reposent sur un jeton UUID aléatoire non affiché dans le planning interne.
-
-## V1.6.1 — E-mails automatiques
-
-Cette version ajoute une file d’envoi sécurisée, une Edge Function Supabase et l’intégration Brevo pour :
-
-- confirmation ou accusé de réception d’un rendez-vous ;
-- modification et annulation ;
-- rappel automatique configurable ;
-- notification de l’établissement lors d’une réservation publique ;
-- trois tentatives automatiques en cas d’échec ;
-- séparation stricte des données par entreprise.
-
-Installation : exécuter `006_email_notifications.sql`, déployer `process-email-queue`, ajouter les secrets Brevo puis planifier l’appel de la fonction.
+La procédure détaillée de la V1.7 est disponible dans `docs/TEAM_ACCESS_SETUP.md`.

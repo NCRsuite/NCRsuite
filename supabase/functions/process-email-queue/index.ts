@@ -118,6 +118,13 @@ function templateCopy(templateKey: string, payload: Record<string, unknown>) {
         title: 'Un client a annulé son rendez-vous',
         message: `Le rendez-vous du ${date.date} à ${date.time} a été annulé.`,
       };
+    case 'team_invitation':
+      return {
+        subject: `Invitation à rejoindre ${organization} sur NCR Suite`,
+        eyebrow: 'INVITATION ÉQUIPE',
+        title: `Rejoignez l’espace ${organization}`,
+        message: `${organization} vous invite à accéder à son espace professionnel NCR Suite.`,
+      };
     default:
       throw new Error(`Modèle d’e-mail inconnu : ${templateKey}`);
   }
@@ -126,6 +133,40 @@ function templateCopy(templateKey: string, payload: Record<string, unknown>) {
 function buildEmail(item: OutboxItem, publicUrl: string) {
   const payload = item.payload ?? {};
   const copy = templateCopy(item.template_key, payload);
+
+  if (item.template_key === 'team_invitation') {
+    const accent = safeColor(payload.organization_primary_color);
+    const organization = escapeHtml(payload.organization_name ?? 'NCR Suite');
+    const token = String(payload.invitation_token ?? '').trim();
+    const roleKey = String(payload.invited_role ?? 'employee');
+    const roleLabels: Record<string, string> = {
+      admin: 'Administrateur',
+      manager: 'Responsable',
+      employee: 'Collaborateur',
+      viewer: 'Consultation',
+    };
+    const role = roleLabels[roleKey] ?? 'Collaborateur';
+    const inviteUrl = `${publicUrl.replace(/\/$/, '')}/invitation/${encodeURIComponent(token)}`;
+    const expiresAt = new Date(String(payload.expires_at ?? ''));
+    const expiry = Number.isNaN(expiresAt.getTime())
+      ? 'dans 7 jours'
+      : new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(expiresAt);
+
+    const html = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;background:#f5f5f7;font-family:Arial,Helvetica,sans-serif;color:#1d1d1f">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;padding:28px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 12px 35px rgba(0,0,0,.08)">
+<tr><td style="height:8px;background:${accent}"></td></tr>
+<tr><td style="padding:36px 32px 14px"><div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">${escapeHtml(copy.message)}</p></td></tr>
+<tr><td style="padding:18px 32px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;border-radius:20px;padding:8px 18px"><tr><td style="padding:13px 0;color:#6e6e73">Entreprise</td><td align="right" style="font-weight:700">${organization}</td></tr><tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Accès proposé</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${escapeHtml(role)}</td></tr><tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Validité</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">Jusqu’au ${escapeHtml(expiry)}</td></tr></table></td></tr>
+<tr><td style="padding:8px 32px 30px"><a href="${escapeHtml(inviteUrl)}" style="display:inline-block;background:${accent};color:#fff;text-decoration:none;font-weight:700;padding:14px 24px;border-radius:999px">Accepter l’invitation</a></td></tr>
+<tr><td style="padding:22px 32px 32px;border-top:1px solid #ededf0;color:#86868b;font-size:13px;line-height:1.6">Cette invitation est personnelle. Si vous ne connaissez pas ${organization}, vous pouvez ignorer cet e-mail.<br>E-mail envoyé automatiquement par NCR Suite.</td></tr>
+</table></td></tr></table></body></html>`;
+
+    const text = `${copy.title}\n\n${copy.message}\n\nAccès : ${role}\nInvitation valable jusqu’au ${expiry}.\n\nAccepter l’invitation : ${inviteUrl}`;
+    return { subject: copy.subject, html, text, replyTo: null };
+  }
   const accent = safeColor(payload.organization_primary_color);
   const organization = escapeHtml(payload.organization_name ?? 'NCR Suite');
   const clientFirstName = escapeHtml(payload.client_first_name ?? item.recipient_name ?? '');

@@ -10,6 +10,10 @@ export function AppShell() {
 
   if (!organization) return null;
   const pack = businessPacks[organization.business_type];
+  const restrictedRole = ['employee', 'viewer'].includes(organization.role ?? 'viewer');
+  const navigation = restrictedRole
+    ? pack.navigation.filter((item) => ['/', '/rendez-vous'].includes(item.path))
+    : pack.navigation;
 
   return (
     <div className="app-shell">
@@ -28,11 +32,11 @@ export function AppShell() {
           >
             {organizations.map((org) => <option key={org.id} value={org.id}>{org.name}</option>)}
           </select>
-          <small>{pack.label} · {organization.plan}</small>
+          <small>{pack.label} · {organization.plan} · {organization.role ?? 'viewer'}</small>
         </div>
 
         <nav className="main-nav" aria-label="Navigation principale">
-          {pack.navigation.map((item) => (
+          {navigation.map((item) => (
             <NavLink key={item.path} to={item.path} end={item.path === '/'}>
               <Icon name={item.icon} size={20} />
               <span>{item.label}</span>

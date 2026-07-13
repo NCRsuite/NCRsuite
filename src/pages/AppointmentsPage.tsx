@@ -183,8 +183,10 @@ export function AppointmentsPage() {
   const [staffFilter, setStaffFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all');
 
-  const canManage = ['owner', 'admin', 'manager', 'employee'].includes(organization?.role ?? 'viewer');
-  const formOpen = searchParams.get('new') === '1' || editingId !== null;
+  const canEditAppointments = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
+  const canChangeStatus = ['owner', 'admin', 'manager', 'employee'].includes(organization?.role ?? 'viewer');
+  const personalView = ['employee', 'viewer'].includes(organization?.role ?? 'viewer');
+  const formOpen = canEditAppointments && (searchParams.get('new') === '1' || editingId !== null);
 
   const loadData = useCallback(async () => {
     if (!organization) return;
@@ -285,7 +287,7 @@ export function AppointmentsPage() {
   const weekAmount = weekAppointments.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
 
   function openCreateForm(date?: Date, time?: string) {
-    if (!canManage) return;
+    if (!canEditAppointments) return;
     const base = emptyForm();
     if (date) base.date = dateToInput(date);
     if (time) base.time = time;
@@ -298,7 +300,7 @@ export function AppointmentsPage() {
   }
 
   function openEditForm(appointment: AppointmentRecord) {
-    if (!canManage || appointment.status === 'cancelled') return;
+    if (!canEditAppointments || appointment.status === 'cancelled') return;
     const start = new Date(appointment.starts_at);
     setForm({
       clientId: appointment.client_id,
@@ -359,7 +361,7 @@ export function AppointmentsPage() {
 
   async function saveAppointment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!organization || !canManage) return;
+    if (!organization || !canEditAppointments) return;
     if (!form.clientId || !form.serviceId || !form.staffId || !form.date || !form.time) {
       setError('Tous les champs obligatoires doivent être renseignés.');
       return;
@@ -428,7 +430,7 @@ export function AppointmentsPage() {
   }
 
   async function changeStatus(appointment: AppointmentRecord, status: AppointmentStatus) {
-    if (!organization || !canManage || appointment.status === status) return;
+    if (!organization || !canChangeStatus || appointment.status === status) return;
     let reason: string | null = null;
     if (status === 'cancelled') {
       reason = window.prompt('Motif d’annulation (facultatif) :')?.trim() || null;
@@ -485,9 +487,9 @@ export function AppointmentsPage() {
           <small>{service ? `${service.duration_minutes} min · ${currencyFormatter.format((appointment.amount_cents ?? service.price_cents) / 100)}` : ''}</small>
           {appointment.notes && <em>{appointment.notes}</em>}
         </div>
-        {canManage && (
+        {canChangeStatus && (
           <div className="appointment-actions">
-            {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
+            {canEditAppointments && appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
               <button type="button" className="secondary-button compact-button" onClick={() => openEditForm(appointment)}>Modifier</button>
             )}
             <select
@@ -514,9 +516,9 @@ export function AppointmentsPage() {
         <div>
           <p className="eyebrow">PLANNING</p>
           <h1>Rendez-vous</h1>
-          <p>Planifiez l’activité sans double réservation et selon les disponibilités réelles de l’équipe.</p>
+          <p>{personalView ? 'Consultez les rendez-vous qui vous sont attribués et mettez leur statut à jour.' : 'Planifiez l’activité sans double réservation et selon les disponibilités réelles de l’équipe.'}</p>
         </div>
-        {canManage && <button className="primary-button" type="button" onClick={() => openCreateForm()}><Icon name="calendar" size={18} />Nouveau rendez-vous</button>}
+        {canEditAppointments && <button className="primary-button" type="button" onClick={() => openCreateForm()}><Icon name="calendar" size={18} />Nouveau rendez-vous</button>}
       </header>
 
       {formOpen && (
@@ -637,7 +639,7 @@ export function AppointmentsPage() {
                   </button>
                   <div className="week-day-events">
                     {dayAppointments.length === 0 ? (
-                      <button type="button" className="empty-day-button" onClick={() => openCreateForm(day, '09:00')}>+ Ajouter</button>
+                      canEditAppointments ? <button type="button" className="empty-day-button" onClick={() => openCreateForm(day, '09:00')}>+ Ajouter</button> : <span className="empty-day-label">Aucun rendez-vous</span>
                     ) : dayAppointments.map((appointment) => appointmentCard(appointment))}
                   </div>
                 </section>
@@ -648,14 +650,14 @@ export function AppointmentsPage() {
           <div className="day-planner">
             <div className="day-planner-heading">
               <div><p className="eyebrow">AGENDA DU JOUR</p><h3>{selectedDayAppointments.length} rendez-vous</h3></div>
-              {canManage && <button className="secondary-button" type="button" onClick={() => openCreateForm(selectedDate, '09:00')}>Ajouter sur cette journée</button>}
+              {canEditAppointments && <button className="secondary-button" type="button" onClick={() => openCreateForm(selectedDate, '09:00')}>Ajouter sur cette journée</button>}
             </div>
             {selectedDayAppointments.length === 0 ? (
               <div className="list-state empty-appointments-state">
                 <div className="empty-icon"><Icon name="calendar" size={30} /></div>
                 <h3>Aucun rendez-vous ce jour-là</h3>
                 <p>La journée est libre pour les filtres sélectionnés.</p>
-                {canManage && <button className="primary-button" type="button" onClick={() => openCreateForm(selectedDate, '09:00')}>Créer un rendez-vous</button>}
+                {canEditAppointments && <button className="primary-button" type="button" onClick={() => openCreateForm(selectedDate, '09:00')}>Créer un rendez-vous</button>}
               </div>
             ) : <div className="day-appointment-list">{selectedDayAppointments.map(appointmentCard)}</div>}
           </div>

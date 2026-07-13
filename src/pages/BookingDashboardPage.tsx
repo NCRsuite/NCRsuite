@@ -86,24 +86,30 @@ export function BookingDashboardPage() {
   const maxCount = Math.max(...dayCounts, 1);
 
   if (!organization) return null;
+  const canManage = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
+  const isPersonalView = ['employee', 'viewer'].includes(organization.role ?? 'viewer');
 
   return (
     <div className="page dashboard-page">
       <header className="page-header">
-        <div><p className="eyebrow">COIFFURE & BEAUTÉ</p><h1>Bonjour, bienvenue sur {organization.name}.</h1><p>Votre activité réelle, mise à jour depuis Supabase.</p></div>
+        <div><p className="eyebrow">COIFFURE & BEAUTÉ</p><h1>Bonjour, bienvenue sur {organization.name}.</h1><p>{isPersonalView ? 'Votre planning personnel et vos rendez-vous.' : 'Votre activité réelle, mise à jour depuis Supabase.'}</p></div>
         <div className="header-actions">
-          <Link className="primary-button" to="/rendez-vous?new=1"><Icon name="calendar" size={18} />Nouveau rendez-vous</Link>
-          <Link className="secondary-button" to="/clients?new=1"><Icon name="users" size={18} />Créer un client</Link>
-          {organization.booking_enabled && (
-            <a className="secondary-button" href={`/reserver/${organization.slug}`} target="_blank" rel="noreferrer"><Icon name="calendar" size={18} />Page publique</a>
-          )}
+          {canManage ? (
+            <>
+              <Link className="primary-button" to="/rendez-vous?new=1"><Icon name="calendar" size={18} />Nouveau rendez-vous</Link>
+              <Link className="secondary-button" to="/clients?new=1"><Icon name="users" size={18} />Créer un client</Link>
+              {organization.booking_enabled && (
+                <a className="secondary-button" href={`/reserver/${organization.slug}`} target="_blank" rel="noreferrer"><Icon name="calendar" size={18} />Page publique</a>
+              )}
+            </>
+          ) : <Link className="primary-button" to="/rendez-vous"><Icon name="calendar" size={18} />Voir mon planning</Link>}
         </div>
       </header>
 
       <section className="stats-grid">
         <StatCard label="Rendez-vous aujourd’hui" value={loading ? '—' : String(todayCount)} detail="hors annulations" icon="calendar" />
         <StatCard label="Rendez-vous cette semaine" value={loading ? '—' : String(activeAppointments.length)} detail="planning actuel" icon="activity" />
-        <StatCard label="Clients actifs" value={loading ? '—' : String(clientCount)} detail="dans votre fichier client" icon="users" />
+        <StatCard label={isPersonalView ? "Clients de mes rendez-vous" : "Clients actifs"} value={loading ? '—' : String(clientCount)} detail={isPersonalView ? "visibles dans mon planning" : "dans votre fichier client"} icon="users" />
         <StatCard label="Chiffre prévisionnel" value={loading ? '—' : currencyFormatter.format(forecast / 100)} detail="cette semaine" icon="chart" />
       </section>
 
@@ -127,7 +133,7 @@ export function BookingDashboardPage() {
 
       <section className="panel onboarding-note">
         <div className="note-icon"><Icon name="calendar" size={26} /></div>
-        <div><p className="eyebrow">PACK MÉTIER ACTIF</p><h2>Coiffure & beauté</h2><p>Les clients, prestations, collaborateurs et rendez-vous sont maintenant reliés. La prochaine évolution ouvrira la réservation publique selon les créneaux disponibles.</p></div>
+        <div><p className="eyebrow">PACK MÉTIER ACTIF</p><h2>Coiffure & beauté</h2><p>{isPersonalView ? 'Votre accès est limité à votre planning et aux rendez-vous qui vous sont attribués.' : 'Les clients, prestations, collaborateurs, rendez-vous et comptes d’équipe sont reliés dans un espace sécurisé.'}</p></div>
       </section>
     </div>
   );

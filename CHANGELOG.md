@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.7.1
+
+- Correction de la migration équipe : appels pgcrypto qualifiés via `extensions.digest` et `extensions.gen_random_bytes`.
+- Ajout explicite de l’extension `pgcrypto` dans le schéma `extensions`.
+
+## 1.7.0 — Comptes d’équipe et permissions
+
+- Invitations par e-mail avec lien personnel valable 7 jours.
+- Comptes séparés pour le propriétaire, les responsables et les collaborateurs.
+- Limites automatiques selon la formule : 1, 3, 10 ou 100 utilisateurs.
+- Offre Découverte verrouillée avec présentation de l’offre Essentielle.
+- Rôle Responsable disponible à partir de l’offre Professionnelle.
+- Association d’un compte à un profil Collaborateur existant.
+- Suspension, réactivation, renvoi et révocation des accès.
+- Collaborateur limité à son propre planning et aux rendez-vous qui lui sont attribués.
+- Contrôles renforcés côté PostgreSQL, RLS et fonctions sécurisées.
+- Nouveau modèle Brevo pour les invitations d’équipe.
+
 ## 1.6.1 — E-mails automatiques
 
 - File d’envoi transactionnelle sécurisée.
