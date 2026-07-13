@@ -747,3 +747,38 @@ textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in
   .invitation-summary > div { align-items: flex-start; flex-direction: column; gap: 5px; }
   .invitation-summary strong { text-align: left; }
 }
+
+/* NCR Suite V1.8 — expérience client */
+.public-consent-box { padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: #fafafd; display: grid; gap: 12px; }
+.public-consent-check { display: grid !important; grid-template-columns: auto 1fr; align-items: flex-start; gap: 11px; color: var(--ink); font-size: 13px; line-height: 1.55; }
+.public-consent-check input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--accent); }
+.public-consent-box details { border-top: 1px solid var(--line); padding-top: 11px; }
+.public-consent-box summary { cursor: pointer; color: var(--accent); font-size: 12px; font-weight: 700; }
+.public-policy-content { padding-top: 10px; display: grid; gap: 9px; }
+.public-policy-content p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.public-policy-content strong { color: var(--ink); }
+.calendar-provider-links { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.calendar-provider-links a, .calendar-provider-links button { appearance: none; border: 1px solid var(--line); border-radius: 999px; padding: 9px 13px; background: white; color: var(--ink); text-decoration: none; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+.calendar-provider-links a:hover, .calendar-provider-links button:hover { border-color: var(--accent); color: var(--accent); }
+.calendar-actions-card { margin-bottom: 22px; padding: 16px; border-radius: 18px; background: color-mix(in srgb, var(--accent) 7%, white); display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.calendar-actions-card > div:first-child { display: grid; gap: 4px; }
+.calendar-actions-card > div:first-child span { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.public-client-information-card { margin-top: 15px; }
+.public-client-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 22px; }
+.public-client-info-grid > div { padding: 18px; border-radius: 18px; background: #f7f7f9; }
+.public-client-info-grid span { display: block; margin-bottom: 7px; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.public-client-info-grid p { margin: 0; color: var(--ink); font-size: 13px; line-height: 1.6; }
+.public-establishment-contact { margin-top: 12px; padding: 17px 18px; border: 1px solid var(--line); border-radius: 18px; display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.public-establishment-contact > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.public-establishment-contact a { color: var(--accent); text-decoration: none; font-size: 12px; font-weight: 700; }
+.client-experience-settings textarea { min-height: 110px; }
+
+@media (max-width: 720px) {
+  .calendar-actions-card, .public-establishment-contact { align-items: stretch; flex-direction: column; }
+  .public-client-info-grid { grid-template-columns: 1fr; }
+  .calendar-provider-links > * { flex: 1 1 auto; text-align: center; }
+}
+
+@media print {
+  .calendar-provider-links, .calendar-actions-card { display: none !important; }
+}

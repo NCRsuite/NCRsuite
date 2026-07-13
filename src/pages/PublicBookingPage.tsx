@@ -2,6 +2,7 @@ import { CSSProperties, FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { supabase } from '../lib/supabase';
+import { downloadCalendarFile, googleCalendarUrl, outlookCalendarUrl } from '../lib/calendar';
 
 interface PublicOrganization {
   id: string;
@@ -19,6 +20,10 @@ interface PublicSettings {
   max_days_ahead: number;
   cancel_notice_hours: number;
   welcome_text: string | null;
+  cancellation_policy: string | null;
+  privacy_notice: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
 }
 
 interface PublicService {
@@ -70,6 +75,7 @@ interface CustomerForm {
   phone: string;
   notes: string;
   website: string;
+  consent: boolean;
 }
 
 const currencyFormatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
@@ -97,7 +103,7 @@ function formatDuration(minutes: number) {
 }
 
 function emptyCustomerForm(): CustomerForm {
-  return { firstName: '', lastName: '', email: '', phone: '', notes: '', website: '' };
+  return { firstName: '', lastName: '', email: '', phone: '', notes: '', website: '', consent: false };
 }
 
 export function PublicBookingPage() {
@@ -200,7 +206,7 @@ export function PublicBookingPage() {
     setSaving(true);
     setError('');
     try {
-      const { data, error: bookingError } = await supabase.rpc('create_public_booking', {
+      const { data, error: bookingError } = await supabase.rpc('create_public_booking_v2', {
         p_slug: pageData.organization.slug,
         p_service_id: selectedService.id,
         p_staff_id: selectedSlot.staff_id,
@@ -210,7 +216,8 @@ export function PublicBookingPage() {
         p_email: customer.email,
         p_phone: customer.phone,
         p_notes: customer.notes,
-        p_website: customer.website
+        p_website: customer.website,
+        p_privacy_consent: customer.consent
       });
       if (bookingError) throw bookingError;
       setResult(data as BookingResult);
@@ -250,6 +257,13 @@ export function PublicBookingPage() {
 
   if (result) {
     const manageUrl = `/reservation/${result.token}`;
+    const calendarEvent = {
+      title: `${result.service_name} — ${result.organization_name}`,
+      description: `Rendez-vous avec ${result.staff_name}. Gestion : ${window.location.origin}${manageUrl}`,
+      startsAt: result.starts_at,
+      endsAt: result.ends_at,
+      location: result.organization_name
+    };
     return (
       <div className="public-booking-page" style={publicStyle}>
         <header className="public-booking-brand">
@@ -272,8 +286,18 @@ export function PublicBookingPage() {
             </div>
             <div className="public-success-actions">
               <Link className="primary-button" to={manageUrl}>Gérer ma réservation</Link>
-              <button className="secondary-button" type="button" onClick={() => window.print()}>Imprimer le récapitulatif</button>
+              {result.status === 'confirmed' && (
+                <button className="secondary-button" type="button" onClick={() => downloadCalendarFile(calendarEvent, `rendez-vous-${result.organization_slug}.ics`)}>Ajouter au calendrier</button>
+              )}
+              <button className="secondary-button" type="button" onClick={() => window.print()}>Imprimer</button>
             </div>
+            {result.status === 'confirmed' && (
+              <div className="calendar-provider-links" aria-label="Ajouter le rendez-vous à un calendrier">
+                <a href={googleCalendarUrl(calendarEvent)} target="_blank" rel="noreferrer">Google Agenda</a>
+                <a href={outlookCalendarUrl(calendarEvent)} target="_blank" rel="noreferrer">Outlook</a>
+                <button type="button" onClick={() => downloadCalendarFile(calendarEvent, `rendez-vous-${result.organization_slug}.ics`)}>Apple / fichier .ics</button>
+              </div>
+            )}
             <div className="info-message public-manage-note">
               Conservez le lien « Gérer ma réservation » : il permet de déplacer ou d’annuler le rendez-vous dans le respect du délai fixé par l’établissement.
             </div>
@@ -369,9 +393,31 @@ export function PublicBookingPage() {
               <label className="full-field">Message facultatif<textarea rows={3} maxLength={1000} value={customer.notes} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} disabled={!selectedSlot} placeholder="Une précision utile pour le rendez-vous…" /></label>
               <label className="public-honeypot" aria-hidden="true">Site internet<input tabIndex={-1} autoComplete="off" value={customer.website} onChange={(event) => setCustomer((current) => ({ ...current, website: event.target.value }))} /></label>
               {error && <div className="error-message full-field" role="alert">{error}</div>}
+              <div className="public-consent-box full-field">
+                <label className="public-consent-check">
+                  <input
+                    type="checkbox"
+                    checked={customer.consent}
+                    onChange={(event) => setCustomer((current) => ({ ...current, consent: event.target.checked }))}
+                    disabled={!selectedSlot}
+                    required
+                  />
+                  <span>J’accepte que mes coordonnées soient utilisées pour organiser et suivre ce rendez-vous.</span>
+                </label>
+                <details>
+                  <summary>Confidentialité et conditions de modification</summary>
+                  <div className="public-policy-content">
+                    <p><strong>Utilisation des données.</strong> {pageData.settings.privacy_notice || 'Vos coordonnées sont utilisées uniquement pour organiser, confirmer et suivre votre rendez-vous.'}</p>
+                    <p><strong>Modification et annulation.</strong> {pageData.settings.cancellation_policy || `Les actions en ligne restent possibles jusqu’à ${pageData.settings.cancel_notice_hours} h avant le rendez-vous.`}</p>
+                    {(pageData.settings.contact_email || pageData.settings.contact_phone) && (
+                      <p><strong>Contact.</strong> {[pageData.settings.contact_email, pageData.settings.contact_phone].filter(Boolean).join(' · ')}</p>
+                    )}
+                  </div>
+                </details>
+              </div>
               <div className="public-booking-submit full-field">
-                <p>En validant, vous acceptez que vos coordonnées soient utilisées uniquement pour gérer cette réservation.</p>
-                <button className="primary-button" disabled={!selectedSlot || saving || (!customer.email.trim() && !customer.phone.trim())}>
+                <p>Une confirmation et un lien privé de gestion seront envoyés par e-mail lorsque l’adresse est renseignée.</p>
+                <button className="primary-button" disabled={!selectedSlot || saving || !customer.consent || (!customer.email.trim() && !customer.phone.trim())}>
                   {saving ? 'Réservation en cours…' : pageData.settings.confirmation_mode === 'manual' ? 'Envoyer ma demande' : 'Confirmer mon rendez-vous'}
                 </button>
               </div>

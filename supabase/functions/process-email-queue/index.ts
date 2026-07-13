@@ -51,6 +51,13 @@ function formatAppointmentDate(payload: Record<string, unknown>): { date: string
   };
 }
 
+
+function compactUtc(value: unknown): string | null {
+  const date = new Date(String(value ?? ''));
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+}
+
 function formatPrice(cents: unknown): string | null {
   const amount = Number(cents);
   if (!Number.isFinite(amount) || amount < 0) return null;
@@ -179,14 +186,26 @@ function buildEmail(item: OutboxItem, publicUrl: string) {
   const price = formatPrice(payload.amount_cents);
   const isCustomer = item.template_key.startsWith('customer_');
   const manageUrl = publicToken ? `${publicUrl.replace(/\/$/, '')}/reservation/${encodeURIComponent(publicToken)}` : null;
+  const starts = compactUtc(payload.starts_at);
+  const ends = compactUtc(payload.ends_at);
+  const calendarUrl = isCustomer && starts && ends && !['customer_cancelled', 'customer_pending'].includes(item.template_key)
+    ? `https://calendar.google.com/calendar/render?${new URLSearchParams({
+        action: 'TEMPLATE',
+        text: `${String(payload.service_name ?? 'Rendez-vous')} — ${String(payload.organization_name ?? '')}`,
+        details: manageUrl ? `Gérer le rendez-vous : ${manageUrl}` : 'Rendez-vous réservé avec NCR Suite',
+        dates: `${starts}/${ends}`,
+        location: String(payload.organization_name ?? '')
+      }).toString()}`
+    : null;
+  const cancellationPolicy = String(payload.cancellation_policy ?? '').trim();
 
   const contactLine = [
     contactEmail ? `<a href="mailto:${escapeHtml(contactEmail)}" style="color:${accent};text-decoration:none">${escapeHtml(contactEmail)}</a>` : '',
     contactPhone ? `<a href="tel:${escapeHtml(contactPhone)}" style="color:${accent};text-decoration:none">${escapeHtml(contactPhone)}</a>` : '',
   ].filter(Boolean).join(' · ');
 
-  const manageButton = isCustomer && manageUrl && !['customer_cancelled'].includes(item.template_key)
-    ? `<tr><td style="padding:8px 32px 28px"><a href="${escapeHtml(manageUrl)}" style="display:inline-block;background:${accent};color:#fff;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:999px">Gérer mon rendez-vous</a></td></tr>`
+  const actionButtons = isCustomer && ((manageUrl && !['customer_cancelled'].includes(item.template_key)) || calendarUrl)
+    ? `<tr><td style="padding:8px 32px 28px">${manageUrl && !['customer_cancelled'].includes(item.template_key) ? `<a href="${escapeHtml(manageUrl)}" style="display:inline-block;background:${accent};color:#fff;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:999px;margin:0 8px 8px 0">Gérer mon rendez-vous</a>` : ''}${calendarUrl ? `<a href="${escapeHtml(calendarUrl)}" style="display:inline-block;background:#f0f0f2;color:#1d1d1f;text-decoration:none;font-weight:700;padding:13px 22px;border-radius:999px;margin-bottom:8px">Ajouter à Google Agenda</a>` : ''}</td></tr>`
     : '';
 
   const html = `<!doctype html>
@@ -204,11 +223,12 @@ function buildEmail(item: OutboxItem, publicUrl: string) {
 ${staff ? `<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Collaborateur</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${staff}</td></tr>` : ''}
 ${price ? `<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Tarif</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${escapeHtml(price)}</td></tr>` : ''}
 </table></td></tr>
-${manageButton}
+${actionButtons}
+${isCustomer && cancellationPolicy ? `<tr><td style="padding:0 32px 24px;color:#6e6e73;font-size:12px;line-height:1.6"><strong style="color:#1d1d1f">Modification et annulation :</strong> ${escapeHtml(cancellationPolicy)}</td></tr>` : ''}
 <tr><td style="padding:22px 32px 32px;border-top:1px solid #ededf0;color:#86868b;font-size:13px;line-height:1.6">${contactLine ? `Une question ? ${contactLine}<br>` : ''}E-mail envoyé automatiquement par NCR Suite pour ${organization}.</td></tr>
 </table></td></tr></table></body></html>`;
 
-  const text = `${copy.title}\n\n${copy.message}\n\nÉtablissement : ${payload.organization_name ?? ''}\nPrestation : ${payload.service_name ?? ''}\nDate : ${appointmentDate.date}\nHeure : ${appointmentDate.time}${staff ? `\nCollaborateur : ${payload.staff_name}` : ''}${price ? `\nTarif : ${price}` : ''}${manageUrl && isCustomer ? `\n\nGérer mon rendez-vous : ${manageUrl}` : ''}${contactEmail || contactPhone ? `\n\nContact : ${[contactEmail, contactPhone].filter(Boolean).join(' · ')}` : ''}`;
+  const text = `${copy.title}\n\n${copy.message}\n\nÉtablissement : ${payload.organization_name ?? ''}\nPrestation : ${payload.service_name ?? ''}\nDate : ${appointmentDate.date}\nHeure : ${appointmentDate.time}${staff ? `\nCollaborateur : ${payload.staff_name}` : ''}${price ? `\nTarif : ${price}` : ''}${manageUrl && isCustomer ? `\n\nGérer mon rendez-vous : ${manageUrl}` : ''}${calendarUrl ? `\nAjouter à Google Agenda : ${calendarUrl}` : ''}${cancellationPolicy && isCustomer ? `\n\nModification et annulation : ${cancellationPolicy}` : ''}${contactEmail || contactPhone ? `\n\nContact : ${[contactEmail, contactPhone].filter(Boolean).join(' · ')}` : ''}`;
 
   return { subject: copy.subject, html, text, replyTo: contactEmail || null };
 }

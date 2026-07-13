@@ -22,6 +22,8 @@ export interface Organization {
   booking_contact_email?: string | null;
   booking_contact_phone?: string | null;
   booking_reminder_hours?: number;
+  booking_cancellation_policy?: string | null;
+  booking_privacy_notice?: string | null;
   role?: MemberRole;
 }
 

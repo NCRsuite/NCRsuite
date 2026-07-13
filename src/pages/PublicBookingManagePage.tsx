@@ -2,6 +2,7 @@ import { CSSProperties, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { supabase } from '../lib/supabase';
+import { downloadCalendarFile, googleCalendarUrl, outlookCalendarUrl } from '../lib/calendar';
 
 interface ManagedBooking {
   appointment_id: string;
@@ -26,6 +27,10 @@ interface ManagedBooking {
   client_email: string | null;
   client_phone: string | null;
   can_cancel: boolean;
+  contact_email: string | null;
+  contact_phone: string | null;
+  cancellation_policy: string | null;
+  privacy_notice: string | null;
 }
 
 interface AvailableSlot {
@@ -176,6 +181,14 @@ export function PublicBookingManagePage() {
 
   const style = { '--accent': booking.primary_color } as CSSProperties;
   const canManage = booking.can_cancel && ['pending', 'confirmed'].includes(booking.status);
+  const canAddToCalendar = booking.status === 'confirmed';
+  const calendarEvent = {
+    title: `${booking.service_name} — ${booking.organization_name}`,
+    description: `Rendez-vous avec ${booking.staff_name}. Référence ${booking.appointment_id.slice(0, 8).toUpperCase()}.`,
+    startsAt: booking.starts_at,
+    endsAt: booking.ends_at,
+    location: booking.organization_name
+  };
 
   return (
     <div className="public-booking-page" style={style}>
@@ -205,9 +218,23 @@ export function PublicBookingManagePage() {
             <div className="public-manage-price"><span>Tarif</span><strong>{currencyFormatter.format((booking.amount_cents ?? 0) / 100)}</strong></div>
           </div>
           <div className="public-manage-contact">
-            <div><span>Contact</span><strong>{booking.client_email || booking.client_phone || 'Non renseigné'}</strong></div>
+            <div><span>Coordonnées de réservation</span><strong>{booking.client_email || booking.client_phone || 'Non renseigné'}</strong></div>
             <div><span>Modification en ligne</span><strong>{canManage ? `Jusqu’à ${booking.cancel_notice_hours} h avant` : 'Indisponible'}</strong></div>
           </div>
+
+          {canAddToCalendar && (
+            <div className="calendar-actions-card">
+              <div>
+                <strong>Ajouter à votre calendrier</strong>
+                <span>Recevez un rappel directement depuis votre téléphone ou votre agenda.</span>
+              </div>
+              <div className="calendar-provider-links">
+                <a href={googleCalendarUrl(calendarEvent)} target="_blank" rel="noreferrer">Google Agenda</a>
+                <a href={outlookCalendarUrl(calendarEvent)} target="_blank" rel="noreferrer">Outlook</a>
+                <button type="button" onClick={() => downloadCalendarFile(calendarEvent, `rendez-vous-${booking.organization_slug}.ics`)}>Apple / .ics</button>
+              </div>
+            </div>
+          )}
 
           {canManage && !rescheduling && (
             <div className="public-success-actions">
@@ -240,6 +267,29 @@ export function PublicBookingManagePage() {
             </div>
           </section>
         )}
+
+        <section className="public-manage-card public-client-information-card">
+          <div className="public-step-heading"><span>i</span><div><h2>Informations utiles</h2><p>Retrouvez les règles appliquées à votre réservation et les coordonnées de l’établissement.</p></div></div>
+          <div className="public-client-info-grid">
+            <div>
+              <span>Modification et annulation</span>
+              <p>{booking.cancellation_policy || `Les actions en ligne restent possibles jusqu’à ${booking.cancel_notice_hours} h avant le rendez-vous.`}</p>
+            </div>
+            <div>
+              <span>Utilisation de vos données</span>
+              <p>{booking.privacy_notice || 'Vos coordonnées sont utilisées uniquement pour organiser, confirmer et suivre ce rendez-vous.'}</p>
+            </div>
+          </div>
+          {(booking.contact_email || booking.contact_phone) && (
+            <div className="public-establishment-contact">
+              <strong>Contacter {booking.organization_name}</strong>
+              <div>
+                {booking.contact_email && <a href={`mailto:${booking.contact_email}`}>{booking.contact_email}</a>}
+                {booking.contact_phone && <a href={`tel:${booking.contact_phone.replace(/\s+/g, '')}`}>{booking.contact_phone}</a>}
+              </div>
+            </div>
+          )}
+        </section>
       </main>
       <footer className="public-booking-footer">Propulsé par <strong>NCR Suite</strong></footer>
     </div>

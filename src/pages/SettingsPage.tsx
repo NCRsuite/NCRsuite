@@ -5,7 +5,7 @@ import { useOrganization } from '../contexts/OrganizationContext';
 const slotOptions = [5, 10, 15, 20, 30, 45, 60];
 
 export function SettingsPage() {
-  const { organization, updateBranding, updateBookingSettings, updateEmailNotificationSettings } = useOrganization();
+  const { organization, updateBranding, updateBookingSettings, updateEmailNotificationSettings, updateClientExperienceSettings } = useOrganization();
   const [name, setName] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#2997ff');
   const [message, setMessage] = useState('');
@@ -13,6 +13,7 @@ export function SettingsPage() {
   const [savingBranding, setSavingBranding] = useState(false);
   const [savingBooking, setSavingBooking] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
+  const [savingClientExperience, setSavingClientExperience] = useState(false);
   const [bookingEnabled, setBookingEnabled] = useState(false);
   const [confirmationMode, setConfirmationMode] = useState<'automatic' | 'manual'>('automatic');
   const [slotInterval, setSlotInterval] = useState(15);
@@ -25,6 +26,8 @@ export function SettingsPage() {
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [reminderHours, setReminderHours] = useState(24);
+  const [cancellationPolicy, setCancellationPolicy] = useState('Toute modification ou annulation doit être effectuée avant le délai indiqué. Au-delà, contactez directement l’établissement.');
+  const [privacyNotice, setPrivacyNotice] = useState('Vos coordonnées sont utilisées uniquement pour organiser, confirmer et suivre votre rendez-vous.');
 
   useEffect(() => {
     if (!organization) return;
@@ -41,6 +44,8 @@ export function SettingsPage() {
     setContactEmail(organization.booking_contact_email ?? '');
     setContactPhone(organization.booking_contact_phone ?? '');
     setReminderHours(organization.booking_reminder_hours ?? 24);
+    setCancellationPolicy(organization.booking_cancellation_policy ?? 'Toute modification ou annulation doit être effectuée avant le délai indiqué. Au-delà, contactez directement l’établissement.');
+    setPrivacyNotice(organization.booking_privacy_notice ?? 'Vos coordonnées sont utilisées uniquement pour organiser, confirmer et suivre votre rendez-vous.');
   }, [organization]);
 
   const bookingUrl = useMemo(() => {
@@ -112,6 +117,22 @@ export function SettingsPage() {
       setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
     } finally {
       setSavingEmail(false);
+    }
+  }
+
+  async function submitClientExperience(event: FormEvent) {
+    event.preventDefault();
+    if (!canManage || !isBookingBusiness) return;
+    setSavingClientExperience(true);
+    setMessage('');
+    setError('');
+    try {
+      await updateClientExperienceSettings({ cancellationPolicy, privacyNotice });
+      setMessage('Les informations destinées aux clients ont été enregistrées.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
+    } finally {
+      setSavingClientExperience(false);
     }
   }
 
@@ -325,6 +346,49 @@ export function SettingsPage() {
             </div>
 
             {canManage && <button className="primary-button" disabled={savingEmail}>{savingEmail ? 'Enregistrement…' : 'Enregistrer les e-mails automatiques'}</button>}
+          </form>
+        )}
+
+        {isBookingBusiness && (
+          <form className="panel settings-form booking-settings-form client-experience-settings" onSubmit={submitClientExperience}>
+            <div>
+              <p className="eyebrow">EXPÉRIENCE CLIENT</p>
+              <h2>Règles et confidentialité</h2>
+              <p className="muted">Ces textes sont affichés avant la réservation et dans l’espace de gestion du rendez-vous.</p>
+            </div>
+
+            <div className="booking-settings-grid">
+              <label className="full-field">
+                Politique de modification et d’annulation
+                <textarea
+                  rows={4}
+                  maxLength={1500}
+                  value={cancellationPolicy}
+                  onChange={(event) => setCancellationPolicy(event.target.value)}
+                  placeholder="Ex. Toute annulation doit être effectuée au moins 24 h avant le rendez-vous."
+                  disabled={!canManage}
+                />
+                <small>{cancellationPolicy.length}/1500 caractères</small>
+              </label>
+              <label className="full-field">
+                Information sur l’utilisation des données
+                <textarea
+                  rows={4}
+                  maxLength={2000}
+                  value={privacyNotice}
+                  onChange={(event) => setPrivacyNotice(event.target.value)}
+                  placeholder="Expliquez simplement comment les coordonnées du client seront utilisées."
+                  disabled={!canManage}
+                />
+                <small>{privacyNotice.length}/2000 caractères</small>
+              </label>
+            </div>
+
+            <div className="info-message booking-email-note">
+              NCR Suite enregistre la date du consentement donné lors de la réservation. Ces textes ne remplacent pas, à eux seuls, les mentions légales ou la politique de confidentialité complète de l’entreprise.
+            </div>
+
+            {canManage && <button className="primary-button" disabled={savingClientExperience}>{savingClientExperience ? 'Enregistrement…' : 'Enregistrer l’expérience client'}</button>}
           </form>
         )}
       </div>

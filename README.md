@@ -1,4 +1,4 @@
-# NCR Suite — V1.7.0
+# NCR Suite — V1.8.0
 
 NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Chaque entreprise dispose de son espace, de ses données isolées et des modules correspondant à son activité.
 
@@ -38,7 +38,7 @@ Pour une installation déjà en V1.6.1, exécuter uniquement `007_team_access.sq
 
 ## Mise à jour de l’Edge Function
 
-La V1.7 ajoute l’e-mail d’invitation d’équipe. Remplacer le code de la fonction Supabase `process-email-queue` par :
+La V1.8 ajoute le consentement client, les règles de réservation configurables et l’ajout au calendrier. La V1.7 avait ajouté l’e-mail d’invitation d’équipe. Remplacer le code de la fonction Supabase `process-email-queue` par :
 
 `supabase/functions/process-email-queue/index.ts`
 
@@ -66,3 +66,11 @@ Build output directory: dist
 ```
 
 La procédure détaillée de la V1.7 est disponible dans `docs/TEAM_ACCESS_SETUP.md`.
+
+
+## Migration V1.8
+
+1. Exécuter `supabase/migrations/008_client_experience.sql`.
+2. Remplacer le code de l’Edge Function `process-email-queue` par `supabase/functions/process-email-queue/index.ts`.
+3. Déployer le code sur GitHub puis attendre le déploiement Cloudflare.
+4. Configurer les textes dans **Paramètres → Expérience client**.

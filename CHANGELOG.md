@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.8.0 — Expérience client et gestion du rendez-vous
+
+- Consentement explicite obligatoire avant toute réservation publique.
+- Enregistrement de la date et du texte de consentement dans Supabase.
+- Politique de modification/annulation et information de confidentialité configurables par entreprise.
+- Nouvelle page de gestion client plus complète avec coordonnées et règles de l’établissement.
+- Ajout au calendrier Apple, Google Agenda et Outlook.
+- Liens de gestion et ajout Google Agenda intégrés aux e-mails de rendez-vous.
+- Informations de contact plus visibles pour le client.
+- Mise à jour du cache PWA et renforcement de la traçabilité.
+
 ## 1.7.1
 
 - Correction de la migration équipe : appels pgcrypto qualifiés via `extensions.digest` et `extensions.gen_random_bytes`.
