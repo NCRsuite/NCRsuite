@@ -3,6 +3,7 @@ import { AppShell } from './components/AppShell';
 import { useAuth } from './contexts/AuthContext';
 import { useOrganization } from './contexts/OrganizationContext';
 import { DashboardPage } from './pages/DashboardPage';
+import { ClientsPage } from './pages/ClientsPage';
 import { LoginPage } from './pages/LoginPage';
 import { ModulePage } from './pages/ModulePage';
 import { OnboardingPage } from './pages/OnboardingPage';
@@ -29,6 +30,7 @@ export default function App() {
       <Route path="/configuration" element={<OnboardingPage />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
+        <Route path="clients" element={<ClientsPage />} />
         <Route path="parametres" element={<SettingsPage />} />
         <Route path="*" element={<ModulePage />} />
       </Route>

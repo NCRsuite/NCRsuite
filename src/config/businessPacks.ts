@@ -42,7 +42,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
     ],
     quickActions: [
       { label: 'Ajouter un rendez-vous', path: '/rendez-vous', icon: 'calendar' },
-      { label: 'Créer un client', path: '/clients', icon: 'users' }
+      { label: 'Créer un client', path: '/clients?new=1', icon: 'users' }
     ]
   },
   nettoyage: {
