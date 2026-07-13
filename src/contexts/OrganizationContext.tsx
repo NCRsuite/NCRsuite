@@ -1,0 +1,174 @@
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useAuth } from './AuthContext';
+import { supabase } from '../lib/supabase';
+import type { BusinessType, Organization, Plan } from '../types';
+
+interface CreateOrganizationInput {
+  name: string;
+  businessType: BusinessType;
+  primaryColor: string;
+}
+
+interface OrganizationContextValue {
+  organizations: Organization[];
+  organization: Organization | null;
+  loading: boolean;
+  selectOrganization: (id: string) => void;
+  createOrganization: (input: CreateOrganizationInput) => Promise<void>;
+  updateBranding: (updates: { name?: string; primaryColor?: string }) => Promise<void>;
+}
+
+const OrganizationContext = createContext<OrganizationContextValue | null>(null);
+
+function slugify(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 48);
+}
+
+export function OrganizationProvider({ children }: { children: React.ReactNode }) {
+  const { user, demoMode } = useAuth();
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(() => localStorage.getItem('ncr-suite-org-id'));
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    async function load() {
+      if (!user) {
+        if (active) {
+          setOrganizations([]);
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (demoMode || !supabase) {
+        const stored = localStorage.getItem('ncr-suite-demo-org');
+        const demoOrganizations = stored ? [JSON.parse(stored) as Organization] : [];
+        if (active) {
+          setOrganizations(demoOrganizations);
+          setSelectedId(demoOrganizations[0]?.id ?? null);
+          setLoading(false);
+        }
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('organization_members')
+        .select('role, organizations(id,name,slug,business_type,plan,primary_color,logo_url)')
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
+      if (error) {
+        console.error(error);
+        if (active) setLoading(false);
+        return;
+      }
+
+      const rows = (data ?? [])
+        .map((row: any) => ({ ...row.organizations, role: row.role } as Organization))
+        .filter((row: Organization) => Boolean(row.id));
+
+      if (active) {
+        setOrganizations(rows);
+        setSelectedId((current) => current && rows.some((org) => org.id === current) ? current : rows[0]?.id ?? null);
+        setLoading(false);
+      }
+    }
+
+    setLoading(true);
+    load();
+    return () => { active = false; };
+  }, [user, demoMode]);
+
+  const organization = organizations.find((org) => org.id === selectedId) ?? organizations[0] ?? null;
+
+  useEffect(() => {
+    if (!organization) return;
+    localStorage.setItem('ncr-suite-org-id', organization.id);
+    document.documentElement.style.setProperty('--accent', organization.primary_color || '#2997ff');
+  }, [organization]);
+
+  const value = useMemo<OrganizationContextValue>(() => ({
+    organizations,
+    organization,
+    loading,
+    selectOrganization(id) {
+      setSelectedId(id);
+    },
+    async createOrganization({ name, businessType, primaryColor }) {
+      const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 7)}`;
+      const plan: Plan = 'decouverte';
+
+      if (demoMode || !supabase) {
+        const org: Organization = {
+          id: crypto.randomUUID(),
+          name,
+          slug,
+          business_type: businessType,
+          plan,
+          primary_color: primaryColor,
+          role: 'owner'
+        };
+        localStorage.setItem('ncr-suite-demo-org', JSON.stringify(org));
+        setOrganizations([org]);
+        setSelectedId(org.id);
+        return;
+      }
+
+      const { data, error } = await supabase.rpc('create_organization', {
+        p_name: name,
+        p_slug: slug,
+        p_business_type: businessType,
+        p_primary_color: primaryColor
+      });
+      if (error) throw error;
+
+      const org: Organization = {
+        id: data,
+        name,
+        slug,
+        business_type: businessType,
+        plan,
+        primary_color: primaryColor,
+        role: 'owner'
+      };
+      setOrganizations((current) => [...current, org]);
+      setSelectedId(org.id);
+    },
+    async updateBranding({ name, primaryColor }) {
+      if (!organization) return;
+      const next = {
+        ...organization,
+        ...(name ? { name } : {}),
+        ...(primaryColor ? { primary_color: primaryColor } : {})
+      };
+
+      if (demoMode || !supabase) {
+        localStorage.setItem('ncr-suite-demo-org', JSON.stringify(next));
+      } else {
+        const { error } = await supabase
+          .from('organizations')
+          .update({ name: next.name, primary_color: next.primary_color })
+          .eq('id', organization.id);
+        if (error) throw error;
+      }
+
+      setOrganizations((current) => current.map((org) => org.id === next.id ? next : org));
+    }
+  }), [organizations, organization, loading, selectedId, demoMode]);
+
+  return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;
+}
+
+export function useOrganization() {
+  const context = useContext(OrganizationContext);
+  if (!context) throw new Error('useOrganization doit être utilisé dans OrganizationProvider.');
+  return context;
+}
