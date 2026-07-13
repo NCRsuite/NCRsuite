@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.3.0
+
+- Ajout du module Collaborateurs connecté à Supabase.
+- Création et modification des membres de l’équipe.
+- Gestion du nom, de l’e-mail, du téléphone et de la couleur de planning.
+- Attribution des prestations réalisables par collaborateur.
+- Configuration des jours travaillés, horaires et pauses.
+- Enregistrement transactionnel des réglages grâce à une fonction Supabase sécurisée.
+- Recherche, filtres et activation/désactivation.
+- Préparation du moteur de disponibilités pour les futurs rendez-vous publics.
+- Mise à jour du cache PWA.
+
 ## 1.2.0
 
 - Ajout du module Prestations connecté à Supabase.

@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v1.2.0';
+const CACHE = 'ncr-suite-shell-v1.3.0';
 const SHELL = [
   '/',
   '/index.html',

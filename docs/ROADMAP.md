@@ -22,7 +22,8 @@
 ## Lot 2 — Premier pack réel : Rendez-vous
 - Clients. ✅
 - Prestations. ✅
-- Collaborateurs.
+- Collaborateurs. ✅
+- Disponibilités hebdomadaires. ✅
 - Agenda jour/semaine/mois.
 - Réservation publique.
 - E-mails de confirmation.
