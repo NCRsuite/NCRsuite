@@ -18,6 +18,10 @@ export interface Organization {
   booking_max_days_ahead?: number;
   booking_cancel_notice_hours?: number;
   booking_welcome_text?: string | null;
+  email_notifications_enabled?: boolean;
+  booking_contact_email?: string | null;
+  booking_contact_phone?: string | null;
+  booking_reminder_hours?: number;
   role?: MemberRole;
 }
 

@@ -5,13 +5,14 @@ import { useOrganization } from '../contexts/OrganizationContext';
 const slotOptions = [5, 10, 15, 20, 30, 45, 60];
 
 export function SettingsPage() {
-  const { organization, updateBranding, updateBookingSettings } = useOrganization();
+  const { organization, updateBranding, updateBookingSettings, updateEmailNotificationSettings } = useOrganization();
   const [name, setName] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#2997ff');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [savingBranding, setSavingBranding] = useState(false);
   const [savingBooking, setSavingBooking] = useState(false);
+  const [savingEmail, setSavingEmail] = useState(false);
   const [bookingEnabled, setBookingEnabled] = useState(false);
   const [confirmationMode, setConfirmationMode] = useState<'automatic' | 'manual'>('automatic');
   const [slotInterval, setSlotInterval] = useState(15);
@@ -20,6 +21,10 @@ export function SettingsPage() {
   const [cancelNoticeHours, setCancelNoticeHours] = useState(12);
   const [welcomeText, setWelcomeText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [reminderHours, setReminderHours] = useState(24);
 
   useEffect(() => {
     if (!organization) return;
@@ -32,6 +37,10 @@ export function SettingsPage() {
     setMaxDaysAhead(organization.booking_max_days_ahead ?? 60);
     setCancelNoticeHours(organization.booking_cancel_notice_hours ?? 12);
     setWelcomeText(organization.booking_welcome_text ?? '');
+    setEmailNotificationsEnabled(organization.email_notifications_enabled ?? true);
+    setContactEmail(organization.booking_contact_email ?? '');
+    setContactPhone(organization.booking_contact_phone ?? '');
+    setReminderHours(organization.booking_reminder_hours ?? 24);
   }, [organization]);
 
   const bookingUrl = useMemo(() => {
@@ -81,6 +90,28 @@ export function SettingsPage() {
       setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
     } finally {
       setSavingBooking(false);
+    }
+  }
+
+
+  async function submitEmailNotifications(event: FormEvent) {
+    event.preventDefault();
+    if (!canManage || !isBookingBusiness) return;
+    setSavingEmail(true);
+    setMessage('');
+    setError('');
+    try {
+      await updateEmailNotificationSettings({
+        enabled: emailNotificationsEnabled,
+        contactEmail,
+        contactPhone,
+        reminderHours
+      });
+      setMessage('Les e-mails automatiques ont été configurés.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
+    } finally {
+      setSavingEmail(false);
     }
   }
 
@@ -228,11 +259,72 @@ export function SettingsPage() {
               </label>
             </div>
 
-            <div className="info-message booking-email-note">
-              La réservation et l’affichage dans le planning sont fonctionnels. L’envoi automatique d’un e-mail personnalisé sera activé lors de la configuration du service d’e-mail transactionnel.
+            {canManage && <button className="primary-button" disabled={savingBooking}>{savingBooking ? 'Enregistrement…' : 'Enregistrer la réservation publique'}</button>}
+          </form>
+        )}
+
+        {isBookingBusiness && (
+          <form className="panel settings-form booking-settings-form email-settings-form" onSubmit={submitEmailNotifications}>
+            <div className="settings-section-heading">
+              <div>
+                <p className="eyebrow">E-MAILS AUTOMATIQUES</p>
+                <h2>Confirmations et rappels</h2>
+                <p className="muted">NCR Suite informe le client lors d’une confirmation, modification, annulation et avant le rendez-vous.</p>
+              </div>
+              <label className="switch-field">
+                <input
+                  type="checkbox"
+                  checked={emailNotificationsEnabled}
+                  onChange={(event) => setEmailNotificationsEnabled(event.target.checked)}
+                  disabled={!canManage}
+                />
+                <span aria-hidden="true" />
+                <b>{emailNotificationsEnabled ? 'Activés' : 'Désactivés'}</b>
+              </label>
             </div>
 
-            {canManage && <button className="primary-button" disabled={savingBooking}>{savingBooking ? 'Enregistrement…' : 'Enregistrer la réservation publique'}</button>}
+            <div className="booking-settings-grid">
+              <label>
+                E-mail de contact de l’établissement
+                <input
+                  type="email"
+                  value={contactEmail}
+                  onChange={(event) => setContactEmail(event.target.value)}
+                  placeholder="contact@entreprise.fr"
+                  disabled={!canManage}
+                />
+                <small>Utilisé pour les alertes professionnelles et comme adresse de réponse.</small>
+              </label>
+              <label>
+                Téléphone de contact facultatif
+                <input
+                  type="tel"
+                  value={contactPhone}
+                  onChange={(event) => setContactPhone(event.target.value)}
+                  placeholder="06 00 00 00 00"
+                  disabled={!canManage}
+                />
+                <small>Affiché dans les e-mails envoyés aux clients.</small>
+              </label>
+              <label>
+                Rappel automatique
+                <select value={reminderHours} onChange={(event) => setReminderHours(Number(event.target.value))} disabled={!canManage}>
+                  <option value={0}>Aucun rappel</option>
+                  <option value={2}>2 heures avant</option>
+                  <option value={6}>6 heures avant</option>
+                  <option value={12}>12 heures avant</option>
+                  <option value={24}>24 heures avant</option>
+                  <option value={48}>48 heures avant</option>
+                  <option value={72}>72 heures avant</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="info-message booking-email-note">
+              Les e-mails sont envoyés depuis NCR Suite au nom de l’établissement. L’adresse de contact reste visible pour permettre au client de répondre directement.
+            </div>
+
+            {canManage && <button className="primary-button" disabled={savingEmail}>{savingEmail ? 'Enregistrement…' : 'Enregistrer les e-mails automatiques'}</button>}
           </form>
         )}
       </div>

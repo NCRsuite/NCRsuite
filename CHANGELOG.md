@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.1 — E-mails automatiques
+
+- File d’envoi transactionnelle sécurisée.
+- Confirmations, demandes en attente, modifications et annulations.
+- Rappels configurables de 2 à 72 heures.
+- Alertes professionnelles pour les réservations publiques.
+- Edge Function Brevo avec reprises automatiques en cas d’échec.
+- Paramètres e-mail par entreprise.
+
 ## 1.5.0
 
 - Ajout d’une page publique de réservation propre à chaque entreprise : `/reserver/identifiant`.

@@ -19,6 +19,13 @@ interface BookingSettingsInput {
   welcomeText: string;
 }
 
+interface EmailNotificationSettingsInput {
+  enabled: boolean;
+  contactEmail: string;
+  contactPhone: string;
+  reminderHours: number;
+}
+
 interface OrganizationContextValue {
   organizations: Organization[];
   organization: Organization | null;
@@ -27,6 +34,7 @@ interface OrganizationContextValue {
   createOrganization: (input: CreateOrganizationInput) => Promise<void>;
   updateBranding: (updates: { name?: string; primaryColor?: string }) => Promise<void>;
   updateBookingSettings: (updates: BookingSettingsInput) => Promise<void>;
+  updateEmailNotificationSettings: (updates: EmailNotificationSettingsInput) => Promise<void>;
 }
 
 
@@ -73,7 +81,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
       const { data, error } = await supabase
         .from('organization_members')
-        .select('role, organizations(id,name,slug,business_type,plan,primary_color,logo_url,timezone,booking_enabled,booking_confirmation_mode,booking_slot_interval,booking_min_notice_hours,booking_max_days_ahead,booking_cancel_notice_hours,booking_welcome_text)')
+        .select('role, organizations(id,name,slug,business_type,plan,primary_color,logo_url,timezone,booking_enabled,booking_confirmation_mode,booking_slot_interval,booking_min_notice_hours,booking_max_days_ahead,booking_cancel_notice_hours,booking_welcome_text,email_notifications_enabled,booking_contact_email,booking_contact_phone,booking_reminder_hours)')
         .eq('user_id', user.id)
         .eq('status', 'active');
 
@@ -200,6 +208,31 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           p_max_days_ahead: maxDaysAhead,
           p_cancel_notice_hours: cancelNoticeHours,
           p_welcome_text: welcomeText.trim() || null
+        });
+        if (error) throw error;
+      }
+
+      setOrganizations((current) => current.map((org) => org.id === next.id ? next : org));
+    },
+    async updateEmailNotificationSettings({ enabled, contactEmail, contactPhone, reminderHours }) {
+      if (!organization) return;
+      const next: Organization = {
+        ...organization,
+        email_notifications_enabled: enabled,
+        booking_contact_email: contactEmail.trim() || null,
+        booking_contact_phone: contactPhone.trim() || null,
+        booking_reminder_hours: reminderHours
+      };
+
+      if (demoMode || !supabase) {
+        localStorage.setItem('ncr-suite-demo-org', JSON.stringify(next));
+      } else {
+        const { error } = await supabase.rpc('update_email_notification_settings', {
+          p_organization_id: organization.id,
+          p_enabled: enabled,
+          p_contact_email: contactEmail.trim() || null,
+          p_contact_phone: contactPhone.trim() || null,
+          p_reminder_hours: reminderHours
         });
         if (error) throw error;
       }

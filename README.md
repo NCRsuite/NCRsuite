@@ -68,3 +68,16 @@ Build output directory: dist
 ## Sécurité V1.5
 
 Les tables privées ne sont pas ouvertes aux visiteurs. La page publique utilise uniquement des fonctions PostgreSQL `security definer` dédiées qui contrôlent l’entreprise, les prestations, les collaborateurs, les horaires, les pauses, les délais et les conflits. Les liens de gestion reposent sur un jeton UUID aléatoire non affiché dans le planning interne.
+
+## V1.6.1 — E-mails automatiques
+
+Cette version ajoute une file d’envoi sécurisée, une Edge Function Supabase et l’intégration Brevo pour :
+
+- confirmation ou accusé de réception d’un rendez-vous ;
+- modification et annulation ;
+- rappel automatique configurable ;
+- notification de l’établissement lors d’une réservation publique ;
+- trois tentatives automatiques en cas d’échec ;
+- séparation stricte des données par entreprise.
+
+Installation : exécuter `006_email_notifications.sql`, déployer `process-email-queue`, ajouter les secrets Brevo puis planifier l’appel de la fonction.
