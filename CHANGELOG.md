@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.4.0
+
+- Ajout du module Rendez-vous internes connecté à Supabase.
+- Création et modification avec client, prestation, collaborateur, date, heure, statut et notes.
+- Planning hebdomadaire et journalier responsive.
+- Filtres par collaborateur et statut.
+- Contrôle des horaires de travail, pauses et prestations attribuées.
+- Protection anti double-réservation côté interface, fonction SQL et contrainte PostgreSQL.
+- Gestion des statuts : en attente, confirmé, terminé, absent et annulé.
+- Tableau de bord Coiffure & beauté alimenté par les données réelles.
+- Mise à jour du cache PWA.
+
 ## 1.3.0
 
 - Ajout du module Collaborateurs connecté à Supabase.

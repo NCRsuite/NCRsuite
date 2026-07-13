@@ -3,10 +3,12 @@ import { businessPacks } from '../config/businessPacks';
 import { Icon } from '../components/Icon';
 import { StatCard } from '../components/StatCard';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { BookingDashboardPage } from './BookingDashboardPage';
 
 export function DashboardPage() {
   const { organization } = useOrganization();
   if (!organization) return null;
+  if (organization.business_type === 'coiffure') return <BookingDashboardPage />;
   const pack = businessPacks[organization.business_type];
 
   return (

@@ -10,6 +10,7 @@ import { OnboardingPage } from './pages/OnboardingPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ServicesPage } from './pages/ServicesPage';
 import { StaffPage } from './pages/StaffPage';
+import { AppointmentsPage } from './pages/AppointmentsPage';
 
 function LoadingScreen() {
   return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Chargement de NCR Suite…</span></div>;
@@ -32,6 +33,7 @@ export default function App() {
       <Route path="/configuration" element={<OnboardingPage />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
+        <Route path="rendez-vous" element={<AppointmentsPage />} />
         <Route path="clients" element={<ClientsPage />} />
         <Route path="prestations" element={<ServicesPage />} />
         <Route path="equipe" element={<StaffPage />} />

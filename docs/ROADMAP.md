@@ -24,10 +24,10 @@
 - Prestations. ✅
 - Collaborateurs. ✅
 - Disponibilités hebdomadaires. ✅
-- Agenda jour/semaine/mois.
+- Agenda jour/semaine. ✅
 - Réservation publique.
 - E-mails de confirmation.
-- Annulation et déplacement.
+- Annulation et déplacement interne. ✅
 - Statistiques simples.
 
 ## Lot 3 — Abonnements

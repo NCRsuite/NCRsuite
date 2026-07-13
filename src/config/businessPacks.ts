@@ -41,9 +41,9 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Chiffre prévisionnel', value: '1 240 €', detail: 'cette semaine', icon: 'activity' }
     ],
     quickActions: [
-      { label: 'Ajouter un collaborateur', path: '/equipe?new=1', icon: 'briefcase' },
-      { label: 'Créer une prestation', path: '/prestations?new=1', icon: 'sparkles' },
-      { label: 'Créer un client', path: '/clients?new=1', icon: 'users' }
+      { label: 'Nouveau rendez-vous', path: '/rendez-vous?new=1', icon: 'calendar' },
+      { label: 'Créer un client', path: '/clients?new=1', icon: 'users' },
+      { label: 'Créer une prestation', path: '/prestations?new=1', icon: 'sparkles' }
     ]
   },
   nettoyage: {
