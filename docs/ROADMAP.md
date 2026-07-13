@@ -25,9 +25,10 @@
 - Collaborateurs. ✅
 - Disponibilités hebdomadaires. ✅
 - Agenda jour/semaine. ✅
-- Réservation publique.
-- E-mails de confirmation.
+- Réservation publique. ✅
+- E-mails de confirmation transactionnels.
 - Annulation et déplacement interne. ✅
+- Annulation et déplacement par le client. ✅
 - Statistiques simples.
 
 ## Lot 3 — Abonnements

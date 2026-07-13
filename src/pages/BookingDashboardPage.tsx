@@ -94,6 +94,9 @@ export function BookingDashboardPage() {
         <div className="header-actions">
           <Link className="primary-button" to="/rendez-vous?new=1"><Icon name="calendar" size={18} />Nouveau rendez-vous</Link>
           <Link className="secondary-button" to="/clients?new=1"><Icon name="users" size={18} />Créer un client</Link>
+          {organization.booking_enabled && (
+            <a className="secondary-button" href={`/reserver/${organization.slug}`} target="_blank" rel="noreferrer"><Icon name="calendar" size={18} />Page publique</a>
+          )}
         </div>
       </header>
 

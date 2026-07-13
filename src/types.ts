@@ -10,6 +10,14 @@ export interface Organization {
   plan: Plan;
   primary_color: string;
   logo_url?: string | null;
+  timezone?: string;
+  booking_enabled?: boolean;
+  booking_confirmation_mode?: 'automatic' | 'manual';
+  booking_slot_interval?: number;
+  booking_min_notice_hours?: number;
+  booking_max_days_ahead?: number;
+  booking_cancel_notice_hours?: number;
+  booking_welcome_text?: string | null;
   role?: MemberRole;
 }
 

@@ -19,3 +19,11 @@ Les règles RLS Supabase vérifient que l’utilisateur connecté appartient à 
 3. Vérifier qu’un membre de l’entreprise A ne peut lire, modifier ou supprimer aucune donnée de l’entreprise B.
 4. Refaire ces tests avec chaque rôle.
 5. Vérifier les fichiers Storage avec la même logique d’isolation.
+
+
+## Réservation publique
+- Les visiteurs n’obtiennent aucun droit direct sur les tables privées.
+- Les lectures et écritures publiques passent uniquement par des fonctions SQL dédiées et contrôlées.
+- Le lien de gestion repose sur un jeton UUID aléatoire traité comme un secret.
+- Un champ anti-robot et une limitation par coordonnées réduisent les envois automatisés simples.
+- La contrainte d’exclusion PostgreSQL reste la protection finale contre les doubles réservations concurrentes.

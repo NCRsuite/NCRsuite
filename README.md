@@ -1,4 +1,4 @@
-# NCR Suite — V1.4.0
+# NCR Suite — V1.5.0
 
 NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Une seule base technique affiche des outils différents selon le métier de l’entreprise connectée, sans mélanger les données.
 
@@ -10,9 +10,39 @@ NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Une
 - Prestations : durée, tarif, description et statut.
 - Collaborateurs : contacts, prestations réalisées, horaires et pauses.
 - Rendez-vous internes : création, modification, planning jour/semaine et statuts.
-- Contrôle automatique des horaires, pauses, prestations autorisées et doubles réservations.
-- Tableau de bord coiffure alimenté par les vraies données Supabase.
+- Tableau de bord alimenté par les données réelles Supabase.
+- Réservation publique sans compte client.
+- Créneaux calculés selon les horaires, pauses, durées et rendez-vous existants.
+- Choix d’un collaborateur ou de l’option « Peu importe ».
+- Confirmation automatique ou validation manuelle.
+- Consultation, déplacement et annulation via un lien privé.
 - PWA responsive pour mobile et ordinateur.
+
+## Migrations Supabase
+
+Pour une nouvelle installation, exécuter dans cet ordre dans le SQL Editor :
+
+1. `supabase/migrations/001_core.sql`
+2. `supabase/migrations/002_booking_pack.sql`
+3. `supabase/migrations/003_staff_availability.sql`
+4. `supabase/migrations/004_appointments.sql`
+5. `supabase/migrations/005_public_booking.sql`
+
+Pour une installation déjà en V1.4, exécuter uniquement `005_public_booking.sql`.
+
+## Activation de la page publique
+
+Après la migration et le déploiement :
+
+1. Ouvrir **Paramètres** dans NCR Suite.
+2. Activer **Prise de rendez-vous en ligne**.
+3. Régler le mode de confirmation et les délais.
+4. Enregistrer.
+5. Ouvrir ou copier le lien affiché : `/reserver/identifiant-entreprise`.
+
+## E-mails
+
+La réservation, l’affichage dans le planning et le lien de gestion sont fonctionnels sans service supplémentaire. L’envoi automatique d’un e-mail personnalisé nécessite ensuite la connexion d’un fournisseur d’e-mail transactionnel. Aucun envoi n’est simulé par la V1.5.
 
 ## Installation locale
 
@@ -20,15 +50,6 @@ NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Une
 npm install
 npm run dev
 ```
-
-## Migrations Supabase
-
-Exécuter dans cet ordre dans le SQL Editor :
-
-1. `supabase/migrations/001_core.sql`
-2. `supabase/migrations/002_booking_pack.sql`
-3. `supabase/migrations/003_staff_availability.sql`
-4. `supabase/migrations/004_appointments.sql`
 
 Variables d’environnement :
 
@@ -44,10 +65,6 @@ Build command: npm run build
 Build output directory: dist
 ```
 
-## Sécurité V1.4
+## Sécurité V1.5
 
-Les rendez-vous ne sont plus écrits directement depuis le navigateur. Les fonctions Supabase `save_appointment` et `set_appointment_status` contrôlent les rôles, l’entreprise, le client, la prestation, le collaborateur, les horaires, les pauses et les conflits. Une contrainte PostgreSQL empêche également deux réservations concurrentes sur le même créneau.
-
-## Prochaine évolution
-
-V1.5 : page publique de réservation sans compte obligatoire, calcul des créneaux disponibles et confirmation client.
+Les tables privées ne sont pas ouvertes aux visiteurs. La page publique utilise uniquement des fonctions PostgreSQL `security definer` dédiées qui contrôlent l’entreprise, les prestations, les collaborateurs, les horaires, les pauses, les délais et les conflits. Les liens de gestion reposent sur un jeton UUID aléatoire non affiché dans le planning interne.

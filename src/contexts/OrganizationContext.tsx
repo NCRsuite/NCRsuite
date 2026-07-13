@@ -9,6 +9,16 @@ interface CreateOrganizationInput {
   primaryColor: string;
 }
 
+interface BookingSettingsInput {
+  enabled: boolean;
+  confirmationMode: 'automatic' | 'manual';
+  slotInterval: number;
+  minNoticeHours: number;
+  maxDaysAhead: number;
+  cancelNoticeHours: number;
+  welcomeText: string;
+}
+
 interface OrganizationContextValue {
   organizations: Organization[];
   organization: Organization | null;
@@ -16,7 +26,9 @@ interface OrganizationContextValue {
   selectOrganization: (id: string) => void;
   createOrganization: (input: CreateOrganizationInput) => Promise<void>;
   updateBranding: (updates: { name?: string; primaryColor?: string }) => Promise<void>;
+  updateBookingSettings: (updates: BookingSettingsInput) => Promise<void>;
 }
+
 
 const OrganizationContext = createContext<OrganizationContextValue | null>(null);
 
@@ -61,7 +73,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
       const { data, error } = await supabase
         .from('organization_members')
-        .select('role, organizations(id,name,slug,business_type,plan,primary_color,logo_url)')
+        .select('role, organizations(id,name,slug,business_type,plan,primary_color,logo_url,timezone,booking_enabled,booking_confirmation_mode,booking_slot_interval,booking_min_notice_hours,booking_max_days_ahead,booking_cancel_notice_hours,booking_welcome_text)')
         .eq('user_id', user.id)
         .eq('status', 'active');
 
@@ -157,6 +169,37 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           p_organization_id: organization.id,
           p_name: next.name,
           p_primary_color: next.primary_color
+        });
+        if (error) throw error;
+      }
+
+      setOrganizations((current) => current.map((org) => org.id === next.id ? next : org));
+    },
+    async updateBookingSettings({ enabled, confirmationMode, slotInterval, minNoticeHours, maxDaysAhead, cancelNoticeHours, welcomeText }) {
+      if (!organization) return;
+      const next: Organization = {
+        ...organization,
+        booking_enabled: enabled,
+        booking_confirmation_mode: confirmationMode,
+        booking_slot_interval: slotInterval,
+        booking_min_notice_hours: minNoticeHours,
+        booking_max_days_ahead: maxDaysAhead,
+        booking_cancel_notice_hours: cancelNoticeHours,
+        booking_welcome_text: welcomeText.trim() || null
+      };
+
+      if (demoMode || !supabase) {
+        localStorage.setItem('ncr-suite-demo-org', JSON.stringify(next));
+      } else {
+        const { error } = await supabase.rpc('update_public_booking_settings', {
+          p_organization_id: organization.id,
+          p_enabled: enabled,
+          p_confirmation_mode: confirmationMode,
+          p_slot_interval: slotInterval,
+          p_min_notice_hours: minNoticeHours,
+          p_max_days_ahead: maxDaysAhead,
+          p_cancel_notice_hours: cancelNoticeHours,
+          p_welcome_text: welcomeText.trim() || null
         });
         if (error) throw error;
       }

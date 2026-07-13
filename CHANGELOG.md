@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.5.0
+
+- Ajout d’une page publique de réservation propre à chaque entreprise : `/reserver/identifiant`.
+- Réservation sans création de compte client.
+- Choix de la prestation, du collaborateur ou de l’option « Peu importe ».
+- Calcul côté Supabase des créneaux réellement disponibles selon les horaires, pauses, durées et rendez-vous existants.
+- Confirmation automatique ou demande soumise à validation manuelle.
+- Création ou mise à jour sécurisée du client dans la bonne entreprise.
+- Protection contre les doubles réservations simultanées et limitation des envois répétitifs.
+- Lien privé permettant au client de consulter, déplacer ou annuler sa réservation dans le délai autorisé.
+- Nouveaux réglages : activation, intervalle des créneaux, délai minimum, période réservable et délai d’annulation.
+- Accès direct à la page publique depuis le tableau de bord et les paramètres.
+- Préparation de l’envoi d’e-mails transactionnels, à connecter à un fournisseur dédié lors d’une étape séparée.
+- Mise à jour du cache PWA.
+
 ## 1.4.0
 
 - Ajout du module Rendez-vous internes connecté à Supabase.
