@@ -1,4 +1,4 @@
-# NCR Suite — V1.0.1
+# NCR Suite — V1.0.2
 
 NCR Suite est une nouvelle plateforme indépendante de NCR Academy.
 
@@ -72,7 +72,7 @@ supabase/migrations/     base de données et sécurité
 
 ## Important
 
-Cette V1.0.1 pose le socle officiel sécurisé de NCR Suite avec son identité visuelle définitive. Les chiffres affichés sur les tableaux de bord sont des données visuelles de démonstration. Les modules métier détaillés seront développés lot par lot.
+Cette V1.0.2 pose le socle officiel sécurisé de NCR Suite avec son identité visuelle définitive. Les chiffres affichés sur les tableaux de bord sont des données visuelles de démonstration. Les modules métier détaillés seront développés lot par lot.
 
 
 ## Identité officielle V1.0
@@ -86,3 +86,7 @@ public/og/
 ```
 
 Le logo horizontal est utilisé dans les écrans principaux, tandis que l’icône carrée alimente le chargement, le favicon et l’installation PWA.
+
+## Correctif Cloudflare V1.0.2
+
+Le registre npm est explicitement configuré sur le registre public officiel. Le fichier `package-lock.json` ne contient plus aucune URL privée liée à l’environnement de génération.

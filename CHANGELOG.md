@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2 — Correctif de déploiement Cloudflare
+
+- Remplace les URL privées du registre npm présentes par erreur dans `package-lock.json` par le registre public officiel.
+- Ajoute une configuration `.npmrc` explicite vers `https://registry.npmjs.org/`.
+- Fige les versions des dépendances pour rendre les builds reproductibles.
+- Fige Node.js 22.16.0 via `.node-version`.
+
 ## 1.0.1 — Correctif sécurité avant déploiement
 
 - Empêche un administrateur client de modifier directement son forfait, son statut ou son type de métier.
