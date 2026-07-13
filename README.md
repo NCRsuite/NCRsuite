@@ -1,4 +1,4 @@
-# NCR Suite — V1.1.0
+# NCR Suite — V1.2.0
 
 NCR Suite est une nouvelle plateforme indépendante de NCR Academy.
 
@@ -18,6 +18,7 @@ Le principe : une seule plateforme multi-entreprises, avec une expérience diff�
 - Base SQL multi-entreprises avec rôles, RLS, clients, documents et audit.
 - Schéma du premier pack rendez-vous.
 - Module Clients fonctionnel : création, liste, recherche et archivage connecté à Supabase.
+- Module Prestations fonctionnel : création, modification, durée, tarif, recherche et activation/désactivation.
 
 ## Tester immédiatement
 
@@ -73,7 +74,7 @@ supabase/migrations/     base de données et sécurité
 
 ## Important
 
-Cette V1.1.0 ajoute le premier module réellement opérationnel : la gestion des clients. Les chiffres affichés sur les tableaux de bord restent encore des données visuelles de démonstration. Les autres modules métier seront développés lot par lot.
+Cette V1.2.0 ajoute le catalogue des prestations au module Clients déjà opérationnel. Les chiffres affichés sur les tableaux de bord restent encore des données visuelles de démonstration. Les prochains lots prévus sont les collaborateurs, leurs disponibilités, puis les rendez-vous.
 
 
 ## Identité officielle V1.0

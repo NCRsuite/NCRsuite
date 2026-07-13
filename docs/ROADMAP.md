@@ -20,9 +20,9 @@
 - Journal d’audit consultable.
 
 ## Lot 2 — Premier pack réel : Rendez-vous
-- Clients.
+- Clients. ✅
+- Prestations. ✅
 - Collaborateurs.
-- Prestations.
 - Agenda jour/semaine/mois.
 - Réservation publique.
 - E-mails de confirmation.
