@@ -85,6 +85,7 @@ public/icons/
 public/og/
 ```
 
+
 Le logo horizontal est utilisé dans les écrans principaux, tandis que l’icône carrée alimente le chargement, le favicon et l’installation PWA.
 
 ## Correctif Cloudflare V1.0.2
