@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 2.4.2 — Tarifs et offres par domaine métier
+
+- Conservation des quatre niveaux communs : Découverte, Essentielle, Professionnelle et Métier.
+- Nouveau catalogue commercial distinct pour chaque domaine.
+- Tarifs Formation intégrés : 39,90 €, 69,90 € et 99,90 € HT/mois ; Métier sur étude.
+- Tarifs Coiffure conservés : 9,90 €, 19,90 € et 39,90 € HT/mois.
+- Page Mon abonnement adaptée au domaine : fonctions et indicateurs Formation réels.
+- Liens Qonto séparés entre Coiffure et Formation.
+- Administration NCR avec sélection du domaine avant configuration des liens de paiement.
+- Création d’espace préremplie avec le bon tarif selon le domaine et la formule.
+- Correction automatique des espaces Formation encore facturés avec un ancien tarif générique, sans écraser les tarifs personnalisés.
+- Cache PWA mis à jour en V2.4.2.
+
 ## 2.4.1 — Création d’espaces multi-activités
 
 - Nouveau bouton **Créer un espace** dans Administration NCR → Entreprises.
@@ -10,7 +23,7 @@
 - Activation automatique des seuls modules compatibles avec le domaine choisi.
 - Blocage des comptes administrateurs NCR comme propriétaires d’un espace métier.
 - Journalisation de la création et initialisation sécurisée de l’abonnement.
-- Cache PWA mis à jour en V2.4.1.
+- Cache PWA mis à jour en V2.4.2.
 
 ## 2.4.0 — Pack Formation, socle opérationnel
 

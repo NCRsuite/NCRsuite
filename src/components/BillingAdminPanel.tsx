@@ -13,6 +13,8 @@ interface BillingSettings {
 }
 
 interface BillingPlanLink {
+  business_type: string;
+  business_type_label: string;
   plan_key: Plan;
   display_name: string;
   monthly_price_cents: number;
@@ -23,8 +25,14 @@ interface BillingPlanLink {
   sort_order: number;
 }
 
+interface BillingDomain {
+  business_type: string;
+  display_name: string;
+}
+
 interface BillingConfiguration {
   settings: BillingSettings;
+  domains: BillingDomain[];
   plans: BillingPlanLink[];
 }
 
@@ -68,10 +76,18 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
   const [error, setError] = useState('');
   const [paymentReferences, setPaymentReferences] = useState<Record<string, string>>({});
   const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
+  const [selectedBusinessType, setSelectedBusinessType] = useState('coiffure');
 
   const openRequests = useMemo(
     () => requests.filter((request) => ['payment_pending', 'pending_review'].includes(request.status)),
     [requests]
+  );
+
+  const visiblePlans = useMemo(
+    () => (configuration?.plans ?? [])
+      .filter((plan) => plan.business_type === selectedBusinessType)
+      .sort((a, b) => a.sort_order - b.sort_order),
+    [configuration?.plans, selectedBusinessType]
   );
 
   async function load() {
@@ -83,7 +99,13 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
       supabase.rpc('admin_list_subscription_requests', { p_status: null })
     ]);
     if (configurationResult.error) setError(configurationResult.error.message);
-    else setConfiguration(configurationResult.data as BillingConfiguration);
+    else {
+      const next = configurationResult.data as BillingConfiguration;
+      setConfiguration(next);
+      if (next.domains?.length && !next.domains.some((domain) => domain.business_type === selectedBusinessType)) {
+        setSelectedBusinessType(next.domains[0].business_type);
+      }
+    }
     if (requestsResult.error) setError(requestsResult.error.message);
     else setRequests((requestsResult.data ?? []) as SubscriptionRequest[]);
     setLoading(false);
@@ -93,19 +115,20 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     void load();
   }, []);
 
-  function updatePlanLocal(planKey: Plan, updates: Partial<BillingPlanLink>) {
+  function updatePlanLocal(businessType: string, planKey: Plan, updates: Partial<BillingPlanLink>) {
     setConfiguration((current) => current ? {
       ...current,
-      plans: current.plans.map((plan) => plan.plan_key === planKey ? { ...plan, ...updates } : plan)
+      plans: current.plans.map((plan) => plan.business_type === businessType && plan.plan_key === planKey ? { ...plan, ...updates } : plan)
     } : current);
   }
 
   async function savePlanLink(plan: BillingPlanLink) {
     if (!supabase || !canManage) return;
-    setSaving(`plan-${plan.plan_key}`);
+    setSaving(`plan-${plan.business_type}-${plan.plan_key}`);
     setMessage('');
     setError('');
     const { error: requestError } = await supabase.rpc('admin_update_billing_plan_link', {
+      p_business_type: plan.business_type,
       p_plan_key: plan.plan_key,
       p_provider: plan.provider,
       p_checkout_url: plan.checkout_url || null,
@@ -114,7 +137,7 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     setSaving('');
     if (requestError) setError(requestError.message);
     else {
-      setMessage(`Le paiement ${plan.display_name} a été configuré.`);
+      setMessage(`Le paiement ${plan.display_name} — ${plan.business_type_label} a été configuré.`);
       await load();
     }
   }
@@ -168,7 +191,7 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
   return (
     <section className="billing-admin-section">
       <div className="billing-admin-heading">
-        <div><p className="eyebrow">ABONNEMENTS & QONTO</p><h2>Paiements et demandes de formule</h2><p>Qonto est utilisé maintenant. Les données restent compatibles avec une future connexion Stripe.</p></div>
+        <div><p className="eyebrow">ABONNEMENTS & QONTO</p><h2>Paiements par domaine métier</h2><p>Chaque domaine conserve les mêmes niveaux de formule, mais ses propres tarifs, fonctions et liens Qonto.</p></div>
         <button className="secondary-button" type="button" onClick={load}>Actualiser</button>
       </div>
 
@@ -206,20 +229,27 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
         </article>
 
         <article className="panel billing-links-panel">
-          <div className="panel-header"><div><p className="eyebrow">LIENS DE PAIEMENT</p><h3>Formules Qonto</h3></div></div>
-          <p className="muted">Crée un lien récurrent mensuel dans Qonto pour chaque offre, puis colle-le ici. Métier reste sur étude.</p>
+          <div className="panel-header billing-domain-header">
+            <div><p className="eyebrow">LIENS DE PAIEMENT</p><h3>Formules Qonto par domaine</h3></div>
+            <label>Domaine
+              <select value={selectedBusinessType} onChange={(event) => setSelectedBusinessType(event.target.value)}>
+                {(configuration.domains ?? []).map((domain) => <option key={domain.business_type} value={domain.business_type}>{domain.display_name}</option>)}
+              </select>
+            </label>
+          </div>
+          <p className="muted">Crée un lien récurrent propre à chaque tarif. Une formule Formation ne doit jamais utiliser le lien Qonto de la Coiffure.</p>
           <div className="billing-plan-link-list">
-            {[...configuration.plans].sort((a, b) => a.sort_order - b.sort_order).map((plan) => (
-              <div className="billing-plan-link-row" key={plan.plan_key}>
-                <div><strong>{plan.display_name}</strong><small>{money(plan.monthly_price_cents)} HT / mois · {plan.member_limit} accès</small></div>
-                <select value={plan.provider} onChange={(event) => updatePlanLocal(plan.plan_key, { provider: event.target.value as BillingPlanLink['provider'] })} disabled={!canManage}>
+            {visiblePlans.map((plan) => (
+              <div className="billing-plan-link-row" key={`${plan.business_type}-${plan.plan_key}`}>
+                <div><strong>{plan.display_name}</strong><small>{plan.plan_key === 'metier' ? `Base contractuelle ${money(plan.monthly_price_cents)} HT / mois` : `${money(plan.monthly_price_cents)} HT / mois`} · {plan.member_limit} accès</small></div>
+                <select value={plan.provider} onChange={(event) => updatePlanLocal(plan.business_type, plan.plan_key, { provider: event.target.value as BillingPlanLink['provider'] })} disabled={!canManage}>
                   <option value="qonto">Qonto</option>
                   <option value="manual">Manuel</option>
                   <option value="stripe">Stripe (plus tard)</option>
                 </select>
-                <input type="url" value={plan.checkout_url ?? ''} onChange={(event) => updatePlanLocal(plan.plan_key, { checkout_url: event.target.value })} placeholder={plan.plan_key === 'metier' ? 'Facultatif — offre sur étude' : 'https://...'} disabled={!canManage} />
-                <label className="compact-switch"><input type="checkbox" checked={plan.active} onChange={(event) => updatePlanLocal(plan.plan_key, { active: event.target.checked })} disabled={!canManage} /><span>{plan.active ? 'Actif' : 'Inactif'}</span></label>
-                {canManage && <button className="secondary-button compact-button" type="button" onClick={() => savePlanLink(plan)} disabled={saving === `plan-${plan.plan_key}`}>{saving === `plan-${plan.plan_key}` ? '…' : 'Enregistrer'}</button>}
+                <input type="url" value={plan.checkout_url ?? ''} onChange={(event) => updatePlanLocal(plan.business_type, plan.plan_key, { checkout_url: event.target.value })} placeholder={plan.plan_key === 'metier' ? 'Facultatif — offre sur étude' : 'https://...'} disabled={!canManage} />
+                <label className="compact-switch"><input type="checkbox" checked={plan.active} onChange={(event) => updatePlanLocal(plan.business_type, plan.plan_key, { active: event.target.checked })} disabled={!canManage} /><span>{plan.active ? 'Actif' : 'Inactif'}</span></label>
+                {canManage && <button className="secondary-button compact-button" type="button" onClick={() => savePlanLink(plan)} disabled={saving === `plan-${plan.business_type}-${plan.plan_key}`}>{saving === `plan-${plan.business_type}-${plan.plan_key}` ? '…' : 'Enregistrer'}</button>}
               </div>
             ))}
           </div>
@@ -231,7 +261,7 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
         <div className="admin-form-grid">
           <label>Prestataire par défaut<select value={configuration.settings.default_provider} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, default_provider: event.target.value as BillingSettings['default_provider'] } })} disabled={!canManage}><option value="qonto">Qonto</option><option value="manual">Manuel</option><option value="stripe">Stripe (préparé)</option></select></label>
           <label>Durée d’essai<input type="number" min={0} max={90} value={configuration.settings.default_trial_days} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, default_trial_days: Number(event.target.value) } })} disabled={!canManage} /><small>0 désactive l’essai pour les prochaines entreprises.</small></label>
-          <label>Formule pendant l’essai<select value={configuration.settings.default_trial_plan} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, default_trial_plan: event.target.value as Plan } })} disabled={!canManage}>{configuration.plans.map((plan) => <option key={plan.plan_key} value={plan.plan_key}>{plan.display_name}</option>)}</select></label>
+          <label>Formule pendant l’essai<select value={configuration.settings.default_trial_plan} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, default_trial_plan: event.target.value as Plan } })} disabled={!canManage}>{(Object.entries(planLabels) as Array<[Plan, string]>).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label>Version des conditions<input value={configuration.settings.terms_version} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, terms_version: event.target.value } })} disabled={!canManage} /></label>
           <label className="full-field">Conditions d’abonnement<textarea rows={4} maxLength={5000} value={configuration.settings.terms_text} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, terms_text: event.target.value } })} disabled={!canManage} /></label>
           <label className="full-field">Conditions de résiliation<textarea rows={4} maxLength={5000} value={configuration.settings.cancellation_text} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, cancellation_text: event.target.value } })} disabled={!canManage} /></label>

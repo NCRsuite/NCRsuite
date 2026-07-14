@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { businessPacks } from '../config/businessPacks';
+import { getDomainPlans } from '../config/domainPlans';
 import { supabase } from '../lib/supabase';
 import type { BusinessType, Plan } from '../types';
 import { Icon } from './Icon';
@@ -19,13 +20,6 @@ interface CreatedSpaceResult {
   monthly_price_cents: number;
   status: 'trial' | 'active';
 }
-
-const plans: Array<{ value: Plan; label: string; priceCents: number; detail: string }> = [
-  { value: 'decouverte', label: 'Découverte', priceCents: 990, detail: '1 accès, fonctions essentielles.' },
-  { value: 'essentielle', label: 'Essentielle', priceCents: 1990, detail: 'Équipe et fonctions client avancées.' },
-  { value: 'professionnelle', label: 'Professionnelle', priceCents: 3990, detail: 'Personnalisation et permissions.' },
-  { value: 'metier', label: 'Métier', priceCents: 6990, detail: 'Tarif, limites et modules sur mesure.' }
-];
 
 const businessTypes = (Object.keys(businessPacks) as BusinessType[]).map((value) => ({
   value,
@@ -67,7 +61,7 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
   const [slugEdited, setSlugEdited] = useState(false);
   const [businessType, setBusinessType] = useState<BusinessType>('formation');
   const [plan, setPlan] = useState<Plan>('professionnelle');
-  const [monthlyPrice, setMonthlyPrice] = useState(moneyInput(3990));
+  const [monthlyPrice, setMonthlyPrice] = useState(moneyInput(getDomainPlans('formation').professionnelle.monthlyPriceCents));
   const [trialDays, setTrialDays] = useState(0);
   const [primaryColor, setPrimaryColor] = useState('#2997ff');
   const [internalNotes, setInternalNotes] = useState('');
@@ -83,6 +77,15 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
     () => businessTypes.find((item) => item.value === businessType),
     [businessType]
   );
+  const plans = useMemo(() => {
+    const definitions = getDomainPlans(businessType);
+    return (Object.keys(definitions) as Plan[]).map((value) => ({
+      value,
+      label: definitions[value].label,
+      priceCents: definitions[value].monthlyPriceCents,
+      detail: definitions[value].detail
+    }));
+  }, [businessType]);
 
   function changeName(value: string) {
     setName(value);
@@ -93,6 +96,12 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
     setPlan(value);
     const defaultPrice = plans.find((item) => item.value === value)?.priceCents ?? 0;
     setMonthlyPrice(moneyInput(defaultPrice));
+  }
+
+  function changeBusinessType(value: BusinessType) {
+    setBusinessType(value);
+    const definitions = getDomainPlans(value);
+    setMonthlyPrice(moneyInput(definitions[plan].monthlyPriceCents));
   }
 
   async function submit(event: React.FormEvent) {
@@ -212,7 +221,7 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
             </div>
             <div className="admin-space-form-grid">
               <label>Domaine métier
-                <select value={businessType} onChange={(event) => setBusinessType(event.target.value as BusinessType)}>
+                <select value={businessType} onChange={(event) => changeBusinessType(event.target.value as BusinessType)}>
                   {businessTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
                 </select>
                 <small>{selectedBusiness?.description}</small>

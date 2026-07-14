@@ -3003,3 +3003,40 @@ button { max-width: 100%; }
   .admin-space-summary { align-items: flex-start; }
   .admin-space-modal-actions { flex-direction: column-reverse; }
 }
+
+/* V2.4.2 — sélection du domaine dans la gestion des paiements */
+.billing-domain-header {
+  align-items: end;
+  gap: 18px;
+}
+
+.billing-domain-header > label {
+  min-width: 190px;
+  display: grid;
+  gap: 6px;
+  color: #6e6e73;
+  font-size: .76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.billing-domain-header select {
+  width: 100%;
+  min-height: 44px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: .95rem;
+}
+
+@media (max-width: 760px) {
+  .billing-domain-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .billing-domain-header > label {
+    min-width: 0;
+    width: 100%;
+  }
+}

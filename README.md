@@ -1,4 +1,23 @@
-# NCR Suite — V2.4.1
+# NCR Suite — V2.4.2
+
+## V2.4.2 — Tarification distincte par domaine
+
+Les quatre niveaux restent communs à NCR Suite : **Découverte, Essentielle, Professionnelle et Métier**. En revanche, chaque domaine possède désormais son propre catalogue de prix, ses propres fonctions affichées et ses propres liens de paiement Qonto.
+
+Tarifs Formation intégrés :
+
+- Découverte : 39,90 € HT / mois ;
+- Essentielle : 69,90 € HT / mois ;
+- Professionnelle : 99,90 € HT / mois ;
+- Métier : sur étude, avec une base contractuelle de 149,90 € HT / mois.
+
+La Coiffure conserve 9,90 €, 19,90 € et 39,90 €. Les autres domaines restent inchangés jusqu’à leur développement.
+
+Après le SQL 018, exécuter :
+
+```text
+supabase/migrations/019_domain_plan_catalog.sql
+```
 
 
 ## V2.4.1 — Créer plusieurs espaces avec le même compte

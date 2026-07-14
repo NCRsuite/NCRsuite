@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
-import { PLAN_DEFINITIONS, planLabel } from '../config/planEntitlements';
+import { planLabel } from '../config/planEntitlements';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
 import type { Plan, SubscriptionStatus } from '../types';
@@ -18,6 +18,7 @@ interface BillingPlan {
   provider: BillingProvider;
   checkout_url: string | null;
   checkout_active: boolean;
+  recommended?: boolean;
 }
 
 interface BillingSubscription {
@@ -34,6 +35,12 @@ interface BillingSubscription {
   payment_confirmed_at: string | null;
 }
 
+interface BillingUsageItem {
+  key: string;
+  label: string;
+  value: string | number;
+}
+
 interface BillingUsage {
   active_members: number;
   member_limit: number;
@@ -41,6 +48,7 @@ interface BillingUsage {
   active_services: number;
   appointments_this_month: number;
   storage_bytes: number;
+  usage_items?: BillingUsageItem[];
 }
 
 interface OpenRequest {
@@ -70,6 +78,8 @@ interface BillingTerms {
 }
 
 interface BillingPortalData {
+  business_type?: string;
+  business_type_label?: string;
   subscription: BillingSubscription;
   usage: BillingUsage;
   plans: BillingPlan[];
@@ -91,7 +101,11 @@ const featureLabels: Record<string, string> = {
   multi_site: 'Plusieurs établissements',
   custom_modules: 'Modules à la carte',
   custom_roles: 'Rôles personnalisés',
-  custom_domain: 'Domaine personnalisé'
+  custom_domain: 'Domaine personnalisé',
+  training_programs: 'Catalogue des formations',
+  training_trainees: 'Gestion des stagiaires',
+  training_trainers: 'Gestion des formateurs',
+  training_sessions: 'Sessions et planning'
 };
 
 const statusLabels: Record<SubscriptionStatus, string> = {
@@ -222,7 +236,7 @@ export function SubscriptionPage() {
         <div>
           <p className="eyebrow">ABONNEMENT</p>
           <h1>Ma formule NCR Suite</h1>
-          <p>Consulte ton utilisation, compare les offres et demande un changement de formule.</p>
+          <p>Consulte ton utilisation et compare les offres adaptées à ton domaine{data?.business_type_label ? ` ${data.business_type_label}` : ''}.</p>
         </div>
         <span className="subscription-provider-badge"><Icon name="creditCard" size={18} /> Paiement par Qonto</span>
       </header>
@@ -252,11 +266,13 @@ export function SubscriptionPage() {
             <article className="panel subscription-usage-card">
               <div><p className="eyebrow">UTILISATION</p><h2>Activité de l’espace</h2></div>
               <div className="subscription-usage-grid">
-                <span><small>Utilisateurs</small><strong>{data.usage.active_members} / {data.usage.member_limit}</strong></span>
-                <span><small>Clients</small><strong>{data.usage.clients}</strong></span>
-                <span><small>Prestations actives</small><strong>{data.usage.active_services}</strong></span>
-                <span><small>RDV ce mois</small><strong>{data.usage.appointments_this_month}</strong></span>
-                <span><small>Fichiers de marque</small><strong>{formatBytes(data.usage.storage_bytes)}</strong></span>
+                {(data.usage.usage_items?.length ? data.usage.usage_items : [
+                  { key: 'members', label: 'Utilisateurs', value: `${data.usage.active_members} / ${data.usage.member_limit}` },
+                  { key: 'clients', label: 'Clients', value: data.usage.clients },
+                  { key: 'services', label: 'Prestations actives', value: data.usage.active_services },
+                  { key: 'appointments', label: 'RDV ce mois', value: data.usage.appointments_this_month },
+                  { key: 'storage', label: 'Fichiers de marque', value: formatBytes(data.usage.storage_bytes) }
+                ]).map((item) => <span key={item.key}><small>{item.label}</small><strong>{item.value}</strong></span>)}
               </div>
               <div className="subscription-progress"><span style={{ width: `${Math.min(100, (data.usage.active_members / Math.max(1, data.usage.member_limit)) * 100)}%` }} /></div>
             </article>
@@ -289,8 +305,8 @@ export function SubscriptionPage() {
                 const isMetier = plan.plan_key === 'metier';
                 const enabledFeatures = Object.entries(plan.features).filter(([, active]) => Boolean(active));
                 return (
-                  <article key={plan.plan_key} className={`subscription-plan-card${current ? ' current' : ''}${plan.plan_key === 'professionnelle' ? ' recommended' : ''}`}>
-                    {plan.plan_key === 'professionnelle' && <span className="subscription-recommended">RECOMMANDÉE</span>}
+                  <article key={plan.plan_key} className={`subscription-plan-card${current ? ' current' : ''}${plan.recommended ? ' recommended' : ''}`}>
+                    {plan.recommended && <span className="subscription-recommended">RECOMMANDÉE</span>}
                     <div className="subscription-plan-card-header">
                       <div><p className="eyebrow">{current ? 'FORMULE ACTUELLE' : 'FORMULE'}</p><h3>{plan.display_name}</h3></div>
                       {current && <Icon name="check" size={20} />}
