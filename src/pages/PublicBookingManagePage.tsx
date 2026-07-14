@@ -20,6 +20,9 @@ interface ManagedBooking {
   organization_address: string | null;
   organization_hours_text: string | null;
   organization_practical_info: string | null;
+  site_id: string | null;
+  site_name: string | null;
+  site_address: string | null;
   show_ncr_branding: boolean;
   timezone: string;
   cancel_notice_hours: number;
@@ -109,8 +112,9 @@ export function PublicBookingManagePage() {
       setSelectedSlot(null);
       if (!rescheduling || !booking || !supabase) return;
       setLoadingSlots(true);
-      const { data, error: slotsError } = await supabase.rpc('get_public_available_slots', {
+      const { data, error: slotsError } = await supabase.rpc('get_public_available_slots_v2', {
         p_slug: booking.organization_slug,
+        p_site_id: booking.site_id,
         p_service_id: booking.service_id,
         p_date: date,
         p_staff_id: null
@@ -155,8 +159,9 @@ export function PublicBookingManagePage() {
     setBusy(true);
     setError('');
     setSuccess('');
-    const { error: rescheduleError } = await supabase.rpc('reschedule_public_booking', {
+    const { error: rescheduleError } = await supabase.rpc('reschedule_public_booking_v2', {
       p_token: token,
+      p_site_id: booking.site_id,
       p_staff_id: selectedSlot.staff_id,
       p_starts_at: selectedSlot.slot_start
     });
@@ -194,7 +199,7 @@ export function PublicBookingManagePage() {
     description: `Rendez-vous avec ${booking.staff_name}. Référence ${booking.appointment_id.slice(0, 8).toUpperCase()}.`,
     startsAt: booking.starts_at,
     endsAt: booking.ends_at,
-    location: booking.organization_address || booking.organization_name
+    location: booking.site_address || booking.organization_address || booking.site_name || booking.organization_name
   };
 
   return (
@@ -221,7 +226,7 @@ export function PublicBookingManagePage() {
           </div>
           <div className="public-manage-main">
             <div className="public-manage-date"><strong>{timeFormatter.format(new Date(booking.starts_at))}</strong><span>{dateFormatter.format(new Date(booking.starts_at))}</span></div>
-            <div className="public-manage-service"><span>Prestation</span><strong>{booking.service_name}</strong><small>Avec {booking.staff_name}</small></div>
+            <div className="public-manage-service"><span>Prestation</span><strong>{booking.service_name}</strong><small>Avec {booking.staff_name}{booking.site_name ? ` · ${booking.site_name}` : ''}</small></div>
             <div className="public-manage-price"><span>Tarif</span><strong>{currencyFormatter.format((booking.amount_cents ?? 0) / 100)}</strong></div>
           </div>
           <div className="public-manage-contact">
@@ -289,7 +294,7 @@ export function PublicBookingManagePage() {
           </div>
           {(booking.organization_address || booking.organization_hours_text || booking.organization_practical_info) && (
             <div className="public-client-info-grid public-establishment-details">
-              {booking.organization_address && <div><span>Adresse</span><p>{booking.organization_address}</p></div>}
+              {(booking.site_address || booking.organization_address) && <div><span>Adresse</span><p>{booking.site_address || booking.organization_address}</p></div>}
               {booking.organization_hours_text && <div><span>Horaires</span><p>{booking.organization_hours_text}</p></div>}
               {booking.organization_practical_info && <div><span>Informations pratiques</span><p>{booking.organization_practical_info}</p></div>}
             </div>

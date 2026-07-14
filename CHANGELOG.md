@@ -1,4 +1,26 @@
+# CHANGELOG
+
+## 2.3.3 — Multi-établissements opérationnel
+
+- Sélecteur distinct Entreprise / Établissement sur ordinateur et mobile.
+- Vue consolidée « Tous les établissements » pour les responsables.
+- Collaborateurs rattachés à un établissement précis.
+- Rendez-vous internes filtrés et enregistrés par établissement.
+- Tableau de bord filtré selon le site actif.
+- Réservation publique avec choix de l’établissement.
+- Déplacement client conservé dans le site initial.
+- Migration automatique des collaborateurs et rendez-vous existants vers le site principal.
+- Contrôles différés Supabase empêchant les incohérences de site.
+
 # Changelog
+
+## 2.3.1 — Correctif personnalisation commerciale
+
+- Correction de l’enregistrement de la personnalisation pour les espaces existants.
+- Conservation autorisée d’un ancien lien public réservé lorsqu’il appartient déjà à l’entreprise.
+- Affichage du véritable message Supabase en cas d’échec au lieu du message générique.
+- Messages d’erreur d’envoi de logo ou bannière rendus lisibles.
+- Rafraîchissement du cache API Supabase après la migration corrective.
 
 ## 2.3.0 — Offre Métier opérationnelle
 

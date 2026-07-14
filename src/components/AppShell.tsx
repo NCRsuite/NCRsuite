@@ -10,7 +10,7 @@ import { Icon } from './Icon';
 
 export function AppShell() {
   const { signOut, user } = useAuth();
-  const { organization, organizations, selectOrganization } = useOrganization();
+  const { organization, organizations, selectOrganization, sites, activeSite, activeSiteId, selectSite, sitesLoading } = useOrganization();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -73,6 +73,13 @@ export function AppShell() {
     setMobileAccountOpen(false);
   }
 
+  function changeSite(id: string | null) {
+    selectSite(id);
+    navigate('/', { replace: true });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    closeMobileLayers();
+  }
+
   function changeOrganization(id: string) {
     if (id !== organization?.id) {
       selectOrganization(id);
@@ -102,6 +109,17 @@ export function AppShell() {
           </select>
           <small>{pack.label} · {planLabel(organization.plan)} · {organization.custom_role_label || organization.role || 'viewer'}</small>
         </div>
+
+        {organization.plan === 'metier' && sites.length > 0 && (
+          <div className="site-switcher">
+            <label htmlFor="active-site">Établissement</label>
+            <select id="active-site" value={activeSiteId ?? 'all'} onChange={(event) => changeSite(event.target.value === 'all' ? null : event.target.value)} disabled={sitesLoading}>
+              {canManageOrganization && <option value="all">Tous les établissements</option>}
+              {sites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.is_primary ? ' · Principal' : ''}</option>)}
+            </select>
+            <small>{activeSite ? [activeSite.address, activeSite.city].filter(Boolean).join(' · ') || 'Établissement sélectionné' : 'Vue consolidée de tous les sites'}</small>
+          </div>
+        )}
 
         <nav className="main-nav" aria-label="Navigation principale">
           {navigation.map((item) => (
@@ -220,7 +238,7 @@ export function AppShell() {
               </span>
               <span>
                 <strong>{organization.name}</strong>
-                <small>{organizations.length > 1 ? 'Changer d’entreprise' : `${pack.label} · ${planLabel(organization.plan)}`}</small>
+                <small>{organization.plan === 'metier' && sites.length > 0 ? (activeSite ? activeSite.name : 'Tous les établissements') : organizations.length > 1 ? 'Changer d’entreprise' : `${pack.label} · ${planLabel(organization.plan)}`}</small>
               </span>
               <Icon name="chevronRight" size={18} />
             </button>
@@ -318,6 +336,36 @@ export function AppShell() {
                 })}
               </div>
             </div>
+
+            {organization.plan === 'metier' && sites.length > 0 && (
+              <div className="mobile-organization-section mobile-site-section">
+                <div className="mobile-sheet-title">
+                  <div>
+                    <span>Établissement actif</span>
+                    <small>{sites.length} site{sites.length > 1 ? 's' : ''} actif{sites.length > 1 ? 's' : ''}</small>
+                  </div>
+                </div>
+                <div className="mobile-organization-list">
+                  {canManageOrganization && (
+                    <button type="button" className={`mobile-organization-option${activeSiteId === null ? ' active' : ''}`} onClick={() => changeSite(null)}>
+                      <span className="mobile-organization-logo site-all"><Icon name="building" size={20} /></span>
+                      <span className="mobile-organization-copy"><strong>Tous les établissements</strong><small>Vue consolidée de l’entreprise</small></span>
+                      {activeSiteId === null && <Icon name="check" size={20} />}
+                    </button>
+                  )}
+                  {sites.map((site) => {
+                    const active = site.id === activeSiteId;
+                    return (
+                      <button type="button" key={site.id} className={`mobile-organization-option${active ? ' active' : ''}`} onClick={() => changeSite(site.id)}>
+                        <span className="mobile-organization-logo" style={{ background: organization.primary_color || '#0a84ff' }}><Icon name="building" size={20} /></span>
+                        <span className="mobile-organization-copy"><strong>{site.name}</strong><small>{site.is_primary ? 'Établissement principal' : [site.address, site.city].filter(Boolean).join(' · ') || 'Établissement'}</small></span>
+                        {active && <Icon name="check" size={20} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="mobile-account-actions">
               {hasCommercialBrandingModule && canManageOrganization && (

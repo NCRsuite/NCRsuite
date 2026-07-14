@@ -4,6 +4,24 @@ export type Plan = 'decouverte' | 'essentielle' | 'professionnelle' | 'metier';
 export type OrganizationStatus = 'trial' | 'active' | 'suspended' | 'closed';
 export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'paused' | 'canceled';
 
+
+export interface OrganizationSite {
+  id: string;
+  organization_id: string;
+  name: string;
+  code?: string | null;
+  address?: string | null;
+  postal_code?: string | null;
+  city?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  timezone: string;
+  is_primary: boolean;
+  status: 'active' | 'inactive' | 'archived';
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Organization {
   id: string;
   name: string;

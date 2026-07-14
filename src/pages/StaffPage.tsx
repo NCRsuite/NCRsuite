@@ -13,6 +13,7 @@ interface StaffRecord {
   active: boolean;
   color: string | null;
   created_at: string;
+  site_id: string | null;
 }
 
 interface ServiceOption {
@@ -55,6 +56,7 @@ interface StaffFormState {
   email: string;
   phone: string;
   color: string;
+  siteId: string;
   serviceIds: string[];
   schedule: Record<number, DaySchedule>;
 }
@@ -85,12 +87,13 @@ function createDefaultSchedule(): Record<number, DaySchedule> {
   ])) as Record<number, DaySchedule>;
 }
 
-function createEmptyForm(): StaffFormState {
+function createEmptyForm(siteId = ''): StaffFormState {
   return {
     displayName: '',
     email: '',
     phone: '',
     color: '#0a84ff',
+    siteId,
     serviceIds: [],
     schedule: createDefaultSchedule()
   };
@@ -115,7 +118,7 @@ function normalizeNullable(value: string) {
 }
 
 export function StaffPage() {
-  const { organization } = useOrganization();
+  const { organization, sites, activeSite, activeSiteId } = useOrganization();
   const { demoMode } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [staff, setStaff] = useState<StaffRecord[]>([]);
@@ -158,13 +161,16 @@ export function StaffPage() {
         return;
       }
 
+      let staffQuery = supabase
+        .from('staff')
+        .select('id,display_name,email,phone,active,color,created_at,site_id')
+        .eq('organization_id', organizationId)
+        .order('active', { ascending: false })
+        .order('display_name', { ascending: true });
+      if (organization.plan === 'metier' && activeSiteId) staffQuery = staffQuery.eq('site_id', activeSiteId);
+
       const [staffResult, servicesResult, assignmentsResult, hoursResult, breaksResult] = await Promise.all([
-        supabase
-          .from('staff')
-          .select('id,display_name,email,phone,active,color,created_at')
-          .eq('organization_id', organizationId)
-          .order('active', { ascending: false })
-          .order('display_name', { ascending: true }),
+        staffQuery,
         supabase
           .from('services')
           .select('id,name,active')
@@ -201,7 +207,7 @@ export function StaffPage() {
     } finally {
       setLoading(false);
     }
-  }, [organization, demoMode]);
+  }, [organization, demoMode, activeSiteId]);
 
   useEffect(() => {
     loadStaffData();
@@ -245,7 +251,7 @@ export function StaffPage() {
   function openCreateForm() {
     if (!canManage) return;
     setEditingId(null);
-    setForm(createEmptyForm());
+    setForm(createEmptyForm(activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? ''));
     setError('');
     setSuccess('');
     setSearchParams({ new: '1' });
@@ -284,6 +290,7 @@ export function StaffPage() {
       email: member.email ?? '',
       phone: member.phone ?? '',
       color: member.color ?? '#0a84ff',
+      siteId: member.site_id ?? activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? '',
       serviceIds: staffServices
         .filter((assignment) => assignment.staff_id === member.id)
         .map((assignment) => assignment.service_id),
@@ -298,7 +305,7 @@ export function StaffPage() {
 
   function closeForm() {
     setEditingId(null);
-    setForm(createEmptyForm());
+    setForm(createEmptyForm(activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? ''));
     setError('');
     setSearchParams({});
   }
@@ -329,6 +336,10 @@ export function StaffPage() {
     const displayName = form.displayName.trim();
     const enabledDays = days.filter((day) => form.schedule[day.value].enabled);
 
+    if (organization.plan === 'metier' && !form.siteId) {
+      setError('Sélectionnez l’établissement du collaborateur.');
+      return;
+    }
     if (displayName.length < 2) {
       setError('Le nom du collaborateur doit contenir au moins 2 caractères.');
       return;
@@ -383,7 +394,8 @@ export function StaffPage() {
           phone: normalizeNullable(form.phone),
           color: form.color,
           active: existing?.active ?? true,
-          created_at: existing?.created_at ?? new Date().toISOString()
+          created_at: existing?.created_at ?? new Date().toISOString(),
+          site_id: organization.plan === 'metier' ? form.siteId || null : null
         };
         const nextStaff = existing
           ? staff.map((member) => member.id === staffId ? savedMember : member)
@@ -409,9 +421,10 @@ export function StaffPage() {
         setWorkingHours(nextHours);
         setBreaks(nextBreaks);
       } else {
-        const { error: saveError } = await supabase.rpc('save_staff_configuration', {
+        const { error: saveError } = await supabase.rpc(organization.plan === 'metier' ? 'save_staff_configuration_v2' : 'save_staff_configuration', {
           p_organization_id: organization.id,
           p_staff_id: editingId,
+          ...(organization.plan === 'metier' ? { p_site_id: form.siteId } : {}),
           p_display_name: displayName,
           p_email: normalizeNullable(form.email),
           p_phone: normalizeNullable(form.phone),
@@ -426,7 +439,7 @@ export function StaffPage() {
 
       setSuccess(editingId ? 'Le collaborateur a bien été mis à jour.' : 'Le collaborateur a bien été ajouté.');
       setEditingId(null);
-      setForm(createEmptyForm());
+      setForm(createEmptyForm(activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? ''));
       setSearchParams({});
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : 'Une erreur inconnue est survenue.';
@@ -476,7 +489,7 @@ export function StaffPage() {
         <div>
           <p className="eyebrow">ÉQUIPE & DISPONIBILITÉS</p>
           <h1>Collaborateurs</h1>
-          <p>Configurez l’équipe, les prestations réalisées et les horaires de {organization.name}.</p>
+          <p>Configurez l’équipe, les prestations réalisées et les horaires de {activeSite ? activeSite.name : organization.name}.</p>
         </div>
         {canManage && (
           <button className="primary-button" type="button" onClick={openCreateForm}>
@@ -502,6 +515,16 @@ export function StaffPage() {
           </div>
 
           <form className="staff-form" onSubmit={handleSaveStaff}>
+            {organization.plan === 'metier' && (
+              <label className="staff-site-field full-field">
+                Établissement <span aria-hidden="true">*</span>
+                <select required value={form.siteId} onChange={(event) => setForm((current) => ({ ...current, siteId: event.target.value }))}>
+                  <option value="">Sélectionner un établissement</option>
+                  {sites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.is_primary ? ' · Principal' : ''}</option>)}
+                </select>
+                <small>Le collaborateur et ses disponibilités seront rattachés à ce site.</small>
+              </label>
+            )}
             <label className="staff-name-field">
               Nom affiché <span aria-hidden="true">*</span>
               <input
@@ -751,6 +774,7 @@ export function StaffPage() {
 
                   <div className="staff-card-identity">
                     <h3>{member.display_name}</h3>
+                    {organization.plan === 'metier' && <span className="staff-site-badge">{sites.find((site) => site.id === member.site_id)?.name ?? 'Site non attribué'}</span>}
                     <p>{member.email || member.phone || 'Aucun contact renseigné'}</p>
                     {member.email && member.phone && <small>{member.phone}</small>}
                   </div>

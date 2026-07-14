@@ -2598,3 +2598,30 @@ button { max-width: 100%; }
   .metier-tabs button span { display:none; }
   .metier-tabs button { min-width:48px; }
 }
+
+/* NCR Suite V2.3.3 — sélection et exploitation des établissements */
+.site-switcher { margin: -8px 2px 16px; padding: 14px; background: #f1f7ff; border-radius: 19px; border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent); }
+.site-switcher label { font-size: 10px; font-weight: 850; letter-spacing: .1em; color: var(--accent); text-transform: uppercase; }
+.site-switcher select { min-height: 38px; padding: 0; border: 0; background: transparent; font-weight: 780; box-shadow: none; }
+.site-switcher small { display: block; color: var(--muted); line-height: 1.35; }
+.mobile-site-section { border-top: 1px solid var(--line); }
+.mobile-organization-logo.site-all { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, white); }
+.staff-site-field small { color: var(--muted); font-weight: 450; }
+.staff-site-badge { display: inline-flex; width: fit-content; margin-top: 5px; padding: 5px 9px; border-radius: 999px; color: #1769c8; background: #edf6ff; font-size: 11px; font-weight: 750; }
+.public-site-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.public-site-choice { min-height: 105px; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: start; padding: 16px; border: 1px solid var(--line); border-radius: 20px; background: white; color: var(--ink); text-align: left; }
+.public-site-choice.selected { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, white); box-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 12%, transparent); }
+.public-site-choice div { display: grid; gap: 5px; }
+.public-site-choice p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.public-site-choice small { color: var(--accent); font-weight: 750; }
+.public-booking-site-result { display: grid; gap: 4px; margin: 16px 0; padding: 14px 16px; border-radius: 16px; background: #f3f7fb; }
+.public-booking-site-result span { color: var(--muted); }
+
+@media (max-width: 900px) {
+  .sidebar > .site-switcher { display: none; }
+}
+
+@media (max-width: 620px) {
+  .public-site-grid { grid-template-columns: 1fr; }
+  .public-site-choice { min-height: 92px; }
+}

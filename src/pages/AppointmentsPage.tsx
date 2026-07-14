@@ -28,6 +28,7 @@ interface ServiceRecord {
 interface StaffRecord {
   id: string;
   display_name: string;
+  site_id: string | null;
   color: string | null;
   active: boolean;
 }
@@ -63,9 +64,11 @@ interface AppointmentRecord {
   amount_cents: number | null;
   source: 'internal' | 'public';
   created_at: string;
+  site_id: string | null;
 }
 
 interface AppointmentFormState {
+  siteId: string;
   clientId: string;
   serviceId: string;
   staffId: string;
@@ -147,9 +150,10 @@ function nextRoundedTime() {
   return date;
 }
 
-function emptyForm(): AppointmentFormState {
+function emptyForm(siteId = ''): AppointmentFormState {
   const next = nextRoundedTime();
   return {
+    siteId,
     clientId: '',
     serviceId: '',
     staffId: '',
@@ -161,7 +165,7 @@ function emptyForm(): AppointmentFormState {
 }
 
 export function AppointmentsPage() {
-  const { organization } = useOrganization();
+  const { organization, sites, activeSite, activeSiteId } = useOrganization();
   const { demoMode } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [clients, setClients] = useState<ClientRecord[]>([]);
@@ -215,19 +219,26 @@ export function AppointmentsPage() {
     const rangeEnd = new Date();
     rangeEnd.setFullYear(rangeEnd.getFullYear() + 1);
 
+    let staffQuery = supabase.from('staff').select('id,display_name,site_id,color,active').eq('organization_id', organizationId).eq('active', true).order('display_name');
+    let appointmentsQuery = supabase.from('appointments')
+      .select('id,client_id,service_id,staff_id,site_id,starts_at,ends_at,status,notes,amount_cents,source,created_at')
+      .eq('organization_id', organizationId)
+      .gte('starts_at', rangeStart.toISOString())
+      .lt('starts_at', rangeEnd.toISOString())
+      .order('starts_at', { ascending: true });
+    if (organization.plan === 'metier' && activeSiteId) {
+      staffQuery = staffQuery.eq('site_id', activeSiteId);
+      appointmentsQuery = appointmentsQuery.eq('site_id', activeSiteId);
+    }
+
     const [clientsResult, servicesResult, staffResult, assignmentsResult, hoursResult, breaksResult, appointmentsResult] = await Promise.all([
       supabase.from('clients').select('id,first_name,last_name,email,phone,status').eq('organization_id', organizationId).eq('status', 'active').order('first_name'),
       supabase.from('services').select('id,name,duration_minutes,price_cents,active').eq('organization_id', organizationId).eq('active', true).order('name'),
-      supabase.from('staff').select('id,display_name,color,active').eq('organization_id', organizationId).eq('active', true).order('display_name'),
+      staffQuery,
       supabase.from('staff_services').select('staff_id,service_id').eq('organization_id', organizationId),
       supabase.from('staff_working_hours').select('staff_id,weekday,start_time,end_time').eq('organization_id', organizationId),
       supabase.from('staff_breaks').select('staff_id,weekday,start_time,end_time').eq('organization_id', organizationId),
-      supabase.from('appointments')
-        .select('id,client_id,service_id,staff_id,starts_at,ends_at,status,notes,amount_cents,source,created_at')
-        .eq('organization_id', organizationId)
-        .gte('starts_at', rangeStart.toISOString())
-        .lt('starts_at', rangeEnd.toISOString())
-        .order('starts_at', { ascending: true })
+      appointmentsQuery
     ]);
 
     const firstError = [clientsResult, servicesResult, staffResult, assignmentsResult, hoursResult, breaksResult, appointmentsResult]
@@ -245,9 +256,14 @@ export function AppointmentsPage() {
       setAppointments((appointmentsResult.data ?? []) as AppointmentRecord[]);
     }
     setLoading(false);
-  }, [organization, demoMode]);
+  }, [organization, demoMode, activeSiteId]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  useEffect(() => {
+    const defaultSiteId = activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? '';
+    setForm((current) => current.siteId ? current : { ...current, siteId: defaultSiteId });
+  }, [activeSiteId, sites]);
 
   const clientById = useMemo(() => new Map(clients.map((row) => [row.id, row])), [clients]);
   const serviceById = useMemo(() => new Map(services.map((row) => [row.id, row])), [services]);
@@ -256,8 +272,8 @@ export function AppointmentsPage() {
   const compatibleStaff = useMemo(() => {
     if (!form.serviceId) return staff;
     const allowed = new Set(staffServices.filter((row) => row.service_id === form.serviceId).map((row) => row.staff_id));
-    return staff.filter((row) => allowed.has(row.id));
-  }, [staff, staffServices, form.serviceId]);
+    return staff.filter((row) => allowed.has(row.id) && (!form.siteId || row.site_id === form.siteId));
+  }, [staff, staffServices, form.serviceId, form.siteId]);
 
   useEffect(() => {
     if (form.staffId && !compatibleStaff.some((row) => row.id === form.staffId)) {
@@ -288,7 +304,7 @@ export function AppointmentsPage() {
 
   function openCreateForm(date?: Date, time?: string) {
     if (!canEditAppointments) return;
-    const base = emptyForm();
+    const base = emptyForm(activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? '');
     if (date) base.date = dateToInput(date);
     if (time) base.time = time;
     setEditingId(null);
@@ -303,6 +319,7 @@ export function AppointmentsPage() {
     if (!canEditAppointments || appointment.status === 'cancelled') return;
     const start = new Date(appointment.starts_at);
     setForm({
+      siteId: appointment.site_id ?? activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? '',
       clientId: appointment.client_id,
       serviceId: appointment.service_id,
       staffId: appointment.staff_id,
@@ -320,7 +337,7 @@ export function AppointmentsPage() {
 
   function closeForm() {
     setEditingId(null);
-    setForm(emptyForm());
+    setForm(emptyForm(activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? ''));
     setError('');
     setSearchParams({});
   }
@@ -362,6 +379,10 @@ export function AppointmentsPage() {
   async function saveAppointment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!organization || !canEditAppointments) return;
+    if (organization.plan === 'metier' && !form.siteId) {
+      setError('Sélectionnez un établissement.');
+      return;
+    }
     if (!form.clientId || !form.serviceId || !form.staffId || !form.date || !form.time) {
       setError('Tous les champs obligatoires doivent être renseignés.');
       return;
@@ -394,7 +415,8 @@ export function AppointmentsPage() {
           notes: form.notes.trim() || null,
           amount_cents: service.price_cents,
           source: existing?.source ?? 'internal',
-          created_at: existing?.created_at ?? new Date().toISOString()
+          created_at: existing?.created_at ?? new Date().toISOString(),
+          site_id: organization.plan === 'metier' ? form.siteId || null : null
         };
         const next = existing
           ? appointments.map((row) => row.id === saved.id ? saved : row)
@@ -402,9 +424,10 @@ export function AppointmentsPage() {
         localStorage.setItem(`ncr-suite-demo-appointments-${organization.id}`, JSON.stringify(next));
         setAppointments(next);
       } else {
-        const { error: saveError } = await supabase.rpc('save_appointment', {
+        const { error: saveError } = await supabase.rpc(organization.plan === 'metier' ? 'save_appointment_v2' : 'save_appointment', {
           p_organization_id: organization.id,
           p_appointment_id: editingId,
+          ...(organization.plan === 'metier' ? { p_site_id: form.siteId } : {}),
           p_client_id: form.clientId,
           p_service_id: form.serviceId,
           p_staff_id: form.staffId,
@@ -419,7 +442,7 @@ export function AppointmentsPage() {
       setSelectedDate(startOfDay(startsAt));
       setSuccess(editingId ? 'Le rendez-vous a bien été modifié.' : 'Le rendez-vous a bien été créé.');
       setEditingId(null);
-      setForm(emptyForm());
+      setForm(emptyForm(activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? ''));
       setSearchParams({});
     } catch (caught) {
       const message = typeof caught === 'object' && caught && 'message' in caught ? String(caught.message) : 'Une erreur inconnue est survenue.';
@@ -483,7 +506,7 @@ export function AppointmentsPage() {
             <h3>{fullClientName(client)}</h3>
             <span className={`status-chip appointment-status ${appointment.status}`}>{statusLabels[appointment.status]}</span>
           </div>
-          <p>{service?.name ?? 'Prestation inconnue'} · {member?.display_name ?? 'Collaborateur inconnu'}</p>
+          <p>{service?.name ?? 'Prestation inconnue'} · {member?.display_name ?? 'Collaborateur inconnu'}{organization?.plan === 'metier' ? ` · ${sites.find((site) => site.id === appointment.site_id)?.name ?? 'Site non attribué'}` : ''}</p>
           <small>{service ? `${service.duration_minutes} min · ${currencyFormatter.format((appointment.amount_cents ?? service.price_cents) / 100)}` : ''}</small>
           {appointment.notes && <em>{appointment.notes}</em>}
         </div>
@@ -516,7 +539,7 @@ export function AppointmentsPage() {
         <div>
           <p className="eyebrow">PLANNING</p>
           <h1>Rendez-vous</h1>
-          <p>{personalView ? 'Consultez les rendez-vous qui vous sont attribués et mettez leur statut à jour.' : 'Planifiez l’activité sans double réservation et selon les disponibilités réelles de l’équipe.'}</p>
+          <p>{personalView ? 'Consultez les rendez-vous qui vous sont attribués et mettez leur statut à jour.' : `Planifiez l’activité ${activeSite ? `de ${activeSite.name}` : 'de tous les établissements'} sans double réservation.`}</p>
         </div>
         {canEditAppointments && <button className="primary-button" type="button" onClick={() => openCreateForm()}><Icon name="calendar" size={18} />Nouveau rendez-vous</button>}
       </header>
@@ -528,6 +551,15 @@ export function AppointmentsPage() {
             <button type="button" className="secondary-button" onClick={closeForm}>Fermer</button>
           </div>
           <form className="appointment-form" onSubmit={saveAppointment}>
+            {organization?.plan === 'metier' && (
+              <label>
+                Établissement <span aria-hidden="true">*</span>
+                <select value={form.siteId} onChange={(event) => setForm((current) => ({ ...current, siteId: event.target.value, staffId: '' }))} required disabled={Boolean(activeSiteId)}>
+                  <option value="">Sélectionner un établissement</option>
+                  {sites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.is_primary ? ' · Principal' : ''}</option>)}
+                </select>
+              </label>
+            )}
             <label>
               Client <span aria-hidden="true">*</span>
               <select value={form.clientId} onChange={(event) => setForm((current) => ({ ...current, clientId: event.target.value }))} required>

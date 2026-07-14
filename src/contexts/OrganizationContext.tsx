@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
-import type { BusinessType, Organization, Plan } from '../types';
+import type { BusinessType, Organization, OrganizationSite, Plan } from '../types';
 
 interface CreateOrganizationInput {
   name: string;
@@ -47,9 +47,15 @@ interface CommercialBrandingInput {
 interface OrganizationContextValue {
   organizations: Organization[];
   organization: Organization | null;
+  sites: OrganizationSite[];
+  activeSite: OrganizationSite | null;
+  activeSiteId: string | null;
   loading: boolean;
+  sitesLoading: boolean;
   selectOrganization: (id: string) => void;
+  selectSite: (id: string | null) => void;
   refreshOrganizations: () => void;
+  refreshSites: () => void;
   createOrganization: (input: CreateOrganizationInput) => Promise<void>;
   updateBranding: (updates: { name?: string; primaryColor?: string }) => Promise<void>;
   updateBookingSettings: (updates: BookingSettingsInput) => Promise<void>;
@@ -60,6 +66,15 @@ interface OrganizationContextValue {
 
 
 const OrganizationContext = createContext<OrganizationContextValue | null>(null);
+
+function backendErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = String((error as { message?: unknown }).message ?? '').trim();
+    if (message) return message;
+  }
+  return fallback;
+}
 
 const ORGANIZATION_FIELDS = [
   'id','name','slug','business_type','plan','status','created_at','primary_color','logo_url','timezone',
@@ -87,6 +102,10 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   const [selectedId, setSelectedId] = useState<string | null>(() => localStorage.getItem('ncr-suite-org-id'));
   const [loading, setLoading] = useState(true);
   const [reloadVersion, setReloadVersion] = useState(0);
+  const [sites, setSites] = useState<OrganizationSite[]>([]);
+  const [activeSiteId, setActiveSiteId] = useState<string | null>(null);
+  const [sitesLoading, setSitesLoading] = useState(false);
+  const [sitesReloadVersion, setSitesReloadVersion] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -182,20 +201,98 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   const organization = organizations.find((org) => org.id === selectedId) ?? organizations[0] ?? null;
 
   useEffect(() => {
-    if (!organization) return;
+    if (!organization) {
+      setSites([]);
+      setActiveSiteId(null);
+      return;
+    }
     localStorage.setItem('ncr-suite-org-id', organization.id);
     document.documentElement.style.setProperty('--accent', organization.primary_color || '#2997ff');
   }, [organization]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadSites() {
+      if (!organization || organization.plan !== 'metier') {
+        if (active) {
+          setSites([]);
+          setActiveSiteId(null);
+          setSitesLoading(false);
+        }
+        return;
+      }
+
+      setSitesLoading(true);
+      const storageKey = `ncr-suite-site-id-${organization.id}`;
+
+      if (demoMode || !supabase) {
+        const raw = localStorage.getItem(`ncr-suite-demo-sites-${organization.id}`);
+        const rows = raw ? JSON.parse(raw) as OrganizationSite[] : [];
+        const stored = localStorage.getItem(storageKey);
+        const resolved = stored === 'all' ? null : (stored && rows.some((site) => site.id === stored) ? stored : rows.find((site) => site.is_primary)?.id ?? rows[0]?.id ?? null);
+        if (active) {
+          setSites(rows.filter((site) => site.status === 'active'));
+          setActiveSiteId(resolved);
+          setSitesLoading(false);
+        }
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('organization_sites')
+        .select('id,organization_id,name,code,address,postal_code,city,phone,email,timezone,is_primary,status,created_at,updated_at')
+        .eq('organization_id', organization.id)
+        .eq('status', 'active')
+        .order('is_primary', { ascending: false })
+        .order('name', { ascending: true });
+
+      if (!active) return;
+      if (error) {
+        console.error(error);
+        setSites([]);
+        setActiveSiteId(null);
+      } else {
+        const rows = (data ?? []) as OrganizationSite[];
+        const stored = localStorage.getItem(storageKey);
+        const resolved = stored === 'all'
+          ? null
+          : stored && rows.some((site) => site.id === stored)
+            ? stored
+            : rows.find((site) => site.is_primary)?.id ?? rows[0]?.id ?? null;
+        setSites(rows);
+        setActiveSiteId(resolved);
+      }
+      setSitesLoading(false);
+    }
+
+    loadSites();
+    return () => { active = false; };
+  }, [organization?.id, organization?.plan, demoMode, sitesReloadVersion]);
+
+  const activeSite = sites.find((site) => site.id === activeSiteId) ?? null;
+
   const value = useMemo<OrganizationContextValue>(() => ({
     organizations,
     organization,
+    sites,
+    activeSite,
+    activeSiteId,
     loading,
+    sitesLoading,
     selectOrganization(id) {
       setSelectedId(id);
     },
+    selectSite(id) {
+      if (!organization) return;
+      setActiveSiteId(id);
+      localStorage.setItem(`ncr-suite-site-id-${organization.id}`, id ?? 'all');
+    },
     refreshOrganizations() {
       setReloadVersion((current) => current + 1);
+    },
+    refreshSites() {
+      setSitesReloadVersion((current) => current + 1);
     },
     async createOrganization({ name, businessType, primaryColor }) {
       const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -367,12 +464,12 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           p_practical_info: next.booking_practical_info,
           p_show_ncr_branding: next.show_ncr_branding ?? true
         });
-        if (error) throw error;
+        if (error) throw new Error(backendErrorMessage(error, 'Enregistrement impossible.'));
       }
 
       setOrganizations((current) => current.map((org) => org.id === next.id ? next : org));
     }
-  }), [organizations, organization, loading, selectedId, demoMode]);
+  }), [organizations, organization, sites, activeSite, activeSiteId, loading, sitesLoading, selectedId, demoMode]);
 
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;
 }

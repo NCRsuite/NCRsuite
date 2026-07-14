@@ -19,6 +19,19 @@ interface PublicOrganization {
   timezone: string;
 }
 
+
+interface PublicSite {
+  id: string;
+  name: string;
+  address: string | null;
+  postal_code: string | null;
+  city: string | null;
+  phone: string | null;
+  email: string | null;
+  timezone: string;
+  is_primary: boolean;
+}
+
 interface PublicSettings {
   confirmation_mode: 'automatic' | 'manual';
   slot_interval: number;
@@ -45,11 +58,13 @@ interface PublicStaff {
   display_name: string;
   color: string | null;
   service_ids: string[];
+  site_id: string | null;
 }
 
 interface PublicBookingPageData {
   organization: PublicOrganization;
   settings: PublicSettings;
+  sites: PublicSite[];
   services: PublicService[];
   staff: PublicStaff[];
 }
@@ -72,6 +87,9 @@ interface BookingResult {
   service_name: string;
   staff_name: string;
   amount_cents: number;
+  site_id: string | null;
+  site_name: string | null;
+  site_address: string | null;
 }
 
 interface CustomerForm {
@@ -117,6 +135,7 @@ export function PublicBookingPage() {
   const [pageData, setPageData] = useState<PublicBookingPageData | null>(null);
   const [loadingPage, setLoadingPage] = useState(true);
   const [pageError, setPageError] = useState('');
+  const [siteId, setSiteId] = useState('');
   const [serviceId, setServiceId] = useState('');
   const [staffChoice, setStaffChoice] = useState('any');
   const [date, setDate] = useState(dateToInput(new Date()));
@@ -147,6 +166,7 @@ export function PublicBookingPage() {
       } else {
         const typed = data as PublicBookingPageData;
         setPageData(typed);
+        setSiteId(typed.sites.find((site) => site.is_primary)?.id ?? typed.sites[0]?.id ?? '');
         setDate(dateToInput(new Date()));
       }
       setLoadingPage(false);
@@ -155,15 +175,29 @@ export function PublicBookingPage() {
     return () => { active = false; };
   }, [slug]);
 
+  const availableServices = useMemo(() => {
+    if (!pageData) return [];
+    if (!siteId) return pageData.services;
+    const serviceIds = new Set(pageData.staff.filter((member) => member.site_id === siteId).flatMap((member) => member.service_ids));
+    return pageData.services.filter((service) => serviceIds.has(service.id));
+  }, [pageData, siteId]);
+
   const selectedService = useMemo(
-    () => pageData?.services.find((service) => service.id === serviceId) ?? null,
-    [pageData, serviceId]
+    () => availableServices.find((service) => service.id === serviceId) ?? null,
+    [availableServices, serviceId]
   );
+
+  useEffect(() => {
+    if (serviceId && !availableServices.some((service) => service.id === serviceId)) {
+      setServiceId('');
+      setSelectedSlot(null);
+    }
+  }, [availableServices, serviceId]);
 
   const compatibleStaff = useMemo(() => {
     if (!pageData || !serviceId) return [];
-    return pageData.staff.filter((member) => member.service_ids.includes(serviceId));
-  }, [pageData, serviceId]);
+    return pageData.staff.filter((member) => member.service_ids.includes(serviceId) && (!siteId || member.site_id === siteId));
+  }, [pageData, serviceId, siteId]);
 
   useEffect(() => {
     if (staffChoice !== 'any' && !compatibleStaff.some((member) => member.id === staffChoice)) {
@@ -179,8 +213,9 @@ export function PublicBookingPage() {
       setError('');
       if (!supabase || !pageData || !serviceId || !date) return;
       setLoadingSlots(true);
-      const { data, error: slotsError } = await supabase.rpc('get_public_available_slots', {
+      const { data, error: slotsError } = await supabase.rpc('get_public_available_slots_v2', {
         p_slug: pageData.organization.slug,
+        p_site_id: siteId || null,
         p_service_id: serviceId,
         p_date: date,
         p_staff_id: staffChoice === 'any' ? null : staffChoice
@@ -192,7 +227,7 @@ export function PublicBookingPage() {
     }
     loadSlots();
     return () => { active = false; };
-  }, [pageData, serviceId, staffChoice, date]);
+  }, [pageData, siteId, serviceId, staffChoice, date]);
 
   const displayedSlots = useMemo(() => {
     if (staffChoice !== 'any') return slots;
@@ -212,8 +247,9 @@ export function PublicBookingPage() {
     setSaving(true);
     setError('');
     try {
-      const { data, error: bookingError } = await supabase.rpc('create_public_booking_v2', {
+      const { data, error: bookingError } = await supabase.rpc('create_public_booking_v3', {
         p_slug: pageData.organization.slug,
+        p_site_id: siteId || null,
         p_service_id: selectedService.id,
         p_staff_id: selectedSlot.staff_id,
         p_starts_at: selectedSlot.slot_start,
@@ -231,8 +267,9 @@ export function PublicBookingPage() {
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : 'La réservation a échoué.';
       setError(message);
-      const { data } = await supabase.rpc('get_public_available_slots', {
+      const { data } = await supabase.rpc('get_public_available_slots_v2', {
         p_slug: pageData.organization.slug,
+        p_site_id: siteId || null,
         p_service_id: selectedService.id,
         p_date: date,
         p_staff_id: staffChoice === 'any' ? null : staffChoice
@@ -260,15 +297,18 @@ export function PublicBookingPage() {
   }
 
   const publicStyle = { '--accent': pageData.organization.primary_color } as CSSProperties;
+  const selectedSite = pageData.sites.find((site) => site.id === siteId) ?? null;
+  const hasSiteChoice = pageData.sites.length > 1;
+  const stepOffset = hasSiteChoice ? 1 : 0;
 
   if (result) {
     const manageUrl = `/reservation/${result.token}`;
     const calendarEvent = {
       title: `${result.service_name} — ${pageData.organization.name}`,
-      description: `Rendez-vous avec ${result.staff_name}. Gestion : ${window.location.origin}${manageUrl}`,
+      description: `Rendez-vous à ${result.site_name || pageData.organization.name} avec ${result.staff_name}. Gestion : ${window.location.origin}${manageUrl}`,
       startsAt: result.starts_at,
       endsAt: result.ends_at,
-      location: pageData.organization.address || pageData.organization.name
+      location: result.site_address || pageData.organization.address || result.site_name || pageData.organization.name
     };
     return (
       <div className="public-booking-page" style={publicStyle}>
@@ -281,7 +321,7 @@ export function PublicBookingPage() {
             <div className="public-success-icon">✓</div>
             <p className="eyebrow">DEMANDE ENREGISTRÉE</p>
             <h1>{result.status === 'confirmed' ? 'Votre rendez-vous est confirmé.' : 'Votre demande attend une validation.'}</h1>
-            <p>Votre réservation apparaît immédiatement dans le planning de {pageData.organization.name}.</p>
+            <p>Votre réservation apparaît immédiatement dans le planning de {result.site_name || pageData.organization.name}.</p>{result.site_name && <div className="public-booking-site-result"><strong>{result.site_name}</strong>{result.site_address && <span>{result.site_address}</span>}</div>}
             <div className="public-booking-recap">
               <div><span>Prestation</span><strong>{result.service_name}</strong></div>
               <div><span>Date</span><strong>{fullDateFormatter.format(new Date(result.starts_at))}</strong></div>
@@ -331,35 +371,48 @@ export function PublicBookingPage() {
           <p>{pageData.settings.welcome_text || 'Sélectionnez une prestation, un professionnel et une disponibilité. Aucun compte client n’est nécessaire.'}</p>
         </section>
 
-        {(pageData.organization.address || pageData.organization.hours_text || pageData.organization.practical_info) && (
+        {(selectedSite?.address || pageData.organization.address || pageData.organization.hours_text || pageData.organization.practical_info) && (
           <section className="public-business-information">
-            {pageData.organization.address && <div><span>Adresse</span><strong>{pageData.organization.address}</strong></div>}
+            {(selectedSite?.address || pageData.organization.address) && <div><span>Adresse</span><strong>{selectedSite?.address || pageData.organization.address}</strong></div>}
             {pageData.organization.hours_text && <div><span>Horaires</span><strong>{pageData.organization.hours_text}</strong></div>}
             {pageData.organization.practical_info && <div><span>Informations pratiques</span><strong>{pageData.organization.practical_info}</strong></div>}
           </section>
         )}
 
         <div className="public-booking-grid">
-          <section className="public-booking-panel">
-            <div className="public-step-heading"><span>1</span><div><h2>Votre prestation</h2><p>Durée et tarif affichés avant validation.</p></div></div>
+          {hasSiteChoice && (
+            <section className="public-booking-panel public-site-panel">
+              <div className="public-step-heading"><span>1</span><div><h2>Votre établissement</h2><p>Choisissez le site dans lequel vous souhaitez être reçu.</p></div></div>
+              <div className="public-site-grid">
+                {pageData.sites.map((site) => (
+                  <button type="button" key={site.id} className={`public-site-choice ${siteId === site.id ? 'selected' : ''}`} onClick={() => { setSiteId(site.id); setStaffChoice('any'); setSelectedSlot(null); }}>
+                    <span className="public-service-icon"><Icon name="building" size={20} /></span>
+                    <div><strong>{site.name}</strong><p>{[site.address, site.postal_code, site.city].filter(Boolean).join(' ') || 'Adresse communiquée lors de la confirmation'}</p>{site.is_primary && <small>Établissement principal</small>}</div>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+          <section className={`public-booking-panel ${hasSiteChoice && !siteId ? 'disabled-panel' : ''}`}>
+            <div className="public-step-heading"><span>{1 + stepOffset}</span><div><h2>Votre prestation</h2><p>Durée et tarif affichés avant validation.</p></div></div>
             <div className="public-service-grid">
-              {pageData.services.map((service) => (
+              {availableServices.map((service) => (
                 <button
                   type="button"
                   key={service.id}
                   className={`public-service-choice ${serviceId === service.id ? 'selected' : ''}`}
-                  onClick={() => setServiceId(service.id)}
+                  onClick={() => setServiceId(service.id)} disabled={hasSiteChoice && !siteId}
                 >
                   <span className="public-service-icon"><Icon name="sparkles" size={20} /></span>
                   <div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}<small>{formatDuration(service.duration_minutes)} · {currencyFormatter.format(service.price_cents / 100)}</small></div>
                 </button>
               ))}
             </div>
-            {pageData.services.length === 0 && <div className="info-message">Aucune prestation n’est encore proposée en ligne.</div>}
+            {availableServices.length === 0 && <div className="info-message">Aucune prestation n’est encore proposée en ligne.</div>}
           </section>
 
           <section className={`public-booking-panel ${!serviceId ? 'disabled-panel' : ''}`}>
-            <div className="public-step-heading"><span>2</span><div><h2>Votre préférence</h2><p>Choisissez une personne ou laissez NCR Suite trouver une disponibilité.</p></div></div>
+            <div className="public-step-heading"><span>{2 + stepOffset}</span><div><h2>Votre préférence</h2><p>Choisissez une personne ou laissez NCR Suite trouver une disponibilité.</p></div></div>
             <div className="public-staff-grid">
               <button type="button" className={`public-staff-choice ${staffChoice === 'any' ? 'selected' : ''}`} onClick={() => setStaffChoice('any')} disabled={!serviceId}>
                 <div className="public-staff-avatar">∞</div><div><strong>Peu importe</strong><small>Le premier professionnel disponible</small></div>
@@ -374,7 +427,7 @@ export function PublicBookingPage() {
           </section>
 
           <section className={`public-booking-panel ${!serviceId ? 'disabled-panel' : ''}`}>
-            <div className="public-step-heading"><span>3</span><div><h2>Date et heure</h2><p>Seuls les créneaux réellement disponibles sont proposés.</p></div></div>
+            <div className="public-step-heading"><span>{3 + stepOffset}</span><div><h2>Date et heure</h2><p>Seuls les créneaux réellement disponibles sont proposés.</p></div></div>
             <label className="public-date-field">Date souhaitée<input type="date" min={minDate} max={maxDate} value={date} onChange={(event) => setDate(event.target.value)} disabled={!serviceId} /></label>
             <div className="public-slots">
               {loadingSlots && <div className="public-slots-state">Recherche des disponibilités…</div>}
@@ -394,7 +447,7 @@ export function PublicBookingPage() {
           </section>
 
           <section className={`public-booking-panel public-customer-panel ${!selectedSlot ? 'disabled-panel' : ''}`}>
-            <div className="public-step-heading"><span>4</span><div><h2>Vos coordonnées</h2><p>Une adresse e-mail ou un téléphone est nécessaire.</p></div></div>
+            <div className="public-step-heading"><span>{4 + stepOffset}</span><div><h2>Vos coordonnées</h2><p>Une adresse e-mail ou un téléphone est nécessaire.</p></div></div>
             {selectedService && selectedSlot && (
               <div className="public-selection-summary">
                 <Icon name="calendar" size={20} />

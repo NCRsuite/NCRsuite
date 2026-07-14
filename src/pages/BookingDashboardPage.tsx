@@ -10,6 +10,8 @@ interface AppointmentSummary {
   starts_at: string;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
   amount_cents: number | null;
+  client_id: string;
+  site_id: string | null;
 }
 
 function startOfDay(date: Date) {
@@ -37,7 +39,7 @@ function sameDay(a: Date, b: Date) {
 const currencyFormatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 
 export function BookingDashboardPage() {
-  const { organization } = useOrganization();
+  const { organization, activeSite, activeSiteId } = useOrganization();
   const { demoMode } = useAuth();
   const [appointments, setAppointments] = useState<AppointmentSummary[]>([]);
   const [clientCount, setClientCount] = useState(0);
@@ -61,18 +63,24 @@ export function BookingDashboardPage() {
         }
         return;
       }
+      let appointmentsQuery = supabase.from('appointments').select('starts_at,status,amount_cents,client_id,site_id').eq('organization_id', organizationId).gte('starts_at', weekStart.toISOString()).lt('starts_at', weekEnd.toISOString());
+      if (organization?.plan === 'metier' && activeSiteId) appointmentsQuery = appointmentsQuery.eq('site_id', activeSiteId);
       const [appointmentsResult, clientsResult] = await Promise.all([
-        supabase.from('appointments').select('starts_at,status,amount_cents').eq('organization_id', organizationId).gte('starts_at', weekStart.toISOString()).lt('starts_at', weekEnd.toISOString()),
+        appointmentsQuery,
         supabase.from('clients').select('id', { count: 'exact', head: true }).eq('organization_id', organizationId).eq('status', 'active')
       ]);
       if (!active) return;
-      if (!appointmentsResult.error) setAppointments((appointmentsResult.data ?? []) as AppointmentSummary[]);
-      if (!clientsResult.error) setClientCount(clientsResult.count ?? 0);
+      if (!appointmentsResult.error) {
+        const rows = (appointmentsResult.data ?? []) as AppointmentSummary[];
+        setAppointments(rows);
+        if (organization?.plan === 'metier' && activeSiteId) setClientCount(new Set(rows.map((row) => row.client_id)).size);
+        else if (!clientsResult.error) setClientCount(clientsResult.count ?? 0);
+      }
       setLoading(false);
     }
     load();
     return () => { active = false; };
-  }, [organization, demoMode]);
+  }, [organization, demoMode, activeSiteId]);
 
   const today = new Date();
   const todayCount = appointments.filter((row) => row.status !== 'cancelled' && sameDay(new Date(row.starts_at), today)).length;
@@ -92,7 +100,7 @@ export function BookingDashboardPage() {
   return (
     <div className="page dashboard-page">
       <header className="page-header">
-        <div><p className="eyebrow">COIFFURE & BEAUTÉ</p><h1>Bonjour, bienvenue sur {organization.name}.</h1><p>{isPersonalView ? 'Votre planning personnel et vos rendez-vous.' : 'Votre activité réelle, mise à jour depuis Supabase.'}</p></div>
+        <div><p className="eyebrow">COIFFURE & BEAUTÉ</p><h1>Bonjour, bienvenue sur {activeSite?.name ?? organization.name}.</h1><p>{isPersonalView ? 'Votre planning personnel et vos rendez-vous.' : activeSite ? `Activité de l’établissement ${activeSite.name}.` : organization.plan === 'metier' ? 'Vue consolidée de tous vos établissements.' : 'Votre activité réelle, mise à jour depuis Supabase.'}</p></div>
         <div className="header-actions">
           {canManage ? (
             <>
@@ -109,7 +117,7 @@ export function BookingDashboardPage() {
       <section className="stats-grid">
         <StatCard label="Rendez-vous aujourd’hui" value={loading ? '—' : String(todayCount)} detail="hors annulations" icon="calendar" />
         <StatCard label="Rendez-vous cette semaine" value={loading ? '—' : String(activeAppointments.length)} detail="planning actuel" icon="activity" />
-        <StatCard label={isPersonalView ? "Clients de mes rendez-vous" : "Clients actifs"} value={loading ? '—' : String(clientCount)} detail={isPersonalView ? "visibles dans mon planning" : "dans votre fichier client"} icon="users" />
+        <StatCard label={isPersonalView ? "Clients de mes rendez-vous" : activeSite ? "Clients de la semaine" : "Clients actifs"} value={loading ? '—' : String(clientCount)} detail={isPersonalView ? "visibles dans mon planning" : activeSite ? `ayant un rendez-vous à ${activeSite.name}` : "dans votre fichier client"} icon="users" />
         <StatCard label="Chiffre prévisionnel" value={loading ? '—' : currencyFormatter.format(forecast / 100)} detail="cette semaine" icon="chart" />
       </section>
 
