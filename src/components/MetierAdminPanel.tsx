@@ -35,6 +35,10 @@ interface MetierAdminConfiguration {
     id: string;
     name: string;
     business_type: string;
+    business_type_label: string;
+    business_type_locked: boolean;
+    minimum_monthly_price_cents: number | null;
+    monthly_price_cents: number;
     member_limit: number;
     site_limit: number;
     storage_limit_mb: number;
@@ -65,6 +69,7 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
   const [organizations, setOrganizations] = useState<MetierAdminOrganization[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [configuration, setConfiguration] = useState<MetierAdminConfiguration | null>(null);
+  const [monthlyPrice, setMonthlyPrice] = useState('69.90');
   const [memberLimit, setMemberLimit] = useState(10);
   const [siteLimit, setSiteLimit] = useState(5);
   const [storageLimitMb, setStorageLimitMb] = useState(5000);
@@ -103,6 +108,7 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
     if (requestError) throw requestError;
     const next = data as MetierAdminConfiguration;
     setConfiguration(next);
+    setMonthlyPrice((next.organization.monthly_price_cents / 100).toFixed(2));
     setMemberLimit(next.organization.member_limit);
     setSiteLimit(next.organization.site_limit);
     setStorageLimitMb(next.organization.storage_limit_mb);
@@ -166,7 +172,18 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
   async function save(event: FormEvent) {
     event.preventDefault();
     if (!supabase || !selectedId || !canManage) return;
+    const monthlyPriceCents = Math.round(Number(monthlyPrice.replace(',', '.')) * 100);
     const setupFeeCents = Math.round(Number(setupFee.replace(',', '.')) * 100);
+    if (!Number.isFinite(monthlyPriceCents) || monthlyPriceCents < 0) {
+      setError('Le tarif mensuel est invalide.');
+      return;
+    }
+    const minimumPrice = configuration?.organization.minimum_monthly_price_cents;
+    const businessLabel = configuration?.organization.business_type_label ?? 'ce domaine';
+    if (minimumPrice !== null && minimumPrice !== undefined && monthlyPriceCents < minimumPrice) {
+      setError(`Le tarif minimum pour ${businessLabel} est de ${money(minimumPrice)} HT/mois.`);
+      return;
+    }
     if (!Number.isFinite(setupFeeCents) || setupFeeCents < 0) {
       setError('Les frais de configuration sont invalides.');
       return;
@@ -175,8 +192,9 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
     setSaving(true);
     setError('');
     setMessage('');
-    const { error: requestError } = await supabase.rpc('admin_update_metier_configuration', {
+    const { error: requestError } = await supabase.rpc('admin_update_metier_configuration_v2', {
       p_organization_id: selectedId,
+      p_monthly_price_cents: monthlyPriceCents,
       p_member_limit: memberLimit,
       p_site_limit: siteLimit,
       p_storage_limit_mb: storageLimitMb,
@@ -238,8 +256,19 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
 
               {!canManage && <div className="info-message">Le rôle Support permet la consultation, mais pas la modification.</div>}
 
+              <section className="metier-admin-domain-lock">
+                <div className="metier-admin-domain-lock-icon"><Icon name={selected.business_type === 'securite' ? 'shield' : selected.business_type === 'formation' ? 'graduation' : selected.business_type === 'artisan' ? 'tool' : selected.business_type === 'nettoyage' ? 'sparkles' : 'scissors'} size={24} /></div>
+                <div>
+                  <p className="eyebrow">DOMAINE MÉTIER UNIQUE</p>
+                  <h3>{configuration.organization.business_type_label}</h3>
+                  <p>Cet espace et cet abonnement donnent accès uniquement aux fonctions de ce domaine. Une seconde activité nécessite un autre espace entreprise et un abonnement distinct.</p>
+                </div>
+                <span className="admin-status-pill positive">Domaine verrouillé</span>
+              </section>
+
               <div className="metier-admin-form-grid">
                 <label>Référence du contrat<input maxLength={120} value={contractReference} onChange={(event) => setContractReference(event.target.value)} disabled={!canManage} placeholder="Ex. NCR-MET-2026-001" /></label>
+                <label>Tarif mensuel HT<div className="admin-price-input"><input inputMode="decimal" value={monthlyPrice} onChange={(event) => setMonthlyPrice(event.target.value)} disabled={!canManage} /><span>€</span></div>{configuration.organization.minimum_monthly_price_cents !== null ? <small>Minimum {money(configuration.organization.minimum_monthly_price_cents)} HT/mois pour ce domaine</small> : <small>Tarif défini selon le devis et la configuration</small>}</label>
                 <label>Frais de configuration HT<div className="admin-price-input"><input inputMode="decimal" value={setupFee} onChange={(event) => setSetupFee(event.target.value)} disabled={!canManage} /><span>€</span></div></label>
                 <label>Limite d’utilisateurs<input type="number" min={1} max={100} value={memberLimit} onChange={(event) => setMemberLimit(Number(event.target.value))} disabled={!canManage} /></label>
                 <label>Limite d’établissements<input type="number" min={1} max={50} value={siteLimit} onChange={(event) => setSiteLimit(Number(event.target.value))} disabled={!canManage} /></label>
@@ -257,7 +286,7 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
               </section>
 
               <section className="metier-admin-modules-section">
-                <div><p className="eyebrow">MODULES CONTRACTUELS</p><h3>Fonctions activées</h3><p className="muted">Les modules du socle restent obligatoires. Les autres peuvent être adaptés au devis.</p></div>
+                <div><p className="eyebrow">MODULES CONTRACTUELS</p><h3>Fonctions de {configuration.organization.business_type_label}</h3><p className="muted">Seuls les modules compatibles avec le domaine sélectionné sont proposés. Les modules des autres métiers ne peuvent pas être ajoutés à cet espace.</p></div>
                 {groupedModules.map(([category, modules]) => (
                   <div className="metier-admin-module-group" key={category}><strong>{category}</strong><div>{modules.map((module) => {
                     const checked = module.core_module || enabledModules.includes(module.module_key);

@@ -2625,3 +2625,32 @@ button { max-width: 100%; }
   .public-site-grid { grid-template-columns: 1fr; }
   .public-site-choice { min-height: 92px; }
 }
+
+/* V2.3.4 — Offre Métier limitée à un domaine d’activité */
+.metier-admin-domain-lock {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+  padding:16px;
+  margin-top:18px;
+  border:1px solid rgba(10,132,255,.2);
+  border-radius:22px;
+  background:linear-gradient(135deg,#f5f9ff,#eef6ff);
+}
+.metier-admin-domain-lock-icon {
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:16px;
+  color:#0569df;
+  background:#dcecff;
+}
+.metier-admin-domain-lock h3 { margin:2px 0 5px;font-size:1.05rem; }
+.metier-admin-domain-lock p:last-child { margin:0;color:#626c79;font-size:.84rem;line-height:1.45; }
+.metier-admin-form-grid small { color:#747d89;font-size:.72rem;font-weight:500;line-height:1.35; }
+@media (max-width:700px) {
+  .metier-admin-domain-lock { grid-template-columns:auto minmax(0,1fr);align-items:start; }
+  .metier-admin-domain-lock .admin-status-pill { grid-column:1/-1;justify-self:start; }
+}

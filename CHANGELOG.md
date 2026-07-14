@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.3.4 — Domaine métier unique et tarification par activité
+
+- Une entreprise Métier reste rattachée à un seul domaine d’activité.
+- Une deuxième activité nécessite un espace entreprise et un abonnement distincts.
+- Les modules proposés sont strictement filtrés selon le domaine choisi.
+- Le domaine est verrouillé dès l’enregistrement du contrat Métier.
+- Tarification minimale configurable par domaine.
+- Sécurité privée : minimum fixé à 50,00 € HT par mois.
+- Le tarif mensuel du contrat est désormais modifiable depuis l’onglet Offres Métier.
+- Contrôle du tarif appliqué côté interface et côté Supabase.
+- Cache PWA mis à jour en V2.3.4.
+
 ## 2.3.3 — Multi-établissements opérationnel
 
 - Sélecteur distinct Entreprise / Établissement sur ordinateur et mobile.
