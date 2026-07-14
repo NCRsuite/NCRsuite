@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## 2.4.1 — Création d’espaces multi-activités
+
+- Nouveau bouton **Créer un espace** dans Administration NCR → Entreprises.
+- Rattachement d’un nouvel espace à un compte entreprise déjà existant, sans nouvelle adresse e-mail.
+- Un domaine métier unique, des données isolées et un abonnement indépendant pour chaque espace.
+- Choix de la formule, du tarif mensuel et de la période d’essai au moment de la création.
+- Configuration initiale des limites, frais et établissement principal pour l’offre Métier.
+- Activation automatique des seuls modules compatibles avec le domaine choisi.
+- Blocage des comptes administrateurs NCR comme propriétaires d’un espace métier.
+- Journalisation de la création et initialisation sécurisée de l’abonnement.
+- Cache PWA mis à jour en V2.4.1.
+
 ## 2.4.0 — Pack Formation, socle opérationnel
 
 - Tableau de bord Formation alimenté par les vraies données Supabase.

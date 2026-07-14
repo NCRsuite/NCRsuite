@@ -1,4 +1,27 @@
-# NCR Suite — V2.4.0
+# NCR Suite — V2.4.1
+
+
+## V2.4.1 — Créer plusieurs espaces avec le même compte
+
+Depuis **Administration NCR → Entreprises → Créer un espace**, le super-administrateur peut rattacher un nouvel espace à un compte NCR Suite existant.
+
+Chaque espace possède obligatoirement :
+
+- un domaine métier unique ;
+- ses propres données ;
+- sa formule et son tarif mensuel ;
+- ses modules compatibles ;
+- son abonnement indépendant.
+
+Exemple : le même compte peut accéder à **Bella Coiffure** et **Bella Formation**, puis changer d’espace depuis le menu de compte. Une nouvelle adresse e-mail n’est pas nécessaire.
+
+Après `017_training_pack_core.sql`, exécuter :
+
+```text
+supabase/migrations/018_admin_create_organization_space.sql
+```
+
+Le compte propriétaire doit déjà exister dans Supabase Auth et avoir confirmé son adresse. Un compte super-administrateur NCR ne peut pas être utilisé comme propriétaire d’entreprise.
 
 
 ## V2.4 — Pack Formation, première phase

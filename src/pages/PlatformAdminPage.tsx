@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { AdminCreateSpaceModal } from '../components/AdminCreateSpaceModal';
 import { BillingAdminPanel } from '../components/BillingAdminPanel';
 import { MetierAdminPanel } from '../components/MetierAdminPanel';
 import { Icon } from '../components/Icon';
@@ -109,6 +110,7 @@ export function PlatformAdminPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [showCreateSpace, setShowCreateSpace] = useState(false);
 
   const [editPlan, setEditPlan] = useState<Plan>('decouverte');
   const [editOrganizationStatus, setEditOrganizationStatus] = useState<OrganizationStatus>('active');
@@ -186,6 +188,16 @@ export function PlatformAdminPage() {
     setEditPlan(value);
     const defaultPrice = plans.find((plan) => plan.value === value)?.defaultPrice ?? 0;
     setEditPrice((defaultPrice / 100).toFixed(2));
+  }
+
+  async function handleSpaceCreated(_organizationId: string, organizationName: string) {
+    setShowCreateSpace(false);
+    setSearch('');
+    setPlanFilter('');
+    setStatusFilter('');
+    setError('');
+    setMessage(`L’espace ${organizationName} a été créé. Le propriétaire le verra dans « Changer d’entreprise » avec son abonnement séparé.`);
+    await loadAll(false);
   }
 
   async function saveSubscription(event: React.FormEvent) {
@@ -276,7 +288,15 @@ export function PlatformAdminPage() {
           <article className="panel admin-organizations-panel">
             <div className="panel-header admin-list-header">
               <div><p className="eyebrow">ENTREPRISES</p><h2>Comptes clients</h2></div>
-              <span>{organizations.length} résultat(s)</span>
+              <div className="admin-list-header-actions">
+                <span>{organizations.length} résultat(s)</span>
+                {canManage && (
+                  <button type="button" className="primary-button compact" onClick={() => setShowCreateSpace(true)}>
+                    <Icon name="plus" size={17} />
+                    Créer un espace
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="admin-filters">
@@ -403,6 +423,13 @@ export function PlatformAdminPage() {
           <MetierAdminPanel canManage={canManage} />
         )}
       </main>
+
+      {showCreateSpace && (
+        <AdminCreateSpaceModal
+          onClose={() => setShowCreateSpace(false)}
+          onCreated={handleSpaceCreated}
+        />
+      )}
     </div>
   );
 }
