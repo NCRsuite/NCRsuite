@@ -1,4 +1,4 @@
-# NCR Suite — V1.8.0
+# NCR Suite — V1.9.1
 
 NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Chaque entreprise dispose de son espace, de ses données isolées et des modules correspondant à son activité.
 
@@ -74,3 +74,8 @@ La procédure détaillée de la V1.7 est disponible dans `docs/TEAM_ACCESS_SETUP
 2. Remplacer le code de l’Edge Function `process-email-queue` par `supabase/functions/process-email-queue/index.ts`.
 3. Déployer le code sur GitHub puis attendre le déploiement Cloudflare.
 4. Configurer les textes dans **Paramètres → Expérience client**.
+
+
+## V1.9 — Personnalisation commerciale
+
+La formule Professionnelle permet de personnaliser la page de réservation et les e-mails avec le nom commercial, le logo, la couleur, une bannière, une adresse, des horaires et des informations pratiques. Voir `docs/COMMERCIAL_BRANDING_SETUP.md`.

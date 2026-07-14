@@ -29,6 +29,11 @@ function safeColor(value: unknown): string {
   return /^#[0-9a-f]{6}$/i.test(color) ? color : '#0A84FF';
 }
 
+function safeImageUrl(value: unknown): string | null {
+  const url = String(value ?? '').trim();
+  return /^https:\/\//i.test(url) && url.length <= 1200 ? url : null;
+}
+
 function formatAppointmentDate(payload: Record<string, unknown>): { date: string; time: string } {
   const startsAt = String(payload.starts_at ?? '');
   const timezone = String(payload.organization_timezone ?? 'Europe/Paris');
@@ -181,6 +186,9 @@ function buildEmail(item: OutboxItem, publicUrl: string) {
   const staff = escapeHtml(payload.staff_name ?? '');
   const contactEmail = String(payload.contact_email ?? '').trim();
   const contactPhone = String(payload.contact_phone ?? '').trim();
+  const organizationAddress = String(payload.organization_address ?? '').trim();
+  const organizationLogoUrl = safeImageUrl(payload.organization_logo_url);
+  const showNcrBranding = payload.show_ncr_branding !== false;
   const publicToken = String(payload.public_token ?? '').trim();
   const appointmentDate = formatAppointmentDate(payload);
   const price = formatPrice(payload.amount_cents);
@@ -194,10 +202,13 @@ function buildEmail(item: OutboxItem, publicUrl: string) {
         text: `${String(payload.service_name ?? 'Rendez-vous')} — ${String(payload.organization_name ?? '')}`,
         details: manageUrl ? `Gérer le rendez-vous : ${manageUrl}` : 'Rendez-vous réservé avec NCR Suite',
         dates: `${starts}/${ends}`,
-        location: String(payload.organization_name ?? '')
+        location: organizationAddress || String(payload.organization_name ?? '')
       }).toString()}`
     : null;
   const cancellationPolicy = String(payload.cancellation_policy ?? '').trim();
+  const emailLogo = organizationLogoUrl
+    ? `<div style="margin-bottom:22px"><img src="${escapeHtml(organizationLogoUrl)}" alt="${organization}" style="display:block;max-width:180px;max-height:72px;object-fit:contain"></div>`
+    : '';
 
   const contactLine = [
     contactEmail ? `<a href="mailto:${escapeHtml(contactEmail)}" style="color:${accent};text-decoration:none">${escapeHtml(contactEmail)}</a>` : '',
@@ -214,21 +225,22 @@ function buildEmail(item: OutboxItem, publicUrl: string) {
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;padding:28px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 12px 35px rgba(0,0,0,.08)">
 <tr><td style="height:8px;background:${accent}"></td></tr>
-<tr><td style="padding:34px 32px 14px"><div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">${clientFirstName && isCustomer ? `Bonjour ${clientFirstName}, ` : ''}${escapeHtml(copy.message)}</p></td></tr>
+<tr><td style="padding:34px 32px 14px">${emailLogo}<div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">${clientFirstName && isCustomer ? `Bonjour ${clientFirstName}, ` : ''}${escapeHtml(copy.message)}</p></td></tr>
 <tr><td style="padding:18px 32px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;border-radius:20px;padding:8px 18px">
 <tr><td style="padding:13px 0;color:#6e6e73">Établissement</td><td align="right" style="font-weight:700">${organization}</td></tr>
 <tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Prestation</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${service}</td></tr>
 <tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Date</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${escapeHtml(appointmentDate.date)}</td></tr>
 <tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Heure</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${escapeHtml(appointmentDate.time)}</td></tr>
 ${staff ? `<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Collaborateur</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${staff}</td></tr>` : ''}
+${organizationAddress ? `<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Adresse</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${escapeHtml(organizationAddress)}</td></tr>` : ''}
 ${price ? `<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Tarif</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${escapeHtml(price)}</td></tr>` : ''}
 </table></td></tr>
 ${actionButtons}
 ${isCustomer && cancellationPolicy ? `<tr><td style="padding:0 32px 24px;color:#6e6e73;font-size:12px;line-height:1.6"><strong style="color:#1d1d1f">Modification et annulation :</strong> ${escapeHtml(cancellationPolicy)}</td></tr>` : ''}
-<tr><td style="padding:22px 32px 32px;border-top:1px solid #ededf0;color:#86868b;font-size:13px;line-height:1.6">${contactLine ? `Une question ? ${contactLine}<br>` : ''}E-mail envoyé automatiquement par NCR Suite pour ${organization}.</td></tr>
+<tr><td style="padding:22px 32px 32px;border-top:1px solid #ededf0;color:#86868b;font-size:13px;line-height:1.6">${contactLine ? `Une question ? ${contactLine}<br>` : ''}${showNcrBranding ? `Propulsé par NCR Suite pour ${organization}.` : `E-mail envoyé automatiquement pour ${organization}.`}</td></tr>
 </table></td></tr></table></body></html>`;
 
-  const text = `${copy.title}\n\n${copy.message}\n\nÉtablissement : ${payload.organization_name ?? ''}\nPrestation : ${payload.service_name ?? ''}\nDate : ${appointmentDate.date}\nHeure : ${appointmentDate.time}${staff ? `\nCollaborateur : ${payload.staff_name}` : ''}${price ? `\nTarif : ${price}` : ''}${manageUrl && isCustomer ? `\n\nGérer mon rendez-vous : ${manageUrl}` : ''}${calendarUrl ? `\nAjouter à Google Agenda : ${calendarUrl}` : ''}${cancellationPolicy && isCustomer ? `\n\nModification et annulation : ${cancellationPolicy}` : ''}${contactEmail || contactPhone ? `\n\nContact : ${[contactEmail, contactPhone].filter(Boolean).join(' · ')}` : ''}`;
+  const text = `${copy.title}\n\n${copy.message}\n\nÉtablissement : ${payload.organization_name ?? ''}\nPrestation : ${payload.service_name ?? ''}\nDate : ${appointmentDate.date}\nHeure : ${appointmentDate.time}${staff ? `\nCollaborateur : ${payload.staff_name}` : ''}${organizationAddress ? `\nAdresse : ${organizationAddress}` : ''}${price ? `\nTarif : ${price}` : ''}${manageUrl && isCustomer ? `\n\nGérer mon rendez-vous : ${manageUrl}` : ''}${calendarUrl ? `\nAjouter à Google Agenda : ${calendarUrl}` : ''}${cancellationPolicy && isCustomer ? `\n\nModification et annulation : ${cancellationPolicy}` : ''}${contactEmail || contactPhone ? `\n\nContact : ${[contactEmail, contactPhone].filter(Boolean).join(' · ')}` : ''}`;
 
   return { subject: copy.subject, html, text, replyTo: contactEmail || null };
 }

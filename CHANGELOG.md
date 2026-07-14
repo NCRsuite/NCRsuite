@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.9.1 — Navigation mobile
+
+- Ajout d’un menu de compte accessible depuis l’en-tête mobile.
+- Changement d’entreprise disponible sur téléphone et tablette.
+- Déconnexion désormais visible et accessible sur mobile.
+- Redirection sécurisée vers le tableau de bord après changement d’entreprise.
+- Accès rapide aux paramètres depuis le menu mobile.
+- Prise en charge de la fermeture par toucher extérieur et touche Échap.
+
+
+## 1.9.0 — Personnalisation commerciale Professionnelle
+
+- Nouveau module Personnalisation réservé aux offres Professionnelle et Métier.
+- Nom commercial, couleur, logo et bannière propres à l’établissement.
+- Lien public de réservation personnalisable avec contrôle d’unicité.
+- Adresse, horaires et informations pratiques visibles par les clients.
+- Aperçu mobile en direct avant enregistrement.
+- Stockage sécurisé des images dans un bucket Supabase dédié.
+- Page publique et espace de gestion du rendez-vous enrichis.
+- E-mails de rendez-vous harmonisés avec le logo, la couleur et l’adresse de l’établissement.
+- Mention « Propulsé par NCR Suite » obligatoire en Professionnelle et configurable en Métier.
+- Identité publique neutre NCR Suite conservée pour les offres inférieures.
+- Mise à jour du cache PWA et de la documentation de déploiement.
+
 ## 1.8.0 — Expérience client et gestion du rendez-vous
 
 - Consentement explicite obligatoire avant toute réservation publique.

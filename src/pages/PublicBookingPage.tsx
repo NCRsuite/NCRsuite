@@ -10,6 +10,12 @@ interface PublicOrganization {
   slug: string;
   primary_color: string;
   logo_url: string | null;
+  banner_url: string | null;
+  tagline: string | null;
+  address: string | null;
+  hours_text: string | null;
+  practical_info: string | null;
+  show_ncr_branding: boolean;
   timezone: string;
 }
 
@@ -258,11 +264,11 @@ export function PublicBookingPage() {
   if (result) {
     const manageUrl = `/reservation/${result.token}`;
     const calendarEvent = {
-      title: `${result.service_name} — ${result.organization_name}`,
+      title: `${result.service_name} — ${pageData.organization.name}`,
       description: `Rendez-vous avec ${result.staff_name}. Gestion : ${window.location.origin}${manageUrl}`,
       startsAt: result.starts_at,
       endsAt: result.ends_at,
-      location: result.organization_name
+      location: pageData.organization.address || pageData.organization.name
     };
     return (
       <div className="public-booking-page" style={publicStyle}>
@@ -275,7 +281,7 @@ export function PublicBookingPage() {
             <div className="public-success-icon">✓</div>
             <p className="eyebrow">DEMANDE ENREGISTRÉE</p>
             <h1>{result.status === 'confirmed' ? 'Votre rendez-vous est confirmé.' : 'Votre demande attend une validation.'}</h1>
-            <p>Votre réservation apparaît immédiatement dans le planning de {result.organization_name}.</p>
+            <p>Votre réservation apparaît immédiatement dans le planning de {pageData.organization.name}.</p>
             <div className="public-booking-recap">
               <div><span>Prestation</span><strong>{result.service_name}</strong></div>
               <div><span>Date</span><strong>{fullDateFormatter.format(new Date(result.starts_at))}</strong></div>
@@ -303,7 +309,7 @@ export function PublicBookingPage() {
             </div>
           </section>
         </main>
-        <footer className="public-booking-footer">Propulsé par <strong>NCR Suite</strong></footer>
+        {pageData.organization.show_ncr_branding && <footer className="public-booking-footer">Propulsé par <strong>NCR Suite</strong></footer>}
       </div>
     );
   }
@@ -316,11 +322,22 @@ export function PublicBookingPage() {
       </header>
 
       <main className="public-booking-container">
-        <section className="public-booking-hero">
+        <section
+          className={`public-booking-hero ${pageData.organization.banner_url ? 'with-banner' : ''}`}
+          style={pageData.organization.banner_url ? { backgroundImage: `linear-gradient(90deg, rgba(7,9,12,.88), rgba(7,9,12,.35)), url(${pageData.organization.banner_url})` } : undefined}
+        >
           <p className="eyebrow">PRENEZ RENDEZ-VOUS</p>
-          <h1>Choisissez le créneau qui vous convient.</h1>
+          <h1>{pageData.organization.tagline || 'Choisissez le créneau qui vous convient.'}</h1>
           <p>{pageData.settings.welcome_text || 'Sélectionnez une prestation, un professionnel et une disponibilité. Aucun compte client n’est nécessaire.'}</p>
         </section>
+
+        {(pageData.organization.address || pageData.organization.hours_text || pageData.organization.practical_info) && (
+          <section className="public-business-information">
+            {pageData.organization.address && <div><span>Adresse</span><strong>{pageData.organization.address}</strong></div>}
+            {pageData.organization.hours_text && <div><span>Horaires</span><strong>{pageData.organization.hours_text}</strong></div>}
+            {pageData.organization.practical_info && <div><span>Informations pratiques</span><strong>{pageData.organization.practical_info}</strong></div>}
+          </section>
+        )}
 
         <div className="public-booking-grid">
           <section className="public-booking-panel">
@@ -425,7 +442,7 @@ export function PublicBookingPage() {
           </section>
         </div>
       </main>
-      <footer className="public-booking-footer">Propulsé par <strong>NCR Suite</strong></footer>
+      {pageData.organization.show_ncr_branding && <footer className="public-booking-footer">Propulsé par <strong>NCR Suite</strong></footer>}
     </div>
   );
 }

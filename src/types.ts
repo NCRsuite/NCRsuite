@@ -10,6 +10,13 @@ export interface Organization {
   plan: Plan;
   primary_color: string;
   logo_url?: string | null;
+  public_name?: string | null;
+  booking_tagline?: string | null;
+  booking_banner_url?: string | null;
+  booking_address?: string | null;
+  booking_hours_text?: string | null;
+  booking_practical_info?: string | null;
+  show_ncr_branding?: boolean;
   timezone?: string;
   booking_enabled?: boolean;
   booking_confirmation_mode?: 'automatic' | 'manual';
@@ -51,4 +58,9 @@ export type IconName =
   | 'graduation'
   | 'signature'
   | 'tool'
-  | 'chart';
+  | 'chart'
+  | 'logout'
+  | 'chevronDown'
+  | 'chevronRight'
+  | 'check'
+  | 'close';

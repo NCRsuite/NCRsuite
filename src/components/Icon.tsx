@@ -19,7 +19,12 @@ const paths: Record<IconName, React.ReactNode> = {
   graduation: <><path d="m2 10 10-5 10 5-10 5z"/><path d="M6 12.5V17c3 3 9 3 12 0v-4.5M22 10v6"/></>,
   signature: <><path d="M4 18c2-5 3-10 5-10 3 0-1 9 2 9 2 0 3-5 5-5 2 0 0 5 4 5"/><path d="M3 21h18"/></>,
   tool: <><path d="M14.7 6.3a4 4 0 0 0-5-5l2.1 2.1-2.4 2.4-2.1-2.1a4 4 0 0 0 5 5L20 16.4a2 2 0 0 1-2.8 2.8l-7.7-7.7"/><path d="m5 15-3 3 4 4 3-3"/></>,
-  chart: <><path d="M3 3v18h18"/><path d="m7 16 4-5 4 3 5-7"/></>
+  chart: <><path d="M3 3v18h18"/><path d="m7 16 4-5 4 3 5-7"/></>,
+  logout: <><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/></>,
+  chevronDown: <path d="m6 9 6 6 6-6"/>,
+  chevronRight: <path d="m9 18 6-6-6-6"/>,
+  check: <path d="m5 12 4 4L19 6"/>,
+  close: <><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>
 };
 
 export function Icon({ name, size = 22, strokeWidth = 1.8 }: Props) {

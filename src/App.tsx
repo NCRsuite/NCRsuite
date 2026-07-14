@@ -15,6 +15,7 @@ import { PublicBookingPage } from './pages/PublicBookingPage';
 import { PublicBookingManagePage } from './pages/PublicBookingManagePage';
 import { TeamAccessPage } from './pages/TeamAccessPage';
 import { InvitationPage } from './pages/InvitationPage';
+import { CommercialBrandingPage } from './pages/CommercialBrandingPage';
 
 function LoadingScreen() {
   return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Chargement de NCR Suite…</span></div>;
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="prestations" element={<ServicesPage />} />
         <Route path="equipe" element={<StaffPage />} />
         <Route path="acces-equipe" element={<TeamAccessPage />} />
+        <Route path="personnalisation" element={<CommercialBrandingPage />} />
         <Route path="parametres" element={<SettingsPage />} />
         <Route path="*" element={<ModulePage />} />
       </Route>

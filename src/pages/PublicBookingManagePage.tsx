@@ -16,6 +16,11 @@ interface ManagedBooking {
   organization_slug: string;
   primary_color: string;
   logo_url: string | null;
+  banner_url: string | null;
+  organization_address: string | null;
+  organization_hours_text: string | null;
+  organization_practical_info: string | null;
+  show_ncr_branding: boolean;
   timezone: string;
   cancel_notice_hours: number;
   service_id: string;
@@ -187,7 +192,7 @@ export function PublicBookingManagePage() {
     description: `Rendez-vous avec ${booking.staff_name}. Référence ${booking.appointment_id.slice(0, 8).toUpperCase()}.`,
     startsAt: booking.starts_at,
     endsAt: booking.ends_at,
-    location: booking.organization_name
+    location: booking.organization_address || booking.organization_name
   };
 
   return (
@@ -280,6 +285,13 @@ export function PublicBookingManagePage() {
               <p>{booking.privacy_notice || 'Vos coordonnées sont utilisées uniquement pour organiser, confirmer et suivre ce rendez-vous.'}</p>
             </div>
           </div>
+          {(booking.organization_address || booking.organization_hours_text || booking.organization_practical_info) && (
+            <div className="public-client-info-grid public-establishment-details">
+              {booking.organization_address && <div><span>Adresse</span><p>{booking.organization_address}</p></div>}
+              {booking.organization_hours_text && <div><span>Horaires</span><p>{booking.organization_hours_text}</p></div>}
+              {booking.organization_practical_info && <div><span>Informations pratiques</span><p>{booking.organization_practical_info}</p></div>}
+            </div>
+          )}
           {(booking.contact_email || booking.contact_phone) && (
             <div className="public-establishment-contact">
               <strong>Contacter {booking.organization_name}</strong>
@@ -291,7 +303,7 @@ export function PublicBookingManagePage() {
           )}
         </section>
       </main>
-      <footer className="public-booking-footer">Propulsé par <strong>NCR Suite</strong></footer>
+      {booking.show_ncr_branding && <footer className="public-booking-footer">Propulsé par <strong>NCR Suite</strong></footer>}
     </div>
   );
 }
