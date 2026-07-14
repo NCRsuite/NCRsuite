@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.2.1 — Accès abonnement et paiements clarifiés
+
+- Ajout d’un accès permanent et visible à **Mon abonnement** dans la barre latérale et le menu mobile.
+- Carte dédiée indiquant la formule active et l’accès au changement de formule.
+- Administration NCR séparée en deux sections explicites : **Entreprises** et **Abonnements & paiements**.
+- Les demandes de changement, les liens Qonto et les conditions ne sont plus enfouis en bas de page.
+- Cache PWA mis à jour pour forcer la récupération de la nouvelle interface.
+
+
 ## 2.2.0 — Abonnements Qonto & portail commercial
 
 - Nouvelle page **Mon abonnement** pour les propriétaires et administrateurs d’entreprise.

@@ -95,6 +95,7 @@ function statusClass(value: string) {
 }
 
 export function PlatformAdminPage() {
+  const [activeSection, setActiveSection] = useState<'overview' | 'billing'>('overview');
   const { user, signOut } = useAuth();
   const { profile, canManage } = usePlatformAdmin();
   const [metrics, setMetrics] = useState<AdminMetrics>(emptyMetrics);
@@ -246,6 +247,18 @@ export function PlatformAdminPage() {
         {error && <div className="error-message page-message" role="alert">{error}</div>}
         {message && <div className="success-message page-message" role="status">{message}</div>}
 
+        <nav className="platform-admin-tabs" aria-label="Sections de l’administration NCR">
+          <button type="button" className={activeSection === 'overview' ? 'active' : ''} onClick={() => setActiveSection('overview')}>
+            <Icon name="building" size={19} />
+            <span><strong>Entreprises</strong><small>Comptes, accès et formules</small></span>
+          </button>
+          <button type="button" className={activeSection === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}>
+            <Icon name="creditCard" size={19} />
+            <span><strong>Abonnements & paiements</strong><small>Demandes, Qonto et conditions</small></span>
+          </button>
+        </nav>
+
+        {activeSection === 'overview' && (<>
         <section className="platform-admin-metrics">
           <article><span className="admin-metric-icon"><Icon name="building" size={22} /></span><div><small>Entreprises</small><strong>{metrics.organizations_total}</strong><em>{metrics.organizations_active} actives</em></div></article>
           <article><span className="admin-metric-icon"><Icon name="creditCard" size={22} /></span><div><small>MRR estimé</small><strong>{money(metrics.estimated_mrr_cents)}</strong><em>abonnements actifs</em></div></article>
@@ -375,8 +388,11 @@ export function PlatformAdminPage() {
             )}
           </aside>
         </section>
+        </>)}
 
-        <BillingAdminPanel canManage={canManage} onChanged={() => void loadAll(true)} />
+        {activeSection === 'billing' && (
+          <BillingAdminPanel canManage={canManage} onChanged={() => void loadAll(true)} />
+        )}
       </main>
     </div>
   );

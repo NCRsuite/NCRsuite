@@ -47,7 +47,8 @@ export function AppShell() {
   const hasCommercialBrandingModule = pack.navigation.some((item) => item.path === '/personnalisation');
   const navigation = restrictedRole
     ? pack.navigation.filter((item) => ['/', '/rendez-vous', '/planning'].includes(item.path))
-    : pack.navigation;
+    : pack.navigation.filter((item) => item.path !== '/abonnement');
+  const canManageSubscription = !restrictedRole;
 
   const primaryMobileItem = navigation.find((item) => ['/rendez-vous', '/planning'].includes(item.path))
     ?? navigation.find((item) => item.path !== '/')
@@ -98,6 +99,14 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
+
+        {canManageSubscription && (
+          <NavLink className="sidebar-subscription-link" to="/abonnement">
+            <span><Icon name="creditCard" size={20} /></span>
+            <span><strong>Mon abonnement</strong><small>{planLabel(organization.plan)} · Gérer la formule</small></span>
+            <Icon name="chevronRight" size={17} />
+          </NavLink>
+        )}
 
         <div className="sidebar-footer">
           <div className="user-avatar">{(user?.email?.[0] ?? 'N').toUpperCase()}</div>
@@ -203,6 +212,14 @@ export function AppShell() {
               <Icon name="chevronRight" size={18} />
             </button>
 
+            {canManageSubscription && (
+              <NavLink className="mobile-drawer-subscription-card" to="/abonnement" onClick={() => setMobileMenuOpen(false)}>
+                <span className="mobile-drawer-subscription-icon"><Icon name="creditCard" size={21} /></span>
+                <span><strong>Mon abonnement</strong><small>{planLabel(organization.plan)} · Offre, utilisation et changement</small></span>
+                <Icon name="chevronRight" size={18} />
+              </NavLink>
+            )}
+
             <div className="mobile-drawer-section-title">Navigation</div>
             <nav className="mobile-drawer-nav" aria-label="Toutes les rubriques">
               {navigation.map((item) => (
@@ -297,11 +314,13 @@ export function AppShell() {
                   <Icon name="chevronRight" size={17} />
                 </NavLink>
               )}
-              <NavLink to="/abonnement" className="mobile-account-action" onClick={() => setMobileAccountOpen(false)}>
-                <Icon name="creditCard" size={20} />
-                <span>Mon abonnement</span>
-                <Icon name="chevronRight" size={17} />
-              </NavLink>
+              {canManageSubscription && (
+                <NavLink to="/abonnement" className="mobile-account-action subscription" onClick={() => setMobileAccountOpen(false)}>
+                  <Icon name="creditCard" size={20} />
+                  <span>Mon abonnement</span>
+                  <Icon name="chevronRight" size={17} />
+                </NavLink>
+              )}
               <NavLink to="/parametres" className="mobile-account-action" onClick={() => setMobileAccountOpen(false)}>
                 <Icon name="settings" size={20} />
                 <span>Paramètres de l’entreprise</span>

@@ -1,4 +1,4 @@
-# NCR Suite — V2.2.0
+# NCR Suite — V2.2.1
 
 NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Chaque entreprise dispose de son espace, de ses données isolées et des modules correspondant à son activité.
 
