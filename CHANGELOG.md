@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.2.0 — Abonnements Qonto & portail commercial
+
+- Nouvelle page **Mon abonnement** pour les propriétaires et administrateurs d’entreprise.
+- Comparatif des quatre formules, fonctions incluses, utilisation et historique.
+- Liens de paiement récurrents Qonto configurables depuis l’administration NCR.
+- Demande de changement enregistrée avant la redirection vers Qonto.
+- Activation manuelle sécurisée après vérification du paiement dans Qonto.
+- File de demandes avec validation, refus, note interne et référence de paiement.
+- Période d’essai configurable pour les nouvelles entreprises.
+- Suspension automatique des essais arrivés à échéance.
+- L’espace suspendu conserve l’accès à la page d’abonnement pour régularisation.
+- Conditions d’abonnement et de résiliation versionnées et acceptées avant toute demande.
+- Compteurs d’utilisation : accès, clients, prestations, rendez-vous mensuels et stockage de marque.
+- Historique des changements de formule et de statut.
+- Architecture multi-prestataires compatible avec Qonto maintenant et Stripe plus tard.
+- Cache PWA mis à jour.
+
 ## 2.1.0 — Formules automatiques & correctif iPhone
 
 - Correction du zoom automatique d’iOS Safari sur les champs de connexion et de formulaire.
