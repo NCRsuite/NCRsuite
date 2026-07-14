@@ -3,11 +3,13 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
 import { Icon } from './Icon';
 
 export function AppShell() {
   const { signOut, user } = useAuth();
   const { organization, organizations, selectOrganization } = useOrganization();
+  const { isAdmin } = usePlatformAdmin();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
@@ -36,6 +38,8 @@ export function AppShell() {
   if (!organization) return null;
   const pack = businessPacks[organization.business_type];
   const restrictedRole = ['employee', 'viewer'].includes(organization.role ?? 'viewer');
+  const canManageOrganization = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
+  const hasCommercialBrandingModule = pack.navigation.some((item) => item.path === '/personnalisation');
   const navigation = restrictedRole
     ? pack.navigation.filter((item) => ['/', '/rendez-vous'].includes(item.path))
     : pack.navigation;
@@ -83,6 +87,14 @@ export function AppShell() {
             </NavLink>
           ))}
         </nav>
+
+        {isAdmin && (
+          <NavLink className="platform-admin-sidebar-link" to="/administration-ncr">
+            <Icon name="shield" size={19} />
+            <span>Administration NCR</span>
+            <Icon name="chevronRight" size={16} />
+          </NavLink>
+        )}
 
         <div className="sidebar-footer">
           <div className="user-avatar">{(user?.email?.[0] ?? 'N').toUpperCase()}</div>
@@ -178,6 +190,20 @@ export function AppShell() {
             </div>
 
             <div className="mobile-account-actions">
+              {isAdmin && (
+                <NavLink to="/administration-ncr" className="mobile-account-action admin" onClick={() => setMobileAccountOpen(false)}>
+                  <Icon name="shield" size={20} />
+                  <span>Administration NCR</span>
+                  <Icon name="chevronRight" size={17} />
+                </NavLink>
+              )}
+              {hasCommercialBrandingModule && canManageOrganization && (
+                <NavLink to="/personnalisation" className="mobile-account-action branding" onClick={() => setMobileAccountOpen(false)}>
+                  <Icon name="sparkles" size={20} />
+                  <span>Personnaliser l’entreprise</span>
+                  <Icon name="chevronRight" size={17} />
+                </NavLink>
+              )}
               <NavLink to="/parametres" className="mobile-account-action" onClick={() => setMobileAccountOpen(false)}>
                 <Icon name="settings" size={20} />
                 <span>Paramètres de l’entreprise</span>

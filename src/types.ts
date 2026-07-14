@@ -1,6 +1,8 @@
 export type BusinessType = 'coiffure' | 'nettoyage' | 'securite' | 'formation' | 'artisan';
 export type MemberRole = 'owner' | 'admin' | 'manager' | 'employee' | 'viewer';
 export type Plan = 'decouverte' | 'essentielle' | 'professionnelle' | 'metier';
+export type OrganizationStatus = 'trial' | 'active' | 'suspended' | 'closed';
+export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'paused' | 'canceled';
 
 export interface Organization {
   id: string;
@@ -8,6 +10,8 @@ export interface Organization {
   slug: string;
   business_type: BusinessType;
   plan: Plan;
+  status: OrganizationStatus;
+  created_at?: string;
   primary_color: string;
   logo_url?: string | null;
   public_name?: string | null;
@@ -63,4 +67,8 @@ export type IconName =
   | 'chevronDown'
   | 'chevronRight'
   | 'check'
-  | 'close';
+  | 'close'
+  | 'building'
+  | 'creditCard'
+  | 'search'
+  | 'lock';

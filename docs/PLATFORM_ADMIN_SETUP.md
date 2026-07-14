@@ -1,0 +1,30 @@
+# NCR Suite V2.0 — Administration centrale
+
+## 1. Migration
+
+Exécuter `010_platform_admin_subscriptions.sql` après la migration 009.
+
+## 2. Autoriser le compte NCR
+
+Le compte doit déjà exister dans Authentication > Users. Depuis le SQL Editor :
+
+```sql
+select public.bootstrap_platform_admin('adresse@ncr.fr', 'super_admin');
+```
+
+Ne jamais exposer cette commande dans l’interface client. La fonction n’est pas exécutable par un utilisateur authentifié ordinaire.
+
+## 3. Accès
+
+Ouvrir `/administration-ncr`.
+
+- `super_admin` : lecture et modification.
+- `support` : lecture seule.
+
+## 4. Suspension
+
+Le statut `suspended` bloque les données métier côté Supabase. Le membre conserve uniquement l’identité de l’entreprise afin d’afficher un écran d’information et de changer vers un autre espace actif.
+
+## 5. Paiement
+
+Les colonnes Stripe sont prévues, mais la V2.0 ne réalise aucun prélèvement. Le MRR est une estimation basée sur les abonnements marqués `active`.

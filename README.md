@@ -1,4 +1,4 @@
-# NCR Suite — V1.9.1
+# NCR Suite — V2.0.0
 
 NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Chaque entreprise dispose de son espace, de ses données isolées et des modules correspondant à son activité.
 
@@ -79,3 +79,20 @@ La procédure détaillée de la V1.7 est disponible dans `docs/TEAM_ACCESS_SETUP
 ## V1.9 — Personnalisation commerciale
 
 La formule Professionnelle permet de personnaliser la page de réservation et les e-mails avec le nom commercial, le logo, la couleur, une bannière, une adresse, des horaires et des informations pratiques. Voir `docs/COMMERCIAL_BRANDING_SETUP.md`.
+
+## Administration centrale V2.0
+
+Après les migrations 001 à 009, exécuter `supabase/migrations/010_platform_admin_subscriptions.sql`.
+
+Puis autoriser une seule fois le compte NCR depuis le SQL Editor :
+
+```sql
+select public.bootstrap_platform_admin(
+  'TON_ADRESSE_DE_CONNEXION_NCR',
+  'super_admin'
+);
+```
+
+L’espace central devient accessible à l’adresse `/administration-ncr`. Le rôle `support` peut consulter, tandis que `super_admin` peut modifier les formules et suspendre les espaces.
+
+La V2.0 prépare les identifiants d’un prestataire de paiement, mais ne prélève aucun client automatiquement. Les abonnements restent administrés manuellement jusqu’à la connexion d’un prestataire comme Stripe.

@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.0.1 — Accès mobile à la personnalisation
+
+- Ajout d’un accès direct « Personnaliser l’entreprise » dans le menu de compte mobile.
+- L’accès est visible pour les propriétaires, administrateurs et responsables lorsque le pack métier prend en charge la personnalisation.
+- Les offres inférieures conservent la page de présentation verrouillée, tandis que Professionnelle et Métier accèdent à l’éditeur complet.
+- Aucun changement SQL ni Edge Function requis.
+- Cache PWA mis à jour.
+
+## 2.0.0 — Administration centrale et abonnements
+
+- Nouvel espace sécurisé `/administration-ncr` réservé à NCR Suite.
+- Tableau de bord global : entreprises, utilisateurs, essais, suspensions et MRR estimé.
+- Recherche et filtres par formule ou statut.
+- Gestion manuelle des formules Découverte, Essentielle, Professionnelle et Métier.
+- Tarifs mensuels personnalisables pour les accords spécifiques.
+- Périodes d’essai, fins de période, résiliation programmée et notes internes.
+- Suspension sécurisée : l’entreprise voit son état, mais ses données métier sont bloquées par les règles Supabase.
+- Rôles plateforme Super-administrateur et Support en lecture seule.
+- Catalogue central des offres et structure prête pour une future connexion Stripe.
+- Backfill automatique des entreprises existantes sans perte de données.
+- Accès Administration NCR ajouté sur ordinateur et mobile.
+- Cache PWA mis à jour.
+
 ## 1.9.1 — Navigation mobile
 
 - Ajout d’un menu de compte accessible depuis l’en-tête mobile.
