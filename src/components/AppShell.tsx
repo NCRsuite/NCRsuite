@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
 import { planLabel } from '../config/planEntitlements';
+import { filterNavigationForOrganization } from '../config/moduleAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { Icon } from './Icon';
+
 
 export function AppShell() {
   const { signOut, user } = useAuth();
@@ -43,11 +45,22 @@ export function AppShell() {
 
   const pack = businessPacks[organization.business_type];
   const restrictedRole = ['employee', 'viewer'].includes(organization.role ?? 'viewer');
+  const hasCustomRole = organization.plan === 'metier' && Boolean(organization.custom_role_id);
   const canManageOrganization = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
-  const hasCommercialBrandingModule = pack.navigation.some((item) => item.path === '/personnalisation');
-  const navigation = restrictedRole
-    ? pack.navigation.filter((item) => ['/', '/rendez-vous', '/planning'].includes(item.path))
-    : pack.navigation.filter((item) => item.path !== '/abonnement');
+  const baseNavigation = pack.navigation.filter((item) => item.path !== '/abonnement');
+  let navigation = restrictedRole && !hasCustomRole
+    ? baseNavigation.filter((item) => ['/', '/rendez-vous', '/planning'].includes(item.path))
+    : baseNavigation;
+
+  if (organization.plan === 'metier') {
+    navigation = filterNavigationForOrganization(organization, navigation);
+  }
+
+  if (organization.plan === 'metier' && canManageOrganization) {
+    navigation = [...navigation, { label: 'Configuration Métier', path: '/offre-metier', icon: 'tool' }];
+  }
+
+  const hasCommercialBrandingModule = navigation.some((item) => item.path === '/personnalisation');
   const canManageSubscription = !restrictedRole;
 
   const primaryMobileItem = navigation.find((item) => ['/rendez-vous', '/planning'].includes(item.path))
@@ -87,7 +100,7 @@ export function AppShell() {
           <select id="organization" value={organization.id} onChange={(event) => changeOrganization(event.target.value)}>
             {organizations.map((org) => <option key={org.id} value={org.id}>{org.name}</option>)}
           </select>
-          <small>{pack.label} · {planLabel(organization.plan)} · {organization.role ?? 'viewer'}</small>
+          <small>{pack.label} · {planLabel(organization.plan)} · {organization.custom_role_label || organization.role || 'viewer'}</small>
         </div>
 
         <nav className="main-nav" aria-label="Navigation principale">

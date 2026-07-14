@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
+import { ModuleAccessGuard } from './components/ModuleAccessGuard';
 import { useAuth } from './contexts/AuthContext';
 import { useOrganization } from './contexts/OrganizationContext';
 import { usePlatformAdmin } from './contexts/PlatformAdminContext';
@@ -20,6 +21,8 @@ import { CommercialBrandingPage } from './pages/CommercialBrandingPage';
 import { PlatformAdminPage } from './pages/PlatformAdminPage';
 import { OrganizationAccessPage } from './pages/OrganizationAccessPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
+import { MetierWorkspacePage } from './pages/MetierWorkspacePage';
+import { organizationCanAccessPath } from './config/moduleAccess';
 
 function LoadingScreen() {
   return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Chargement de NCR Suite…</span></div>;
@@ -40,6 +43,7 @@ function ProtectedArea() {
   if (!organization) return <Navigate to="/configuration" replace />;
   if (organization.status === 'closed') return <OrganizationAccessPage />;
   if (organization.status === 'suspended' && location.pathname !== '/abonnement') return <OrganizationAccessPage />;
+  if (!organizationCanAccessPath(organization, location.pathname)) return <Navigate to="/" replace />;
   return <AppShell />;
 }
 
@@ -74,13 +78,14 @@ export default function App() {
       <Route path="/administration-ncr" element={<PlatformAdminArea />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
-        <Route path="rendez-vous" element={<AppointmentsPage />} />
-        <Route path="clients" element={<ClientsPage />} />
-        <Route path="prestations" element={<ServicesPage />} />
-        <Route path="equipe" element={<StaffPage />} />
-        <Route path="acces-equipe" element={<TeamAccessPage />} />
-        <Route path="personnalisation" element={<CommercialBrandingPage />} />
+        <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
+        <Route path="clients" element={<ModuleAccessGuard moduleKey="clients"><ClientsPage /></ModuleAccessGuard>} />
+        <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />
+        <Route path="equipe" element={<ModuleAccessGuard moduleKey="staff"><StaffPage /></ModuleAccessGuard>} />
+        <Route path="acces-equipe" element={<ModuleAccessGuard moduleKey="team_access"><TeamAccessPage /></ModuleAccessGuard>} />
+        <Route path="personnalisation" element={<ModuleAccessGuard moduleKey="commercial_branding"><CommercialBrandingPage /></ModuleAccessGuard>} />
         <Route path="abonnement" element={<SubscriptionPage />} />
+        <Route path="offre-metier" element={<MetierWorkspacePage />} />
         <Route path="parametres" element={<SettingsPage />} />
         <Route path="*" element={<ModulePage />} />
       </Route>

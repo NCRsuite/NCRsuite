@@ -2384,7 +2384,7 @@ button { max-width: 100%; }
 
 .platform-admin-tabs {
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-columns:repeat(3,minmax(0,1fr));
   gap:12px;
   padding:7px;
   margin:0 0 22px;
@@ -2417,4 +2417,184 @@ button { max-width: 100%; }
   .platform-admin-tabs { grid-template-columns:1fr; padding:6px; border-radius:19px; }
   .platform-admin-tabs button { padding:12px 13px; }
   .sidebar-subscription-link { display:none; }
+}
+
+/* V2.3 — offre Métier */
+.metier-page-header { align-items:flex-start; }
+.metier-summary-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:18px;
+}
+.metier-summary-grid article {
+  display:grid;
+  grid-template-columns:46px minmax(0,1fr);
+  align-items:center;
+  gap:13px;
+  padding:20px;
+}
+.metier-summary-grid article > span {
+  width:46px;height:46px;border-radius:15px;display:grid;place-items:center;
+  color:#0a84ff;background:#e7f2ff;
+}
+.metier-summary-grid article > div { display:grid;gap:2px;min-width:0; }
+.metier-summary-grid small { color:#737b89;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em; }
+.metier-summary-grid strong { font-size:1.45rem;letter-spacing:-.03em; }
+.metier-summary-grid em { color:#747c89;font-size:.78rem;font-style:normal; }
+
+.metier-tabs {
+  display:flex;gap:7px;padding:7px;margin-bottom:18px;overflow-x:auto;
+  border:1px solid #e3e6eb;border-radius:20px;background:#eef0f4;
+  scrollbar-width:none;
+}
+.metier-tabs::-webkit-scrollbar { display:none; }
+.metier-tabs button {
+  flex:1 0 auto;min-width:135px;border:0;border-radius:15px;padding:12px 14px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  color:#606876;background:transparent;cursor:pointer;font-weight:700;
+}
+.metier-tabs button.active { color:#0b0d10;background:#fff;box-shadow:0 7px 20px rgba(20,28,43,.08); }
+.metier-tabs button.active svg { color:#0a84ff; }
+
+.metier-overview-layout,.metier-identity-layout {
+  display:grid;grid-template-columns:minmax(0,1.25fr) minmax(300px,.75fr);gap:18px;
+}
+.metier-contract-card,.metier-readiness-card,.metier-white-label-card,.metier-domain-card { padding:24px; }
+.metier-contract-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0; }
+.metier-contract-grid > div { padding:15px;border-radius:16px;background:#f5f6f8;display:grid;gap:5px; }
+.metier-contract-grid span { color:#737b89;font-size:.78rem; }
+.metier-contract-grid strong { overflow-wrap:anywhere; }
+.metier-check-list { list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px; }
+.metier-check-list li { display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:14px;background:#f4f5f7;color:#767d89; }
+.metier-check-list li svg { color:#a1a7b0; }
+.metier-check-list li.done { color:#155f3e;background:#edf9f3; }
+.metier-check-list li.done svg { color:#19a364; }
+
+.metier-sites-panel { padding:24px; }
+.metier-site-list { display:grid;gap:12px;margin-top:18px; }
+.metier-site-card {
+  display:grid;grid-template-columns:48px minmax(0,1fr) auto auto;align-items:center;gap:14px;
+  padding:16px;border:1px solid #e8eaee;border-radius:18px;background:#fff;
+}
+.metier-site-card.inactive { opacity:.68;background:#f7f7f8; }
+.metier-site-icon { width:48px;height:48px;display:grid;place-items:center;border-radius:15px;color:#0a84ff;background:#e7f2ff; }
+.metier-site-main { display:grid;gap:3px;min-width:0; }
+.metier-site-main span,.metier-site-main small { color:#747c89;overflow-wrap:anywhere; }
+.metier-site-main small { font-size:.75rem; }
+.metier-site-badges,.metier-site-actions { display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end; }
+.metier-site-form { width:min(720px,calc(100vw - 28px)); }
+
+.metier-module-sections { display:grid;gap:16px; }
+.metier-module-intro,.metier-module-group { padding:22px; }
+.metier-module-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px; }
+.metier-module-card {
+  width:100%;border:1px solid #e4e7ec;border-radius:17px;padding:14px;
+  display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:11px;text-align:left;
+  color:#5e6673;background:#f7f8fa;cursor:default;
+}
+.metier-module-card > span { width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#eceef2; }
+.metier-module-card > div { display:grid;gap:3px; }
+.metier-module-card strong { color:#272b32; }
+.metier-module-card small { color:#747c89;line-height:1.35; }
+.metier-module-card em { padding:6px 9px;border-radius:999px;background:#e9ebef;color:#69717e;font-size:.7rem;font-style:normal;font-weight:800; }
+.metier-module-card.enabled { border-color:rgba(10,132,255,.3);background:#f1f7ff; }
+.metier-module-card.enabled > span { color:#0a84ff;background:#dcecff; }
+.metier-module-card.enabled em { color:#0868d4;background:#dcecff; }
+.metier-module-card.core { cursor:default;background:#f2f3f5; }
+
+.metier-roles-layout { display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.85fr);gap:18px; }
+.metier-role-list-panel,.metier-member-roles-panel { padding:23px; }
+.metier-role-list,.metier-member-role-list { display:grid;gap:10px;margin-top:16px; }
+.metier-role-list article {
+  padding:14px;border:1px solid #e7e9ed;border-radius:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.metier-role-list article > div:first-child { display:grid;gap:3px; }
+.metier-role-list article span,.metier-role-list article small { color:#727a87;font-size:.77rem; }
+.metier-role-list article > div:last-child { display:flex;align-items:center;gap:8px; }
+.metier-member-role-row {
+  display:grid;grid-template-columns:38px minmax(0,1fr) minmax(150px,210px);align-items:center;gap:11px;
+  padding:11px;border-radius:15px;background:#f6f7f9;
+}
+.metier-member-role-row > span:nth-child(2) { display:grid;gap:2px;min-width:0; }
+.metier-member-role-row small { color:#747c89;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.metier-member-role-row em { color:#6c7480;font-style:normal;font-size:.8rem;text-align:right; }
+.metier-role-form { width:min(820px,calc(100vw - 28px)); }
+.metier-role-module-picker { margin:16px 0;display:grid;gap:11px; }
+.metier-role-module-picker > div { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:300px;overflow:auto;padding:2px; }
+.metier-role-module-picker label { display:flex;align-items:center;gap:9px;padding:11px;border-radius:13px;background:#f5f6f8; }
+
+.metier-white-label-card { display:grid;grid-template-columns:58px minmax(0,1fr);align-items:start;gap:16px; }
+.metier-identity-icon { width:58px;height:58px;display:grid;place-items:center;border-radius:19px;color:#767e8b;background:#eef0f3; }
+.metier-identity-icon.active { color:#0a84ff;background:#e2f0ff; }
+.metier-white-label-card > div { display:grid;gap:7px; }
+.metier-white-label-card p:last-child,.metier-domain-card > p { color:#6f7784;line-height:1.55; }
+.metier-domain-card .panel-header { align-items:flex-start; }
+.metier-domain-url { display:block;margin-top:16px;padding:13px;border-radius:13px;background:#f2f4f7;color:#1769c8;overflow-wrap:anywhere; }
+
+.metier-admin-panel { display:grid;gap:18px; }
+.metier-admin-layout { display:grid;grid-template-columns:minmax(270px,.55fr) minmax(0,1.45fr);gap:18px;align-items:start; }
+.metier-admin-company-list,.metier-admin-editor { padding:22px; }
+.metier-admin-company-list { position:sticky;top:18px; }
+.metier-admin-company-buttons { display:grid;gap:8px;margin-top:15px; }
+.metier-admin-company-buttons button {
+  width:100%;border:1px solid transparent;border-radius:16px;padding:12px;
+  display:grid;grid-template-columns:40px minmax(0,1fr) 18px;align-items:center;gap:10px;text-align:left;
+  color:#5e6673;background:#f5f6f8;cursor:pointer;
+}
+.metier-admin-company-buttons button.active { color:#0e1116;border-color:rgba(10,132,255,.3);background:#eff7ff; }
+.metier-admin-company-buttons button > span:nth-child(2) { display:grid;gap:2px;min-width:0; }
+.metier-admin-company-buttons small,.metier-admin-company-buttons em { white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.72rem;font-style:normal;color:#727b88; }
+.metier-admin-form-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:20px 0; }
+.metier-admin-form-grid > label { display:grid;gap:7px;font-size:.82rem;font-weight:700; }
+.metier-admin-domain-section,.metier-admin-modules-section { border-top:1px solid #e6e8ec;padding-top:21px;margin-top:21px;display:grid;gap:14px; }
+.metier-admin-domain-grid { display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:12px; }
+.metier-admin-domain-grid label { display:grid;gap:7px;font-size:.82rem;font-weight:700; }
+.metier-domain-preview { display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:#f4f6f8; }
+.metier-domain-preview code { overflow-wrap:anywhere; }
+.metier-admin-module-group { display:grid;gap:9px; }
+.metier-admin-module-group > strong { color:#666e7b;font-size:.76rem;text-transform:uppercase;letter-spacing:.05em; }
+.metier-admin-module-group > div { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px; }
+.metier-admin-module-group label {
+  padding:11px;border:1px solid #e5e8ec;border-radius:14px;display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:center;gap:9px;background:#f7f8fa;
+}
+.metier-admin-module-group label.active { border-color:rgba(10,132,255,.26);background:#f0f7ff; }
+.metier-admin-module-group label > span { display:grid;gap:2px; }
+.metier-admin-module-group small { color:#737b88;font-weight:400;line-height:1.3; }
+.metier-admin-module-group em { font-size:.68rem;font-style:normal;color:#0a6ad5; }
+
+@media (max-width: 1100px) {
+  .metier-summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .metier-overview-layout,.metier-identity-layout,.metier-roles-layout,.metier-admin-layout { grid-template-columns:1fr; }
+  .metier-admin-company-list { position:static; }
+  .metier-admin-company-buttons { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .platform-admin-tabs { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+
+@media (max-width: 720px) {
+  .platform-admin-tabs { grid-template-columns:1fr; }
+  .metier-summary-grid { grid-template-columns:1fr 1fr;gap:9px; }
+  .metier-summary-grid article { grid-template-columns:38px minmax(0,1fr);padding:14px;gap:9px; }
+  .metier-summary-grid article > span { width:38px;height:38px;border-radius:12px; }
+  .metier-summary-grid strong { font-size:1.15rem; }
+  .metier-tabs { margin-inline:-3px;justify-content:flex-start; }
+  .metier-tabs button { flex:0 0 auto;min-width:auto;padding:11px 13px; }
+  .metier-contract-grid,.metier-module-grid,.metier-role-module-picker > div,.metier-admin-form-grid,.metier-admin-domain-grid,.metier-admin-module-group > div { grid-template-columns:1fr; }
+  .metier-site-card { grid-template-columns:42px minmax(0,1fr);align-items:start; }
+  .metier-site-icon { width:42px;height:42px; }
+  .metier-site-badges,.metier-site-actions { grid-column:1 / -1;justify-content:flex-start;padding-left:0; }
+  .metier-site-actions .secondary-button { flex:1; }
+  .metier-role-list article { align-items:flex-start;flex-direction:column; }
+  .metier-member-role-row { grid-template-columns:36px minmax(0,1fr); }
+  .metier-member-role-row select,.metier-member-role-row em { grid-column:1 / -1;width:100%;text-align:left; }
+  .metier-admin-company-buttons { grid-template-columns:1fr; }
+  .metier-admin-editor,.metier-admin-company-list,.metier-sites-panel,.metier-role-list-panel,.metier-member-roles-panel,.metier-contract-card,.metier-readiness-card,.metier-white-label-card,.metier-domain-card { padding:17px; }
+  .metier-white-label-card { grid-template-columns:48px minmax(0,1fr); }
+  .metier-identity-icon { width:48px;height:48px;border-radius:15px; }
+}
+
+@media (max-width: 420px) {
+  .metier-summary-grid { grid-template-columns:1fr; }
+  .metier-tabs button span { display:none; }
+  .metier-tabs button { min-width:48px; }
 }

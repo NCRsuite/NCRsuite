@@ -1,5 +1,35 @@
 # Changelog
 
+## 2.3.0 — Offre Métier opérationnelle
+
+- Nouvelle configuration contractuelle par entreprise : limites d’accès, établissements, stockage et frais de mise en service.
+- Gestion multi-établissements avec site principal, activation, désactivation et archivage.
+- Catalogue de modules à la carte, configuré uniquement par l’administration NCR.
+- Navigation automatiquement adaptée aux modules inclus dans le contrat.
+- Rôles personnalisés avec niveau de sécurité et rubriques visibles.
+- Attribution sécurisée des rôles aux collaborateurs, sans modification des comptes Propriétaire ou Administrateur.
+- Marque blanche activable par NCR et domaine personnalisé avec suivi de validation DNS.
+- Nouvel onglet **Offres Métier** dans l’administration centrale.
+- Nouvelle page **Configuration Métier** dans l’espace client.
+- Protection des routes masquées et renforcement des règles PostgreSQL.
+- Cache PWA mis à jour en V2.3.0.
+
+## 2.3.0 — Offre Métier opérationnelle
+
+- Ajout d’une configuration contractuelle dédiée aux entreprises Métier.
+- Limites personnalisées pour les utilisateurs, établissements et stockage.
+- Frais de configuration et référence de contrat suivis dans l’administration NCR.
+- Gestion de plusieurs établissements avec site principal et statuts.
+- Catalogue de modules activables à la carte avec navigation dynamique.
+- Rôles personnalisés : niveau système, rubriques visibles et attribution aux utilisateurs.
+- Marque blanche soumise à activation NCR et domaine personnalisé avec statut DNS.
+- Nouvel onglet **Offres Métier** dans l’administration centrale.
+- Nouvelle page **Configuration Métier** dans l’espace entreprise.
+- Les domaines Cloudflare restent volontairement configurés manuellement pour éviter toute modification DNS non contrôlée.
+- Les établissements sont administrables dans cette version ; le rattachement des rendez-vous, collaborateurs et données opérationnelles à un site précis viendra avec le premier pack métier multi-site.
+- Cache PWA mis à jour.
+
+
 ## 2.2.1 — Accès abonnement et paiements clarifiés
 
 - Ajout d’un accès permanent et visible à **Mon abonnement** dans la barre latérale et le menu mobile.

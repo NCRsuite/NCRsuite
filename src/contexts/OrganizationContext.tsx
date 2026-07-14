@@ -49,6 +49,7 @@ interface OrganizationContextValue {
   organization: Organization | null;
   loading: boolean;
   selectOrganization: (id: string) => void;
+  refreshOrganizations: () => void;
   createOrganization: (input: CreateOrganizationInput) => Promise<void>;
   updateBranding: (updates: { name?: string; primaryColor?: string }) => Promise<void>;
   updateBookingSettings: (updates: BookingSettingsInput) => Promise<void>;
@@ -59,6 +60,16 @@ interface OrganizationContextValue {
 
 
 const OrganizationContext = createContext<OrganizationContextValue | null>(null);
+
+const ORGANIZATION_FIELDS = [
+  'id','name','slug','business_type','plan','status','created_at','primary_color','logo_url','timezone',
+  'booking_enabled','booking_confirmation_mode','booking_slot_interval','booking_min_notice_hours','booking_max_days_ahead',
+  'booking_cancel_notice_hours','booking_welcome_text','email_notifications_enabled','booking_contact_email','booking_contact_phone',
+  'booking_reminder_hours','booking_cancellation_policy','booking_privacy_notice','public_name','booking_tagline','booking_banner_url',
+  'booking_address','booking_hours_text','booking_practical_info','show_ncr_branding','metier_setup_fee_cents','metier_member_limit',
+  'metier_site_limit','metier_storage_limit_mb','metier_contract_reference','metier_modules_configured','white_label_enabled',
+  'custom_domain','custom_domain_status','custom_domain_verified_at'
+].join(',');
 
 function slugify(value: string) {
   return value
@@ -75,6 +86,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(() => localStorage.getItem('ncr-suite-org-id'));
   const [loading, setLoading] = useState(true);
+  const [reloadVersion, setReloadVersion] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -101,7 +113,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
       const { data, error } = await supabase
         .from('organization_members')
-        .select('role, organizations(id,name,slug,business_type,plan,status,created_at,primary_color,logo_url,timezone,booking_enabled,booking_confirmation_mode,booking_slot_interval,booking_min_notice_hours,booking_max_days_ahead,booking_cancel_notice_hours,booking_welcome_text,email_notifications_enabled,booking_contact_email,booking_contact_phone,booking_reminder_hours,booking_cancellation_policy,booking_privacy_notice,public_name,booking_tagline,booking_banner_url,booking_address,booking_hours_text,booking_practical_info,show_ncr_branding)')
+        .select(`role,custom_role_id,organizations(${ORGANIZATION_FIELDS})`)
         .eq('user_id', user.id)
         .eq('status', 'active');
 
@@ -111,9 +123,49 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         return;
       }
 
-      const rows = (data ?? [])
-        .map((row: any) => ({ ...row.organizations, role: row.role } as Organization))
+      const membershipRows = (data ?? [])
+        .map((row: any) => ({ ...row.organizations, role: row.role, custom_role_id: row.custom_role_id } as Organization))
         .filter((row: Organization) => Boolean(row.id));
+      const organizationIds = membershipRows.map((row) => row.id);
+      const customRoleIds = membershipRows.map((row) => row.custom_role_id).filter(Boolean) as string[];
+
+      const moduleMap = new Map<string, string[]>();
+      if (organizationIds.length > 0) {
+        const { data: moduleRows, error: moduleError } = await supabase
+          .from('organization_modules')
+          .select('organization_id,module_key,enabled')
+          .in('organization_id', organizationIds)
+          .eq('enabled', true);
+        if (moduleError) console.error(moduleError);
+        for (const moduleRow of moduleRows ?? []) {
+          const current = moduleMap.get(moduleRow.organization_id) ?? [];
+          current.push(moduleRow.module_key);
+          moduleMap.set(moduleRow.organization_id, current);
+        }
+      }
+
+      const customRoleMap = new Map<string, { label: string; module_keys: string[] }>();
+      if (customRoleIds.length > 0) {
+        const { data: roleRows, error: roleError } = await supabase
+          .from('organization_custom_roles')
+          .select('id,label,module_keys')
+          .in('id', customRoleIds)
+          .eq('active', true);
+        if (roleError) console.error(roleError);
+        for (const roleRow of roleRows ?? []) {
+          customRoleMap.set(roleRow.id, { label: roleRow.label, module_keys: roleRow.module_keys ?? [] });
+        }
+      }
+
+      const rows = membershipRows.map((row) => {
+        const customRole = row.custom_role_id ? customRoleMap.get(row.custom_role_id) : undefined;
+        return {
+          ...row,
+          enabled_modules: moduleMap.get(row.id) ?? [],
+          custom_role_label: customRole?.label ?? null,
+          custom_module_keys: customRole?.module_keys ?? []
+        } as Organization;
+      });
 
       if (active) {
         setOrganizations(rows);
@@ -125,7 +177,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     setLoading(true);
     load();
     return () => { active = false; };
-  }, [user, demoMode]);
+  }, [user, demoMode, reloadVersion]);
 
   const organization = organizations.find((org) => org.id === selectedId) ?? organizations[0] ?? null;
 
@@ -141,6 +193,9 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     loading,
     selectOrganization(id) {
       setSelectedId(id);
+    },
+    refreshOrganizations() {
+      setReloadVersion((current) => current + 1);
     },
     async createOrganization({ name, businessType, primaryColor }) {
       const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -173,12 +228,12 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
       const { data: created, error: createdError } = await supabase
         .from('organizations')
-        .select('id,name,slug,business_type,plan,status,created_at,primary_color,logo_url,timezone,booking_enabled,booking_confirmation_mode,booking_slot_interval,booking_min_notice_hours,booking_max_days_ahead,booking_cancel_notice_hours,booking_welcome_text,email_notifications_enabled,booking_contact_email,booking_contact_phone,booking_reminder_hours,booking_cancellation_policy,booking_privacy_notice,public_name,booking_tagline,booking_banner_url,booking_address,booking_hours_text,booking_practical_info,show_ncr_branding')
+        .select(ORGANIZATION_FIELDS)
         .eq('id', data)
         .single();
       if (createdError) throw createdError;
 
-      const org: Organization = { ...(created as Organization), role: 'owner' };
+      const org: Organization = { ...(created as unknown as Organization), role: 'owner' };
       setOrganizations((current) => [...current, org]);
       setSelectedId(org.id);
     },

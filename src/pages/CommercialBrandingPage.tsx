@@ -65,8 +65,11 @@ export function CommercialBrandingPage() {
 
   const canManage = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
   const hasProfessionalBranding = ['professionnelle', 'metier'].includes(organization.plan);
-  const canHideNcrBranding = organization.plan === 'metier';
-  const publicUrl = typeof window === 'undefined' ? '' : `${window.location.origin}/reserver/${slug || organization.slug}`;
+  const canHideNcrBranding = organization.plan === 'metier' && organization.white_label_enabled === true;
+  const publicOrigin = organization.custom_domain && organization.custom_domain_status === 'active'
+    ? `https://${organization.custom_domain}`
+    : typeof window === 'undefined' ? '' : window.location.origin;
+  const publicUrl = publicOrigin ? `${publicOrigin}/reserver/${slug || organization.slug}` : '';
   const previewStyle = { '--preview-accent': primaryColor } as CSSProperties;
 
   function selectFile(file: File | undefined, kind: 'logo' | 'banner') {
@@ -197,7 +200,7 @@ export function CommercialBrandingPage() {
           </div>
 
           <div className="branding-attribution-setting">
-            <div><strong>Mention « Propulsé par NCR Suite »</strong><span>{canHideNcrBranding ? 'La formule Métier permet de masquer cette mention.' : 'La mention reste discrètement visible avec l’offre Professionnelle.'}</span></div>
+            <div><strong>Mention « Propulsé par NCR Suite »</strong><span>{canHideNcrBranding ? 'L’option marque blanche a été activée par NCR : vous pouvez masquer cette mention.' : organization.plan === 'metier' ? 'La marque blanche doit être activée par NCR dans votre contrat Métier.' : 'La mention reste discrètement visible avec l’offre Professionnelle.'}</span></div>
             <label className="switch-field"><input type="checkbox" checked={showNcrBranding} onChange={(event) => setShowNcrBranding(event.target.checked)} disabled={!canManage || !canHideNcrBranding} /><span aria-hidden="true" /><b>{showNcrBranding ? 'Visible' : 'Masquée'}</b></label>
           </div>
 

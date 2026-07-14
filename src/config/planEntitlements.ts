@@ -9,7 +9,11 @@ export type PlanFeature =
   | 'team_access'
   | 'manager_role'
   | 'commercial_branding'
-  | 'white_label';
+  | 'white_label'
+  | 'multi_site'
+  | 'custom_modules'
+  | 'custom_roles'
+  | 'custom_domain';
 
 export interface PlanDefinition {
   label: string;
@@ -66,7 +70,11 @@ export const PLAN_DEFINITIONS: Record<Plan, PlanDefinition> = {
       'team_access',
       'manager_role',
       'commercial_branding',
-      'white_label'
+      'white_label',
+      'multi_site',
+      'custom_modules',
+      'custom_roles',
+      'custom_domain'
     ]
   }
 };

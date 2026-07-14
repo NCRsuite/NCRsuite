@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BillingAdminPanel } from '../components/BillingAdminPanel';
+import { MetierAdminPanel } from '../components/MetierAdminPanel';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
@@ -95,7 +96,7 @@ function statusClass(value: string) {
 }
 
 export function PlatformAdminPage() {
-  const [activeSection, setActiveSection] = useState<'overview' | 'billing'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'billing' | 'metier'>('overview');
   const { user, signOut } = useAuth();
   const { profile, canManage } = usePlatformAdmin();
   const [metrics, setMetrics] = useState<AdminMetrics>(emptyMetrics);
@@ -256,6 +257,10 @@ export function PlatformAdminPage() {
             <Icon name="creditCard" size={19} />
             <span><strong>Abonnements & paiements</strong><small>Demandes, Qonto et conditions</small></span>
           </button>
+          <button type="button" className={activeSection === 'metier' ? 'active' : ''} onClick={() => setActiveSection('metier')}>
+            <Icon name="tool" size={19} />
+            <span><strong>Offres Métier</strong><small>Modules, sites et marque blanche</small></span>
+          </button>
         </nav>
 
         {activeSection === 'overview' && (<>
@@ -392,6 +397,10 @@ export function PlatformAdminPage() {
 
         {activeSection === 'billing' && (
           <BillingAdminPanel canManage={canManage} onChanged={() => void loadAll(true)} />
+        )}
+
+        {activeSection === 'metier' && (
+          <MetierAdminPanel canManage={canManage} />
         )}
       </main>
     </div>

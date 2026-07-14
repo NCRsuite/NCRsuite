@@ -87,7 +87,11 @@ const featureLabels: Record<string, string> = {
   team_access: 'Comptes collaborateurs',
   manager_role: 'Rôle Responsable',
   commercial_branding: 'Personnalisation complète',
-  white_label: 'Marque blanche'
+  white_label: 'Marque blanche',
+  multi_site: 'Plusieurs établissements',
+  custom_modules: 'Modules à la carte',
+  custom_roles: 'Rôles personnalisés',
+  custom_domain: 'Domaine personnalisé'
 };
 
 const statusLabels: Record<SubscriptionStatus, string> = {

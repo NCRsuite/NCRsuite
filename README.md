@@ -1,6 +1,28 @@
-# NCR Suite — V2.2.1
+# NCR Suite — V2.3.0
 
 NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Chaque entreprise dispose de son espace, de ses données isolées et des modules correspondant à son activité.
+
+
+## V2.3 — Offre Métier opérationnelle
+
+- Configuration contractuelle par entreprise : limites d’utilisateurs, établissements, stockage et frais de mise en service.
+- Gestion multi-établissements avec site principal, activation, désactivation et archivage.
+- Modules métier activables à la carte ; les rubriques désactivées disparaissent de la navigation.
+- Rôles personnalisés avec niveau de sécurité système et sélection des rubriques visibles.
+- Attribution des rôles personnalisés aux membres existants.
+- Marque blanche activable uniquement par NCR et domaine personnalisé avec suivi de validation DNS.
+- Nouvel onglet **Offres Métier** dans l’administration centrale.
+- Nouvelle page **Configuration Métier** dans l’espace des entreprises concernées.
+
+Après les migrations 001 à 012, exécuter :
+
+```text
+supabase/migrations/013_metier_workspace.sql
+```
+
+Important : NCR Suite enregistre et suit le domaine personnalisé, mais l’ajout DNS et le rattachement à Cloudflare Pages restent une opération manuelle et contrôlée.
+
+Limite actuelle : la V2.3 permet de créer et administrer plusieurs établissements, mais les rendez-vous, collaborateurs et données opérationnelles du pack Coiffure & beauté ne sont pas encore rattachés à un établissement précis. Ce rattachement sera ajouté avec le premier pack métier multi-site.
 
 
 ## V2.2 — Abonnements Qonto
@@ -49,7 +71,7 @@ La procédure détaillée est disponible dans `docs/QONTO_BILLING_SETUP.md`.
 - **Découverte** : 1 compte propriétaire.
 - **Essentielle** : jusqu’à 3 utilisateurs, rôle Collaborateur.
 - **Professionnelle** : jusqu’à 10 utilisateurs, rôles Responsable et Collaborateur.
-- **Métier** : rôles avancés et limite personnalisable dans une future administration NCR.
+- **Métier** : limites contractuelles, établissements multiples, modules à la carte, rôles personnalisés, marque blanche et domaine propre.
 
 ## Migrations Supabase
 
