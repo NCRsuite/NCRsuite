@@ -4,11 +4,13 @@ import { Icon } from '../components/Icon';
 import { StatCard } from '../components/StatCard';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { BookingDashboardPage } from './BookingDashboardPage';
+import { TrainingDashboardPage } from './TrainingDashboardPage';
 
 export function DashboardPage() {
   const { organization } = useOrganization();
   if (!organization) return null;
   if (organization.business_type === 'coiffure') return <BookingDashboardPage />;
+  if (organization.business_type === 'formation') return <TrainingDashboardPage />;
   const pack = businessPacks[organization.business_type];
 
   return (

@@ -2654,3 +2654,107 @@ button { max-width: 100%; }
   .metier-admin-domain-lock { grid-template-columns:auto minmax(0,1fr);align-items:start; }
   .metier-admin-domain-lock .admin-status-pill { grid-column:1/-1;justify-self:start; }
 }
+
+/* NCR Suite V2.4.0 — Pack Formation */
+.training-page,.training-dashboard-page { min-width:0; }
+.training-form-panel,.training-list-panel,.training-upcoming-panel,.training-readiness-panel { padding:24px; }
+.training-form-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px; }
+.training-form-grid > label { display:grid;gap:7px;min-width:0;font-size:.82rem;font-weight:750;color:#3f4650; }
+.training-form-grid input,.training-form-grid select,.training-form-grid textarea,.training-toolbar select {
+  width:100%;min-width:0;border:1px solid var(--line);border-radius:14px;padding:12px 13px;background:#fff;color:var(--ink);font:inherit;
+}
+.training-form-grid textarea { resize:vertical; }
+.training-toolbar { display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:18px; }
+.training-toolbar > label { display:grid;gap:6px;min-width:180px;font-size:.78rem;font-weight:750;color:#5f6875; }
+.training-card-list,.training-session-list,.training-upcoming-list,.training-readiness-list { display:grid;gap:11px; }
+.training-record-card {
+  display:grid;grid-template-columns:48px minmax(0,1fr) auto auto;align-items:center;gap:13px;
+  padding:15px;border:1px solid #e6e8ec;border-radius:18px;background:#fff;
+}
+.training-record-icon { width:48px;height:48px;border-radius:15px;display:grid;place-items:center;color:#0a84ff;background:#e8f3ff; }
+.training-record-main { display:grid;gap:4px;min-width:0; }
+.training-record-main > strong { font-size:.98rem; }
+.training-record-main > span { color:var(--muted);font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.training-tags { display:flex;gap:6px;flex-wrap:wrap;margin-top:3px; }
+.training-tags em { padding:5px 8px;border-radius:999px;background:#f0f2f5;color:#5e6672;font-size:.69rem;font-style:normal;font-weight:750; }
+.training-status-pill { padding:6px 9px;border-radius:999px;font-size:.7rem;font-weight:850;white-space:nowrap; }
+.training-status-pill.active { color:#14704b;background:#e9f8f0; }
+.training-empty { min-height:180px;display:grid;place-items:center;align-content:center;gap:8px;text-align:center;color:var(--muted);padding:24px; }
+.training-empty strong { color:var(--ink); }
+.training-warning { display:flex;align-items:center;gap:10px;margin-top:16px;padding:14px;border-radius:15px;color:#7a5312;background:#fff7df; }
+.training-program-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px; }
+.training-program-card { display:grid;gap:14px;padding:18px;border:1px solid #e6e8ec;border-radius:20px;background:#fff; }
+.training-program-head { display:grid;grid-template-columns:46px minmax(0,1fr);gap:12px;align-items:center; }
+.training-program-head > span { width:46px;height:46px;display:grid;place-items:center;border-radius:15px;color:#0a84ff;background:#e8f3ff; }
+.training-program-head > div { display:grid;gap:3px;min-width:0; }
+.training-program-head strong { line-height:1.3; }
+.training-program-head small,.training-program-card p { color:var(--muted); }
+.training-program-card p { min-height:42px;margin:0;line-height:1.5;font-size:.84rem; }
+.training-program-meta { display:flex;gap:8px;flex-wrap:wrap; }
+.training-program-meta span { padding:6px 9px;border-radius:999px;background:#f2f4f7;color:#606977;font-size:.72rem;font-weight:750; }
+.training-program-card .secondary-button { justify-self:start; }
+.training-trainee-picker { border:0;padding:0;margin:0;min-width:0; }
+.training-trainee-picker legend { width:100%;display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:.82rem;font-weight:800; }
+.training-trainee-picker legend small { color:#0a84ff; }
+.training-trainee-picker > div { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:290px;overflow:auto;padding:2px; }
+.training-trainee-picker label { display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:9px;padding:11px;border:1px solid #e6e8ec;border-radius:14px;background:#f7f8fa;font-weight:500; }
+.training-trainee-picker label.selected { border-color:rgba(10,132,255,.35);background:#f0f7ff; }
+.training-trainee-picker label > span { display:grid;gap:2px;min-width:0; }
+.training-trainee-picker label small { color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.training-session-card {
+  display:grid;grid-template-columns:58px minmax(0,1fr) auto minmax(130px,160px);align-items:center;gap:14px;
+  padding:15px;border:1px solid #e5e8ec;border-radius:20px;background:#fff;
+}
+.training-session-date { width:58px;height:58px;border-radius:18px;display:grid;place-items:center;align-content:center;color:#0a84ff;background:#e8f3ff; }
+.training-session-date strong { font-size:1.3rem;line-height:1; }
+.training-session-date span { font-size:.7rem;text-transform:uppercase;font-weight:800; }
+.training-session-main { display:grid;gap:5px;min-width:0; }
+.training-session-main > div { display:grid;gap:2px; }
+.training-session-main span,.training-session-main p,.training-session-main small { color:var(--muted);font-size:.78rem; }
+.training-session-main p { margin:0; }
+.training-session-capacity { display:grid;text-align:center; }
+.training-session-capacity strong { font-size:1.05rem; }
+.training-session-capacity span { color:var(--muted);font-size:.7rem; }
+.training-status-select select { width:100%;min-height:40px;border:0;border-radius:13px;padding:0 10px;font-weight:750;background:#f1f3f6;color:#525b67; }
+.training-status-select.status-scheduled select { color:#075fbe;background:#e9f4ff; }
+.training-status-select.status-in_progress select { color:#81530b;background:#fff3d6; }
+.training-status-select.status-completed select { color:#146c48;background:#e8f8ef; }
+.training-status-select.status-canceled select { color:#9c3030;background:#fdecec; }
+.training-dashboard-grid { display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:18px;margin-top:18px; }
+.training-upcoming-list > article { display:grid;grid-template-columns:50px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px;border-radius:16px;background:#f7f8fa; }
+.training-upcoming-date { width:50px;height:50px;display:grid;place-items:center;align-content:center;border-radius:15px;color:#0a84ff;background:#e3f0ff; }
+.training-upcoming-date strong { font-size:1.15rem;line-height:1; }
+.training-upcoming-date small { font-size:.66rem;text-transform:uppercase;font-weight:800; }
+.training-upcoming-list article > div { display:grid;gap:2px;min-width:0; }
+.training-upcoming-list article span,.training-upcoming-list article small { color:var(--muted);font-size:.76rem; }
+.training-upcoming-list article em { padding:7px 9px;border-radius:999px;color:#0b69ce;background:#e7f2ff;font-style:normal;font-size:.7rem;font-weight:850; }
+.training-readiness-list a { display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:11px;padding:12px;border-radius:16px;background:#f7f8fa;color:inherit;text-decoration:none; }
+.training-readiness-list a > span { width:42px;height:42px;display:grid;place-items:center;border-radius:13px;color:#0a84ff;background:#e8f3ff; }
+.training-readiness-list a > div { display:grid;gap:2px; }
+.training-readiness-list small { color:var(--muted); }
+.training-next-phase { display:grid;grid-template-columns:52px minmax(0,1fr);align-items:start;gap:15px;margin-top:18px;padding:22px; }
+.training-next-phase > span { width:52px;height:52px;display:grid;place-items:center;border-radius:17px;color:#0a84ff;background:#e8f3ff; }
+.training-next-phase p:last-child { color:var(--muted);line-height:1.55; }
+
+@media (max-width:1000px) {
+  .training-dashboard-grid { grid-template-columns:1fr; }
+  .training-program-grid { grid-template-columns:1fr; }
+}
+
+@media (max-width:720px) {
+  .training-form-panel,.training-list-panel,.training-upcoming-panel,.training-readiness-panel { padding:17px; }
+  .training-form-grid { grid-template-columns:1fr; }
+  .training-toolbar { align-items:stretch;flex-direction:column; }
+  .training-toolbar > label { min-width:0; }
+  .training-record-card { grid-template-columns:42px minmax(0,1fr);align-items:start; }
+  .training-record-icon { width:42px;height:42px;border-radius:13px; }
+  .training-record-card > .training-status-pill,.training-record-card > .secondary-button { grid-column:2;justify-self:start; }
+  .training-trainee-picker > div { grid-template-columns:1fr; }
+  .training-session-card { grid-template-columns:50px minmax(0,1fr);align-items:start; }
+  .training-session-date { width:50px;height:50px;border-radius:15px; }
+  .training-session-capacity,.training-status-select { grid-column:1 / -1; }
+  .training-session-capacity { display:flex;gap:5px;text-align:left;align-items:baseline;padding-left:0; }
+  .training-status-select select { min-height:44px; }
+  .training-next-phase { grid-template-columns:44px minmax(0,1fr);padding:17px; }
+  .training-next-phase > span { width:44px;height:44px;border-radius:14px; }
+}

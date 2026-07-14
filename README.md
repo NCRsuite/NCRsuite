@@ -1,4 +1,24 @@
-# NCR Suite — V2.3.0
+# NCR Suite — V2.4.0
+
+
+## V2.4 — Pack Formation, première phase
+
+Cette version rend opérationnels les modules suivants pour les espaces de type **Formation** :
+
+- catalogue de formations ;
+- stagiaires ;
+- formateurs ;
+- sessions et inscriptions ;
+- tableau de bord réel ;
+- filtrage par établissement en offre Métier.
+
+Après les migrations précédentes, exécuter :
+
+```text
+supabase/migrations/017_training_pack_core.sql
+```
+
+Les modules Documents, Émargements et Attestations restent visibles comme étapes suivantes, mais ne sont pas encore fonctionnels dans cette version.
 
 NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Chaque entreprise dispose de son espace, de ses données isolées et des modules correspondant à son activité.
 

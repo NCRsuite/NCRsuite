@@ -113,6 +113,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
     icon: 'graduation',
     navigation: [
       { label: 'Tableau de bord', path: '/', icon: 'home' },
+      { label: 'Formations', path: '/formations', icon: 'graduation' },
       { label: 'Stagiaires', path: '/stagiaires', icon: 'users' },
       { label: 'Formateurs', path: '/formateurs', icon: 'briefcase' },
       { label: 'Sessions', path: '/sessions', icon: 'calendar' },
@@ -129,8 +130,9 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Émargements complets', value: '91 %', detail: 'ce mois-ci', icon: 'signature' }
     ],
     quickActions: [
-      { label: 'Créer une session', path: '/sessions', icon: 'calendar' },
-      { label: 'Ajouter un stagiaire', path: '/stagiaires', icon: 'users' }
+      { label: 'Créer une session', path: '/sessions?new=1', icon: 'calendar' },
+      { label: 'Ajouter un stagiaire', path: '/stagiaires?new=1', icon: 'users' },
+      { label: 'Créer une formation', path: '/formations?new=1', icon: 'graduation' }
     ]
   },
   artisan: {

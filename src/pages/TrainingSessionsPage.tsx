@@ -1,0 +1,282 @@
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Icon } from '../components/Icon';
+import { useAuth } from '../contexts/AuthContext';
+import { useOrganization } from '../contexts/OrganizationContext';
+import {
+  formatDateTime,
+  modalityLabels,
+  nullableText,
+  personName,
+  sessionStatusLabels,
+  type TrainingEnrollmentRecord,
+  type TrainingModality,
+  type TrainingProgramRecord,
+  type TrainingSessionRecord,
+  type TrainingSessionStatus,
+  type TrainingTraineeRecord,
+  type TrainingTrainerRecord
+} from '../features/training/types';
+import { supabase } from '../lib/supabase';
+
+function dateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function initialForm() {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return {
+    programId: '', trainerId: '', title: '', startDate: dateInputValue(tomorrow), endDate: dateInputValue(tomorrow),
+    startTime: '09:00', endTime: '17:00', capacity: '12', location: '', modality: 'presentiel' as TrainingModality,
+    status: 'scheduled' as TrainingSessionStatus, notes: '', siteId: '', traineeIds: [] as string[]
+  };
+}
+
+type FormState = ReturnType<typeof initialForm>;
+
+export function TrainingSessionsPage() {
+  const { organization, sites, activeSiteId } = useOrganization();
+  const { user, demoMode } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [sessions, setSessions] = useState<TrainingSessionRecord[]>([]);
+  const [programs, setPrograms] = useState<TrainingProgramRecord[]>([]);
+  const [trainers, setTrainers] = useState<TrainingTrainerRecord[]>([]);
+  const [trainees, setTrainees] = useState<TrainingTraineeRecord[]>([]);
+  const [enrollments, setEnrollments] = useState<TrainingEnrollmentRecord[]>([]);
+  const [form, setForm] = useState<FormState>(initialForm);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | TrainingSessionStatus>('all');
+  const formOpen = searchParams.get('new') === '1';
+
+  useEffect(() => {
+    setForm((current) => ({ ...current, siteId: current.siteId || activeSiteId || sites[0]?.id || '' }));
+  }, [activeSiteId, sites]);
+
+  async function loadData() {
+    if (!organization) return;
+    setLoading(true);
+    setError('');
+
+    if (demoMode || !supabase) {
+      const get = <T,>(key: string) => {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) as T : [] as T;
+      };
+      setSessions(get<TrainingSessionRecord[]>(`ncr-suite-training-sessions-${organization.id}`));
+      setPrograms(get<TrainingProgramRecord[]>(`ncr-suite-training-programs-${organization.id}`));
+      setTrainers(get<TrainingTrainerRecord[]>(`ncr-suite-training-trainers-${organization.id}`));
+      setTrainees(get<TrainingTraineeRecord[]>(`ncr-suite-training-trainees-${organization.id}`));
+      setEnrollments(get<TrainingEnrollmentRecord[]>(`ncr-suite-training-enrollments-${organization.id}`));
+      setLoading(false);
+      return;
+    }
+
+    let sessionsQuery = supabase
+      .from('training_sessions')
+      .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,created_at')
+      .eq('organization_id', organization.id)
+      .order('starts_at', { ascending: true });
+    let programsQuery = supabase
+      .from('training_programs')
+      .select('id,organization_id,site_id,title,code,duration_hours,modality,objectives,description,status,created_at')
+      .eq('organization_id', organization.id)
+      .eq('status', 'active')
+      .order('title');
+    if (activeSiteId) {
+      sessionsQuery = sessionsQuery.eq('site_id', activeSiteId);
+      programsQuery = programsQuery.eq('site_id', activeSiteId);
+    }
+
+    const [sessionsResult, programsResult, trainersResult, traineesResult, enrollmentsResult] = await Promise.all([
+      sessionsQuery,
+      programsQuery,
+      supabase.from('training_trainers').select('id,organization_id,first_name,last_name,email,phone,specialties,notes,status,created_at').eq('organization_id', organization.id).eq('status', 'active').order('last_name'),
+      supabase.from('training_trainees').select('id,organization_id,first_name,last_name,email,phone,company,notes,status,created_at').eq('organization_id', organization.id).eq('status', 'active').order('last_name'),
+      supabase.from('training_session_enrollments').select('organization_id,session_id,trainee_id,status').eq('organization_id', organization.id)
+    ]);
+
+    const firstError = sessionsResult.error || programsResult.error || trainersResult.error || traineesResult.error || enrollmentsResult.error;
+    if (firstError) setError(`Chargement impossible : ${firstError.message}`);
+    else {
+      setSessions((sessionsResult.data ?? []) as TrainingSessionRecord[]);
+      setPrograms((programsResult.data ?? []).map((row) => ({ ...row, duration_hours: Number(row.duration_hours) })) as TrainingProgramRecord[]);
+      setTrainers((trainersResult.data ?? []) as TrainingTrainerRecord[]);
+      setTrainees((traineesResult.data ?? []) as TrainingTraineeRecord[]);
+      setEnrollments((enrollmentsResult.data ?? []) as TrainingEnrollmentRecord[]);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => { void loadData(); }, [organization?.id, activeSiteId, demoMode]);
+
+  const filteredSessions = useMemo(() => sessions.filter((session) => statusFilter === 'all' || session.status === statusFilter), [sessions, statusFilter]);
+  const programMap = useMemo(() => new Map(programs.map((program) => [program.id, program])), [programs]);
+  const trainerMap = useMemo(() => new Map(trainers.map((trainer) => [trainer.id, trainer])), [trainers]);
+  const enrollmentCount = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const enrollment of enrollments) {
+      if (enrollment.status === 'canceled') continue;
+      map.set(enrollment.session_id, (map.get(enrollment.session_id) ?? 0) + 1);
+    }
+    return map;
+  }, [enrollments]);
+
+  function toggleTrainee(id: string) {
+    setForm((current) => ({
+      ...current,
+      traineeIds: current.traineeIds.includes(id) ? current.traineeIds.filter((value) => value !== id) : [...current.traineeIds, id]
+    }));
+  }
+
+  function selectProgram(programId: string) {
+    const program = programs.find((row) => row.id === programId);
+    setForm((current) => ({
+      ...current,
+      programId,
+      title: current.title || program?.title || '',
+      modality: program?.modality || current.modality,
+      siteId: program?.site_id || current.siteId
+    }));
+  }
+
+  async function createSession(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!organization || !user) return;
+    if (!form.programId) { setError('Sélectionne une formation.'); return; }
+    if (organization.plan === 'metier' && !form.siteId) { setError('Sélectionne un établissement.'); return; }
+    const startsAt = new Date(`${form.startDate}T${form.startTime}:00`);
+    const endsAt = new Date(`${form.endDate}T${form.endTime}:00`);
+    const capacity = Number(form.capacity);
+    if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) { setError('Les dates et horaires sont invalides.'); return; }
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) { setError('La capacité doit être comprise entre 1 et 500.'); return; }
+    if (form.traineeIds.length > capacity) { setError('Le nombre de stagiaires dépasse la capacité.'); return; }
+
+    setSaving(true); setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        const created: TrainingSessionRecord = {
+          id: crypto.randomUUID(), organization_id: organization.id, site_id: organization.plan === 'metier' ? form.siteId : null,
+          program_id: form.programId, trainer_id: form.trainerId || null, title: form.title.trim(), starts_at: startsAt.toISOString(),
+          ends_at: endsAt.toISOString(), capacity, location: nullableText(form.location), modality: form.modality, status: form.status,
+          notes: nullableText(form.notes), created_at: new Date().toISOString()
+        };
+        const nextSessions = [...sessions, created].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+        const createdEnrollments = form.traineeIds.map((traineeId) => ({ organization_id: organization.id, session_id: created.id, trainee_id: traineeId, status: 'registered' as const }));
+        const nextEnrollments = [...enrollments, ...createdEnrollments];
+        localStorage.setItem(`ncr-suite-training-sessions-${organization.id}`, JSON.stringify(nextSessions));
+        localStorage.setItem(`ncr-suite-training-enrollments-${organization.id}`, JSON.stringify(nextEnrollments));
+        setSessions(nextSessions); setEnrollments(nextEnrollments);
+      } else {
+        const { error: rpcError } = await supabase.rpc('create_training_session', {
+          p_organization_id: organization.id,
+          p_site_id: organization.plan === 'metier' ? form.siteId : null,
+          p_program_id: form.programId,
+          p_trainer_id: form.trainerId || null,
+          p_title: form.title.trim() || programMap.get(form.programId)?.title || 'Session de formation',
+          p_starts_at: startsAt.toISOString(),
+          p_ends_at: endsAt.toISOString(),
+          p_capacity: capacity,
+          p_location: nullableText(form.location),
+          p_modality: form.modality,
+          p_status: form.status,
+          p_notes: nullableText(form.notes),
+          p_trainee_ids: form.traineeIds
+        });
+        if (rpcError) throw rpcError;
+        await loadData();
+      }
+      setForm({ ...initialForm(), siteId: activeSiteId || sites[0]?.id || '' });
+      setSearchParams({}); setSuccess('La session a bien été créée.');
+    } catch (caught) {
+      setError(`Création impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+    } finally { setSaving(false); }
+  }
+
+  async function updateStatus(session: TrainingSessionRecord, status: TrainingSessionStatus) {
+    if (!organization) return;
+    setError('');
+    try {
+      if (demoMode || !supabase) {
+        const next = sessions.map((row) => row.id === session.id ? { ...row, status } : row);
+        setSessions(next);
+        localStorage.setItem(`ncr-suite-training-sessions-${organization.id}`, JSON.stringify(next));
+      } else {
+        const { error: rpcError } = await supabase.rpc('set_training_session_status', {
+          p_organization_id: organization.id,
+          p_session_id: session.id,
+          p_status: status
+        });
+        if (rpcError) throw rpcError;
+        setSessions((current) => current.map((row) => row.id === session.id ? { ...row, status } : row));
+      }
+      setSuccess('Le statut de la session a été mis à jour.');
+    } catch (caught) { setError(`Modification impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+  }
+
+  if (!organization) return null;
+
+  return (
+    <div className="page training-page">
+      <header className="page-header">
+        <div><p className="eyebrow">PACK FORMATION</p><h1>Sessions</h1><p>Planifiez vos sessions et inscrivez les stagiaires en une seule opération.</p></div>
+        <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Créer une session</button>
+      </header>
+
+      {formOpen && (
+        <section className="panel training-form-panel training-session-form-panel">
+          <div className="panel-header"><div><p className="eyebrow">PLANIFICATION</p><h2>Nouvelle session</h2></div><button className="secondary-button compact-button" type="button" onClick={() => setSearchParams({})}>Fermer</button></div>
+          {programs.length === 0 ? <div className="training-warning"><Icon name="alert" size={20} /><span>Crée d’abord une formation dans le catalogue.</span></div> : (
+            <form className="training-form-grid" onSubmit={createSession}>
+              <label>Formation *<select required value={form.programId} onChange={(event) => selectProgram(event.target.value)}><option value="">Sélectionner</option>{programs.map((program) => <option key={program.id} value={program.id}>{program.title}</option>)}</select></label>
+              <label>Formateur<select value={form.trainerId} onChange={(event) => setForm((current) => ({ ...current, trainerId: event.target.value }))}><option value="">À définir</option>{trainers.map((trainer) => <option key={trainer.id} value={trainer.id}>{personName(trainer.first_name, trainer.last_name)}</option>)}</select></label>
+              <label className="full-field">Titre de la session *<input required minLength={2} value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} /></label>
+              {organization.plan === 'metier' && <label>Établissement *<select required value={form.siteId} onChange={(event) => setForm((current) => ({ ...current, siteId: event.target.value }))}><option value="">Sélectionner</option>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>}
+              <label>Modalité<select value={form.modality} onChange={(event) => setForm((current) => ({ ...current, modality: event.target.value as TrainingModality }))}><option value="presentiel">Présentiel</option><option value="distanciel">Distanciel</option><option value="hybride">Hybride</option></select></label>
+              <label>Date de début *<input type="date" required value={form.startDate} onChange={(event) => setForm((current) => ({ ...current, startDate: event.target.value }))} /></label>
+              <label>Heure de début *<input type="time" required value={form.startTime} onChange={(event) => setForm((current) => ({ ...current, startTime: event.target.value }))} /></label>
+              <label>Date de fin *<input type="date" required value={form.endDate} onChange={(event) => setForm((current) => ({ ...current, endDate: event.target.value }))} /></label>
+              <label>Heure de fin *<input type="time" required value={form.endTime} onChange={(event) => setForm((current) => ({ ...current, endTime: event.target.value }))} /></label>
+              <label>Capacité *<input type="number" min={1} max={500} required value={form.capacity} onChange={(event) => setForm((current) => ({ ...current, capacity: event.target.value }))} /></label>
+              <label>Statut<select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as TrainingSessionStatus }))}><option value="draft">Brouillon</option><option value="scheduled">Planifiée</option><option value="in_progress">En cours</option><option value="completed">Terminée</option><option value="canceled">Annulée</option></select></label>
+              <label className="full-field">Lieu ou lien de visioconférence<input value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))} /></label>
+              <fieldset className="full-field training-trainee-picker"><legend>Stagiaires inscrits <small>{form.traineeIds.length}/{form.capacity || 0}</small></legend>{trainees.length === 0 ? <p>Aucun stagiaire actif. Tu peux créer la session sans inscription.</p> : <div>{trainees.map((trainee) => <label key={trainee.id} className={form.traineeIds.includes(trainee.id) ? 'selected' : ''}><input type="checkbox" checked={form.traineeIds.includes(trainee.id)} onChange={() => toggleTrainee(trainee.id)} /><span><strong>{personName(trainee.first_name, trainee.last_name)}</strong><small>{trainee.company || trainee.email || 'Stagiaire'}</small></span></label>)}</div>}</fieldset>
+              <label className="full-field">Notes internes<textarea rows={3} value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} /></label>
+              <div className="form-actions full-field"><button className="secondary-button" type="button" onClick={() => setSearchParams({})}>Annuler</button><button className="primary-button" type="submit" disabled={saving}>{saving ? 'Création…' : 'Créer la session'}</button></div>
+            </form>
+          )}
+        </section>
+      )}
+
+      {error && <div className="error-message page-message" role="alert">{error}</div>}
+      {success && <div className="success-message page-message" role="status">{success}</div>}
+
+      <section className="panel training-list-panel">
+        <div className="training-toolbar"><div><p className="eyebrow">PLANNING</p><h2>{sessions.length} session{sessions.length > 1 ? 's' : ''}</h2></div><label>Filtrer<select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'all' | TrainingSessionStatus)}><option value="all">Tous les statuts</option>{Object.entries(sessionStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label></div>
+        {loading ? <div className="training-empty">Chargement…</div> : filteredSessions.length === 0 ? <div className="training-empty"><Icon name="calendar" size={30} /><strong>Aucune session</strong><span>Planifiez une session lorsque votre catalogue est prêt.</span></div> : (
+          <div className="training-session-list">
+            {filteredSessions.map((session) => {
+              const program = programMap.get(session.program_id);
+              const trainer = session.trainer_id ? trainerMap.get(session.trainer_id) : null;
+              const count = enrollmentCount.get(session.id) ?? 0;
+              return (
+                <article key={session.id} className="training-session-card">
+                  <div className="training-session-date"><strong>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit' }).format(new Date(session.starts_at))}</strong><span>{new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(new Date(session.starts_at))}</span></div>
+                  <div className="training-session-main"><div><strong>{session.title}</strong><span>{program?.title || 'Formation'} · {modalityLabels[session.modality]}</span></div><p>{formatDateTime(session.starts_at)} → {formatDateTime(session.ends_at)}</p><small>{trainer ? `Formateur : ${personName(trainer.first_name, trainer.last_name)}` : 'Formateur à définir'}{session.location ? ` · ${session.location}` : ''}</small></div>
+                  <div className="training-session-capacity"><strong>{count}/{session.capacity}</strong><span>stagiaires</span></div>
+                  <label className={`training-status-select status-${session.status}`}><span className="sr-only">Statut</span><select value={session.status} onChange={(event) => updateStatus(session, event.target.value as TrainingSessionStatus)}>{Object.entries(sessionStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}

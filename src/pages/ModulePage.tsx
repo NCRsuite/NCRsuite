@@ -17,6 +17,7 @@ const MODULE_BY_PATH: Record<string, string> = {
   '/rondes': 'patrols',
   '/alertes': 'alerts',
   '/documents': 'documents',
+  '/formations': 'training_programs',
   '/stagiaires': 'trainees',
   '/formateurs': 'trainers',
   '/sessions': 'sessions',

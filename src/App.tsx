@@ -22,6 +22,10 @@ import { PlatformAdminPage } from './pages/PlatformAdminPage';
 import { OrganizationAccessPage } from './pages/OrganizationAccessPage';
 import { SubscriptionPage } from './pages/SubscriptionPage';
 import { MetierWorkspacePage } from './pages/MetierWorkspacePage';
+import { TrainingProgramsPage } from './pages/TrainingProgramsPage';
+import { TrainingTraineesPage } from './pages/TrainingTraineesPage';
+import { TrainingTrainersPage } from './pages/TrainingTrainersPage';
+import { TrainingSessionsPage } from './pages/TrainingSessionsPage';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
 function LoadingScreen() {
@@ -78,6 +82,10 @@ export default function App() {
       <Route path="/administration-ncr" element={<PlatformAdminArea />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
+        <Route path="formations" element={<ModuleAccessGuard moduleKey="training_programs"><TrainingProgramsPage /></ModuleAccessGuard>} />
+        <Route path="stagiaires" element={<ModuleAccessGuard moduleKey="trainees"><TrainingTraineesPage /></ModuleAccessGuard>} />
+        <Route path="formateurs" element={<ModuleAccessGuard moduleKey="trainers"><TrainingTrainersPage /></ModuleAccessGuard>} />
+        <Route path="sessions" element={<ModuleAccessGuard moduleKey="sessions"><TrainingSessionsPage /></ModuleAccessGuard>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ModuleAccessGuard moduleKey="clients"><ClientsPage /></ModuleAccessGuard>} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />
