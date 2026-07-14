@@ -1,6 +1,16 @@
-# NCR Suite — V2.0.0
+# NCR Suite — V2.0.2
 
 NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Chaque entreprise dispose de son espace, de ses données isolées et des modules correspondant à son activité.
+
+
+## V2.0.2 — Accès administrateur et mobile
+
+- Le rôle plateforme est détecté automatiquement après authentification.
+- Un Super-administrateur ou un compte Support est envoyé exclusivement vers `/administration-ncr`.
+- Les utilisateurs d’entreprise restent dirigés vers leur espace métier ; les collaborateurs vers les rubriques autorisées par leur rôle.
+- Sur mobile, toutes les rubriques sont regroupées dans un menu latéral `☰`, avec une barre basse limitée aux actions essentielles.
+- La page globale ne défile plus horizontalement. Le planning et les tableaux conservent un défilement local contrôlé lorsqu’il est nécessaire.
+- Cette mise à jour ne nécessite aucune migration SQL supplémentaire. La migration `010_platform_admin_subscriptions.sql` doit déjà être installée.
 
 ## Pack Coiffure & beauté opérationnel
 

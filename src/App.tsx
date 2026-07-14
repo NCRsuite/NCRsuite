@@ -27,12 +27,27 @@ function LoadingScreen() {
 function ProtectedArea() {
   const { user, loading: authLoading } = useAuth();
   const { organization, loading: organizationLoading } = useOrganization();
+  const { isAdmin, loading: adminLoading } = usePlatformAdmin();
 
-  if (authLoading || organizationLoading) return <LoadingScreen />;
+  if (authLoading || adminLoading || organizationLoading) return <LoadingScreen />;
   if (!user) return <Navigate to="/connexion" replace />;
+
+  // Un compte plateforme ne pénètre jamais dans un espace entreprise.
+  if (isAdmin) return <Navigate to="/administration-ncr" replace />;
+
   if (!organization) return <Navigate to="/configuration" replace />;
   if (['suspended', 'closed'].includes(organization.status)) return <OrganizationAccessPage />;
   return <AppShell />;
+}
+
+function OnboardingArea() {
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = usePlatformAdmin();
+
+  if (authLoading || adminLoading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/connexion" replace />;
+  if (isAdmin) return <Navigate to="/administration-ncr" replace />;
+  return <OnboardingPage />;
 }
 
 function PlatformAdminArea() {
@@ -49,7 +64,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/connexion" element={<LoginPage />} />
-      <Route path="/configuration" element={<OnboardingPage />} />
+      <Route path="/configuration" element={<OnboardingArea />} />
       <Route path="/reserver/:slug" element={<PublicBookingPage />} />
       <Route path="/reservation/:token" element={<PublicBookingManagePage />} />
       <Route path="/invitation/:token" element={<InvitationPage />} />

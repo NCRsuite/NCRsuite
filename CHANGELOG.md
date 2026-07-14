@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.2 — Compte administrateur dédié & navigation mobile
+
+- Redirection automatique du compte Super-administrateur et Support vers `/administration-ncr` dès la connexion.
+- Suppression de l’accès au tableau de bord métier, aux rendez-vous, clients, collaborateurs et prestations pour les comptes plateforme.
+- Page de connexion unique : aucun choix manuel de rôle ou d’espace administrateur.
+- Administration centrale autonome, sans bouton de retour vers un espace entreprise.
+- Nouveau menu latéral mobile complet ouvert avec le bouton `☰`.
+- Barre inférieure limitée à Accueil, Planning/Rendez-vous, action rapide et Menu.
+- Changement d’entreprise, personnalisation, paramètres et déconnexion accessibles sur mobile.
+- Blocage strict du débordement horizontal de l’application ; seuls les tableaux et le planning peuvent défiler dans leur propre zone.
+- Adaptation renforcée aux petits écrans, aux encoches iPhone et à la barre d’accueil.
+- Aucun nouveau SQL ni changement d’Edge Function requis.
+- Cache PWA mis à jour.
+
 ## 2.0.1 — Accès mobile à la personnalisation
 
 - Ajout d’un accès direct « Personnaliser l’entreprise » dans le menu de compte mobile.

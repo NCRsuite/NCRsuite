@@ -28,7 +28,9 @@ const paths: Record<IconName, React.ReactNode> = {
   building: <><path d="M3 21h18"/><path d="M6 21V7l6-4 6 4v14"/><path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01M10 21v-4h4v4"/></>,
   creditCard: <><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18M7 15h4"/></>,
   search: <><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
-  lock: <><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></>
+  lock: <><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></>,
+  menu: <><path d="M4 7h16M4 12h16M4 17h16"/></>,
+  plus: <><path d="M12 5v14M5 12h14"/></>
 };
 
 export function Icon({ name, size = 22, strokeWidth = 1.8 }: Props) {

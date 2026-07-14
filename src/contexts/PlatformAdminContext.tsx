@@ -22,17 +22,20 @@ const PlatformAdminContext = createContext<PlatformAdminContextValue | null>(nul
 export function PlatformAdminProvider({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading, demoMode } = useAuth();
   const [profile, setProfile] = useState<PlatformAdminProfile | null>(null);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   async function loadProfile() {
     if (authLoading) return;
     if (!user || demoMode || !supabase) {
       setProfile(null);
+      setProfileUserId(user?.id ?? null);
       setLoading(false);
       return;
     }
 
     setLoading(true);
+    setProfile(null);
     const { data, error } = await supabase.rpc('platform_admin_profile');
     if (error) {
       console.error('Impossible de charger le profil administrateur NCR.', error);
@@ -40,6 +43,7 @@ export function PlatformAdminProvider({ children }: { children: React.ReactNode 
     } else {
       setProfile((data ?? null) as PlatformAdminProfile | null);
     }
+    setProfileUserId(user.id);
     setLoading(false);
   }
 
@@ -47,13 +51,15 @@ export function PlatformAdminProvider({ children }: { children: React.ReactNode 
     void loadProfile();
   }, [user?.id, authLoading, demoMode]);
 
+  const resolvedLoading = loading || authLoading || Boolean(user && profileUserId !== user.id);
+
   const value = useMemo<PlatformAdminContextValue>(() => ({
     profile,
-    loading,
+    loading: resolvedLoading,
     isAdmin: Boolean(profile),
     canManage: Boolean(profile?.can_manage),
     refresh: loadProfile
-  }), [profile, loading]);
+  }), [profile, resolvedLoading]);
 
   return <PlatformAdminContext.Provider value={value}>{children}</PlatformAdminContext.Provider>;
 }

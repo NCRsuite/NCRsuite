@@ -1,10 +1,12 @@
 import { FormEvent, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 export function LoginPage() {
   const { user, signIn, signUp, startDemo } = useAuth();
+  const { isAdmin, loading: adminLoading } = usePlatformAdmin();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -12,7 +14,10 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
 
-  if (user) return <Navigate to="/" replace />;
+  if (user && adminLoading) {
+    return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Ouverture de votre espace…</span></div>;
+  }
+  if (user) return <Navigate to={isAdmin ? '/administration-ncr' : '/'} replace />;
 
   async function submit(event: FormEvent) {
     event.preventDefault();

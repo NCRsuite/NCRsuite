@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
@@ -223,13 +222,12 @@ export function PlatformAdminPage() {
   return (
     <div className="platform-admin-page">
       <header className="platform-admin-topbar">
-        <Link to="/" className="platform-admin-brand">
+        <div className="platform-admin-brand">
           <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
           <span>Administration centrale</span>
-        </Link>
+        </div>
         <div className="platform-admin-account">
           <span><strong>{user?.user_metadata?.full_name || 'NCR Admin'}</strong><small>{profile?.role === 'super_admin' ? 'Super-administrateur' : 'Support'}</small></span>
-          <Link className="secondary-button compact-button" to="/">Retour à l’application</Link>
           <button className="icon-button" type="button" onClick={() => signOut()} aria-label="Se déconnecter"><Icon name="logout" size={19} /></button>
         </div>
       </header>
@@ -239,7 +237,7 @@ export function PlatformAdminPage() {
           <div>
             <p className="eyebrow">NCR SUITE CONTROL CENTER</p>
             <h1>Pilote toutes les entreprises depuis un seul espace.</h1>
-            <p>Formules, périodes d’essai, suspensions et activité générale restent séparées des espaces clients.</p>
+            <p>Ce compte est exclusivement réservé à l’administration NCR. Les espaces métier, rendez-vous, prestations et données clients ne sont jamais affichés ici.</p>
           </div>
           <button type="button" className="secondary-button" onClick={() => loadAll(true)} disabled={loading}>Actualiser</button>
         </section>

@@ -71,4 +71,6 @@ export type IconName =
   | 'building'
   | 'creditCard'
   | 'search'
-  | 'lock';
+  | 'lock'
+  | 'menu'
+  | 'plus';
