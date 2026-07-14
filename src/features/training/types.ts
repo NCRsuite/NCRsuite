@@ -66,6 +66,44 @@ export interface TrainingEnrollmentRecord {
   status: 'registered' | 'confirmed' | 'completed' | 'absent' | 'canceled';
 }
 
+
+export type TrainingDocumentCategory = 'convocation' | 'programme' | 'support' | 'attestation' | 'administrative' | 'other';
+export type TrainingDocumentVisibility = 'internal' | 'session' | 'trainee';
+export type TrainingDocumentStatus = 'draft' | 'published' | 'archived';
+
+export interface TrainingDocumentRecord {
+  id: string;
+  organization_id: string;
+  site_id: string | null;
+  session_id: string | null;
+  program_id: string | null;
+  trainee_id: string | null;
+  title: string;
+  category: TrainingDocumentCategory;
+  storage_path: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  visibility: TrainingDocumentVisibility;
+  status: TrainingDocumentStatus;
+  notes: string | null;
+  created_at: string;
+}
+
+export const trainingDocumentCategoryLabels: Record<TrainingDocumentCategory, string> = {
+  convocation: 'Convocation',
+  programme: 'Programme',
+  support: 'Support pédagogique',
+  attestation: 'Attestation',
+  administrative: 'Document administratif',
+  other: 'Autre document'
+};
+
+export const trainingDocumentVisibilityLabels: Record<TrainingDocumentVisibility, string> = {
+  internal: 'Interne',
+  session: 'Toute la session',
+  trainee: 'Un stagiaire'
+};
+
 export const modalityLabels: Record<TrainingModality, string> = {
   presentiel: 'Présentiel',
   distanciel: 'Distanciel',

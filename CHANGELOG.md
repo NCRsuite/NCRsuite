@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 2.4.3 — Documents du pack Formation
+
+- Bibliothèque documentaire réelle connectée à Supabase Storage.
+- Classement par catégorie : convocation, programme, support, attestation, administratif et autre.
+- Rattachement facultatif à une session, une formation et un stagiaire.
+- Visibilité interne, session complète ou stagiaire désigné.
+- Téléchargement sécurisé par lien temporaire.
+- Recherche, filtres, brouillons, archivage et restauration.
+- Isolation stricte par entreprise et par établissement pour les offres Métier.
+- Taille maximale de 20 Mo et formats PDF, image, Word, Excel ou texte.
+- Tableau de bord Formation mis à jour ; émargements et signatures annoncés comme prochaine phase.
+- Cache PWA mis à jour en V2.4.3.
+
 ## 2.4.2 — Tarifs et offres par domaine métier
 
 - Conservation des quatre niveaux communs : Découverte, Essentielle, Professionnelle et Métier.

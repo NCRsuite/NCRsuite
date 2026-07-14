@@ -1,4 +1,24 @@
-# NCR Suite — V2.4.2
+# NCR Suite — V2.4.3
+
+## V2.4.3 — Bibliothèque documentaire Formation
+
+Le pack Formation dispose désormais d’une bibliothèque sécurisée pour classer et télécharger :
+
+- convocations ;
+- programmes ;
+- supports pédagogiques ;
+- attestations ;
+- documents administratifs.
+
+Chaque fichier peut être rattaché à une session et, si nécessaire, à un stagiaire précis. Le stockage Supabase est privé, limité à 20 Mo par fichier et isolé par entreprise.
+
+Après le SQL 019, exécuter :
+
+```text
+supabase/migrations/020_training_documents.sql
+```
+
+L’émargement et les signatures restent la prochaine évolution du pack Formation.
 
 ## V2.4.2 — Tarification distincte par domaine
 

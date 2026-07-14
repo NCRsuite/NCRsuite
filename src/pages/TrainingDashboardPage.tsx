@@ -131,13 +131,14 @@ export function TrainingDashboardPage() {
             <Link to="/formateurs"><span><Icon name="briefcase" size={19} /></span><div><strong>2. Ajouter le formateur</strong><small>Coordonnées et spécialités.</small></div><Icon name="chevronRight" size={17} /></Link>
             <Link to="/stagiaires"><span><Icon name="users" size={19} /></span><div><strong>3. Enregistrer les stagiaires</strong><small>Contacts et entreprise d’origine.</small></div><Icon name="chevronRight" size={17} /></Link>
             <Link to="/sessions"><span><Icon name="calendar" size={19} /></span><div><strong>4. Planifier la session</strong><small>Dates, lieu, capacité et inscriptions.</small></div><Icon name="chevronRight" size={17} /></Link>
+            <Link to="/documents"><span><Icon name="file" size={19} /></span><div><strong>5. Préparer les documents</strong><small>Convocations, programmes, supports et attestations.</small></div><Icon name="chevronRight" size={17} /></Link>
           </div>
         </article>
       </section>
 
       <section className="panel training-next-phase">
-        <span><Icon name="file" size={24} /></span>
-        <div><p className="eyebrow">PROCHAINE ÉVOLUTION</p><h2>Documents, émargements et attestations</h2><p>Le socle opérationnel est prêt. La prochaine version branchera les convocations, programmes, signatures et attestations sur les sessions.</p></div>
+        <span><Icon name="signature" size={24} /></span>
+        <div><p className="eyebrow">PROCHAINE ÉVOLUTION</p><h2>Émargements et signatures</h2><p>La bibliothèque documentaire est désormais opérationnelle. La prochaine version ajoutera les feuilles d’émargement matin et après-midi, la signature et le suivi des présences.</p></div>
       </section>
     </div>
   );

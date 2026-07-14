@@ -26,7 +26,15 @@ import { TrainingProgramsPage } from './pages/TrainingProgramsPage';
 import { TrainingTraineesPage } from './pages/TrainingTraineesPage';
 import { TrainingTrainersPage } from './pages/TrainingTrainersPage';
 import { TrainingSessionsPage } from './pages/TrainingSessionsPage';
+import { TrainingDocumentsPage } from './pages/TrainingDocumentsPage';
 import { organizationCanAccessPath } from './config/moduleAccess';
+
+
+function DocumentsArea() {
+  const { organization } = useOrganization();
+  if (organization?.business_type === 'formation') return <TrainingDocumentsPage />;
+  return <ModulePage />;
+}
 
 function LoadingScreen() {
   return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Chargement de NCR Suite…</span></div>;
@@ -86,6 +94,7 @@ export default function App() {
         <Route path="stagiaires" element={<ModuleAccessGuard moduleKey="trainees"><TrainingTraineesPage /></ModuleAccessGuard>} />
         <Route path="formateurs" element={<ModuleAccessGuard moduleKey="trainers"><TrainingTrainersPage /></ModuleAccessGuard>} />
         <Route path="sessions" element={<ModuleAccessGuard moduleKey="sessions"><TrainingSessionsPage /></ModuleAccessGuard>} />
+        <Route path="documents" element={<ModuleAccessGuard moduleKey="documents"><DocumentsArea /></ModuleAccessGuard>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ModuleAccessGuard moduleKey="clients"><ClientsPage /></ModuleAccessGuard>} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />

@@ -3040,3 +3040,50 @@ button { max-width: 100%; }
     width: 100%;
   }
 }
+
+/* NCR Suite V2.4.3 — Documents Formation */
+.training-document-form-panel { margin-bottom:18px; }
+.training-file-drop {
+  position:relative;min-height:128px;padding:22px;border:1.5px dashed #cdd3dc;border-radius:20px;
+  display:grid;place-items:center;align-content:center;gap:6px;text-align:center;background:#f8fafc;cursor:pointer;
+}
+.training-file-drop > span { font-size:.78rem;font-weight:850;color:#4c5562; }
+.training-file-drop input { position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer; }
+.training-file-drop strong { color:#0a84ff;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.training-file-drop small { color:var(--muted); }
+.training-document-toolbar { gap:16px; }
+.training-document-filters { display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end; }
+.training-document-filters label { min-width:150px; }
+.training-document-filters .search-field { min-width:220px; }
+.training-document-list { display:grid;gap:10px; }
+.training-document-card {
+  display:grid;grid-template-columns:50px minmax(0,1fr) auto;align-items:center;gap:13px;
+  padding:14px;border:1px solid #e6e8ec;border-radius:18px;background:#fff;
+}
+.training-document-icon { width:50px;height:50px;border-radius:16px;display:grid;place-items:center;color:#0a84ff;background:#e8f3ff; }
+.training-document-icon.category-convocation { color:#7a4a00;background:#fff2d8; }
+.training-document-icon.category-programme { color:#7144b2;background:#f1eaff; }
+.training-document-icon.category-support { color:#0f6b88;background:#e4f7fc; }
+.training-document-icon.category-attestation { color:#14704b;background:#e8f8ef; }
+.training-document-icon.category-administrative { color:#5c6572;background:#edf0f4; }
+.training-document-main { display:grid;gap:4px;min-width:0; }
+.training-document-main > div { display:flex;align-items:center;gap:8px;min-width:0; }
+.training-document-main strong { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.training-document-main p { margin:0;color:#596371;font-size:.8rem; }
+.training-document-main small { color:var(--muted);font-size:.74rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.training-document-main .training-status-pill { flex:0 0 auto; }
+.training-document-actions { display:flex;align-items:center;gap:9px; }
+.training-document-actions .text-button { border:0;background:transparent;color:#687383;font-weight:750;cursor:pointer;padding:8px; }
+.training-document-actions .text-button:hover { color:#0a84ff; }
+
+@media (max-width: 760px) {
+  .training-document-filters { width:100%;display:grid;grid-template-columns:1fr 1fr;justify-content:stretch; }
+  .training-document-filters label,.training-document-filters .search-field { min-width:0;width:100%; }
+  .training-document-filters label:first-child { grid-column:1 / -1; }
+  .training-document-card { grid-template-columns:44px minmax(0,1fr);align-items:start;padding:12px; }
+  .training-document-icon { width:44px;height:44px;border-radius:14px; }
+  .training-document-main > div { align-items:flex-start;flex-wrap:wrap; }
+  .training-document-main small { white-space:normal;line-height:1.45; }
+  .training-document-actions { grid-column:1 / -1;justify-content:flex-end;border-top:1px solid #edf0f3;padding-top:10px; }
+  .training-file-drop { min-height:112px;padding:18px; }
+}
