@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { PLAN_DEFINITIONS, planHasFeature, planLabel } from '../config/planEntitlements';
 
 const slotOptions = [5, 10, 15, 20, 30, 45, 60];
 
@@ -57,6 +58,10 @@ export function SettingsPage() {
 
   const canManage = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
   const isBookingBusiness = organization.business_type === 'coiffure';
+  const hasAutomaticReminders = planHasFeature(organization.plan, 'automatic_reminders');
+  const hasOnlineBookingManagement = planHasFeature(organization.plan, 'online_booking_management');
+  const hasCalendarLinks = planHasFeature(organization.plan, 'calendar_links');
+  const currentPlan = PLAN_DEFINITIONS[organization.plan];
 
   async function submitBranding(event: FormEvent) {
     event.preventDefault();
@@ -110,7 +115,7 @@ export function SettingsPage() {
         enabled: emailNotificationsEnabled,
         contactEmail,
         contactPhone,
-        reminderHours
+        reminderHours: hasAutomaticReminders ? reminderHours : 0
       });
       setMessage('Les e-mails automatiques ont été configurés.');
     } catch (caught) {
@@ -162,6 +167,24 @@ export function SettingsPage() {
       {message && <div className="success-message page-message" role="status">{message}</div>}
 
       <div className="settings-layout">
+        <section className="panel settings-form plan-overview-card">
+          <div className="plan-overview-heading">
+            <div>
+              <p className="eyebrow">ABONNEMENT</p>
+              <h2>Formule {planLabel(organization.plan)}</h2>
+              <p className="muted">Les fonctionnalités sont activées automatiquement selon la formule attribuée par NCR Suite.</p>
+            </div>
+            <span className="plan-price-badge">{(currentPlan.monthlyPriceCents / 100).toFixed(2).replace('.', ',')} € HT / mois · tarif catalogue</span>
+          </div>
+          <div className="plan-entitlement-grid">
+            <article className="enabled"><Icon name="check" size={18} /><span><strong>Réservation publique</strong><small>Disponible sur votre formule</small></span></article>
+            <article className={hasAutomaticReminders ? 'enabled' : 'locked'}><Icon name={hasAutomaticReminders ? 'check' : 'lock'} size={18} /><span><strong>Rappels automatiques</strong><small>{hasAutomaticReminders ? 'Activables dans les réglages' : 'À partir de l’offre Essentielle'}</small></span></article>
+            <article className={hasOnlineBookingManagement ? 'enabled' : 'locked'}><Icon name={hasOnlineBookingManagement ? 'check' : 'lock'} size={18} /><span><strong>Modification en ligne</strong><small>{hasOnlineBookingManagement ? 'Déplacement et annulation client' : 'À partir de l’offre Essentielle'}</small></span></article>
+            <article className={planHasFeature(organization.plan, 'commercial_branding') ? 'enabled' : 'locked'}><Icon name={planHasFeature(organization.plan, 'commercial_branding') ? 'check' : 'lock'} size={18} /><span><strong>Personnalisation complète</strong><small>{planHasFeature(organization.plan, 'commercial_branding') ? 'Logo, bannière et couleurs' : 'À partir de l’offre Professionnelle'}</small></span></article>
+          </div>
+          <div className="plan-usage-line"><span>Accès utilisateurs inclus</span><strong>{currentPlan.memberLimit}</strong></div>
+        </section>
+
         <form className="panel settings-form" onSubmit={submitBranding}>
           <div>
             <p className="eyebrow">IDENTITÉ</p>
@@ -181,7 +204,7 @@ export function SettingsPage() {
           </label>
           <div className="settings-summary">
             <span>Type d’activité</span><strong>{organization.business_type}</strong>
-            <span>Formule</span><strong>{organization.plan}</strong>
+            <span>Formule</span><strong>{planLabel(organization.plan)}</strong>
             <span>Identifiant</span><code>{organization.slug}</code>
           </div>
           {canManage && <button className="primary-button" disabled={savingBranding}>{savingBranding ? 'Enregistrement…' : 'Enregistrer l’identité'}</button>}
@@ -258,7 +281,7 @@ export function SettingsPage() {
               </label>
               <label>
                 Annulation en ligne jusqu’à
-                <select value={cancelNoticeHours} onChange={(event) => setCancelNoticeHours(Number(event.target.value))} disabled={!canManage}>
+                <select value={cancelNoticeHours} onChange={(event) => setCancelNoticeHours(Number(event.target.value))} disabled={!canManage || !hasOnlineBookingManagement}>
                   <option value={0}>Jusqu’au rendez-vous</option>
                   <option value={2}>2 heures avant</option>
                   <option value={6}>6 heures avant</option>
@@ -266,6 +289,7 @@ export function SettingsPage() {
                   <option value={24}>24 heures avant</option>
                   <option value={48}>48 heures avant</option>
                 </select>
+                {!hasOnlineBookingManagement && <small className="feature-lock-copy">Disponible à partir de l’offre Essentielle.</small>}
               </label>
               <label className="full-field">
                 Message d’accueil facultatif
@@ -329,7 +353,7 @@ export function SettingsPage() {
               </label>
               <label>
                 Rappel automatique
-                <select value={reminderHours} onChange={(event) => setReminderHours(Number(event.target.value))} disabled={!canManage}>
+                <select value={hasAutomaticReminders ? reminderHours : 0} onChange={(event) => setReminderHours(Number(event.target.value))} disabled={!canManage || !hasAutomaticReminders}>
                   <option value={0}>Aucun rappel</option>
                   <option value={2}>2 heures avant</option>
                   <option value={6}>6 heures avant</option>
@@ -338,11 +362,13 @@ export function SettingsPage() {
                   <option value={48}>48 heures avant</option>
                   <option value={72}>72 heures avant</option>
                 </select>
+                {!hasAutomaticReminders && <small className="feature-lock-copy">Disponible à partir de l’offre Essentielle.</small>}
               </label>
             </div>
 
             <div className="info-message booking-email-note">
-              Les e-mails sont envoyés depuis NCR Suite au nom de l’établissement. L’adresse de contact reste visible pour permettre au client de répondre directement.
+              Les confirmations sont incluses. {hasAutomaticReminders ? 'Les rappels automatiques sont actifs sur votre formule.' : 'Les rappels automatiques sont réservés à l’offre Essentielle et aux offres supérieures.'}
+              {hasCalendarLinks ? ' Les liens Apple, Google et Outlook sont également disponibles.' : ''}
             </div>
 
             {canManage && <button className="primary-button" disabled={savingEmail}>{savingEmail ? 'Enregistrement…' : 'Enregistrer les e-mails automatiques'}</button>}

@@ -106,3 +106,8 @@ select public.bootstrap_platform_admin(
 L’espace central devient accessible à l’adresse `/administration-ncr`. Le rôle `support` peut consulter, tandis que `super_admin` peut modifier les formules et suspendre les espaces.
 
 La V2.0 prépare les identifiants d’un prestataire de paiement, mais ne prélève aucun client automatiquement. Les abonnements restent administrés manuellement jusqu’à la connexion d’un prestataire comme Stripe.
+
+
+## Migration V2.1
+
+Après les migrations 001 à 010, exécuter `supabase/migrations/011_plan_entitlements_mobile.sql` avant de déployer la V2.1. Cette migration applique réellement les limites de formule et sécurise les fonctions publiques côté Supabase.

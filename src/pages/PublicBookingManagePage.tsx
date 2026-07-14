@@ -32,6 +32,8 @@ interface ManagedBooking {
   client_email: string | null;
   client_phone: string | null;
   can_cancel: boolean;
+  online_management_enabled: boolean;
+  calendar_links_enabled: boolean;
   contact_email: string | null;
   contact_phone: string | null;
   cancellation_policy: string | null;
@@ -185,8 +187,8 @@ export function PublicBookingManagePage() {
   }
 
   const style = { '--accent': booking.primary_color } as CSSProperties;
-  const canManage = booking.can_cancel && ['pending', 'confirmed'].includes(booking.status);
-  const canAddToCalendar = booking.status === 'confirmed';
+  const canManage = booking.online_management_enabled && booking.can_cancel && ['pending', 'confirmed'].includes(booking.status);
+  const canAddToCalendar = booking.calendar_links_enabled && booking.status === 'confirmed';
   const calendarEvent = {
     title: `${booking.service_name} — ${booking.organization_name}`,
     description: `Rendez-vous avec ${booking.staff_name}. Référence ${booking.appointment_id.slice(0, 8).toUpperCase()}.`,
@@ -224,7 +226,7 @@ export function PublicBookingManagePage() {
           </div>
           <div className="public-manage-contact">
             <div><span>Coordonnées de réservation</span><strong>{booking.client_email || booking.client_phone || 'Non renseigné'}</strong></div>
-            <div><span>Modification en ligne</span><strong>{canManage ? `Jusqu’à ${booking.cancel_notice_hours} h avant` : 'Indisponible'}</strong></div>
+            <div><span>Modification en ligne</span><strong>{booking.online_management_enabled ? (canManage ? `Jusqu’à ${booking.cancel_notice_hours} h avant` : 'Indisponible') : 'Non incluse dans la formule'}</strong></div>
           </div>
 
           {canAddToCalendar && (
@@ -249,7 +251,7 @@ export function PublicBookingManagePage() {
           )}
 
           {!canManage && booking.status !== 'cancelled' && (
-            <div className="info-message public-manage-note">Le délai de modification en ligne est dépassé. Contactez directement l’établissement pour toute demande.</div>
+            <div className="info-message public-manage-note">{booking.online_management_enabled ? 'Le délai de modification en ligne est dépassé. Contactez directement l’établissement pour toute demande.' : 'La modification et l’annulation en ligne ne sont pas activées par la formule de cet établissement. Contactez-le directement pour toute demande.'}</div>
           )}
         </section>
 

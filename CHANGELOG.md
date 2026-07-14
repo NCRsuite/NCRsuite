@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.1.0 — Formules automatiques & correctif iPhone
+
+- Correction du zoom automatique d’iOS Safari sur les champs de connexion et de formulaire.
+- Fermeture du clavier et remise à zéro du défilement avant la redirection après connexion.
+- Le zoom manuel de l’utilisateur reste disponible pour préserver l’accessibilité.
+- Nouveau catalogue central des fonctions incluses dans chaque formule.
+- Rappels automatiques réellement bloqués en Découverte, côté interface et Supabase.
+- Modification et annulation en ligne réellement réservées à Essentielle et aux offres supérieures.
+- Liens Apple, Google Agenda et Outlook réservés à Essentielle et aux offres supérieures.
+- Écran Paramètres enrichi avec la formule, les accès inclus et les fonctions verrouillées.
+- Une baisse de formule neutralise automatiquement les fonctions qui ne sont plus incluses.
+- Cache PWA mis à jour.
+
 ## 2.0.2 — Compte administrateur dédié & navigation mobile
 
 - Redirection automatique du compte Super-administrateur et Support vers `/administration-ncr` dès la connexion.

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
+import { planLabel } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { Icon } from './Icon';
@@ -85,7 +86,7 @@ export function AppShell() {
           <select id="organization" value={organization.id} onChange={(event) => changeOrganization(event.target.value)}>
             {organizations.map((org) => <option key={org.id} value={org.id}>{org.name}</option>)}
           </select>
-          <small>{pack.label} · {organization.plan} · {organization.role ?? 'viewer'}</small>
+          <small>{pack.label} · {planLabel(organization.plan)} · {organization.role ?? 'viewer'}</small>
         </div>
 
         <nav className="main-nav" aria-label="Navigation principale">
@@ -197,7 +198,7 @@ export function AppShell() {
               </span>
               <span>
                 <strong>{organization.name}</strong>
-                <small>{organizations.length > 1 ? 'Changer d’entreprise' : `${pack.label} · ${organization.plan}`}</small>
+                <small>{organizations.length > 1 ? 'Changer d’entreprise' : `${pack.label} · ${planLabel(organization.plan)}`}</small>
               </span>
               <Icon name="chevronRight" size={18} />
             </button>

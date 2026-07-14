@@ -19,13 +19,21 @@ export function LoginPage() {
   }
   if (user) return <Navigate to={isAdmin ? '/administration-ncr' : '/'} replace />;
 
+  function releaseMobileKeyboard() {
+    const activeElement = document.activeElement;
+    if (activeElement instanceof HTMLElement) activeElement.blur();
+    window.setTimeout(() => window.scrollTo({ top: 0, left: 0, behavior: 'auto' }), 0);
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
+    releaseMobileKeyboard();
     setError('');
     setPending(true);
     try {
       if (mode === 'login') await signIn(email, password);
       else await signUp(email, password, fullName);
+      releaseMobileKeyboard();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Une erreur est survenue.');
     } finally {
@@ -57,8 +65,8 @@ export function LoginPage() {
               {mode === 'signup' && (
                 <label>Nom complet<input value={fullName} onChange={(e) => setFullName(e.target.value)} required /></label>
               )}
-              <label>Adresse e-mail<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
-              <label>Mot de passe<input type="password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
+              <label>Adresse e-mail<input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
+              <label>Mot de passe<input type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
               {error && <div className="error-message">{error}</div>}
               <button className="primary-button full" disabled={pending}>{pending ? 'Veuillez patienter…' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}</button>
             </form>
