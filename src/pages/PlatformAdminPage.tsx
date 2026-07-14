@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { BillingAdminPanel } from '../components/BillingAdminPanel';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
@@ -27,7 +28,7 @@ interface AdminOrganization {
   trial_ends_at: string | null;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
-  provider: 'manual' | 'stripe';
+  provider: 'manual' | 'qonto' | 'stripe';
   internal_notes: string | null;
   owner_email: string | null;
   active_members: number;
@@ -366,7 +367,7 @@ export function PlatformAdminPage() {
                 <div className="admin-current-status">
                   <span className={`admin-status-pill ${statusClass(editOrganizationStatus)}`}>{organizationStatusLabels[editOrganizationStatus]}</span>
                   <span className={`admin-status-pill ${statusClass(editSubscriptionStatus)}`}>{subscriptionStatusLabels[editSubscriptionStatus]}</span>
-                  <span>{selected.provider === 'stripe' ? 'Paiement automatisé' : 'Gestion manuelle'}</span>
+                  <span>{selected.provider === 'qonto' ? 'Paiement Qonto' : selected.provider === 'stripe' ? 'Paiement Stripe' : 'Gestion manuelle'}</span>
                 </div>
 
                 {canManage && <button className="primary-button full" type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer la formule et l’accès'}</button>}
@@ -375,10 +376,7 @@ export function PlatformAdminPage() {
           </aside>
         </section>
 
-        <section className="panel admin-payment-note">
-          <span><Icon name="creditCard" size={24} /></span>
-          <div><p className="eyebrow">PAIEMENT RÉCURRENT</p><h2>Architecture prête, encaissement non connecté</h2><p>La V2.0 gère les formules, tarifs, essais et suspensions manuellement. Les champs Stripe sont déjà prévus en base, mais aucun paiement ne sera prélevé tant que le prestataire de paiement n’est pas connecté.</p></div>
-        </section>
+        <BillingAdminPanel canManage={canManage} onChanged={() => void loadAll(true)} />
       </main>
     </div>
   );

@@ -297,6 +297,11 @@ export function AppShell() {
                   <Icon name="chevronRight" size={17} />
                 </NavLink>
               )}
+              <NavLink to="/abonnement" className="mobile-account-action" onClick={() => setMobileAccountOpen(false)}>
+                <Icon name="creditCard" size={20} />
+                <span>Mon abonnement</span>
+                <Icon name="chevronRight" size={17} />
+              </NavLink>
               <NavLink to="/parametres" className="mobile-account-action" onClick={() => setMobileAccountOpen(false)}>
                 <Icon name="settings" size={20} />
                 <span>Paramètres de l’entreprise</span>

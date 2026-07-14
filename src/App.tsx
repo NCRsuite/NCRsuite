@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { useAuth } from './contexts/AuthContext';
 import { useOrganization } from './contexts/OrganizationContext';
@@ -19,6 +19,7 @@ import { InvitationPage } from './pages/InvitationPage';
 import { CommercialBrandingPage } from './pages/CommercialBrandingPage';
 import { PlatformAdminPage } from './pages/PlatformAdminPage';
 import { OrganizationAccessPage } from './pages/OrganizationAccessPage';
+import { SubscriptionPage } from './pages/SubscriptionPage';
 
 function LoadingScreen() {
   return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Chargement de NCR Suite…</span></div>;
@@ -28,6 +29,7 @@ function ProtectedArea() {
   const { user, loading: authLoading } = useAuth();
   const { organization, loading: organizationLoading } = useOrganization();
   const { isAdmin, loading: adminLoading } = usePlatformAdmin();
+  const location = useLocation();
 
   if (authLoading || adminLoading || organizationLoading) return <LoadingScreen />;
   if (!user) return <Navigate to="/connexion" replace />;
@@ -36,7 +38,8 @@ function ProtectedArea() {
   if (isAdmin) return <Navigate to="/administration-ncr" replace />;
 
   if (!organization) return <Navigate to="/configuration" replace />;
-  if (['suspended', 'closed'].includes(organization.status)) return <OrganizationAccessPage />;
+  if (organization.status === 'closed') return <OrganizationAccessPage />;
+  if (organization.status === 'suspended' && location.pathname !== '/abonnement') return <OrganizationAccessPage />;
   return <AppShell />;
 }
 
@@ -77,6 +80,7 @@ export default function App() {
         <Route path="equipe" element={<StaffPage />} />
         <Route path="acces-equipe" element={<TeamAccessPage />} />
         <Route path="personnalisation" element={<CommercialBrandingPage />} />
+        <Route path="abonnement" element={<SubscriptionPage />} />
         <Route path="parametres" element={<SettingsPage />} />
         <Route path="*" element={<ModulePage />} />
       </Route>

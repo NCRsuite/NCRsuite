@@ -1,6 +1,25 @@
-# NCR Suite — V2.0.2
+# NCR Suite — V2.2.0
 
 NCR Suite est une plateforme multi-entreprises indépendante de NCR Academy. Chaque entreprise dispose de son espace, de ses données isolées et des modules correspondant à son activité.
+
+
+## V2.2 — Abonnements Qonto
+
+- Page **Mon abonnement** dans chaque espace entreprise.
+- Comparatif dynamique des formules et compteurs d’utilisation.
+- Liens de paiement récurrents Qonto configurables depuis Administration NCR.
+- Validation manuelle du paiement avant l’activation de la formule.
+- Période d’essai configurable et expiration automatique.
+- Conditions d’abonnement versionnées et historique complet.
+- Modèle de données indépendant du prestataire pour préparer Stripe plus tard.
+
+Après les migrations 001 à 011, exécuter :
+
+```text
+supabase/migrations/012_qonto_billing_portal.sql
+```
+
+La procédure détaillée est disponible dans `docs/QONTO_BILLING_SETUP.md`.
 
 
 ## V2.0.2 — Accès administrateur et mobile
@@ -105,7 +124,7 @@ select public.bootstrap_platform_admin(
 
 L’espace central devient accessible à l’adresse `/administration-ncr`. Le rôle `support` peut consulter, tandis que `super_admin` peut modifier les formules et suspendre les espaces.
 
-La V2.0 prépare les identifiants d’un prestataire de paiement, mais ne prélève aucun client automatiquement. Les abonnements restent administrés manuellement jusqu’à la connexion d’un prestataire comme Stripe.
+La V2.2 utilise Qonto avec validation manuelle sécurisée. Les champs génériques permettent d’ajouter Stripe plus tard sans reconstruire le portail d’abonnement.
 
 
 ## Migration V2.1

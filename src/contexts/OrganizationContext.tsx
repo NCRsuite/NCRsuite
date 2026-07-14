@@ -171,16 +171,14 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       });
       if (error) throw error;
 
-      const org: Organization = {
-        id: data,
-        name,
-        slug,
-        business_type: businessType,
-        plan,
-        status: 'active',
-        primary_color: primaryColor,
-        role: 'owner'
-      };
+      const { data: created, error: createdError } = await supabase
+        .from('organizations')
+        .select('id,name,slug,business_type,plan,status,created_at,primary_color,logo_url,timezone,booking_enabled,booking_confirmation_mode,booking_slot_interval,booking_min_notice_hours,booking_max_days_ahead,booking_cancel_notice_hours,booking_welcome_text,email_notifications_enabled,booking_contact_email,booking_contact_phone,booking_reminder_hours,booking_cancellation_policy,booking_privacy_notice,public_name,booking_tagline,booking_banner_url,booking_address,booking_hours_text,booking_practical_info,show_ncr_branding')
+        .eq('id', data)
+        .single();
+      if (createdError) throw createdError;
+
+      const org: Organization = { ...(created as Organization), role: 'owner' };
       setOrganizations((current) => [...current, org]);
       setSelectedId(org.id);
     },

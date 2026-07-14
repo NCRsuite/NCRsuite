@@ -17,6 +17,7 @@ export interface BusinessPack {
   quickActions: { label: string; path: string; icon: IconName }[];
 }
 
+const subscription: NavigationItem = { label: 'Mon abonnement', path: '/abonnement', icon: 'creditCard' };
 const settings: NavigationItem = { label: 'Paramètres', path: '/parametres', icon: 'settings' };
 
 export const businessPacks: Record<BusinessType, BusinessPack> = {
@@ -34,6 +35,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Prestations', path: '/prestations', icon: 'sparkles' },
       { label: 'Fidélité', path: '/fidelite', icon: 'chart' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
+      subscription,
       settings
     ],
     metrics: [
@@ -61,6 +63,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Interventions', path: '/interventions', icon: 'clipboard' },
       { label: 'Rapports', path: '/rapports', icon: 'file' },
       { label: 'Anomalies', path: '/anomalies', icon: 'alert' },
+      subscription,
       settings
     ],
     metrics: [
@@ -89,6 +92,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Rondes', path: '/rondes', icon: 'shield' },
       { label: 'Alertes', path: '/alertes', icon: 'alert', badge: '2' },
       { label: 'Documents', path: '/documents', icon: 'file' },
+      subscription,
       settings
     ],
     metrics: [
@@ -115,6 +119,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Documents', path: '/documents', icon: 'file' },
       { label: 'Émargements', path: '/emargements', icon: 'signature' },
       { label: 'Attestations', path: '/attestations', icon: 'graduation' },
+      subscription,
       settings
     ],
     metrics: [
@@ -141,6 +146,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Planning', path: '/planning', icon: 'calendar' },
       { label: 'Documents', path: '/documents', icon: 'file' },
       { label: 'Rapports', path: '/rapports', icon: 'clipboard' },
+      subscription,
       settings
     ],
     metrics: [

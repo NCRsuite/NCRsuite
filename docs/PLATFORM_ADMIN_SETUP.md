@@ -1,34 +1,36 @@
-# NCR Suite V2.0.2 — Administration centrale
+# NCR Suite V2.2 — Administration centrale et facturation
 
-## 1. Migration
+## Migrations
 
-Exécuter `010_platform_admin_subscriptions.sql` après la migration 009. La V2.0.2 ne nécessite pas de migration supplémentaire.
+Après les migrations 001 à 011, exécuter :
 
-## 2. Autoriser le compte NCR
-
-Le compte doit déjà exister dans Authentication > Users. Depuis le SQL Editor :
-
-```sql
-select public.bootstrap_platform_admin('adresse@ncr.fr', 'super_admin');
+```text
+012_qonto_billing_portal.sql
 ```
 
-Ne jamais exposer cette commande dans l’interface client. La fonction n’est pas exécutable par un utilisateur authentifié ordinaire.
+## Autoriser le compte NCR
 
-## 3. Connexion et redirection
+Depuis le SQL Editor :
 
-La page de connexion est unique. NCR Suite détecte automatiquement le rôle :
+```sql
+select public.bootstrap_platform_admin(
+  'TON_ADRESSE_DE_CONNEXION_NCR',
+  'super_admin'
+);
+```
 
-- `super_admin` : redirection vers `/administration-ncr`, avec lecture et modification ;
-- `support` : redirection vers `/administration-ncr`, en lecture seule ;
-- utilisateur d’entreprise : ouverture de son espace métier ;
-- collaborateur : accès limité aux rubriques autorisées.
+Le rôle `support` reste en lecture seule. Le rôle `super_admin` peut gérer les formules, les accès, les liens Qonto et les demandes d’abonnement.
 
-Un compte plateforme ne peut pas ouvrir le tableau de bord, les clients, les prestations ou les rendez-vous d’une entreprise depuis l’interface standard.
+## V2.2
 
-## 4. Suspension
+L’administration permet désormais :
 
-Le statut `suspended` bloque les données métier côté Supabase. Le membre conserve uniquement l’identité de l’entreprise afin d’afficher un écran d’information et de changer vers un autre espace actif.
+- de configurer un lien de paiement récurrent par formule ;
+- de régler la période d’essai des nouvelles entreprises ;
+- de modifier les conditions d’abonnement et de résiliation ;
+- de consulter les demandes de changement ;
+- de confirmer manuellement un paiement Qonto ;
+- d’activer ou de refuser une formule ;
+- de conserver un historique des changements.
 
-## 5. Paiement
-
-Les colonnes Stripe sont prévues, mais la V2.0.2 ne réalise aucun prélèvement. Le MRR est une estimation basée sur les abonnements marqués `active`.
+Stripe reste prévu dans le modèle de données, mais il n’est pas actif dans la V2.2.

@@ -60,6 +60,7 @@ export function OnboardingPage() {
         </fieldset>
 
         <label className="color-field">Couleur d’accent de l’espace<div><input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} /><span>{primaryColor}</span></div></label>
+        <div className="info-message">Après la création, la période d’essai configurée par NCR Suite démarre automatiquement. Tu pourras ensuite choisir ta formule depuis « Mon abonnement ».</div>
         {error && <div className="error-message">{error}</div>}
         <button className="primary-button" disabled={pending}>{pending ? 'Création…' : 'Créer mon espace'}</button>
       </form>
