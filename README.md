@@ -1,4 +1,11 @@
-# NCR Suite — V2.4.9
+# NCR Suite — V2.4.10
+
+## V2.4.10 — Administration des offres Formation
+
+Cette correction aligne le compte super administrateur sur le catalogue Formation déjà appliqué dans l’espace client. Lorsqu’une entreprise Formation est sélectionnée, la modification de formule utilise désormais les tarifs, limites et descriptions Formation au lieu de la grille générique Coiffure.
+
+Aucun SQL n’est nécessaire. Le patch s’installe directement sur GitHub après la V2.4.9.
+
 
 ## V2.4.9 — Offres Formation et dossier complet
 

@@ -5,6 +5,7 @@ import { MetierAdminPanel } from '../components/MetierAdminPanel';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
+import { getDomainPlans } from '../config/domainPlans';
 import { supabase } from '../lib/supabase';
 import type { BusinessType, OrganizationStatus, Plan, SubscriptionStatus } from '../types';
 
@@ -50,12 +51,32 @@ const emptyMetrics: AdminMetrics = {
   trials_ending_soon: 0
 };
 
-const plans: Array<{ value: Plan; label: string; defaultPrice: number }> = [
-  { value: 'decouverte', label: 'Découverte', defaultPrice: 990 },
-  { value: 'essentielle', label: 'Essentielle', defaultPrice: 1990 },
-  { value: 'professionnelle', label: 'Professionnelle', defaultPrice: 3990 },
-  { value: 'metier', label: 'Métier', defaultPrice: 6990 }
-];
+const planValues: Plan[] = ['decouverte', 'essentielle', 'professionnelle', 'metier'];
+
+const planLabels: Record<Plan, string> = {
+  decouverte: 'Découverte',
+  essentielle: 'Essentielle',
+  professionnelle: 'Professionnelle',
+  metier: 'Métier'
+};
+
+const trainingPlanAdminSummary: Record<Plan, string> = {
+  decouverte: 'Socle Formation, documents de session, feuille d’émargement vierge et attestations automatiques.',
+  essentielle: 'Ajoute l’émargement numérique avec signatures, le PDF d’émargement et la personnalisation des documents et e-mails.',
+  professionnelle: 'Ajoute les évaluations, le dossier complet, le multi-site et les accès employés avec rôles.',
+  metier: 'Configuration sur mesure : modules, limites, rôles, sites, identité et domaine selon le contrat.'
+};
+
+function adminPlansFor(businessType: BusinessType) {
+  const definitions = getDomainPlans(businessType);
+  return planValues.map((value) => ({
+    value,
+    label: definitions[value].label,
+    defaultPrice: definitions[value].monthlyPriceCents,
+    memberLimit: definitions[value].memberLimit,
+    detail: definitions[value].detail
+  }));
+}
 
 const organizationStatusLabels: Record<OrganizationStatus, string> = {
   trial: 'Essai',
@@ -115,7 +136,7 @@ export function PlatformAdminPage() {
   const [editPlan, setEditPlan] = useState<Plan>('decouverte');
   const [editOrganizationStatus, setEditOrganizationStatus] = useState<OrganizationStatus>('active');
   const [editSubscriptionStatus, setEditSubscriptionStatus] = useState<SubscriptionStatus>('active');
-  const [editPrice, setEditPrice] = useState('9.90');
+  const [editPrice, setEditPrice] = useState('0.00');
   const [editTrialEnd, setEditTrialEnd] = useState('');
   const [editPeriodEnd, setEditPeriodEnd] = useState('');
   const [editCancelAtPeriodEnd, setEditCancelAtPeriodEnd] = useState(false);
@@ -182,11 +203,12 @@ export function PlatformAdminPage() {
     return () => window.clearTimeout(timer);
   }, [search, planFilter, statusFilter]);
 
-  const selectedPlan = useMemo(() => plans.find((plan) => plan.value === editPlan), [editPlan]);
+  const selectedPlans = useMemo(() => adminPlansFor(selected?.business_type ?? 'coiffure'), [selected?.business_type]);
+  const selectedPlan = useMemo(() => selectedPlans.find((plan) => plan.value === editPlan), [selectedPlans, editPlan]);
 
   function changePlan(value: Plan) {
     setEditPlan(value);
-    const defaultPrice = plans.find((plan) => plan.value === value)?.defaultPrice ?? 0;
+    const defaultPrice = selectedPlans.find((plan) => plan.value === value)?.defaultPrice ?? 0;
     setEditPrice((defaultPrice / 100).toFixed(2));
   }
 
@@ -303,7 +325,7 @@ export function PlatformAdminPage() {
               <label className="admin-search-field"><Icon name="search" size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nom, identifiant ou e-mail…" /></label>
               <select value={planFilter} onChange={(event) => setPlanFilter(event.target.value)} aria-label="Filtrer par formule">
                 <option value="">Toutes les formules</option>
-                {plans.map((plan) => <option key={plan.value} value={plan.value}>{plan.label}</option>)}
+                {planValues.map((plan) => <option key={plan} value={plan}>{planLabels[plan]}</option>)}
               </select>
               <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} aria-label="Filtrer par statut">
                 <option value="">Tous les statuts</option>
@@ -322,7 +344,7 @@ export function PlatformAdminPage() {
                   <span className="admin-company-avatar">{org.name.slice(0, 1).toUpperCase()}</span>
                   <span className="admin-company-main"><strong>{org.name}</strong><small>{org.owner_email || org.slug} · {org.business_type}</small></span>
                   <span className="admin-company-stats"><small>{org.active_members} utilisateur(s)</small><small>{org.clients_count} client(s)</small></span>
-                  <span className="admin-company-plan">{plans.find((plan) => plan.value === org.plan)?.label}<small>{money(org.monthly_price_cents)}/mois</small></span>
+                  <span className="admin-company-plan">{planLabels[org.plan]}<small>{money(org.monthly_price_cents)}/mois</small></span>
                   <span className={`admin-status-pill ${statusClass(org.organization_status)}`}>{organizationStatusLabels[org.organization_status]}</span>
                   <Icon name="chevronRight" size={18} />
                 </button>
@@ -356,15 +378,22 @@ export function PlatformAdminPage() {
                   <label>
                     Formule
                     <select value={editPlan} onChange={(event) => changePlan(event.target.value as Plan)} disabled={!canManage}>
-                      {plans.map((plan) => <option key={plan.value} value={plan.value}>{plan.label}</option>)}
+                      {selectedPlans.map((plan) => <option key={plan.value} value={plan.value}>{plan.label}</option>)}
                     </select>
-                    <small>Limite prévue : {selectedPlan?.value === 'decouverte' ? 1 : selectedPlan?.value === 'essentielle' ? 3 : selectedPlan?.value === 'professionnelle' ? 10 : 100} accès.</small>
+                    <small>Limite prévue : {selectedPlan?.memberLimit ?? 1} accès · tarif catalogue {money(selectedPlan?.defaultPrice ?? 0)} HT/mois.</small>
                   </label>
                   <label>
                     Tarif mensuel HT
                     <div className="admin-price-input"><input inputMode="decimal" value={editPrice} onChange={(event) => setEditPrice(event.target.value)} disabled={!canManage} /><span>€</span></div>
                     <small>Modifiable pour les offres Métier ou les accords spécifiques.</small>
                   </label>
+                  {selected.business_type === 'formation' && (
+                    <div className="info-message full-field">
+                      <strong>{selectedPlan?.label} — offre Formation</strong>
+                      <span>{trainingPlanAdminSummary[editPlan]}</span>
+                      <small>{selectedPlan?.detail}</small>
+                    </div>
+                  )}
                   <label>
                     Accès de l’entreprise
                     <select value={editOrganizationStatus} onChange={(event) => setEditOrganizationStatus(event.target.value as OrganizationStatus)} disabled={!canManage}>

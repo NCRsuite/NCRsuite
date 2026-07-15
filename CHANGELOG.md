@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.4.10 — Offres Formation dans l’administration NCR
+
+- Correction de la grille tarifaire utilisée par le super administrateur lors de la modification d’un espace Formation existant.
+- Tarifs Formation correctement proposés : 39,90 €, 69,90 €, 99,90 € et 149,90 € HT/mois.
+- Limites d’accès affichées depuis le catalogue du domaine sélectionné au lieu de valeurs génériques codées en dur.
+- Présentation claire des droits propres à chaque formule Formation directement dans l’éditeur d’abonnement administrateur.
+- Conservation des tarifs Coiffure et des autres domaines sans modification.
+- Aucun changement Supabase, Brevo, Qonto ou NCR Academy requis.
+- Cache PWA et version applicative passés en V2.4.10.
+
 ## 2.4.9 — Droits des offres Formation
 
 - Matrice Formation appliquée à Découverte, Essentielle, Professionnelle et Métier.
