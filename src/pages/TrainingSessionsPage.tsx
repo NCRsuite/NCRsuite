@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { organizationHasFeature } from '../config/planEntitlements';
@@ -90,13 +90,18 @@ export function TrainingSessionsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [sessionView, setSessionView] = useState<SessionView>('current');
+  const initialRequestedView = searchParams.get('view');
+  const [sessionView, setSessionView] = useState<SessionView>(['planned', 'current', 'closed', 'canceled'].includes(initialRequestedView ?? '') ? initialRequestedView as SessionView : 'current');
   const [dossierBusyId, setDossierBusyId] = useState('');
   const [closureBusyId, setClosureBusyId] = useState('');
   const [closureSession, setClosureSession] = useState<TrainingSessionRecord | null>(null);
   const [closureCheck, setClosureCheck] = useState<SessionClosureCheck | null>(null);
   const [closureNotes, setClosureNotes] = useState('');
+  const handledFocusRef = useRef('');
   const formOpen = searchParams.get('new') === '1';
+  const requestedViewParam = searchParams.get('view');
+  const focusSessionId = searchParams.get('focus');
+  const closeFocusedSession = searchParams.get('close') === '1';
 
   useEffect(() => {
     setForm((current) => ({ ...current, siteId: current.siteId || activeSiteId || sites[0]?.id || '' }));
@@ -164,6 +169,23 @@ export function TrainingSessionsPage() {
   }
 
   useEffect(() => { void loadData(); }, [organization?.id, activeSiteId, demoMode]);
+
+  useEffect(() => {
+    if (requestedViewParam && ['planned', 'current', 'closed', 'canceled'].includes(requestedViewParam)) {
+      setSessionView(requestedViewParam as SessionView);
+    }
+
+    if (!focusSessionId || sessions.length === 0) return;
+    const focusedSession = sessions.find((session) => session.id === focusSessionId);
+    if (!focusedSession) return;
+    setSessionView(sessionViewFor(focusedSession));
+    window.setTimeout(() => document.getElementById(`training-session-${focusSessionId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+
+    if (closeFocusedSession && focusedSession.status !== 'completed' && handledFocusRef.current !== `close-${focusSessionId}`) {
+      handledFocusRef.current = `close-${focusSessionId}`;
+      void prepareClosure(focusedSession);
+    }
+  }, [sessions, requestedViewParam, focusSessionId, closeFocusedSession]);
 
   const sessionGroups = useMemo(() => ({
     planned: sessions.filter((session) => sessionViewFor(session) === 'planned'),
@@ -500,7 +522,7 @@ export function TrainingSessionsPage() {
               const isClosed = session.status === 'completed';
               const canReopen = ['owner', 'admin'].includes(organization.role ?? 'viewer');
               return (
-                <article key={session.id} className={`training-session-card${isClosed ? ' closed' : ''}`}>
+                <article id={`training-session-${session.id}`} key={session.id} className={`training-session-card${isClosed ? ' closed' : ''}${focusSessionId === session.id ? ' focused' : ''}`}>
                   <div className="training-session-date"><strong>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit' }).format(new Date(session.starts_at))}</strong><span>{new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(new Date(session.starts_at))}</span></div>
                   <div className="training-session-main">
                     <div><strong>{session.title}</strong><span>{program?.title || 'Formation'} · {modalityLabels[session.modality]}</span></div>

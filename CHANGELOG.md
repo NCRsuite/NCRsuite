@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2.4.12 — Pilotage & contrôle qualité Formation
+
+- Nouveau tableau de bord Formation centré sur les actions à traiter.
+- Classement immédiat des sessions planifiées, en cours, prêtes à clôturer et clôturées.
+- Détection des formateurs non affectés, sessions sans stagiaires, convocations incomplètes, émargements manquants, attestations absentes et questionnaires non envoyés.
+- Accès direct depuis chaque alerte vers la session, les émargements, les documents ou les évaluations concernés.
+- Mise en évidence automatique de la session ciblée et ouverture directe du contrôle de clôture.
+- Indicateurs réels : stagiaires formés, taux de présence, couverture documentaire, note moyenne et taux de réponse.
+- Périodes d’analyse de 30 jours, 90 jours et 12 mois.
+- Graphique des sessions clôturées et stagiaires formés sur six mois.
+- Export du plan de pilotage en PDF multipage et CSV compatible Excel.
+- Adaptation automatique aux droits des offres : émargement numérique et satisfaction uniquement lorsqu’ils sont autorisés.
+- Aucun SQL, aucune nouvelle dépendance et aucun changement de Brevo, Qonto, Coiffure ou NCR Academy.
+- Cache PWA et version applicative passés en V2.4.12.
+
 ## 2.4.11 — Organisation multi-domaines et clôture des sessions
 
 - Classement des entreprises par domaine dans le compte super administrateur, avec filtre et regroupement Coiffure, Formation, Sécurité, Nettoyage et Artisan.

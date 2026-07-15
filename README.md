@@ -1,4 +1,19 @@
-# NCR Suite — V2.4.11
+# NCR Suite — V2.4.12
+
+## V2.4.12 — Pilotage & contrôle qualité Formation
+
+Cette version transforme le tableau de bord Formation en centre de pilotage opérationnel :
+
+- sessions planifiées, en cours, prêtes à clôturer et clôturées ;
+- alertes sur les formateurs, inscriptions, convocations, émargements, attestations et évaluations ;
+- accès direct à la session ou au document concerné ;
+- indicateurs de présence, complétude documentaire, satisfaction et stagiaires formés ;
+- graphique d’activité sur six mois ;
+- filtres sur 30 jours, 90 jours ou 12 mois ;
+- export du rapport qualité en PDF et CSV ;
+- ouverture automatique de la bonne rubrique et mise en évidence de la session ciblée.
+
+Aucun SQL n’est nécessaire. Envoyer le patch sur GitHub après la V2.4.11, attendre Cloudflare puis rouvrir la PWA.
 
 ## V2.4.11 — Organisation multi-domaines et clôture Formation
 

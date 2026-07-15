@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -34,12 +35,13 @@ function responseAverage(item: TrainingSatisfactionRecord) {
 
 export function TrainingEvaluationsPage() {
   const { organization, activeSiteId, refreshOrganizations } = useOrganization();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { demoMode } = useAuth();
   const [sessions, setSessions] = useState<TrainingSessionRecord[]>([]);
   const [trainees, setTrainees] = useState<TrainingTraineeRecord[]>([]);
   const [surveys, setSurveys] = useState<TrainingSatisfactionRecord[]>([]);
   const [summary, setSummary] = useState<TrainingSatisfactionSummary>(EMPTY_SUMMARY);
-  const [sessionId, setSessionId] = useState('');
+  const [sessionId, setSessionId] = useState(() => searchParams.get('session') ?? '');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [queueing, setQueueing] = useState(false);
@@ -170,7 +172,7 @@ export function TrainingEvaluationsPage() {
 
       <section className="panel evaluation-filter-panel">
         <div className="evaluation-filter-grid">
-          <label>Session<select value={sessionId} onChange={(event) => setSessionId(event.target.value)}><option value="">Toutes les sessions</option>{sessions.map((session) => <option key={session.id} value={session.id}>{session.title} · {formatDateTime(session.starts_at)}</option>)}</select></label>
+          <label>Session<select value={sessionId} onChange={(event) => { const value = event.target.value; setSessionId(value); setSearchParams(value ? { session: value } : {}); }}><option value="">Toutes les sessions</option>{sessions.map((session) => <option key={session.id} value={session.id}>{session.title} · {formatDateTime(session.starts_at)}</option>)}</select></label>
           <div className="evaluation-send-control"><span>Relance manuelle</span><button className="secondary-button" type="button" disabled={!canManage || !sessionId || !completedSessions.some((session) => session.id === sessionId) || queueing} onClick={queueSession}><Icon name="file" size={18} />{queueing ? 'Mise en file…' : 'Envoyer / relancer'}</button><small>Sélectionne une session terminée.</small></div>
         </div>
       </section>
