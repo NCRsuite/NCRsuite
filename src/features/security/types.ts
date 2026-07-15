@@ -66,7 +66,7 @@ export interface SecurityShiftRecord {
   recurrence_group_id?: string | null;
   duplicated_from_id?: string | null;
   created_at: string;
-  security_sites?: { name: string; hourly_rate_cents: number; color_hex?: string | null; city: string | null; security_clients?: { company_name: string } | null } | null;
+  security_sites?: { name: string; hourly_rate_cents: number; color_hex?: string | null; address?: string | null; postal_code?: string | null; city: string | null; security_clients?: { company_name: string } | null } | null;
   security_agents?: { first_name: string; last_name: string } | null;
 }
 
@@ -197,6 +197,7 @@ export interface SecurityLogbookEntryRecord {
   organization_id: string;
   site_id: string;
   agent_id: string;
+  shift_id: string | null;
   occurred_at: string;
   category: 'prise_poste' | 'fin_poste' | 'ronde' | 'anomalie' | 'incident' | 'visiteur' | 'livraison' | 'appel' | 'consigne' | 'autre';
   severity: 'info' | 'attention' | 'urgent';
@@ -206,6 +207,7 @@ export interface SecurityLogbookEntryRecord {
   created_at: string;
   security_sites?: { name: string; color_hex?: string | null } | null;
   security_agents?: { first_name: string; last_name: string } | null;
+  security_shifts?: { id: string; starts_at: string; ends_at: string; status: SecurityShiftRecord['status']; title: string | null } | null;
 }
 
 export interface SecurityPatrolPointRecord {

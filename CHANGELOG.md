@@ -1,3 +1,15 @@
+# 2.5.2 — Main courante par vacation
+
+- Correction du chargement des consignes et alertes : relation Supabase explicite entre les alertes et leur agent destinataire.
+- Chaque nouvelle entrée de main courante est obligatoirement rattachée à une mission précise.
+- Le site et l’agent sont hérités de la vacation et ne peuvent plus être choisis librement.
+- Contrôle Supabase empêchant un agent d’alimenter la mission d’un autre agent ou une mission annulée.
+- Classement des mains courantes par site, date, horaires et agent.
+- Un PDF indépendant est généré pour chaque mission avec identité du site, client, agent, horaires, synthèse et chronologie.
+- Conservation des anciennes entrées non rattachées sans permettre de nouvelles saisies hors mission.
+- Tableau de bord Sécurité corrigé pour les alertes ciblées.
+- Cache PWA mis à jour en V2.5.2.
+
 # 2.5.1 — Sécurité privée · Offre Essentielle
 
 - Ajout de 10 comptes agents connectés maximum selon la formule.

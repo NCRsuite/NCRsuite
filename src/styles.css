@@ -5187,3 +5187,121 @@ button { max-width: 100%; }
   .security-agent-actions { grid-template-columns: 1fr; }
   .security-duplicate-days { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* NCR Suite V2.5.2 - Main courante par vacation */
+.security-mission-logbook-layout {
+  display: grid;
+  grid-template-columns: minmax(290px, .75fr) minmax(0, 1.55fr);
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+}
+.security-mission-list {
+  position: sticky;
+  top: 18px;
+  max-height: calc(100vh - 120px);
+  overflow: hidden;
+}
+.security-mission-list-scroll {
+  display: grid;
+  gap: 9px;
+  max-height: calc(100vh - 235px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.security-mission-card {
+  --site-color: #2997ff;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface-subtle);
+  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.security-mission-card:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--site-color) 52%, var(--border)); }
+.security-mission-card.active {
+  border-color: var(--site-color);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--site-color) 15%, transparent);
+  background: color-mix(in srgb, var(--site-color) 7%, var(--surface));
+}
+.security-mission-select {
+  display: grid;
+  grid-template-columns: 5px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 13px 10px 13px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+.security-mission-color {
+  align-self: stretch;
+  min-height: 52px;
+  border-radius: 999px;
+  background: var(--site-color);
+}
+.security-mission-select > div { display: grid; gap: 3px; min-width: 0; }
+.security-mission-select strong,
+.security-mission-select span,
+.security-mission-select small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.security-mission-select > div > span,
+.security-mission-select small { color: var(--text-secondary); }
+.security-mission-select > div > span { font-size: 12px; }
+.security-mission-select small { font-size: 10px; }
+.security-mission-pdf {
+  display: grid;
+  place-content: center;
+  gap: 3px;
+  min-width: 58px;
+  padding: 8px;
+  border: 0;
+  border-left: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 9px;
+  font-weight: 850;
+  cursor: pointer;
+}
+.security-mission-pdf:hover { color: #1672c4; background: rgba(41,151,255,.07); }
+.security-mission-detail { display: grid; gap: 16px; min-width: 0; }
+.security-mission-summary {
+  --site-color: #2997ff;
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+.security-mission-summary-color {
+  align-self: stretch;
+  min-height: 110px;
+  border-radius: 999px;
+  background: var(--site-color);
+}
+.security-mission-summary > div:nth-child(2) { display: grid; gap: 4px; }
+.security-mission-summary h2 { margin: 0; }
+.security-mission-summary p { margin: 0; color: var(--text-secondary); }
+.security-mission-summary span,
+.security-mission-summary small { color: var(--text-secondary); }
+.security-mission-summary-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.security-legacy-logbook { margin-top: 16px; border-color: rgba(255,159,10,.35); background: rgba(255,159,10,.055); }
+.security-legacy-logbook > p { margin: 0; color: var(--text-secondary); line-height: 1.55; }
+
+@media (max-width: 980px) {
+  .security-mission-logbook-layout { grid-template-columns: 1fr; }
+  .security-mission-list { position: static; max-height: none; }
+  .security-mission-list-scroll { max-height: 410px; }
+}
+@media (max-width: 680px) {
+  .security-mission-summary { grid-template-columns: 7px minmax(0, 1fr); }
+  .security-mission-summary-actions { grid-column: 2; justify-content: stretch; }
+  .security-mission-summary-actions button { flex: 1; justify-content: center; }
+  .security-mission-select { grid-template-columns: 5px minmax(0, 1fr); }
+  .security-mission-select > .security-status-pill { grid-column: 2; justify-self: start; }
+  .security-mission-card { grid-template-columns: minmax(0, 1fr) 52px; }
+}

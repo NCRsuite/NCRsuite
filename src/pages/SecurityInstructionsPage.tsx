@@ -25,10 +25,10 @@ export function SecurityInstructionsPage() {
       supabase.from('security_sites').select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,timezone,notes,status,created_at,security_clients(company_name)').eq('organization_id', organization.id).eq('status','active').order('name'),
       supabase.from('security_agents').select('id,organization_id,first_name,last_name,employee_number,email,phone,contract_type,weekly_hours,notes,status,linked_user_id,created_at').eq('organization_id', organization.id).eq('status','active').order('last_name'),
       supabase.from('security_site_instructions').select('id,organization_id,site_id,title,content,priority,active_from,active_until,status,created_at,security_sites(name,color_hex)').eq('organization_id', organization.id).eq('status','active').order('priority').order('created_at',{ascending:false}),
-      supabase.from('security_alerts').select('id,organization_id,site_id,agent_id,title,message,severity,status,resolved_at,created_at,security_sites(name,color_hex),security_agents(first_name,last_name)').eq('organization_id', organization.id).eq('status','open').order('created_at',{ascending:false}),
+      supabase.from('security_alerts').select('id,organization_id,site_id,agent_id,title,message,severity,status,resolved_at,created_at,security_sites!security_alerts_site_fk(name,color_hex),security_agents!security_alerts_agent_fk(first_name,last_name)').eq('organization_id', organization.id).eq('status','open').order('created_at',{ascending:false}),
       supabase.from('security_alert_acknowledgements').select('alert_id').eq('organization_id', organization.id)
     ]);
-    const firstError = siteResult.error || agentResult.error || instructionResult.error || alertResult.error;
+    const firstError = siteResult.error || agentResult.error || instructionResult.error || alertResult.error || ackResult.error;
     if (firstError) setError(`Chargement impossible : ${firstError.message}`); else {
       const ack = new Set((ackResult.data ?? []).map((row) => row.alert_id));
       setSites((siteResult.data ?? []) as unknown as SecuritySiteRecord[]); setAgents((agentResult.data ?? []) as SecurityAgentRecord[]); setInstructions((instructionResult.data ?? []) as unknown as SecurityInstructionRecord[]); setAlerts(((alertResult.data ?? []) as unknown as SecurityAlertRecord[]).map((row) => ({...row, acknowledged: ack.has(row.id)})));
