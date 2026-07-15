@@ -9,6 +9,7 @@ import {
   type SecurityLogbookEntryRecord,
   type SecurityShiftRecord
 } from './types';
+import { embedSecurityLogo, logoDimensions, securityAccent } from './pdfBranding';
 
 const categoryLabels: Record<SecurityLogbookEntryRecord['category'], string> = {
   prise_poste: 'Prise de poste',
@@ -70,7 +71,8 @@ export async function generateSecurityMissionLogbookPdf(
   const contentWidth = pageSize[0] - margin * 2;
   const dark = rgb(0.07, 0.09, 0.13);
   const muted = rgb(0.39, 0.43, 0.49);
-  const accent = rgb(0.04, 0.47, 0.88);
+  const accent = securityAccent(organization);
+  const logo = await embedSecurityLogo(pdf, organization.logo_url);
   const line = rgb(0.86, 0.89, 0.93);
   const soft = rgb(0.96, 0.97, 0.985);
   const success = rgb(0.08, 0.55, 0.29);
@@ -98,12 +100,18 @@ export async function generateSecurityMissionLogbookPdf(
     pageNumber += 1;
     y = pageSize[1] - 42;
 
-    page.drawText('NCR SUITE - SECURITE PRIVEE', { x: margin, y, size: 8.5, font: bold, color: accent });
+    let headerX = margin;
+    if (logo) {
+      const size = logoDimensions(logo, 78, 34);
+      page.drawImage(logo, { x: margin, y: y - size.height + 5, width: size.width, height: size.height });
+      headerX = margin + 90;
+    }
+    page.drawText('NCR SUITE - SECURITE PRIVEE', { x: headerX, y, size: 8.5, font: bold, color: accent });
     page.drawText(`Page ${pageNumber}`, { x: pageSize[0] - margin - 38, y, size: 7.5, font: regular, color: muted });
     y -= 28;
-    page.drawText('MAIN COURANTE DE VACATION', { x: margin, y, size: 22, font: bold, color: dark });
+    page.drawText('MAIN COURANTE DE VACATION', { x: headerX, y, size: 22, font: bold, color: dark });
     y -= 20;
-    page.drawText(cleanPdfText(organization.public_name || organization.name), { x: margin, y, size: 10, font: bold, color: dark });
+    page.drawText(cleanPdfText(organization.public_name || organization.name), { x: headerX, y, size: 10, font: bold, color: dark });
     page.drawText(`Mission ${missionReference}`, { x: pageSize[0] - margin - 85, y, size: 8.5, font: regular, color: muted });
     y -= 15;
     page.drawLine({ start: { x: margin, y }, end: { x: pageSize[0] - margin, y }, thickness: 1, color: line });

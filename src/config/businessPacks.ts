@@ -83,7 +83,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
   securite: {
     id: 'securite',
     label: 'Sécurité privée',
-    description: 'Planning des agents, sites, tarifs et facturation prévisionnelle.',
+    description: 'Planning des agents, sites, tarifs, préfactures et factures.',
     icon: 'shield',
     launchStatus: 'available',
     navigation: [
@@ -98,6 +98,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Rondes QR', path: '/rondes', icon: 'shield' },
       { label: 'Main courante', path: '/main-courante', icon: 'clipboard' },
       { label: 'Consignes & alertes', path: '/consignes', icon: 'alert' },
+      { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
       subscription,
       settings
     ],

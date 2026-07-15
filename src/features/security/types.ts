@@ -65,6 +65,11 @@ export interface SecurityShiftRecord {
   notes: string | null;
   recurrence_group_id?: string | null;
   duplicated_from_id?: string | null;
+  actual_minutes?: number | null;
+  actual_validation_note?: string | null;
+  completed_at?: string | null;
+  completed_by?: string | null;
+  final_invoice_id?: string | null;
   created_at: string;
   security_sites?: { name: string; hourly_rate_cents: number; color_hex?: string | null; address?: string | null; postal_code?: string | null; city: string | null; security_clients?: { company_name: string } | null } | null;
   security_agents?: { first_name: string; last_name: string } | null;
@@ -77,9 +82,47 @@ export interface SecurityInvoiceLineRecord {
   site_id: string;
   description: string;
   scheduled_minutes: number;
+  billed_minutes?: number | null;
+  shift_count?: number;
   hourly_rate_cents: number;
   line_total_cents: number;
   security_sites?: { name: string } | null;
+}
+
+export interface SecurityInvoiceShiftItemRecord {
+  id: string;
+  organization_id: string;
+  invoice_id: string;
+  shift_id: string;
+  site_id: string;
+  agent_id: string;
+  service_date: string;
+  starts_at: string;
+  ends_at: string;
+  actual_minutes: number;
+  hourly_rate_cents: number;
+  line_total_cents: number;
+  description: string | null;
+  security_sites?: { name: string } | null;
+  security_agents?: { first_name: string; last_name: string } | null;
+}
+
+export interface SecurityBillingSnapshot {
+  name?: string | null;
+  logo_url?: string | null;
+  address?: string | null;
+  postal_code?: string | null;
+  city?: string | null;
+  siret?: string | null;
+  vat_number?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  late_penalty_text?: string | null;
+  tax_exemption_text?: string | null;
+  company_name?: string | null;
+  contact_name?: string | null;
+  billing_address?: string | null;
+  payment_terms_days?: number | null;
 }
 
 export interface SecurityInvoiceRecord {
@@ -89,15 +132,25 @@ export interface SecurityInvoiceRecord {
   invoice_number: string;
   period_start: string;
   period_end: string;
-  status: 'draft' | 'issued' | 'paid' | 'canceled';
+  document_kind?: 'proforma' | 'invoice';
+  source_mode?: 'scheduled' | 'completed';
+  status: 'draft' | 'issued' | 'sent' | 'paid' | 'overdue' | 'canceled';
   subtotal_cents: number;
+  tax_rate_basis_points?: number;
+  tax_cents?: number;
   total_cents: number;
   notes: string | null;
   issued_at: string | null;
+  sent_at?: string | null;
   paid_at: string | null;
+  canceled_at?: string | null;
+  due_date?: string | null;
+  issuer_snapshot?: SecurityBillingSnapshot | null;
+  client_snapshot?: SecurityBillingSnapshot | null;
   created_at: string;
   security_clients?: SecurityClientRecord | null;
   security_invoice_lines?: SecurityInvoiceLineRecord[];
+  security_invoice_shift_items?: SecurityInvoiceShiftItemRecord[];
 }
 
 export function nullableSecurityText(value: string) {

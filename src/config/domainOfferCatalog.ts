@@ -33,6 +33,8 @@ export type OfferFeatureKey =
   | 'security_clients_sites'
   | 'security_site_rates'
   | 'security_scheduled_billing'
+  | 'security_final_billing'
+  | 'security_document_branding'
   | 'security_agent_portal'
   | 'security_qr_patrols'
   | 'security_smart_logbook'
@@ -146,7 +148,9 @@ const securityDecouverte: OfferFeatureKey[] = [
   'security_planning',
   'security_clients_sites',
   'security_site_rates',
-  'security_scheduled_billing'
+  'security_scheduled_billing',
+  'security_final_billing',
+  'security_document_branding'
 ];
 const securityEssentielle: OfferFeatureKey[] = [
   ...securityDecouverte,
@@ -313,7 +317,7 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       decouverte: {
         label: 'Découverte', monthlyPriceCents: 3990, memberLimit: 1,
         detail: 'Le pilotage bureau : planning des agents et facturation selon les heures programmées et le tarif du site.',
-        additions: ['Planning des agents', 'Clients et sites', 'Tarif propre à chaque site', 'Facturation sur les heures programmées'],
+        additions: ['Planning des agents', 'Clients et sites', 'Tarif propre à chaque site', 'Préfacturation programmée et factures après vacation', 'Logo sur les documents Sécurité'],
         features: securityDecouverte
       },
       essentielle: {
@@ -444,7 +448,9 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   security_planning: 'Planning des agents',
   security_clients_sites: 'Clients et sites',
   security_site_rates: 'Tarif défini par site',
-  security_scheduled_billing: 'Facturation liée aux heures programmées',
+  security_scheduled_billing: 'Préfacturation liée aux heures programmées',
+  security_final_billing: 'Factures depuis les vacations réalisées',
+  security_document_branding: 'Logo sur les documents Sécurité',
   security_agent_portal: 'Espace terrain des agents',
   security_qr_patrols: 'Rondes QR',
   security_smart_logbook: 'Main courante intelligente',

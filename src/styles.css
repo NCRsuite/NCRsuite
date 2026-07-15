@@ -5394,3 +5394,17 @@ button { max-width: 100%; }
   color: var(--muted);
   font-size: .75rem;
 }
+
+/* V2.5.5 — Facturation définitive et identité documentaire Sécurité */
+.security-billing-tabs{display:flex;gap:8px;margin:0 0 18px;padding:5px;background:#eef2f7;border-radius:16px;width:max-content;max-width:100%}
+.security-billing-tabs button{border:0;background:transparent;padding:11px 18px;border-radius:12px;font-weight:800;color:#667085;cursor:pointer}
+.security-billing-tabs button.active{background:#fff;color:#111827;box-shadow:0 5px 18px rgba(15,23,42,.09)}
+.security-completed-shifts{display:grid;gap:8px;border:1px solid #dbe4ef;border-radius:16px;padding:12px;background:#f8fbff}
+.security-completed-heading{display:flex;flex-direction:column;gap:3px;padding:2px 3px 8px}.security-completed-heading span{font-size:12px;color:#667085}
+.security-completed-shifts>div:not(.security-completed-heading){display:grid;grid-template-columns:minmax(0,1fr) 96px auto;align-items:center;gap:10px;padding:10px;border-radius:12px;background:#fff;border:1px solid #e7edf5}
+.security-completed-shifts>div>span{display:flex;flex-direction:column;gap:3px;min-width:0}.security-completed-shifts>div>span small{color:#667085}
+.security-completed-shifts label{display:flex;align-items:center;gap:5px}.security-completed-shifts input{width:70px;padding:8px;border:1px solid #d4dce7;border-radius:9px}
+.security-invoice-card.invoice{border-left:4px solid #0a84ff}.security-invoice-card.proforma{border-left:4px solid #8e8e93}
+.security-status-pill.sent{background:#eaf3ff;color:#1769aa}.security-status-pill.overdue{background:#fff0ed;color:#b42318}
+.security-document-preview{display:grid;gap:8px}.security-document-preview .logo-preview{width:72px;height:72px}
+@media(max-width:720px){.security-billing-tabs{width:100%}.security-billing-tabs button{flex:1;padding:11px 8px}.security-completed-shifts>div:not(.security-completed-heading){grid-template-columns:1fr auto}.security-completed-shifts>div>button{grid-column:1/-1;width:100%}}

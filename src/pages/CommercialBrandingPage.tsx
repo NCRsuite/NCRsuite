@@ -362,8 +362,132 @@ function TrainingCommercialBrandingPage() {
   );
 }
 
+
+function SecurityDocumentBrandingPage() {
+  const { organization, refreshOrganizations } = useOrganization();
+  const [publicName, setPublicName] = useState('');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [address, setAddress] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [city, setCity] = useState('');
+  const [siret, setSiret] = useState('');
+  const [vatNumber, setVatNumber] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [vatRate, setVatRate] = useState('20');
+  const [paymentTerms, setPaymentTerms] = useState('30');
+  const [latePenalty, setLatePenalty] = useState('Pénalités de retard exigibles au taux légal en vigueur. Indemnité forfaitaire pour frais de recouvrement : 40 €.');
+  const [taxExemption, setTaxExemption] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!organization) return;
+    setPublicName(organization.public_name || organization.name);
+    setLogoUrl(organization.logo_url || null);
+    setLogoFile(null);
+    setAddress(organization.security_billing_address || '');
+    setPostalCode(organization.security_billing_postal_code || '');
+    setCity(organization.security_billing_city || '');
+    setSiret(organization.security_billing_siret || '');
+    setVatNumber(organization.security_billing_vat_number || '');
+    setEmail(organization.security_billing_email || organization.booking_contact_email || '');
+    setPhone(organization.security_billing_phone || organization.booking_contact_phone || '');
+    setVatRate(String(organization.security_default_vat_rate ?? 20));
+    setPaymentTerms(String(organization.security_payment_terms_days ?? 30));
+    setLatePenalty(organization.security_late_penalty_text || 'Pénalités de retard exigibles au taux légal en vigueur. Indemnité forfaitaire pour frais de recouvrement : 40 €.');
+    setTaxExemption(organization.security_tax_exemption_text || '');
+  }, [organization?.id]);
+
+  const logoPreview = useMemo(() => logoFile ? URL.createObjectURL(logoFile) : logoUrl, [logoFile, logoUrl]);
+  useEffect(() => () => { if (logoFile && logoPreview) URL.revokeObjectURL(logoPreview); }, [logoFile, logoPreview]);
+
+  if (!organization) return null;
+  const securityOrganization = organization;
+  const canManage = ['owner', 'admin', 'manager'].includes(securityOrganization.role ?? 'viewer');
+
+  function selectLogo(file?: File) {
+    if (!file) return;
+    setError('');
+    if (!allowedTypes.includes(file.type)) { setError('Le logo doit être au format PNG, JPG ou WebP.'); return; }
+    if (file.size > 2 * 1024 * 1024) { setError('Le logo ne doit pas dépasser 2 Mo.'); return; }
+    setLogoFile(file);
+  }
+
+  async function uploadLogo(file: File) {
+    if (!supabase) throw new Error('Supabase est indisponible.');
+    const path = `${securityOrganization.id}/security-logo-${crypto.randomUUID()}.${extensionFor(file)}`;
+    const { error: uploadError } = await supabase.storage.from('organization-branding').upload(path, file, { contentType: file.type, upsert: false });
+    if (uploadError) throw uploadError;
+    return supabase.storage.from('organization-branding').getPublicUrl(path).data.publicUrl;
+  }
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!supabase || !canManage) return;
+    setSaving(true); setMessage(''); setError('');
+    try {
+      if (publicName.trim().length < 2) throw new Error('Indique un nom affiché valide.');
+      const numericVat = Number(vatRate);
+      const numericTerms = Number(paymentTerms);
+      if (!Number.isFinite(numericVat) || numericVat < 0 || numericVat > 100) throw new Error('Le taux de TVA est invalide.');
+      if (!Number.isInteger(numericTerms) || numericTerms < 0 || numericTerms > 180) throw new Error('Le délai de paiement est invalide.');
+      let nextLogo = logoUrl;
+      if (logoFile) nextLogo = await uploadLogo(logoFile);
+      const { error: rpcError } = await supabase.rpc('update_security_document_branding', {
+        p_organization_id: securityOrganization.id,
+        p_public_name: publicName,
+        p_logo_url: nextLogo,
+        p_address: address,
+        p_postal_code: postalCode,
+        p_city: city,
+        p_siret: siret,
+        p_vat_number: vatNumber,
+        p_email: email,
+        p_phone: phone,
+        p_default_vat_rate: numericVat,
+        p_payment_terms_days: numericTerms,
+        p_late_penalty_text: latePenalty,
+        p_tax_exemption_text: numericVat === 0 ? taxExemption : null
+      });
+      if (rpcError) throw rpcError;
+      setLogoUrl(nextLogo); setLogoFile(null);
+      await refreshOrganizations();
+      setMessage('Le logo et le profil de facturation Sécurité ont été enregistrés.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
+    } finally { setSaving(false); }
+  }
+
+  return <div className="page commercial-branding-page security-branding-page">
+    <header className="page-header"><div><p className="eyebrow">SÉCURITÉ · TOUTES LES OFFRES</p><h1>Logo & facturation</h1><p>Applique ton identité aux plannings, mains courantes, préfactures et factures définitives.</p></div></header>
+    {error && <div className="error-message page-message">{error}</div>}{message && <div className="success-message page-message">{message}</div>}
+    <div className="commercial-branding-layout">
+      <form className="panel settings-form commercial-branding-form" onSubmit={submit}>
+        <div><p className="eyebrow">IDENTITÉ DOCUMENTAIRE</p><h2>Entreprise émettrice</h2><p className="muted">Le logo est inclus dans toutes les formules Sécurité. Les informations ci-dessous sont figées dans chaque facture lors de son émission.</p></div>
+        <div className="branding-upload-card"><div className="branding-upload-preview logo-preview">{logoPreview ? <img src={logoPreview} alt="Aperçu du logo"/> : <span>{publicName.slice(0,1).toUpperCase()}</span>}</div><div><strong>Logo des documents</strong><p>PNG, JPG ou WebP · 2 Mo maximum.</p><label className="secondary-button compact-button">Choisir un logo<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => selectLogo(event.target.files?.[0])} disabled={!canManage}/></label>{logoPreview && <button type="button" className="danger-text-button" onClick={() => { setLogoFile(null); setLogoUrl(null); }}>Retirer</button>}</div></div>
+        <div className="branding-form-grid">
+          <label className="full-field">Nom affiché<input required minLength={2} maxLength={120} value={publicName} onChange={(e) => setPublicName(e.target.value)} disabled={!canManage}/></label>
+          <label className="full-field">Adresse du siège<textarea rows={2} required value={address} onChange={(e) => setAddress(e.target.value)} disabled={!canManage}/></label>
+          <label>Code postal<input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} disabled={!canManage}/></label><label>Ville<input value={city} onChange={(e) => setCity(e.target.value)} disabled={!canManage}/></label>
+          <label>SIRET<input required value={siret} onChange={(e) => setSiret(e.target.value)} disabled={!canManage}/></label><label>N° TVA intracommunautaire<input value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} disabled={!canManage}/></label>
+          <label>E-mail<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!canManage}/></label><label>Téléphone<input value={phone} onChange={(e) => setPhone(e.target.value)} disabled={!canManage}/></label>
+          <label>Taux de TVA (%)<input type="number" min="0" max="100" step="0.01" value={vatRate} onChange={(e) => setVatRate(e.target.value)} disabled={!canManage}/></label><label>Délai de paiement (jours)<input type="number" min="0" max="180" value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)} disabled={!canManage}/></label>
+          {Number(vatRate) === 0 && <label className="full-field">Mention d’exonération de TVA<textarea rows={2} value={taxExemption} onChange={(e) => setTaxExemption(e.target.value)} disabled={!canManage} placeholder="Ex. TVA non applicable…"/></label>}
+          <label className="full-field">Pénalités et recouvrement<textarea rows={3} value={latePenalty} onChange={(e) => setLatePenalty(e.target.value)} disabled={!canManage}/></label>
+        </div>
+        {canManage && <button className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>}
+      </form>
+      <aside className="commercial-preview-column"><div className="commercial-preview-sticky"><div className="preview-heading"><div><p className="eyebrow">APERÇU</p><h2>Facture Sécurité</h2></div><span>Toutes offres</span></div><div className="panel security-document-preview" style={{ borderTop: `5px solid ${securityOrganization.primary_color || '#0A84FF'}` }}><div className="branding-upload-preview logo-preview">{logoPreview ? <img src={logoPreview} alt=""/> : <span>{publicName.slice(0,1).toUpperCase()}</span>}</div><p className="eyebrow">FACTURE</p><h3>{publicName || securityOrganization.name}</h3><p>{[address, postalCode, city].filter(Boolean).join(' · ') || 'Adresse du siège'}</p><small>SIRET {siret || 'à compléter'} · TVA {vatRate}%</small></div></div></aside>
+    </div>
+  </div>;
+}
+
 export function CommercialBrandingPage() {
   const { organization } = useOrganization();
   if (organization?.business_type === 'formation') return <TrainingCommercialBrandingPage />;
+  if (organization?.business_type === 'securite') return <SecurityDocumentBrandingPage />;
   return <CoiffureCommercialBrandingPage />;
 }

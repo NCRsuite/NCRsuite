@@ -70,6 +70,17 @@ export interface Organization {
   training_satisfaction_enabled?: boolean;
   training_satisfaction_delay_hours?: number;
   training_satisfaction_intro?: string | null;
+  security_billing_address?: string | null;
+  security_billing_postal_code?: string | null;
+  security_billing_city?: string | null;
+  security_billing_siret?: string | null;
+  security_billing_vat_number?: string | null;
+  security_billing_email?: string | null;
+  security_billing_phone?: string | null;
+  security_default_vat_rate?: number;
+  security_payment_terms_days?: number;
+  security_late_penalty_text?: string | null;
+  security_tax_exemption_text?: string | null;
   role?: MemberRole;
   plan_features?: Record<string, boolean>;
 }

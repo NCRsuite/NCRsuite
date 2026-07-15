@@ -73,6 +73,13 @@ function SitesArea() {
   return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecuritySitesPage /> : <ModulePage />}</ModuleAccessGuard>;
 }
 
+
+function BrandingArea() {
+  const { organization } = useOrganization();
+  const moduleKey = organization?.business_type === 'securite' ? 'security_document_branding' : 'commercial_branding';
+  return <ModuleAccessGuard moduleKey={moduleKey}><CommercialBrandingPage /></ModuleAccessGuard>;
+}
+
 function LoadingScreen() {
   return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Chargement de NCR Suite…</span></div>;
 }
@@ -150,7 +157,7 @@ export default function App() {
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />
         <Route path="equipe" element={<ModuleAccessGuard moduleKey="staff"><StaffPage /></ModuleAccessGuard>} />
         <Route path="acces-equipe" element={<ModuleAccessGuard moduleKey="team_access"><TeamAccessPage /></ModuleAccessGuard>} />
-        <Route path="personnalisation" element={<ModuleAccessGuard moduleKey="commercial_branding"><CommercialBrandingPage /></ModuleAccessGuard>} />
+        <Route path="personnalisation" element={<BrandingArea />} />
         <Route path="abonnement" element={<SubscriptionPage />} />
         <Route path="offre-metier" element={<MetierWorkspacePage />} />
         <Route path="parametres" element={<SettingsPage />} />

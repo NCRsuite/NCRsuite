@@ -9,6 +9,7 @@ import {
   type SecurityShiftRecord,
   type SecuritySiteRecord
 } from './types';
+import { embedSecurityLogo, logoDimensions } from './pdfBranding';
 
 interface PlanningPdfInput {
   organization: Organization;
@@ -87,6 +88,7 @@ export async function generateSecurityAgentPlanningPdf({ organization, agent, sh
   const line = rgb(0.76, 0.79, 0.83);
   const headerBg = rgb(0.08, 0.11, 0.16);
   const accent = parseHex(organization.primary_color);
+  const logo = await embedSecurityLogo(pdf, organization.logo_url);
 
   const activeShifts = shifts.filter((shift) => shift.status !== 'canceled').sort((a, b) => a.starts_at.localeCompare(b.starts_at));
   const allDays = daysBetween(periodStart, periodEnd);
@@ -119,9 +121,15 @@ export async function generateSecurityAgentPlanningPdf({ organization, agent, sh
       pageNumber += 1;
       let y = PAGE_HEIGHT - 28;
 
-      page.drawText('NCR SUITE · SÉCURITÉ PRIVÉE', { x: MARGIN, y, size: 7.5, font: bold, color: accent });
-      page.drawText('PLANNING COLLABORATEUR', { x: MARGIN, y: y - 22, size: 17, font: bold, color: dark });
-      page.drawText(securityPersonName(agent.first_name, agent.last_name).toUpperCase(), { x: MARGIN, y: y - 39, size: 9, font: bold, color: dark });
+      let headerX = MARGIN;
+      if (logo) {
+        const size = logoDimensions(logo, 82, 38);
+        page.drawImage(logo, { x: MARGIN, y: y - size.height + 5, width: size.width, height: size.height });
+        headerX = MARGIN + 94;
+      }
+      page.drawText('NCR SUITE · SÉCURITÉ PRIVÉE', { x: headerX, y, size: 7.5, font: bold, color: accent });
+      page.drawText('PLANNING COLLABORATEUR', { x: headerX, y: y - 22, size: 17, font: bold, color: dark });
+      page.drawText(securityPersonName(agent.first_name, agent.last_name).toUpperCase(), { x: headerX, y: y - 39, size: 9, font: bold, color: dark });
       const periodText = `Du ${formatSecurityDate(periodStart)} au ${formatSecurityDate(periodEnd)} · Édition du ${formatSecurityDate(new Date(), { dateStyle: 'short', timeStyle: 'short' })}`;
       page.drawText(periodText, { x: MARGIN, y: y - 53, size: 6.8, font: regular, color: muted });
       const company = organization.public_name || organization.name;

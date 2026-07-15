@@ -43,7 +43,6 @@ export const MODULE_BY_PATH: Record<string, string> = {
 
 const FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/acces-equipe': 'team_access',
-  '/personnalisation': 'commercial_branding',
   '/etablissements': 'multi_site',
   '/evaluations': 'training_satisfaction',
   '/emargements': 'training_blank_attendance',
@@ -67,7 +66,8 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
       '/facturation': 'security_billing',
       '/rondes': 'security_qr_patrols',
       '/main-courante': 'security_smart_logbook',
-      '/consignes': 'security_site_instructions'
+      '/consignes': 'security_site_instructions',
+      '/personnalisation': 'security_document_branding'
     };
     if (securityModules[normalized]) return securityModules[normalized];
   }
@@ -91,7 +91,9 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
     return organization.plan === 'metier' && ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
   }
 
-  const requiredFeature = featureKeyForPath(pathname);
+  const requiredFeature = normalized === '/personnalisation'
+    ? (organization.business_type === 'securite' ? 'security_document_branding' : 'commercial_branding')
+    : featureKeyForPath(pathname);
   if (requiredFeature && !organizationHasFeature(organization, requiredFeature)) return false;
 
   const moduleKey = moduleKeyForPath(pathname, organization.business_type);

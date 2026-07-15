@@ -1,11 +1,16 @@
-# 2.5.4 — QR validé, PDF stable et sites visibles en facturation
+# 2.5.5 — Identité documentaire et factures définitives Sécurité
 
-- Correction de l’ambiguïté PostgreSQL qui empêchait l’enregistrement d’un QR pourtant détecté.
-- Messages d’erreur Supabase désormais lisibles au lieu de « erreur inconnue ».
-- Génération du PDF de préfacturation chargée statiquement pour éviter la réponse HTML à la place du module JavaScript.
-- Service worker sécurisé : une page HTML n’est plus renvoyée pour un fichier JavaScript manquant.
-- Tous les sites actifs rattachés au client sont visibles dans l’aperçu de facturation.
-- Les sites sans mission sont affichés comme non facturés.
-- Bouton d’actualisation du calcul ajouté.
-- Les brouillons continuent à être recalculables avec le planning actuel.
-- Cache PWA passé en V2.5.4.
+- Logo de l’entreprise disponible pour toutes les offres Sécurité.
+- Nouvelle rubrique Personnalisation avec identité légale et profil de facturation.
+- Logo intégré aux mains courantes PDF, plannings PDF, préfactures et factures.
+- Séparation claire entre préfactures calculées depuis les heures programmées et factures calculées depuis les vacations réalisées.
+- Validation des minutes réellement effectuées avant émission.
+- Numérotation chronologique des factures par entreprise et par année (`FAC-AAAA-000001`).
+- Lignes détaillées par site et annexe listant chaque vacation facturée.
+- Calcul HT, TVA et TTC, échéance, coordonnées légales et instantané des informations au moment de l’émission.
+- Une vacation ne peut être intégrée qu’à une seule facture définitive.
+- Statuts des factures : Émise, Envoyée, Payée et En retard.
+- Préfactures et factures définitives restent consultables dans deux rubriques séparées.
+- Cache PWA passé en V2.5.5.
+
+- Correctif migration 032 : suppression explicite de l’ancienne fonction `set_security_invoice_status` avant recréation avec les nouveaux champs de retour.
