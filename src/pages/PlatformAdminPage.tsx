@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AdminCreateSpaceModal } from '../components/AdminCreateSpaceModal';
 import { BillingAdminPanel } from '../components/BillingAdminPanel';
 import { MetierAdminPanel } from '../components/MetierAdminPanel';
+import { OfferCatalogAdminPanel } from '../components/OfferCatalogAdminPanel';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
@@ -61,13 +62,6 @@ const planLabels: Record<Plan, string> = {
   metier: 'Métier'
 };
 
-const trainingPlanAdminSummary: Record<Plan, string> = {
-  decouverte: 'Socle Formation, documents de session, feuille d’émargement vierge et attestations automatiques.',
-  essentielle: 'Ajoute l’émargement numérique avec signatures, le PDF d’émargement et la personnalisation des documents et e-mails.',
-  professionnelle: 'Ajoute les évaluations, le dossier complet, le multi-site et les accès employés avec rôles.',
-  metier: 'Configuration sur mesure : modules, limites, rôles, sites, identité et domaine selon le contrat.'
-};
-
 function adminPlansFor(businessType: BusinessType) {
   const definitions = getDomainPlans(businessType);
   return planValues.map((value) => ({
@@ -75,7 +69,8 @@ function adminPlansFor(businessType: BusinessType) {
     label: definitions[value].label,
     defaultPrice: definitions[value].monthlyPriceCents,
     memberLimit: definitions[value].memberLimit,
-    detail: definitions[value].detail
+    detail: definitions[value].detail,
+    additions: definitions[value].additions
   }));
 }
 
@@ -119,7 +114,7 @@ function statusClass(value: string) {
 }
 
 export function PlatformAdminPage() {
-  const [activeSection, setActiveSection] = useState<'overview' | 'billing' | 'metier'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'catalogue' | 'billing' | 'metier'>('overview');
   const { user, signOut } = useAuth();
   const { profile, canManage } = usePlatformAdmin();
   const [metrics, setMetrics] = useState<AdminMetrics>(emptyMetrics);
@@ -308,6 +303,10 @@ export function PlatformAdminPage() {
             <Icon name="building" size={19} />
             <span><strong>Entreprises</strong><small>Comptes, accès et formules</small></span>
           </button>
+          <button type="button" className={activeSection === 'catalogue' ? 'active' : ''} onClick={() => setActiveSection('catalogue')}>
+            <Icon name="clipboard" size={19} />
+            <span><strong>Catalogue des offres</strong><small>Domaines, tarifs et options</small></span>
+          </button>
           <button type="button" className={activeSection === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}>
             <Icon name="creditCard" size={19} />
             <span><strong>Abonnements & paiements</strong><small>Demandes, Qonto et conditions</small></span>
@@ -422,13 +421,11 @@ export function PlatformAdminPage() {
                     <div className="admin-price-input"><input inputMode="decimal" value={editPrice} onChange={(event) => setEditPrice(event.target.value)} disabled={!canManage} /><span>€</span></div>
                     <small>Modifiable pour les offres Métier ou les accords spécifiques.</small>
                   </label>
-                  {selected.business_type === 'formation' && (
-                    <div className="info-message full-field">
-                      <strong>{selectedPlan?.label} — offre Formation</strong>
-                      <span>{trainingPlanAdminSummary[editPlan]}</span>
-                      <small>{selectedPlan?.detail}</small>
-                    </div>
-                  )}
+                  <div className="info-message full-field admin-plan-summary">
+                    <strong>{selectedPlan?.label} — offre {businessPacks[selected.business_type].label}</strong>
+                    <span>{selectedPlan?.detail}</span>
+                    <ul>{selectedPlan?.additions.map((addition) => <li key={addition}>{addition}</li>)}</ul>
+                  </div>
                   <label>
                     Accès de l’entreprise
                     <select value={editOrganizationStatus} onChange={(event) => setEditOrganizationStatus(event.target.value as OrganizationStatus)} disabled={!canManage}>
@@ -478,6 +475,10 @@ export function PlatformAdminPage() {
           </aside>
         </section>
         </>)}
+
+        {activeSection === 'catalogue' && (
+          <OfferCatalogAdminPanel />
+        )}
 
         {activeSection === 'billing' && (
           <BillingAdminPanel canManage={canManage} onChanged={() => void loadAll(true)} />

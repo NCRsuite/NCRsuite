@@ -1,5 +1,21 @@
 # CHANGELOG
 
+## 2.4.13 — Catalogue central des offres
+
+- Nouveau catalogue central dans le compte super administrateur avec les cinq domaines NCR Suite.
+- Suppression du domaine Artisan et remplacement par Restauration dans l’interface et le catalogue Supabase.
+- Grilles tarifaires centralisées pour Coiffure, Formation, Sécurité, Nettoyage et Restauration.
+- Présentation progressive des formules : chaque niveau affiche uniquement son socle ou ce qu’il ajoute à l’offre précédente.
+- Offres Sécurité validées à 39,90 €, 69,90 €, 89,90 € et à partir de 119,90 € HT/mois.
+- Offres Nettoyage validées à 29,90 €, 49,90 €, 79,90 € et à partir de 109,90 € HT/mois.
+- Offres Restauration validées à 29,90 €, 49,90 €, 79,90 € et à partir de 109,90 € HT/mois.
+- Menu QR Restauration multilingue prévu en français, anglais, espagnol et italien, avec traduction automatique modifiable.
+- Sécurité, Nettoyage et Restauration sont marqués « En préparation » et ne peuvent pas encore être créés avant livraison de leurs modules.
+- Mise à jour des limites d’accès : 10 puis 50 agents/employés pour les offres terrain concernées.
+- Migration Supabase `026_central_offer_catalog.sql`.
+- Aucun changement de Brevo, Qonto, Coiffure, Formation ou NCR Academy.
+- Cache PWA et version applicative passés en V2.4.13.
+
 ## 2.4.12 — Pilotage & contrôle qualité Formation
 
 - Nouveau tableau de bord Formation centré sur les actions à traiter.
@@ -17,7 +33,7 @@
 
 ## 2.4.11 — Organisation multi-domaines et clôture des sessions
 
-- Classement des entreprises par domaine dans le compte super administrateur, avec filtre et regroupement Coiffure, Formation, Sécurité, Nettoyage et Artisan.
+- Classement des entreprises par domaine dans le compte super administrateur, avec filtre et regroupement Coiffure, Formation, Sécurité, Nettoyage et Restauration.
 - Vue « Mes abonnements NCR Suite » regroupant tous les abonnements accessibles lorsqu’un utilisateur possède plusieurs domaines.
 - Total mensuel actif et accès direct au détail de chaque abonnement.
 - Sessions Formation rangées automatiquement en Planifiées, En cours, Clôturées et Annulées.

@@ -59,6 +59,6 @@ La V2.3 rend l’offre Métier opérationnelle comme infrastructure commerciale 
 
 ## Domaine d’activité unique — V2.3.4
 
-Un espace Métier correspond à un seul domaine d’activité (`coiffure`, `nettoyage`, `securite`, `formation` ou `artisan`). Il ne débloque jamais les interfaces des autres secteurs. Une entreprise exerçant deux activités distinctes doit disposer de deux espaces et de deux abonnements.
+Un espace Métier correspond à un seul domaine d’activité (`coiffure`, `nettoyage`, `securite`, `formation` ou `restauration`). Il ne débloque jamais les interfaces des autres secteurs. Une entreprise exerçant deux activités distinctes doit disposer de deux espaces et de deux abonnements.
 
 Le tarif minimum peut être défini par domaine dans `business_domain_catalog`. La sécurité privée est initialisée à 50,00 € HT par mois. Les autres domaines restent sur devis tant qu’aucun minimum n’est défini.

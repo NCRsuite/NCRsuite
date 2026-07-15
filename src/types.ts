@@ -1,4 +1,4 @@
-export type BusinessType = 'coiffure' | 'nettoyage' | 'securite' | 'formation' | 'artisan';
+export type BusinessType = 'coiffure' | 'nettoyage' | 'securite' | 'formation' | 'restauration';
 export type MemberRole = 'owner' | 'admin' | 'manager' | 'employee' | 'viewer';
 export type Plan = 'decouverte' | 'essentielle' | 'professionnelle' | 'metier';
 export type OrganizationStatus = 'trial' | 'active' | 'suspended' | 'closed';
@@ -98,6 +98,7 @@ export type IconName =
   | 'graduation'
   | 'signature'
   | 'tool'
+  | 'utensils'
   | 'chart'
   | 'logout'
   | 'chevronDown'

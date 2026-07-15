@@ -1,32 +1,7 @@
 import type { BusinessType, Organization, Plan } from '../types';
+import { DOMAIN_OFFER_CATALOG, type OfferFeatureKey } from './domainOfferCatalog';
 
-export type PlanFeature =
-  | 'public_booking'
-  | 'confirmation_emails'
-  | 'automatic_reminders'
-  | 'online_booking_management'
-  | 'calendar_links'
-  | 'team_access'
-  | 'manager_role'
-  | 'commercial_branding'
-  | 'white_label'
-  | 'multi_site'
-  | 'custom_modules'
-  | 'custom_roles'
-  | 'custom_domain'
-  | 'training_programs'
-  | 'training_trainees'
-  | 'training_trainers'
-  | 'training_sessions'
-  | 'training_documents'
-  | 'training_blank_attendance'
-  | 'training_digital_attendance'
-  | 'training_attendance_pdf'
-  | 'training_automatic_certificates'
-  | 'training_document_branding'
-  | 'training_email_branding'
-  | 'training_satisfaction'
-  | 'training_session_dossier';
+export type PlanFeature = OfferFeatureKey;
 
 export interface PlanDefinition {
   label: string;
@@ -35,137 +10,30 @@ export interface PlanDefinition {
   features: PlanFeature[];
 }
 
-const commonTrainingBase: PlanFeature[] = [
-  'training_programs',
-  'training_trainees',
-  'training_trainers',
-  'training_sessions',
-  'training_documents',
-  'training_blank_attendance',
-  'training_automatic_certificates'
-];
+function definitionsFor(businessType: BusinessType): Record<Plan, PlanDefinition> {
+  const plans = DOMAIN_OFFER_CATALOG[businessType].plans;
+  return Object.fromEntries(Object.entries(plans).map(([plan, definition]) => [plan, {
+    label: definition.label,
+    monthlyPriceCents: definition.monthlyPriceCents,
+    memberLimit: definition.memberLimit,
+    features: definition.features
+  }])) as Record<Plan, PlanDefinition>;
+}
 
-export const PLAN_DEFINITIONS: Record<Plan, PlanDefinition> = {
-  decouverte: {
-    label: 'Découverte',
-    monthlyPriceCents: 990,
-    memberLimit: 1,
-    features: ['public_booking', 'confirmation_emails']
-  },
-  essentielle: {
-    label: 'Essentielle',
-    monthlyPriceCents: 1990,
-    memberLimit: 3,
-    features: [
-      'public_booking',
-      'confirmation_emails',
-      'automatic_reminders',
-      'online_booking_management',
-      'calendar_links',
-      'team_access'
-    ]
-  },
-  professionnelle: {
-    label: 'Professionnelle',
-    monthlyPriceCents: 3990,
-    memberLimit: 10,
-    features: [
-      'public_booking',
-      'confirmation_emails',
-      'automatic_reminders',
-      'online_booking_management',
-      'calendar_links',
-      'team_access',
-      'manager_role',
-      'commercial_branding'
-    ]
-  },
-  metier: {
-    label: 'Métier',
-    monthlyPriceCents: 6990,
-    memberLimit: 100,
-    features: [
-      'public_booking',
-      'confirmation_emails',
-      'automatic_reminders',
-      'online_booking_management',
-      'calendar_links',
-      'team_access',
-      'manager_role',
-      'commercial_branding',
-      'white_label',
-      'multi_site',
-      'custom_modules',
-      'custom_roles',
-      'custom_domain'
-    ]
-  }
+export const DOMAIN_PLAN_DEFINITIONS: Record<BusinessType, Record<Plan, PlanDefinition>> = {
+  coiffure: definitionsFor('coiffure'),
+  formation: definitionsFor('formation'),
+  securite: definitionsFor('securite'),
+  nettoyage: definitionsFor('nettoyage'),
+  restauration: definitionsFor('restauration')
 };
 
-export const FORMATION_PLAN_DEFINITIONS: Record<Plan, PlanDefinition> = {
-  decouverte: {
-    label: 'Découverte',
-    monthlyPriceCents: 3990,
-    memberLimit: 1,
-    features: [...commonTrainingBase]
-  },
-  essentielle: {
-    label: 'Essentielle',
-    monthlyPriceCents: 6990,
-    memberLimit: 3,
-    features: [
-      ...commonTrainingBase,
-      'training_digital_attendance',
-      'training_attendance_pdf',
-      'commercial_branding',
-      'training_document_branding',
-      'training_email_branding'
-    ]
-  },
-  professionnelle: {
-    label: 'Professionnelle',
-    monthlyPriceCents: 9990,
-    memberLimit: 10,
-    features: [
-      ...commonTrainingBase,
-      'training_digital_attendance',
-      'training_attendance_pdf',
-      'commercial_branding',
-      'training_document_branding',
-      'training_email_branding',
-      'training_satisfaction',
-      'training_session_dossier',
-      'multi_site',
-      'team_access',
-      'manager_role'
-    ]
-  },
-  metier: {
-    label: 'Métier',
-    monthlyPriceCents: 14990,
-    memberLimit: 100,
-    features: [
-      ...commonTrainingBase,
-      'training_digital_attendance',
-      'training_attendance_pdf',
-      'commercial_branding',
-      'training_document_branding',
-      'training_email_branding',
-      'training_satisfaction',
-      'training_session_dossier',
-      'multi_site',
-      'team_access',
-      'manager_role',
-      'white_label',
-      'custom_modules',
-      'custom_roles',
-      'custom_domain'
-    ]
-  }
-};
+/** Compatibilité avec les écrans historiques Coiffure. */
+export const PLAN_DEFINITIONS = DOMAIN_PLAN_DEFINITIONS.coiffure;
+export const FORMATION_PLAN_DEFINITIONS = DOMAIN_PLAN_DEFINITIONS.formation;
 
 export function getPlanDefinition(businessType: BusinessType, plan: Plan) {
-  return businessType === 'formation' ? FORMATION_PLAN_DEFINITIONS[plan] : PLAN_DEFINITIONS[plan];
+  return DOMAIN_PLAN_DEFINITIONS[businessType][plan];
 }
 
 /** Compatibilité avec les écrans historiques Coiffure. */

@@ -12,6 +12,7 @@ export interface BusinessPack {
   label: string;
   description: string;
   icon: IconName;
+  launchStatus: 'available' | 'planned';
   navigation: NavigationItem[];
   metrics: DashboardMetric[];
   quickActions: { label: string; path: string; icon: IconName }[];
@@ -26,6 +27,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
     label: 'Coiffure & beauté',
     description: 'Rendez-vous, clients, prestations et équipe.',
     icon: 'scissors',
+    launchStatus: 'available',
     navigation: [
       { label: 'Tableau de bord', path: '/', icon: 'home' },
       { label: 'Rendez-vous', path: '/rendez-vous', icon: 'calendar' },
@@ -53,8 +55,9 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
   nettoyage: {
     id: 'nettoyage',
     label: 'Nettoyage',
-    description: 'Agents, sites, interventions et rapports.',
+    description: 'Planning, pointage, interventions et contrôle qualité.',
     icon: 'sparkles',
+    launchStatus: 'planned',
     navigation: [
       { label: 'Tableau de bord', path: '/', icon: 'home' },
       { label: 'Planning', path: '/planning', icon: 'calendar' },
@@ -80,8 +83,9 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
   securite: {
     id: 'securite',
     label: 'Sécurité privée',
-    description: 'Agents, sites, prises de poste, rondes et alertes.',
+    description: 'Planning, facturation, terrain, rondes et supervision.',
     icon: 'shield',
+    launchStatus: 'planned',
     navigation: [
       { label: 'Tableau de bord', path: '/', icon: 'home' },
       { label: 'Planning', path: '/planning', icon: 'calendar' },
@@ -111,6 +115,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
     label: 'Formation',
     description: 'Stagiaires, sessions, documents et émargements.',
     icon: 'graduation',
+    launchStatus: 'available',
     navigation: [
       { label: 'Tableau de bord', path: '/', icon: 'home' },
       { label: 'Formations', path: '/formations', icon: 'graduation' },
@@ -139,38 +144,45 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Créer une formation', path: '/formations?new=1', icon: 'graduation' }
     ]
   },
-  artisan: {
-    id: 'artisan',
-    label: 'Artisan & intervention',
-    description: 'Clients, devis, chantiers et comptes rendus.',
-    icon: 'tool',
+  restauration: {
+    id: 'restauration',
+    label: 'Restauration',
+    description: 'Équipe, réservations, menu, hygiène, stocks et rentabilité.',
+    icon: 'utensils',
+    launchStatus: 'planned',
     navigation: [
       { label: 'Tableau de bord', path: '/', icon: 'home' },
-      { label: 'Clients', path: '/clients', icon: 'users' },
-      { label: 'Interventions', path: '/interventions', icon: 'tool' },
-      { label: 'Devis', path: '/devis', icon: 'file' },
-      { label: 'Planning', path: '/planning', icon: 'calendar' },
-      { label: 'Documents', path: '/documents', icon: 'file' },
-      { label: 'Rapports', path: '/rapports', icon: 'clipboard' },
+      { label: 'Planning équipe', path: '/planning', icon: 'calendar' },
+      { label: 'Employés', path: '/equipe', icon: 'users' },
+      { label: 'Carte & menus', path: '/carte', icon: 'utensils' },
+      { label: 'Réservations', path: '/reservations', icon: 'calendar' },
+      { label: 'Plan de salle', path: '/salle', icon: 'map' },
+      { label: 'Menu QR', path: '/menu-qr', icon: 'file' },
+      { label: 'Hygiène & températures', path: '/hygiene', icon: 'clipboard' },
+      { label: 'Stocks & fournisseurs', path: '/stocks', icon: 'briefcase' },
       subscription,
       settings
     ],
     metrics: [
-      { label: 'Interventions prévues', value: '8', detail: 'cette semaine', icon: 'tool' },
-      { label: 'Devis en attente', value: '5', detail: 'pour 6 480 €', icon: 'file' },
-      { label: 'Clients actifs', value: '39', detail: 'sur les 90 derniers jours', icon: 'users' },
-      { label: 'Taux de validation', value: '68 %', detail: 'des devis envoyés', icon: 'chart' }
+      { label: 'Réservations du jour', value: '42', detail: '68 couverts prévus', icon: 'calendar' },
+      { label: 'Employés planifiés', value: '9', detail: 'service du soir', icon: 'users' },
+      { label: 'Alertes hygiène', value: '2', detail: 'relevés à compléter', icon: 'alert' },
+      { label: 'Marge moyenne', value: '72 %', detail: 'sur la carte active', icon: 'chart' }
     ],
     quickActions: [
-      { label: 'Créer une intervention', path: '/interventions', icon: 'tool' },
-      { label: 'Créer un devis', path: '/devis', icon: 'file' }
+      { label: 'Ajouter un plat', path: '/carte', icon: 'utensils' },
+      { label: 'Créer une réservation', path: '/reservations', icon: 'calendar' },
+      { label: 'Faire un relevé', path: '/hygiene', icon: 'clipboard' }
     ]
   }
 };
 
-export const businessTypeOptions = Object.values(businessPacks).map(({ id, label, description, icon }) => ({
+export const businessTypeOptions = Object.values(businessPacks).map(({ id, label, description, icon, launchStatus }) => ({
   id,
   label,
   description,
-  icon
+  icon,
+  launchStatus
 }));
+
+export const availableBusinessTypeOptions = businessTypeOptions.filter((option) => option.launchStatus === 'available');

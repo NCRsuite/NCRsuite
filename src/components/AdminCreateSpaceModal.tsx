@@ -24,7 +24,8 @@ interface CreatedSpaceResult {
 const businessTypes = (Object.keys(businessPacks) as BusinessType[]).map((value) => ({
   value,
   label: businessPacks[value].label,
-  description: businessPacks[value].description
+  description: businessPacks[value].description,
+  launchStatus: businessPacks[value].launchStatus
 }));
 
 function slugify(value: string) {
@@ -131,8 +132,9 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
       setError('Les frais de configuration sont invalides.');
       return;
     }
-    if (plan === 'metier' && businessType === 'securite' && monthlyPriceCents < 5000) {
-      setError('Le tarif minimum du domaine Sécurité privée est de 50,00 € HT/mois.');
+    const minimumMetierPrice = getDomainPlans(businessType).metier.monthlyPriceCents;
+    if (plan === 'metier' && monthlyPriceCents < minimumMetierPrice) {
+      setError(`Le tarif minimum de l’offre Métier ${businessPacks[businessType].label} est de ${moneyInput(minimumMetierPrice).replace('.', ',')} € HT/mois.`);
       return;
     }
 
@@ -222,7 +224,7 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
             <div className="admin-space-form-grid">
               <label>Domaine métier
                 <select value={businessType} onChange={(event) => changeBusinessType(event.target.value as BusinessType)}>
-                  {businessTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                  {businessTypes.map((item) => <option key={item.value} value={item.value} disabled={item.launchStatus !== 'available'}>{item.label}{item.launchStatus !== 'available' ? ' — En préparation' : ''}</option>)}
                 </select>
                 <small>{selectedBusiness?.description}</small>
               </label>

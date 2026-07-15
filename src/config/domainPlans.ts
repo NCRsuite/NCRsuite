@@ -1,71 +1,33 @@
 import type { BusinessType, Plan } from '../types';
+import { DOMAIN_OFFER_CATALOG } from './domainOfferCatalog';
 
 export interface DomainPlanPresentation {
   label: string;
   monthlyPriceCents: number;
   memberLimit: number;
   detail: string;
+  additions: string[];
+  startingAt?: boolean;
+  recommended?: boolean;
 }
 
-const genericPlans: Record<Plan, DomainPlanPresentation> = {
-  decouverte: {
-    label: 'Découverte',
-    monthlyPriceCents: 990,
-    memberLimit: 1,
-    detail: '1 accès et fonctions essentielles.'
-  },
-  essentielle: {
-    label: 'Essentielle',
-    monthlyPriceCents: 1990,
-    memberLimit: 3,
-    detail: 'Jusqu’à 3 accès et fonctions collaboratives.'
-  },
-  professionnelle: {
-    label: 'Professionnelle',
-    monthlyPriceCents: 3990,
-    memberLimit: 10,
-    detail: 'Jusqu’à 10 accès, personnalisation et permissions avancées.'
-  },
-  metier: {
-    label: 'Métier',
-    monthlyPriceCents: 6990,
-    memberLimit: 100,
-    detail: 'Tarif, limites et modules configurés sur mesure.'
-  }
-};
-
-export const DOMAIN_PLAN_PRESENTATIONS: Partial<Record<BusinessType, Record<Plan, DomainPlanPresentation>>> = {
-  coiffure: genericPlans,
-  formation: {
-    decouverte: {
-      label: 'Découverte',
-      monthlyPriceCents: 3990,
-      memberLimit: 1,
-      detail: 'Le socle Formation : gestion, documents, feuille vierge et attestations automatiques.'
-    },
-    essentielle: {
-      label: 'Essentielle',
-      monthlyPriceCents: 6990,
-      memberLimit: 3,
-      detail: 'Ajoute l’émargement numérique et la personnalisation des documents et e-mails.'
-    },
-    professionnelle: {
-      label: 'Professionnelle',
-      monthlyPriceCents: 9990,
-      memberLimit: 10,
-      detail: 'Ajoute les évaluations, le dossier complet, le multi-site et les accès employés avec rôles.'
-    },
-    metier: {
-      label: 'Métier',
-      monthlyPriceCents: 14990,
-      memberLimit: 100,
-      detail: 'Modules, rôles, limites et identité configurés sur mesure selon le contrat.'
-    }
-  }
-};
+export const DOMAIN_PLAN_PRESENTATIONS: Record<BusinessType, Record<Plan, DomainPlanPresentation>> = Object.fromEntries(
+  Object.entries(DOMAIN_OFFER_CATALOG).map(([businessType, domain]) => [
+    businessType,
+    Object.fromEntries(Object.entries(domain.plans).map(([plan, definition]) => [plan, {
+      label: definition.label,
+      monthlyPriceCents: definition.monthlyPriceCents,
+      memberLimit: definition.memberLimit,
+      detail: definition.detail,
+      additions: definition.additions,
+      startingAt: definition.startingAt,
+      recommended: definition.recommended
+    }]))
+  ])
+) as Record<BusinessType, Record<Plan, DomainPlanPresentation>>;
 
 export function getDomainPlans(businessType: BusinessType): Record<Plan, DomainPlanPresentation> {
-  return DOMAIN_PLAN_PRESENTATIONS[businessType] ?? genericPlans;
+  return DOMAIN_PLAN_PRESENTATIONS[businessType];
 }
 
 export function getDomainPlan(businessType: BusinessType, plan: Plan): DomainPlanPresentation {

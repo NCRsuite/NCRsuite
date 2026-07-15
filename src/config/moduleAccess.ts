@@ -29,7 +29,13 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/emargements': 'attendance',
   '/evaluations': 'evaluations',
   '/attestations': 'certificates',
-  '/devis': 'quotes'
+  '/devis': 'quotes',
+  '/carte': 'restaurant_menu',
+  '/reservations': 'restaurant_reservations',
+  '/salle': 'restaurant_floor_plan',
+  '/menu-qr': 'restaurant_qr_menu',
+  '/hygiene': 'restaurant_food_safety',
+  '/stocks': 'restaurant_stock'
 };
 
 const FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {

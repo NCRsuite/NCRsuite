@@ -1,6 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { businessTypeOptions } from '../config/businessPacks';
+import { availableBusinessTypeOptions } from '../config/businessPacks';
 import { Icon } from '../components/Icon';
 import { useOrganization } from '../contexts/OrganizationContext';
 import type { BusinessType } from '../types';
@@ -44,7 +44,7 @@ export function OnboardingPage() {
         <fieldset>
           <legend>Votre activité</legend>
           <div className="business-grid">
-            {businessTypeOptions.map((option) => (
+            {availableBusinessTypeOptions.map((option) => (
               <button
                 key={option.id}
                 type="button"

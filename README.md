@@ -1,4 +1,23 @@
-# NCR Suite — V2.4.12
+# NCR Suite — V2.4.13
+
+## V2.4.13 — Catalogue central des offres
+
+Cette version centralise les offres commerciales de tous les domaines prévus :
+
+- **Coiffure & beauté** et **Formation** restent disponibles ;
+- **Sécurité privée**, **Nettoyage** et **Restauration** sont préparés mais bloqués à la création jusqu’au développement de leurs modules ;
+- le super administrateur dispose d’une rubrique **Catalogue des offres** présentant les tarifs, limites et options ajoutées à chaque niveau ;
+- la rubrique **Mon abonnement** utilise désormais une présentation progressive pour tous les domaines ;
+- **Artisan** est remplacé par **Restauration** ;
+- le menu QR Restauration prévoit le français, l’anglais, l’espagnol et l’italien.
+
+Exécuter d’abord :
+
+```text
+supabase/migrations/026_central_offer_catalog.sql
+```
+
+Puis envoyer le patch sur GitHub, attendre Cloudflare et rouvrir la PWA.
 
 ## V2.4.12 — Pilotage & contrôle qualité Formation
 

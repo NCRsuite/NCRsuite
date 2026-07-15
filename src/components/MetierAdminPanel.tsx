@@ -257,7 +257,7 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
               {!canManage && <div className="info-message">Le rôle Support permet la consultation, mais pas la modification.</div>}
 
               <section className="metier-admin-domain-lock">
-                <div className="metier-admin-domain-lock-icon"><Icon name={selected.business_type === 'securite' ? 'shield' : selected.business_type === 'formation' ? 'graduation' : selected.business_type === 'artisan' ? 'tool' : selected.business_type === 'nettoyage' ? 'sparkles' : 'scissors'} size={24} /></div>
+                <div className="metier-admin-domain-lock-icon"><Icon name={selected.business_type === 'securite' ? 'shield' : selected.business_type === 'formation' ? 'graduation' : selected.business_type === 'restauration' ? 'utensils' : selected.business_type === 'nettoyage' ? 'sparkles' : 'scissors'} size={24} /></div>
                 <div>
                   <p className="eyebrow">DOMAINE MÉTIER UNIQUE</p>
                   <h3>{configuration.organization.business_type_label}</h3>

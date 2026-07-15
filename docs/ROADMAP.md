@@ -42,6 +42,6 @@
 1. Nettoyage.
 2. Formation.
 3. Sécurité privée.
-4. Artisans et interventions.
+4. Restauration : équipe, menus, réservations, hygiène et stocks.
 
 Chaque pack est ajouté sur le même socle, sans mélanger les données des entreprises.

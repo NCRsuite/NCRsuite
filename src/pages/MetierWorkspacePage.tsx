@@ -88,7 +88,7 @@ const categoryLabels: Record<string, string> = {
   securite: 'Sécurité',
   documents: 'Documents',
   formation: 'Formation',
-  artisan: 'Artisan'
+  restauration: 'Restauration'
 };
 
 const domainStatusLabels: Record<MetierOrganizationConfig['custom_domain_status'], string> = {

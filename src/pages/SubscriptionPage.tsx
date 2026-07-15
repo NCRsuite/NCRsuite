@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { businessPacks } from '../config/businessPacks';
 import { planLabel } from '../config/planEntitlements';
+import { getDomainOffer, OFFER_FEATURE_LABELS } from '../config/domainOfferCatalog';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
 import type { BusinessType, Plan, SubscriptionStatus } from '../types';
@@ -79,7 +80,7 @@ interface BillingTerms {
 }
 
 interface BillingPortalData {
-  business_type?: string;
+  business_type?: BusinessType;
   business_type_label?: string;
   subscription: BillingSubscription;
   usage: BillingUsage;
@@ -96,35 +97,6 @@ interface SubscriptionPortfolioItem {
   portal: BillingPortalData | null;
   error: string | null;
 }
-
-const featureLabels: Record<string, string> = {
-  public_booking: 'Réservation publique',
-  confirmation_emails: 'Confirmations par e-mail',
-  automatic_reminders: 'Rappels automatiques',
-  online_booking_management: 'Modification et annulation en ligne',
-  calendar_links: 'Ajout au calendrier',
-  team_access: 'Comptes collaborateurs',
-  manager_role: 'Rôle Responsable',
-  commercial_branding: 'Personnalisation complète',
-  white_label: 'Marque blanche',
-  multi_site: 'Plusieurs établissements',
-  custom_modules: 'Modules à la carte',
-  custom_roles: 'Rôles personnalisés',
-  custom_domain: 'Domaine personnalisé',
-  training_programs: 'Catalogue des formations',
-  training_trainees: 'Gestion des stagiaires',
-  training_trainers: 'Gestion des formateurs',
-  training_sessions: 'Sessions et planning',
-  training_documents: 'Documents de session',
-  training_blank_attendance: 'Feuille d’émargement vierge imprimable',
-  training_digital_attendance: 'Émargement numérique avec signatures',
-  training_attendance_pdf: 'PDF d’émargement signé',
-  training_automatic_certificates: 'Attestations automatiques',
-  training_document_branding: 'Personnalisation des documents',
-  training_email_branding: 'Personnalisation des e-mails',
-  training_satisfaction: 'Évaluations de satisfaction',
-  training_session_dossier: 'Dossier complet de session'
-};
 
 const statusLabels: Record<SubscriptionStatus, string> = {
   trialing: 'Période d’essai',
@@ -385,14 +357,15 @@ export function SubscriptionPage() {
                 const current = plan.plan_key === data.subscription.plan;
                 const currentIsPaid = current && data.subscription.subscription_status === 'active';
                 const isMetier = plan.plan_key === 'metier';
-                const isFormation = data.business_type === 'formation';
+                const domainOffer = data.business_type ? getDomainOffer(data.business_type) : null;
                 const enabledFeatures = Object.entries(plan.features).filter(([, active]) => Boolean(active));
                 const previousPlan = planIndex > 0 ? orderedPlans[planIndex - 1] : null;
                 const previousFeatures = new Set(Object.entries(previousPlan?.features ?? {}).filter(([, active]) => Boolean(active)).map(([feature]) => feature));
-                const displayedFeatures = isFormation
-                  ? (isMetier ? [['custom_modules', true] as [string, boolean]] : enabledFeatures.filter(([feature]) => !previousFeatures.has(feature)))
-                  : enabledFeatures.slice(0, 8);
-                const progressiveLabel = !isFormation ? null : planIndex === 0 ? 'SOCLE INCLUS' : `EN PLUS DE ${previousPlan?.display_name.toUpperCase()}`;
+                const displayedFeatures = enabledFeatures.filter(([feature]) => !previousFeatures.has(feature));
+                const progressiveLabel = planIndex === 0 ? 'SOCLE INCLUS' : `EN PLUS DE ${previousPlan?.display_name.toUpperCase()}`;
+                const accessUnit = domainOffer
+                  ? (plan.member_limit > 1 ? domainOffer.accessUnitPlural : domainOffer.accessUnitSingular)
+                  : 'accès';
                 return (
                   <article key={plan.plan_key} className={`subscription-plan-card${current ? ' current' : ''}${plan.recommended ? ' recommended' : ''}`}>
                     {plan.recommended && <span className="subscription-recommended">RECOMMANDÉE</span>}
@@ -401,11 +374,11 @@ export function SubscriptionPage() {
                       {current && <Icon name="check" size={20} />}
                     </div>
                     <p className="subscription-plan-description">{plan.short_description}</p>
-                    <strong className="subscription-card-price">{isMetier ? 'Sur étude' : money(plan.monthly_price_cents)}<small>{isMetier ? ' configuration personnalisée' : ' HT / mois'}</small></strong>
+                    <strong className="subscription-card-price">{isMetier ? `À partir de ${money(plan.monthly_price_cents)}` : money(plan.monthly_price_cents)}<small>{isMetier ? ' HT / mois · sur étude' : ' HT / mois'}</small></strong>
                     {progressiveLabel && <p className="eyebrow">{progressiveLabel}</p>}
                     <ul>
-                      <li><Icon name="users" size={16} /> {isFormation && planIndex > 0 ? `Passe à ${plan.member_limit} accès` : `Jusqu’à ${plan.member_limit} accès`}</li>
-                      {displayedFeatures.map(([feature]) => <li key={feature}><Icon name="check" size={16} /> {isFormation && isMetier ? 'Configuration des modules, rôles et limites sur mesure' : featureLabels[feature] ?? feature}</li>)}
+                      <li><Icon name="users" size={16} /> {planIndex > 0 ? `Passe à ${plan.member_limit} ${accessUnit}` : `Jusqu’à ${plan.member_limit} ${accessUnit}`}</li>
+                      {displayedFeatures.map(([feature]) => <li key={feature}><Icon name="check" size={16} /> {OFFER_FEATURE_LABELS[feature as keyof typeof OFFER_FEATURE_LABELS] ?? feature}</li>)}
                     </ul>
                     <button
                       type="button"
