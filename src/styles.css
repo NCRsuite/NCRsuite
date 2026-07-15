@@ -3408,3 +3408,95 @@ button { max-width: 100%; }
   .attendance-pdf-actions { grid-template-columns: 1fr; }
   .attendance-pdf-actions > div { grid-column: auto; }
 }
+
+/* NCR Suite V2.4.11 — classement par domaine, abonnements multiples et clôture Formation */
+.admin-domain-organization-list { display:flex;flex-direction:column;gap:14px; }
+.admin-domain-group { border:1px solid var(--line);border-radius:18px;overflow:hidden;background:rgba(255,255,255,.72); }
+.admin-domain-group-header { display:flex;align-items:center;gap:11px;padding:12px 14px;background:#f7f9fc;border-bottom:1px solid var(--line); }
+.admin-domain-group-header > div { display:flex;flex-direction:column;gap:2px; }
+.admin-domain-group-header strong { font-size:.83rem; }
+.admin-domain-group-header small { color:var(--muted);font-size:.68rem; }
+.admin-domain-group-icon { width:34px;height:34px;border-radius:11px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,white); }
+.admin-domain-group-rows .admin-organization-row { border-radius:0;border:0;border-bottom:1px solid var(--line); }
+.admin-domain-group-rows .admin-organization-row:last-child { border-bottom:0; }
+
+.subscription-portfolio-panel { margin-bottom:22px; }
+.subscription-portfolio-header { align-items:flex-end; }
+.subscription-portfolio-header p { margin:.25rem 0 0;color:var(--muted); }
+.subscription-portfolio-total { min-width:150px;text-align:right;display:flex;flex-direction:column;gap:1px; }
+.subscription-portfolio-total small,.subscription-portfolio-total span { color:var(--muted);font-size:.7rem; }
+.subscription-portfolio-total strong { font-size:1.4rem; }
+.subscription-portfolio-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px; }
+.subscription-portfolio-card { display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:11px;padding:14px;border:1px solid var(--line);border-radius:17px;background:#fff; }
+.subscription-portfolio-card.current { border-color:color-mix(in srgb,var(--accent) 45%,var(--line));box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 8%,transparent); }
+.subscription-portfolio-icon { width:38px;height:38px;border-radius:13px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,white); }
+.subscription-portfolio-main { min-width:0;display:flex;flex-direction:column;gap:2px; }
+.subscription-portfolio-main small { color:var(--muted);font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em; }
+.subscription-portfolio-main strong,.subscription-portfolio-main span { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.subscription-portfolio-main span { color:var(--muted);font-size:.75rem; }
+.subscription-portfolio-card .subscription-status { grid-column:2;justify-self:start; }
+.subscription-portfolio-card button { grid-column:3;grid-row:1 / span 2; }
+.subscription-portfolio-error { grid-column:1/-1;color:var(--danger); }
+
+.training-session-toolbar p { margin:.25rem 0 0;color:var(--muted); }
+.training-session-view-tabs { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 18px; }
+.training-session-view-tabs button { display:flex;align-items:center;gap:10px;text-align:left;padding:12px 13px;border:1px solid var(--line);border-radius:15px;background:#f8fafc;color:var(--text);cursor:pointer; }
+.training-session-view-tabs button > span { display:flex;flex-direction:column;gap:2px; }
+.training-session-view-tabs button strong { font-size:.78rem; }
+.training-session-view-tabs button small { color:var(--muted);font-size:.67rem; }
+.training-session-view-tabs button.active { color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 8%,white);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 7%,transparent); }
+.training-session-card.closed { border-color:#bde8d2;background:#fcfffd; }
+.training-session-closed-meta { display:block;margin-top:5px;color:#14704b;font-size:.7rem;font-style:normal;font-weight:750; }
+.training-status-pill.active { display:inline-flex;align-items:center;gap:5px; }
+.training-closure-modal-backdrop { position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:20px;background:rgba(13,20,32,.48);backdrop-filter:blur(7px); }
+.training-closure-modal { width:min(680px,100%);max-height:min(88vh,820px);overflow:auto;padding:22px; }
+.training-closure-checklist { display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0; }
+.training-closure-checklist article { display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--line);border-radius:14px;background:#f8fafc; }
+.training-closure-checklist article > span { display:flex;flex-direction:column;gap:2px; }
+.training-closure-checklist article strong { font-size:.78rem; }
+.training-closure-checklist article small { color:var(--muted);font-size:.7rem;line-height:1.35; }
+.training-closure-checklist article.ok { color:#087846;border-color:#bde8d2;background:#f3fcf7; }
+.training-closure-checklist article.blocked { color:#b42318;border-color:#ffd1ce;background:#fff7f6; }
+.training-closure-checklist article.info { color:#075fbe;border-color:#cfe6ff;background:#f5faff; }
+.training-closure-modal .error-message ul { margin:.45rem 0 0 1.1rem;padding:0; }
+.training-closure-notes { display:flex;flex-direction:column;gap:7px;margin-top:14px;font-size:.78rem;font-weight:750; }
+.training-closure-notes textarea { width:100%; }
+.attendance-closed-message { display:flex;align-items:flex-start;gap:9px;margin-top:12px; }
+.attendance-closed-message span { display:flex;flex-direction:column;gap:2px; }
+
+.training-document-session-groups { display:flex;flex-direction:column;gap:14px; }
+.training-document-session-group { border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden; }
+.training-document-session-group > summary { list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:11px;padding:14px 15px;cursor:pointer;background:#f8fafc; }
+.training-document-session-group > summary::-webkit-details-marker { display:none; }
+.training-document-session-group[open] > summary { border-bottom:1px solid var(--line); }
+.training-document-session-group > summary > svg { transition:transform .2s ease; }
+.training-document-session-group[open] > summary > svg { transform:rotate(180deg); }
+.training-document-session-icon { width:38px;height:38px;border-radius:13px;display:grid;place-items:center;color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,white); }
+.training-document-session-title { min-width:0;display:flex;flex-direction:column;gap:2px; }
+.training-document-session-title strong,.training-document-session-title small { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.training-document-session-title small { color:var(--muted);font-size:.7rem; }
+.training-document-session-count { color:var(--muted);font-size:.72rem;font-weight:800; }
+.training-document-category-groups { display:flex;flex-direction:column;gap:18px;padding:15px; }
+.training-document-category-group > header { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px; }
+.training-document-category-group > header > div { display:flex;align-items:center;gap:8px; }
+.training-document-category-group > header .training-document-icon { width:31px;height:31px;border-radius:10px; }
+.training-document-category-group > header strong { font-size:.78rem; }
+.training-document-category-group > header small { min-width:25px;text-align:center;padding:4px 7px;border-radius:999px;background:#edf1f5;color:var(--muted);font-weight:850; }
+
+@media (max-width: 880px) {
+  .training-session-view-tabs { grid-template-columns:1fr 1fr; }
+  .training-closure-checklist { grid-template-columns:1fr; }
+  .subscription-portfolio-card { grid-template-columns:auto minmax(0,1fr); }
+  .subscription-portfolio-card button { grid-column:1/-1;grid-row:auto;width:100%; }
+  .subscription-portfolio-card .subscription-status { grid-column:2; }
+}
+
+@media (max-width: 620px) {
+  .training-session-view-tabs { grid-template-columns:1fr; }
+  .training-closure-modal-backdrop { padding:0;align-items:end; }
+  .training-closure-modal { width:100%;max-height:92vh;border-radius:24px 24px 0 0; }
+  .subscription-portfolio-header { align-items:flex-start; }
+  .subscription-portfolio-total { text-align:left; }
+  .training-document-session-group > summary { grid-template-columns:auto minmax(0,1fr) auto; }
+  .training-document-session-count { display:none; }
+}

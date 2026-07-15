@@ -1,4 +1,23 @@
-# NCR Suite — V2.4.10
+# NCR Suite — V2.4.11
+
+## V2.4.11 — Organisation multi-domaines et clôture Formation
+
+Cette version met de l’ordre dans l’administration et dans le cycle complet d’une session :
+
+- entreprises regroupées par domaine dans l’administration NCR ;
+- affichage de tous les abonnements d’un même utilisateur lorsqu’il possède plusieurs espaces métier ;
+- sessions rangées en **Planifiées**, **En cours**, **Clôturées** et **Annulées** ;
+- clôture contrôlée et verrouillage des émargements ;
+- réouverture réservée aux propriétaires et administrateurs ;
+- documents classés par session puis par catégorie.
+
+Exécuter d’abord :
+
+```text
+supabase/migrations/025_training_session_closure.sql
+```
+
+Puis envoyer le patch sur GitHub et attendre le déploiement Cloudflare. Aucun redéploiement de `process-email-queue` n’est nécessaire.
 
 ## V2.4.10 — Administration des offres Formation
 

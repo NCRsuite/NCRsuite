@@ -288,7 +288,7 @@ export function TrainingAttendancePage() {
 
     let sessionsQuery = supabase
       .from('training_sessions')
-      .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,created_at')
+      .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,created_at')
       .eq('organization_id', organization.id)
       .neq('status', 'canceled')
       .order('starts_at', { ascending: false });
@@ -329,6 +329,7 @@ export function TrainingAttendancePage() {
 
   const selectedSession = useMemo(() => sessions.find((item) => item.id === sessionId), [sessions, sessionId]);
   const dates = useMemo(() => sessionDates(selectedSession), [selectedSession]);
+  const sessionClosed = selectedSession?.status === 'completed';
 
   useEffect(() => {
     if (dates.length === 0) { setDate(''); return; }
@@ -423,7 +424,7 @@ export function TrainingAttendancePage() {
   }
 
   async function persistStatus(trainee: TrainingTraineeRecord, status: Exclude<TrainingAttendanceStatus, 'present'>) {
-    if (!organization || !selectedSession || !date || !canManage || !hasDigitalAttendance) return;
+    if (!organization || !selectedSession || !date || !canManage || !hasDigitalAttendance || sessionClosed) return;
     const existing = recordMap.get(trainee.id);
     setSavingId(trainee.id); setError(''); setSuccess('');
     try {
@@ -462,7 +463,7 @@ export function TrainingAttendancePage() {
   }
 
   async function saveSignature(blob: Blob, signatoryName: string) {
-    if (!organization || !selectedSession || !date || !signatureTrainee || !canManage || !hasDigitalAttendance) return;
+    if (!organization || !selectedSession || !date || !signatureTrainee || !canManage || !hasDigitalAttendance || sessionClosed) return;
     const trainee = signatureTrainee;
     const existing = recordMap.get(trainee.id);
     setSavingId(trainee.id); setError(''); setSuccess('');
@@ -536,6 +537,7 @@ export function TrainingAttendancePage() {
           </div></div>}
         </div>
         {selectedSession && <div className="attendance-session-summary"><Icon name="calendar" size={19} /><span><strong>{selectedSession.title}</strong><small>{formatDateTime(selectedSession.starts_at)} → {formatDateTime(selectedSession.ends_at)}{selectedSession.location ? ` · ${selectedSession.location}` : ''}</small></span></div>}
+        {sessionClosed && <div className="info-message attendance-closed-message"><Icon name="lock" size={18} /><span><strong>Session clôturée</strong><small>Les signatures et statuts sont verrouillés. Les PDF restent consultables et téléchargeables.</small></span></div>}
         <div className="attendance-pdf-actions">
           <div><strong>{hasAttendancePdf ? 'Feuille signée de la journée' : 'Feuille vierge de la journée'}</strong><small>{hasAttendancePdf ? 'Regroupe le matin et l’après-midi avec les signatures enregistrées.' : 'À imprimer avant la formation pour recueillir les signatures manuscrites.'}</small></div>
           <button className="primary-button" type="button" disabled={pdfBusy || !selectedSession || !date || enrolledTrainees.length === 0} onClick={() => void createAttendancePdf('preview', !hasAttendancePdf)}><Icon name="file" size={17} />{pdfBusy ? 'Préparation…' : hasAttendancePdf ? 'Visualiser le PDF' : 'Imprimer la feuille vierge'}</button>
@@ -571,8 +573,8 @@ export function TrainingAttendancePage() {
                   <div className="attendance-row-actions">
                     {status === 'present' ? <>
                       <button className="secondary-button compact-button" type="button" onClick={() => void openSignature(record!)}>Voir</button>
-                      {canManage && <button className="secondary-button compact-button" type="button" onClick={() => setSignatureTrainee(trainee)}>Refaire</button>}
-                    </> : canManage ? <>
+                      {canManage && !sessionClosed && <button className="secondary-button compact-button" type="button" onClick={() => setSignatureTrainee(trainee)}>Refaire</button>}
+                    </> : canManage && !sessionClosed ? <>
                       <button className="primary-button compact-button" type="button" onClick={() => setSignatureTrainee(trainee)} disabled={busy}><Icon name="signature" size={17} />Faire signer</button>
                       <select aria-label={`Statut de ${personName(trainee.first_name, trainee.last_name)}`} value={status} disabled={busy} onChange={(event) => void persistStatus(trainee, event.target.value as Exclude<TrainingAttendanceStatus, 'present'>)}>
                         <option value="pending">À émarger</option><option value="absent">Absent</option><option value="excused">Justifié</option>
@@ -596,7 +598,7 @@ export function TrainingAttendancePage() {
         </section>
       )}
 
-      {hasDigitalAttendance && signatureTrainee && date && <SignatureModal trainee={signatureTrainee} period={period} date={date} saving={savingId === signatureTrainee.id} onCancel={() => !savingId && setSignatureTrainee(null)} onSave={(blob, name) => void saveSignature(blob, name)} />}
+      {hasDigitalAttendance && !sessionClosed && signatureTrainee && date && <SignatureModal trainee={signatureTrainee} period={period} date={date} saving={savingId === signatureTrainee.id} onCancel={() => !savingId && setSignatureTrainee(null)} onSave={(blob, name) => void saveSignature(blob, name)} />}
     </div>
   );
 }

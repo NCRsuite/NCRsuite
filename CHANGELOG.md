@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2.4.11 — Organisation multi-domaines et clôture des sessions
+
+- Classement des entreprises par domaine dans le compte super administrateur, avec filtre et regroupement Coiffure, Formation, Sécurité, Nettoyage et Artisan.
+- Vue « Mes abonnements NCR Suite » regroupant tous les abonnements accessibles lorsqu’un utilisateur possède plusieurs domaines.
+- Total mensuel actif et accès direct au détail de chaque abonnement.
+- Sessions Formation rangées automatiquement en Planifiées, En cours, Clôturées et Annulées.
+- Contrôle de clôture : date de fin passée, formateur affecté, stagiaires inscrits et émargements complets lorsque la formule inclut la signature numérique.
+- Clôture sécurisée avec horodatage, note interne, journal d’audit et déclenchement des automatisations existantes.
+- Verrouillage des émargements et inscriptions après clôture.
+- Réouverture réservée au propriétaire et aux administrateurs.
+- Documents Formation regroupés par session puis par rubrique : convocations, programmes, supports, attestations, administratifs et autres.
+- Migration Supabase `025_training_session_closure.sql`.
+- Aucun changement de l’Edge Function Brevo, de Qonto, du pack Coiffure ou de NCR Academy.
+- Cache PWA et version applicative passés en V2.4.11.
+
 ## 2.4.10 — Offres Formation dans l’administration NCR
 
 - Correction de la grille tarifaire utilisée par le super administrateur lors de la modification d’un espace Formation existant.
@@ -389,3 +404,5 @@
 ## 1.0.2
 
 - Stabilisation du déploiement Cloudflare Pages.
+
+- Correctif SQL final : chargement séparé du `%ROWTYPE` de session et du fuseau horaire pour compatibilité PL/pgSQL.

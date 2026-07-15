@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
+import { businessPacks } from '../config/businessPacks';
 import { planLabel } from '../config/planEntitlements';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
-import type { Plan, SubscriptionStatus } from '../types';
+import type { BusinessType, Plan, SubscriptionStatus } from '../types';
 
 type BillingProvider = 'manual' | 'qonto' | 'stripe';
 
@@ -88,6 +89,14 @@ interface BillingPortalData {
   terms: BillingTerms;
 }
 
+interface SubscriptionPortfolioItem {
+  organizationId: string;
+  organizationName: string;
+  businessType: BusinessType;
+  portal: BillingPortalData | null;
+  error: string | null;
+}
+
 const featureLabels: Record<string, string> = {
   public_booking: 'Réservation publique',
   confirmation_emails: 'Confirmations par e-mail',
@@ -156,9 +165,11 @@ function requestStatusLabel(request: OpenRequest) {
 }
 
 export function SubscriptionPage() {
-  const { organization } = useOrganization();
+  const { organization, organizations, selectOrganization } = useOrganization();
   const [data, setData] = useState<BillingPortalData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [portfolioLoading, setPortfolioLoading] = useState(false);
+  const [portfolio, setPortfolio] = useState<SubscriptionPortfolioItem[]>([]);
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [message, setMessage] = useState('');
@@ -178,9 +189,36 @@ export function SubscriptionPage() {
     setLoading(false);
   }
 
+  async function loadPortfolio() {
+    if (!supabase || organizations.length === 0) {
+      setPortfolio([]);
+      return;
+    }
+    setPortfolioLoading(true);
+    const client = supabase;
+    const rows = await Promise.all(organizations.map(async (item): Promise<SubscriptionPortfolioItem> => {
+      const { data: response, error: requestError } = await client.rpc('organization_billing_portal', {
+        p_organization_id: item.id
+      });
+      return {
+        organizationId: item.id,
+        organizationName: item.name,
+        businessType: item.business_type,
+        portal: requestError ? null : response as BillingPortalData,
+        error: requestError?.message ?? null
+      };
+    }));
+    setPortfolio(rows);
+    setPortfolioLoading(false);
+  }
+
   useEffect(() => {
     void load();
   }, [organization?.id]);
+
+  useEffect(() => {
+    void loadPortfolio();
+  }, [organizations.map((item) => item.id).join('|')]);
 
   const orderedPlans = useMemo(
     () => [...(data?.plans ?? [])].sort((a, b) => a.sort_order - b.sort_order),
@@ -215,10 +253,10 @@ export function SubscriptionPage() {
       window.setTimeout(() => window.location.assign(result.checkout_url as string), 850);
     } else if (plan.plan_key === 'metier') {
       setMessage(`Demande ${result.reference} transmise. NCR Solutions te recontactera pour cadrer l’offre Métier.`);
-      await load();
+      await Promise.all([load(), loadPortfolio()]);
     } else {
       setMessage(`Demande ${result.reference} transmise à NCR Solutions pour validation.`);
-      await load();
+      await Promise.all([load(), loadPortfolio()]);
     }
   }
 
@@ -233,9 +271,12 @@ export function SubscriptionPage() {
     if (requestError) setError(requestError.message);
     else {
       setMessage('La demande de changement a été annulée.');
-      await load();
+      await Promise.all([load(), loadPortfolio()]);
     }
   }
+
+  const activePortfolio = portfolio.filter((item) => item.portal && ['active', 'trialing'].includes(item.portal.subscription.subscription_status));
+  const portfolioMonthlyTotal = activePortfolio.reduce((sum, item) => sum + (item.portal?.subscription.monthly_price_cents ?? 0), 0);
 
   if (!organization) return null;
 
@@ -252,6 +293,38 @@ export function SubscriptionPage() {
 
       {error && <div className="error-message page-message" role="alert">{error}</div>}
       {message && <div className="success-message page-message" role="status">{message}</div>}
+
+      {organizations.length > 1 && (
+        <section className="panel subscription-portfolio-panel">
+          <div className="panel-header subscription-portfolio-header">
+            <div><p className="eyebrow">TOUS MES DOMAINES</p><h2>Mes abonnements NCR Suite</h2><p>Chaque domaine dispose de sa formule, de son tarif et de son historique séparés.</p></div>
+            <div className="subscription-portfolio-total"><small>Total mensuel actif</small><strong>{portfolioLoading ? '…' : money(portfolioMonthlyTotal)}</strong><span>HT / mois</span></div>
+          </div>
+          {portfolioLoading && portfolio.length === 0 ? <div className="subscription-loading">Chargement de vos abonnements…</div> : (
+            <div className="subscription-portfolio-grid">
+              {portfolio.map((item) => {
+                const portal = item.portal;
+                const current = item.organizationId === organization.id;
+                return (
+                  <article key={item.organizationId} className={`subscription-portfolio-card${current ? ' current' : ''}`}>
+                    <span className="subscription-portfolio-icon"><Icon name={businessPacks[item.businessType].icon} size={20} /></span>
+                    <div className="subscription-portfolio-main">
+                      <small>{businessPacks[item.businessType].label}</small>
+                      <strong>{item.organizationName}</strong>
+                      {portal ? <span>{portal.subscription.plan_name} · {money(portal.subscription.monthly_price_cents)} HT/mois</span> : <span>Abonnement indisponible</span>}
+                    </div>
+                    {portal && <span className={`subscription-status ${portal.subscription.subscription_status}`}>{statusLabels[portal.subscription.subscription_status]}</span>}
+                    <button type="button" className={current ? 'secondary-button compact-button' : 'primary-button compact-button'} onClick={() => selectOrganization(item.organizationId)} disabled={current}>
+                      {current ? 'Affiché' : 'Voir cet abonnement'}
+                    </button>
+                    {item.error && <small className="subscription-portfolio-error">{item.error}</small>}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       {loading && <section className="panel subscription-loading">Chargement de l’abonnement…</section>}
 

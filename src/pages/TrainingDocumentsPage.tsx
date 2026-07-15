@@ -6,6 +6,7 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import {
   formatDateTime,
   personName,
+  sessionStatusLabels,
   trainingDocumentCategoryLabels,
   trainingDocumentVisibilityLabels,
   type TrainingDocumentCategory,
@@ -104,7 +105,7 @@ export function TrainingDocumentsPage() {
       .order('created_at', { ascending: false });
     let sessionQuery = supabase
       .from('training_sessions')
-      .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,created_at')
+      .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,created_at')
       .eq('organization_id', organization.id)
       .order('starts_at', { ascending: false });
 
@@ -160,6 +161,49 @@ export function TrainingDocumentsPage() {
         .some((value) => String(value).toLowerCase().includes(normalizedSearch));
     });
   }, [documents, statusFilter, categoryFilter, sessionFilter, search, sessionMap, traineeMap]);
+
+  const documentGroups = useMemo(() => {
+    const bySession = new Map<string, TrainingDocumentRecord[]>();
+    for (const document of filteredDocuments) {
+      const key = document.session_id ?? 'general';
+      const current = bySession.get(key) ?? [];
+      current.push(document);
+      bySession.set(key, current);
+    }
+    const sessionOrder = sessions
+      .filter((session) => bySession.has(session.id))
+      .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
+      .map((session) => session.id);
+    if (bySession.has('general')) sessionOrder.push('general');
+    return sessionOrder.map((key) => {
+      const session = key === 'general' ? null : sessionMap.get(key) ?? null;
+      const sessionDocuments = bySession.get(key) ?? [];
+      const categories = (Object.keys(trainingDocumentCategoryLabels) as TrainingDocumentCategory[])
+        .map((category) => ({ category, documents: sessionDocuments.filter((document) => document.category === category) }))
+        .filter((group) => group.documents.length > 0);
+      return { key, session, documents: sessionDocuments, categories };
+    });
+  }, [filteredDocuments, sessions, sessionMap]);
+
+  function renderDocumentCard(document: TrainingDocumentRecord) {
+    const session = document.session_id ? sessionMap.get(document.session_id) : null;
+    const trainee = document.trainee_id ? traineeMap.get(document.trainee_id) : null;
+    return (
+      <article key={document.id} className="training-document-card">
+        <span className={`training-document-icon category-${document.category}`}><Icon name="file" size={22} /></span>
+        <div className="training-document-main">
+          <div><strong>{document.title}</strong><span className={`training-status-pill ${document.status === 'published' ? 'active' : ''}`}>{document.status === 'draft' ? 'Brouillon' : document.status === 'archived' ? 'Archivé' : 'Publié'}</span>{document.generated_automatically && <span className="training-status-pill automation">Automatique</span>}{document.emailed_at && <span className="training-status-pill emailed">Envoyé</span>}</div>
+          <p>{trainingDocumentCategoryLabels[document.category]} · {formatSize(document.size_bytes)}</p>
+          <small>{session ? `Session : ${session.title}` : 'Document général'}{trainee ? ` · ${personName(trainee.first_name, trainee.last_name)}` : ''} · {formatDateTime(document.generated_at || document.created_at)}</small>
+        </div>
+        <div className="training-document-actions">
+          <button className="primary-button compact-button" type="button" disabled={Boolean(downloadingId)} onClick={() => void openDocument(document)}>{downloadingId === `open-${document.id}` ? 'Ouverture…' : 'Visualiser'}</button>
+          <button className="secondary-button compact-button" type="button" disabled={Boolean(downloadingId)} onClick={() => void downloadDocument(document)}>{downloadingId === `download-${document.id}` ? 'Téléchargement…' : 'Télécharger'}</button>
+          <button className="text-button" type="button" onClick={() => void archiveDocument(document)}>{document.status === 'archived' ? 'Restaurer' : 'Archiver'}</button>
+        </div>
+      </article>
+    );
+  }
 
   function resetForm() {
     setForm(initialForm());
@@ -350,26 +394,25 @@ export function TrainingDocumentsPage() {
         {loading ? <div className="training-empty">Chargement…</div> : filteredDocuments.length === 0 ? (
           <div className="training-empty"><Icon name="file" size={30} /><strong>{attestationsArea ? 'Aucune attestation' : 'Aucun document'}</strong><span>{attestationsArea ? 'Les attestations générées apparaîtront ici après la clôture des sessions.' : 'Dépose le premier fichier ou modifie les filtres.'}</span></div>
         ) : (
-          <div className="training-document-list">
-            {filteredDocuments.map((document) => {
-              const session = document.session_id ? sessionMap.get(document.session_id) : null;
-              const trainee = document.trainee_id ? traineeMap.get(document.trainee_id) : null;
-              return (
-                <article key={document.id} className="training-document-card">
-                  <span className={`training-document-icon category-${document.category}`}><Icon name="file" size={22} /></span>
-                  <div className="training-document-main">
-                    <div><strong>{document.title}</strong><span className={`training-status-pill ${document.status === 'published' ? 'active' : ''}`}>{document.status === 'draft' ? 'Brouillon' : document.status === 'archived' ? 'Archivé' : 'Publié'}</span>{document.generated_automatically && <span className="training-status-pill automation">Automatique</span>}{document.emailed_at && <span className="training-status-pill emailed">Envoyé</span>}</div>
-                    <p>{trainingDocumentCategoryLabels[document.category]} · {formatSize(document.size_bytes)}</p>
-                    <small>{session ? `Session : ${session.title}` : 'Document général'}{trainee ? ` · ${personName(trainee.first_name, trainee.last_name)}` : ''} · {formatDateTime(document.generated_at || document.created_at)}</small>
-                  </div>
-                  <div className="training-document-actions">
-                    <button className="primary-button compact-button" type="button" disabled={Boolean(downloadingId)} onClick={() => void openDocument(document)}>{downloadingId === `open-${document.id}` ? 'Ouverture…' : 'Visualiser'}</button>
-                    <button className="secondary-button compact-button" type="button" disabled={Boolean(downloadingId)} onClick={() => void downloadDocument(document)}>{downloadingId === `download-${document.id}` ? 'Téléchargement…' : 'Télécharger'}</button>
-                    <button className="text-button" type="button" onClick={() => void archiveDocument(document)}>{document.status === 'archived' ? 'Restaurer' : 'Archiver'}</button>
-                  </div>
-                </article>
-              );
-            })}
+          <div className="training-document-session-groups">
+            {documentGroups.map((group, groupIndex) => (
+              <details key={group.key} className="training-document-session-group" open={sessionFilter !== 'all' || groupIndex === 0}>
+                <summary>
+                  <span className="training-document-session-icon"><Icon name={group.session ? 'calendar' : 'file'} size={20} /></span>
+                  <span className="training-document-session-title"><strong>{group.session?.title ?? 'Documents généraux'}</strong><small>{group.session ? `${formatDateTime(group.session.starts_at)} · ${sessionStatusLabels[group.session.status]}` : 'Documents non rattachés à une session'}</small></span>
+                  <span className="training-document-session-count">{group.documents.length} document{group.documents.length > 1 ? 's' : ''}</span>
+                  <Icon name="chevronDown" size={18} />
+                </summary>
+                <div className="training-document-category-groups">
+                  {group.categories.map((categoryGroup) => (
+                    <section key={categoryGroup.category} className="training-document-category-group">
+                      <header><div><span className={`training-document-icon category-${categoryGroup.category}`}><Icon name="file" size={18} /></span><strong>{trainingDocumentCategoryLabels[categoryGroup.category]}</strong></div><small>{categoryGroup.documents.length}</small></header>
+                      <div className="training-document-list">{categoryGroup.documents.map(renderDocumentCard)}</div>
+                    </section>
+                  ))}
+                </div>
+              </details>
+            ))}
           </div>
         )}
       </section>

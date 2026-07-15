@@ -56,6 +56,11 @@ export interface TrainingSessionRecord {
   modality: TrainingModality;
   status: TrainingSessionStatus;
   notes: string | null;
+  closed_at?: string | null;
+  closed_by?: string | null;
+  closure_notes?: string | null;
+  reopened_at?: string | null;
+  reopened_by?: string | null;
   created_at: string;
 }
 
@@ -138,7 +143,7 @@ export const sessionStatusLabels: Record<TrainingSessionStatus, string> = {
   draft: 'Brouillon',
   scheduled: 'Planifiée',
   in_progress: 'En cours',
-  completed: 'Terminée',
+  completed: 'Clôturée',
   canceled: 'Annulée'
 };
 
