@@ -27,6 +27,7 @@ import { TrainingTraineesPage } from './pages/TrainingTraineesPage';
 import { TrainingTrainersPage } from './pages/TrainingTrainersPage';
 import { TrainingSessionsPage } from './pages/TrainingSessionsPage';
 import { TrainingDocumentsPage } from './pages/TrainingDocumentsPage';
+import { TrainingAttendancePage } from './pages/TrainingAttendancePage';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
 
@@ -95,6 +96,7 @@ export default function App() {
         <Route path="formateurs" element={<ModuleAccessGuard moduleKey="trainers"><TrainingTrainersPage /></ModuleAccessGuard>} />
         <Route path="sessions" element={<ModuleAccessGuard moduleKey="sessions"><TrainingSessionsPage /></ModuleAccessGuard>} />
         <Route path="documents" element={<ModuleAccessGuard moduleKey="documents"><DocumentsArea /></ModuleAccessGuard>} />
+        <Route path="emargements" element={<ModuleAccessGuard moduleKey="attendance"><TrainingAttendancePage /></ModuleAccessGuard>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ModuleAccessGuard moduleKey="clients"><ClientsPage /></ModuleAccessGuard>} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />

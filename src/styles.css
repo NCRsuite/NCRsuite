@@ -3087,3 +3087,94 @@ button { max-width: 100%; }
   .training-document-actions { grid-column:1 / -1;justify-content:flex-end;border-top:1px solid #edf0f3;padding-top:10px; }
   .training-file-drop { min-height:112px;padding:18px; }
 }
+
+/* NCR Suite V2.4.4 — Émargements & signatures Formation */
+.attendance-controls-panel { margin-bottom:18px; }
+.attendance-control-grid { display:grid;grid-template-columns:minmax(220px,1.5fr) minmax(190px,1fr) minmax(240px,1fr);gap:14px;align-items:end; }
+.attendance-control-grid > label { display:grid;gap:7px;color:#242932;font-size:.78rem;font-weight:780; }
+.attendance-period-control { display:grid;gap:7px; }
+.attendance-period-control > span { color:#242932;font-size:.78rem;font-weight:780; }
+.attendance-period-control > div { min-height:46px;padding:4px;display:grid;grid-template-columns:1fr 1fr;gap:4px;border:1px solid #dfe3e9;border-radius:15px;background:#f3f5f7; }
+.attendance-period-control button { border:0;border-radius:11px;background:transparent;color:#6a7380;font-weight:800;cursor:pointer; }
+.attendance-period-control button.active { color:#075fd2;background:#fff;box-shadow:0 5px 18px rgba(24,44,78,.1); }
+.attendance-session-summary { margin-top:15px;padding:13px 15px;display:flex;align-items:center;gap:11px;border-radius:16px;background:#f4f8fd;color:#1767bf; }
+.attendance-session-summary > span { min-width:0;display:grid;gap:3px; }
+.attendance-session-summary strong,.attendance-session-summary small { overflow-wrap:anywhere; }
+.attendance-session-summary small { color:#66768a; }
+.attendance-stats-grid { margin-bottom:18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px; }
+.attendance-stats-grid article { min-width:0;padding:14px 16px;display:flex;align-items:center;gap:11px;border:1px solid #e7e9ed;border-radius:18px;background:#fff; }
+.attendance-stats-grid article > div { min-width:0;display:grid;gap:2px; }
+.attendance-stats-grid strong { font-size:1.3rem; }
+.attendance-stats-grid small { color:var(--muted);font-size:.75rem; }
+.attendance-stat-icon { width:38px;height:38px;flex:0 0 auto;display:grid;place-items:center;border-radius:13px; }
+.attendance-stat-icon.signed { color:#087846;background:#e5f8ee; }
+.attendance-stat-icon.absent { color:#bd2e29;background:#fff0ef; }
+.attendance-stat-icon.excused { color:#815d00;background:#fff5d8; }
+.attendance-stat-icon.pending { color:#4f5b6c;background:#edf1f5; }
+.attendance-count { padding:7px 10px;border-radius:999px;color:#526071;background:#eef2f6;font-size:.76rem;font-weight:800; }
+.attendance-roster-list { display:grid;gap:10px; }
+.attendance-trainee-row { min-width:0;padding:13px;display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;align-items:center;gap:12px;border:1px solid #e6e9ed;border-radius:18px;background:#fff; }
+.attendance-trainee-row.status-present { border-color:#b9ebd0;background:#fbfffd; }
+.attendance-trainee-row.status-absent { border-color:#ffd1ce;background:#fffdfd; }
+.attendance-trainee-row.status-excused { border-color:#f2dfa4;background:#fffefa; }
+.attendance-trainee-avatar { width:44px;height:44px;display:grid;place-items:center;border-radius:15px;color:#075fd2;background:#e8f3ff;font-weight:850;text-transform:uppercase; }
+.attendance-trainee-identity { min-width:0;display:grid;gap:3px; }
+.attendance-trainee-identity strong { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.attendance-trainee-identity small { color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.attendance-trainee-identity em { color:#178052;font-size:.7rem;font-style:normal;font-weight:700; }
+.attendance-status-pill { padding:7px 10px;border-radius:999px;color:#566171;background:#edf1f5;font-size:.72rem;font-weight:820;white-space:nowrap; }
+.status-present .attendance-status-pill { color:#087846;background:#e5f8ee; }
+.status-absent .attendance-status-pill { color:#b42318;background:#fff0ef; }
+.status-excused .attendance-status-pill { color:#765700;background:#fff4cf; }
+.attendance-row-actions { display:flex;align-items:center;justify-content:flex-end;gap:7px; }
+.attendance-row-actions select { min-width:125px;min-height:40px;padding:8px 31px 8px 10px;font-size:.78rem; }
+.attendance-legal-note { margin-top:18px;display:flex;align-items:flex-start;gap:13px; }
+.attendance-legal-note > span { width:42px;height:42px;flex:0 0 auto;display:grid;place-items:center;border-radius:14px;color:#0a84ff;background:#e8f3ff; }
+.attendance-legal-note h2 { margin:0 0 5px;font-size:1rem; }
+.attendance-legal-note p { margin:0;color:var(--muted);font-size:.82rem;line-height:1.55; }
+.attendance-modal-overlay { position:fixed;inset:0;z-index:1500;padding:24px;display:grid;place-items:center;background:rgba(13,17,24,.58);backdrop-filter:blur(10px); }
+.attendance-signature-modal { width:min(760px,100%);max-height:min(760px,calc(100dvh - 48px));overflow:auto;padding:24px;border-radius:28px;background:#fbfbfd;box-shadow:0 24px 80px rgba(0,0,0,.28); }
+.attendance-signature-modal > header { display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px; }
+.attendance-signature-modal h2 { margin:2px 0 5px;letter-spacing:-.02em; }
+.attendance-signature-modal header p:last-child { margin:0;color:var(--muted);font-size:.82rem; }
+.attendance-signature-modal > label { display:grid;gap:7px;margin-bottom:14px;color:#222832;font-size:.8rem;font-weight:780; }
+.signature-canvas-shell { position:relative;width:100%;height:300px;border:2px solid #cdd3dc;border-radius:20px;overflow:hidden;background:#fff; }
+.signature-canvas-shell canvas { width:100%;height:100%;display:block;touch-action:none;cursor:crosshair; }
+.signature-canvas-shell > span { position:absolute;inset:0;display:grid;place-items:center;color:#a0a7b1;font-size:.9rem;pointer-events:none; }
+.attendance-signature-actions { margin-top:16px;display:flex;justify-content:flex-end;gap:9px; }
+
+@media (max-width: 900px) {
+  .attendance-control-grid { grid-template-columns:1fr 1fr; }
+  .attendance-period-control { grid-column:1 / -1; }
+  .attendance-stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .attendance-trainee-row { grid-template-columns:44px minmax(0,1fr) auto; }
+  .attendance-row-actions { grid-column:1 / -1;padding-top:10px;border-top:1px solid #eef0f3; }
+}
+
+@media (max-width: 760px) {
+  .attendance-control-grid { grid-template-columns:1fr; }
+  .attendance-period-control { grid-column:auto; }
+  .attendance-control-grid select { font-size:16px; }
+  .attendance-stats-grid { gap:8px; }
+  .attendance-stats-grid article { padding:12px; }
+  .attendance-trainee-row { grid-template-columns:42px minmax(0,1fr);align-items:start; }
+  .attendance-trainee-avatar { width:42px;height:42px;border-radius:14px; }
+  .attendance-status-pill { grid-column:2;justify-self:start; }
+  .attendance-row-actions { grid-column:1 / -1;width:100%;display:grid;grid-template-columns:1fr auto; }
+  .attendance-row-actions .primary-button { justify-content:center; }
+  .attendance-row-actions select { min-width:0;width:100%;font-size:16px; }
+  .attendance-modal-overlay { padding:0;place-items:stretch; }
+  .attendance-signature-modal { width:100%;min-height:100dvh;max-height:100dvh;padding:max(18px,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom));border-radius:0; }
+  .attendance-signature-modal h2 { letter-spacing:normal; }
+  .signature-canvas-shell { height:clamp(230px,39dvh,360px); }
+  .attendance-signature-actions { position:sticky;bottom:0;padding-top:13px;display:grid;grid-template-columns:1fr 1fr;background:linear-gradient(180deg,rgba(251,251,253,0),#fbfbfd 18%); }
+  .attendance-signature-actions .primary-button { grid-column:1 / -1;grid-row:1;justify-content:center; }
+}
+
+@media (max-width: 430px) {
+  .attendance-stats-grid { grid-template-columns:1fr 1fr; }
+  .attendance-stats-grid article { align-items:flex-start; }
+  .attendance-stats-grid small { line-height:1.3; }
+  .attendance-row-actions { grid-template-columns:1fr; }
+  .attendance-row-actions > * { width:100%;justify-content:center; }
+}

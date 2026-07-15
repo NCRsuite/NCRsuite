@@ -1,4 +1,17 @@
-# NCR Suite — V2.4.3
+# NCR Suite — V2.4.4
+
+
+## V2.4.4 — Émargements et signatures Formation
+
+Le formateur peut sélectionner une session, une journée et la période **matin** ou **après-midi**, puis faire signer chaque stagiaire directement sur son téléphone ou sa tablette. Les absences et absences justifiées sont également suivies.
+
+Les signatures sont privées, horodatées et rattachées à la session, au stagiaire, à la période et à l’utilisateur qui les a capturées.
+
+Après le SQL 020, exécuter :
+
+```text
+supabase/migrations/021_training_attendance.sql
+```
 
 ## V2.4.3 — Bibliothèque documentaire Formation
 

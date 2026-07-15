@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## 2.4.4 — Émargements et signatures Formation
+
+- Feuilles d’émargement par session, journée et période matin / après-midi.
+- Liste automatique des stagiaires inscrits à la session.
+- Signature manuscrite directement sur téléphone, tablette ou ordinateur.
+- Présence validée uniquement avec une signature et un nom de signataire.
+- Gestion des absences, absences justifiées et émargements restant à réaliser.
+- Horodatage, rattachement au stagiaire, à la session, au site et à l’utilisateur qui a capturé la signature.
+- Stockage privé des signatures dans Supabase Storage avec liens temporaires.
+- Remplacement sécurisé d’une signature et suppression du fichier devenu obsolète.
+- Interface responsive pensée pour le formateur qui fait signer chaque stagiaire sur son appareil.
+- Tableau de bord Formation mis à jour et cache PWA passé en V2.4.4.
+
 ## 2.4.3 — Documents du pack Formation
 
 - Bibliothèque documentaire réelle connectée à Supabase Storage.

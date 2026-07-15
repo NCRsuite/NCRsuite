@@ -132,13 +132,14 @@ export function TrainingDashboardPage() {
             <Link to="/stagiaires"><span><Icon name="users" size={19} /></span><div><strong>3. Enregistrer les stagiaires</strong><small>Contacts et entreprise d’origine.</small></div><Icon name="chevronRight" size={17} /></Link>
             <Link to="/sessions"><span><Icon name="calendar" size={19} /></span><div><strong>4. Planifier la session</strong><small>Dates, lieu, capacité et inscriptions.</small></div><Icon name="chevronRight" size={17} /></Link>
             <Link to="/documents"><span><Icon name="file" size={19} /></span><div><strong>5. Préparer les documents</strong><small>Convocations, programmes, supports et attestations.</small></div><Icon name="chevronRight" size={17} /></Link>
+            <Link to="/emargements"><span><Icon name="signature" size={19} /></span><div><strong>6. Faire émarger</strong><small>Présences et signatures matin / après-midi.</small></div><Icon name="chevronRight" size={17} /></Link>
           </div>
         </article>
       </section>
 
       <section className="panel training-next-phase">
         <span><Icon name="signature" size={24} /></span>
-        <div><p className="eyebrow">PROCHAINE ÉVOLUTION</p><h2>Émargements et signatures</h2><p>La bibliothèque documentaire est désormais opérationnelle. La prochaine version ajoutera les feuilles d’émargement matin et après-midi, la signature et le suivi des présences.</p></div>
+        <div><p className="eyebrow">ÉMARGEMENTS OPÉRATIONNELS</p><h2>Signatures matin et après-midi</h2><p>Le formateur peut maintenant faire signer chaque stagiaire directement sur téléphone ou tablette, puis suivre les absences et justificatifs par session.</p><Link className="secondary-button compact-button" to="/emargements">Ouvrir les émargements</Link></div>
       </section>
     </div>
   );

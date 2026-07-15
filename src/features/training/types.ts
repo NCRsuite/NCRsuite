@@ -133,3 +133,35 @@ export function formatDateTime(value: string) {
     timeStyle: 'short'
   }).format(new Date(value));
 }
+
+export type TrainingAttendancePeriod = 'morning' | 'afternoon';
+export type TrainingAttendanceStatus = 'pending' | 'present' | 'absent' | 'excused';
+
+export interface TrainingAttendanceRecord {
+  id: string;
+  organization_id: string;
+  site_id: string | null;
+  session_id: string;
+  trainee_id: string;
+  attendance_date: string;
+  period: TrainingAttendancePeriod;
+  status: TrainingAttendanceStatus;
+  signature_path: string | null;
+  signatory_name: string | null;
+  signed_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export const attendancePeriodLabels: Record<TrainingAttendancePeriod, string> = {
+  morning: 'Matin',
+  afternoon: 'Après-midi'
+};
+
+export const attendanceStatusLabels: Record<TrainingAttendanceStatus, string> = {
+  pending: 'À émarger',
+  present: 'Présent · signé',
+  absent: 'Absent',
+  excused: 'Absence justifiée'
+};
