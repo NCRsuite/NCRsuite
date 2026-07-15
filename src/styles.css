@@ -3848,3 +3848,634 @@ button { max-width: 100%; }
     padding: 18px;
   }
 }
+
+/* V2.5.0 — Socle Sécurité privée */
+.security-page {
+  display: grid;
+  gap: 20px;
+}
+
+.security-form-panel,
+.security-list-panel,
+.security-planning-panel,
+.security-billing-builder,
+.security-billing-rule,
+.security-dashboard-schedule,
+.security-dashboard-actions,
+.security-discovery-rule {
+  padding: 24px;
+}
+
+.security-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.security-form-grid label {
+  display: grid;
+  gap: 7px;
+  color: var(--text);
+  font-size: .78rem;
+  font-weight: 750;
+}
+
+.security-form-grid input,
+.security-form-grid select,
+.security-form-grid textarea,
+.security-toolbar input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 11px 13px;
+  font: inherit;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.security-form-grid textarea {
+  resize: vertical;
+}
+
+.security-form-grid input:focus,
+.security-form-grid select:focus,
+.security-form-grid textarea:focus,
+.security-toolbar input:focus {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.security-form-grid .full-field {
+  grid-column: 1 / -1;
+}
+
+.security-toolbar,
+.security-week-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.security-toolbar h2,
+.security-week-toolbar h2,
+.security-billing-rule h2,
+.security-discovery-rule h2 {
+  margin: 0;
+}
+
+.security-toolbar input {
+  max-width: 360px;
+}
+
+.security-card-list,
+.security-invoice-list,
+.security-day-list,
+.security-upcoming-list,
+.security-action-list {
+  display: grid;
+  gap: 10px;
+}
+
+.security-record-card,
+.security-invoice-card,
+.security-shift,
+.security-upcoming-list article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  border-radius: 17px;
+  padding: 14px;
+}
+
+.security-record-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--accent) 11%, var(--surface));
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.security-record-main {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.security-record-main strong,
+.security-invoice-number strong,
+.security-upcoming-list strong {
+  font-size: .91rem;
+}
+
+.security-record-main span,
+.security-record-main small,
+.security-invoice-number small,
+.security-upcoming-list span,
+.security-upcoming-list small {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.security-record-main span,
+.security-upcoming-list span {
+  font-size: .78rem;
+}
+
+.security-record-main small,
+.security-invoice-number small,
+.security-upcoming-list small {
+  font-size: .7rem;
+}
+
+.security-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 25px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: .66rem;
+  font-weight: 800;
+  white-space: nowrap;
+  background: rgba(55, 126, 246, .11);
+  color: #2264be;
+}
+
+.security-status-pill.active,
+.security-status-pill.completed,
+.security-status-pill.paid {
+  background: rgba(31, 170, 98, .12);
+  color: #167642;
+}
+
+.security-status-pill.canceled {
+  background: rgba(216, 60, 69, .11);
+  color: #ad2730;
+}
+
+.security-status-pill.issued {
+  background: rgba(245, 158, 11, .13);
+  color: #985a00;
+}
+
+.security-rate,
+.security-invoice-total {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.security-rate strong,
+.security-invoice-total strong {
+  color: var(--text);
+}
+
+.security-rate small,
+.security-invoice-total small {
+  color: var(--muted);
+  font-size: .68rem;
+}
+
+.security-money-input {
+  position: relative;
+}
+
+.security-money-input input {
+  padding-right: 48px;
+}
+
+.security-money-input span {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 800;
+}
+
+.security-empty {
+  min-height: 190px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.security-empty svg {
+  color: var(--accent);
+}
+
+.security-empty strong {
+  color: var(--text);
+}
+
+.security-callout {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 15px 17px;
+  border: 1px solid color-mix(in srgb, #f59e0b 30%, var(--border));
+  border-radius: 16px;
+  background: color-mix(in srgb, #f59e0b 8%, var(--surface));
+  color: #9a5a00;
+}
+
+.security-callout div {
+  display: grid;
+  gap: 3px;
+}
+
+.security-callout span {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.security-planning-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.security-planning-summary article {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 17px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: var(--surface);
+}
+
+.security-planning-summary article > svg {
+  color: var(--accent);
+}
+
+.security-planning-summary div {
+  display: grid;
+  gap: 3px;
+}
+
+.security-planning-summary strong {
+  font-size: 1.12rem;
+}
+
+.security-planning-summary span {
+  color: var(--muted);
+  font-size: .72rem;
+}
+
+.security-week-toolbar {
+  text-align: center;
+}
+
+.security-week-actions,
+.security-record-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.security-day {
+  display: grid;
+  gap: 8px;
+}
+
+.security-day > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 4px 4px;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.security-day > header span {
+  color: var(--muted);
+  font-size: .74rem;
+}
+
+.security-shift {
+  grid-template-columns: 70px auto minmax(0, 1fr) auto auto;
+}
+
+.security-shift.canceled {
+  opacity: .62;
+}
+
+.security-shift-time {
+  display: grid;
+  gap: 2px;
+  text-align: center;
+}
+
+.security-shift-time strong {
+  font-size: .88rem;
+}
+
+.security-shift-time span {
+  color: var(--muted);
+  font-size: .72rem;
+}
+
+.danger-button {
+  color: #b42a35 !important;
+  border-color: rgba(180, 42, 53, .25) !important;
+}
+
+.security-billing-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, .8fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.security-billing-rule,
+.security-discovery-rule {
+  display: grid;
+  gap: 10px;
+}
+
+.security-billing-rule > span,
+.security-discovery-rule > span {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 11%, var(--surface));
+}
+
+.security-billing-rule p:not(.eyebrow),
+.security-discovery-rule p:not(.eyebrow) {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.security-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.security-preview > div {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface-soft);
+}
+
+.security-preview span {
+  color: var(--muted);
+  font-size: .7rem;
+}
+
+.security-preview strong {
+  font-size: 1.02rem;
+}
+
+.security-preview-lines {
+  display: grid;
+  gap: 7px;
+}
+
+.security-preview-lines > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 11px 13px;
+  border-radius: 13px;
+  background: var(--surface-soft);
+}
+
+.security-preview-lines span {
+  display: grid;
+  gap: 3px;
+}
+
+.security-preview-lines small {
+  color: var(--muted);
+  font-size: .7rem;
+}
+
+.security-invoice-card {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+
+.security-invoice-number {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.security-invoice-number > span {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  color: var(--accent);
+}
+
+.security-invoice-number > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.security-dashboard-actions {
+  align-self: stretch;
+}
+
+.security-action-list a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  color: var(--text);
+  text-decoration: none;
+  background: var(--surface-soft);
+}
+
+.security-action-list a > span {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.security-action-list a > div {
+  display: grid;
+  gap: 3px;
+}
+
+.security-action-list small {
+  color: var(--muted);
+  font-size: .7rem;
+}
+
+.security-upcoming-list article {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.security-upcoming-list article > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.security-upcoming-list article > b {
+  white-space: nowrap;
+}
+
+.security-discovery-rule {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+}
+
+@media (max-width: 980px) {
+  .security-billing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .security-record-card,
+  .security-invoice-card,
+  .security-shift {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .security-record-card > button,
+  .security-record-actions {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+
+  .security-shift-time {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .security-shift .security-record-icon {
+    display: none;
+  }
+
+  .security-shift .security-record-main {
+    grid-column: 2;
+  }
+
+  .security-invoice-card .security-record-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .security-form-panel,
+  .security-list-panel,
+  .security-planning-panel,
+  .security-billing-builder,
+  .security-billing-rule,
+  .security-dashboard-schedule,
+  .security-dashboard-actions,
+  .security-discovery-rule {
+    padding: 17px;
+  }
+
+  .security-form-grid,
+  .security-planning-summary,
+  .security-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .security-form-grid .full-field {
+    grid-column: auto;
+  }
+
+  .security-toolbar,
+  .security-week-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    text-align: left;
+  }
+
+  .security-toolbar input {
+    max-width: none;
+  }
+
+  .security-week-actions {
+    justify-content: flex-start;
+  }
+
+  .security-record-card,
+  .security-invoice-card,
+  .security-shift,
+  .security-upcoming-list article {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .security-record-card .security-status-pill,
+  .security-invoice-card .security-status-pill,
+  .security-shift .security-status-pill,
+  .security-rate,
+  .security-invoice-total {
+    grid-column: 2;
+    justify-self: start;
+    justify-items: start;
+  }
+
+  .security-record-card > button,
+  .security-record-actions,
+  .security-invoice-card .security-record-actions {
+    grid-column: 2;
+    justify-self: start;
+    justify-content: flex-start;
+  }
+
+  .security-shift-time {
+    width: 54px;
+  }
+
+  .security-shift .security-record-main {
+    grid-column: 2;
+  }
+
+  .security-upcoming-list article > b {
+    grid-column: 2;
+  }
+
+  .security-discovery-rule {
+    grid-template-columns: 1fr;
+  }
+}

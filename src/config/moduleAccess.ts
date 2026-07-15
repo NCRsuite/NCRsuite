@@ -21,6 +21,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/main-courante': 'logbook',
   '/rondes': 'patrols',
   '/alertes': 'alerts',
+  '/facturation': 'security_billing',
   '/documents': 'documents',
   '/formations': 'training_programs',
   '/stagiaires': 'trainees',
@@ -47,9 +48,19 @@ const FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/attestations': 'training_automatic_certificates'
 };
 
-export function moduleKeyForPath(pathname: string) {
+export function moduleKeyForPath(pathname: string, businessType?: Organization['business_type']) {
   if (pathname === '/') return 'dashboard';
   const normalized = `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
+  if (businessType === 'securite') {
+    const securityModules: Record<string, string> = {
+      '/clients': 'security_clients',
+      '/sites': 'security_sites',
+      '/agents': 'security_agents',
+      '/planning': 'security_planning',
+      '/facturation': 'security_billing'
+    };
+    if (securityModules[normalized]) return securityModules[normalized];
+  }
   return MODULE_BY_PATH[normalized];
 }
 
@@ -66,7 +77,7 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
   const requiredFeature = featureKeyForPath(pathname);
   if (requiredFeature && !organizationHasFeature(organization, requiredFeature)) return false;
 
-  const moduleKey = moduleKeyForPath(pathname);
+  const moduleKey = moduleKeyForPath(pathname, organization.business_type);
   if (!moduleKey) return true;
 
   if (organization.plan === 'metier' && organization.metier_modules_configured) {

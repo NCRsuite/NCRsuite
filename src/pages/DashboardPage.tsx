@@ -5,12 +5,14 @@ import { StatCard } from '../components/StatCard';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { BookingDashboardPage } from './BookingDashboardPage';
 import { TrainingDashboardPage } from './TrainingDashboardPage';
+import { SecurityDashboardPage } from './SecurityDashboardPage';
 
 export function DashboardPage() {
   const { organization } = useOrganization();
   if (!organization) return null;
   if (organization.business_type === 'coiffure') return <BookingDashboardPage />;
   if (organization.business_type === 'formation') return <TrainingDashboardPage />;
+  if (organization.business_type === 'securite') return <SecurityDashboardPage />;
   const pack = businessPacks[organization.business_type];
 
   return (

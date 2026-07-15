@@ -83,31 +83,24 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
   securite: {
     id: 'securite',
     label: 'Sécurité privée',
-    description: 'Planning, facturation, terrain, rondes et supervision.',
+    description: 'Planning des agents, sites, tarifs et facturation prévisionnelle.',
     icon: 'shield',
-    launchStatus: 'planned',
+    launchStatus: 'available',
     navigation: [
       { label: 'Tableau de bord', path: '/', icon: 'home' },
       { label: 'Planning', path: '/planning', icon: 'calendar' },
+      { label: 'Clients', path: '/clients', icon: 'building' },
       { label: 'Agents', path: '/agents', icon: 'users' },
       { label: 'Sites', path: '/sites', icon: 'map' },
-      { label: 'Prises de poste', path: '/prises-de-poste', icon: 'activity' },
-      { label: 'Main courante', path: '/main-courante', icon: 'clipboard' },
-      { label: 'Rondes', path: '/rondes', icon: 'shield' },
-      { label: 'Alertes', path: '/alertes', icon: 'alert', badge: '2' },
-      { label: 'Documents', path: '/documents', icon: 'file' },
+      { label: 'Facturation', path: '/facturation', icon: 'creditCard' },
       subscription,
       settings
     ],
-    metrics: [
-      { label: 'Agents en poste', value: '24', detail: 'sur 9 sites', icon: 'users' },
-      { label: 'Rondes validées', value: '31', detail: '94 % conformes', icon: 'shield' },
-      { label: 'Événements actifs', value: '6', detail: '2 à traiter', icon: 'clipboard' },
-      { label: 'Alertes prioritaires', value: '2', detail: 'prise en charge requise', icon: 'alert' }
-    ],
+    metrics: [],
     quickActions: [
-      { label: 'Créer une mission', path: '/planning', icon: 'calendar' },
-      { label: 'Ouvrir une main courante', path: '/main-courante', icon: 'clipboard' }
+      { label: 'Planifier une mission', path: '/planning', icon: 'calendar' },
+      { label: 'Ajouter un agent', path: '/agents?new=1', icon: 'users' },
+      { label: 'Ajouter un site', path: '/sites?new=1', icon: 'map' }
     ]
   },
   formation: {

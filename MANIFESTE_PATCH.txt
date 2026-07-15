@@ -1,0 +1,26 @@
+NCR SUITE V2.5.0 — MANIFESTE DU PATCH
+
+Fichiers inclus :
+- A_LIRE_INSTALLATION.txt | sha256 d252917c5a2a0753fbea2d9cded9c11f069f9da440ad9a6b051adccc0c0cc83e
+- CHANGELOG.md | sha256 01f98c33597f90b854e8e559bd767d7874b18811388d07ea16c5f06681efcc9a
+- README.md | sha256 9dcde4015da1cd9a42ee57766f7e37ac33a1bf20a3628e14ecb643f4d3582949
+- docs/V2.5.0_INSTALLATION.md | sha256 5443473512898a2e2db9404eddda8d2335a221a6d37f6b4d964d3ea682b511e3
+- package-lock.json | sha256 0acc98d928f6659467232f166e5c9234ee5f3560590b4906a1c2efeeaaa2f217
+- package.json | sha256 78257e14c469da583e602365a93323a6f58c252e08c374c7b7f28aff2193a9a9
+- public/manifest.webmanifest | sha256 64117ca054b7d096a4d4fba6f4798ccf97697938108915541d0288d209554781
+- public/sw.js | sha256 6ef2baa1624d52c81de5f1e824f356f3b67ca60dd9061702116c59d30f3bbc70
+- src/App.tsx | sha256 4520e7482580078f8f819cfa9f43b8a9aca3b20c784a9ca618f55ba563a6d0f5
+- src/config/businessPacks.ts | sha256 669190d54ea624f408a6cf1835ff95c79b5e892b2f4c78125d224bed286cb069
+- src/config/domainOfferCatalog.ts | sha256 40f109f370867abee703e122499b8fcc205613bfde23d0529b62dddf7931e576
+- src/config/moduleAccess.ts | sha256 1615db8a9f510301e80ae4b7c73b1b3f4017b2b588728da4defeca50b147c9b7
+- src/features/security/invoicePdf.ts | sha256 7306729669bd81628aa42c421f75130f703fb81d31533a7f753eccb61e5d3555
+- src/features/security/types.ts | sha256 ad41e0b281b9b7ac16e3571e633fad176b819ad583edd1cc18e646ec159862cd
+- src/pages/DashboardPage.tsx | sha256 857fbb418d6a7b2d7cf690ee51221b2bb2109edffe2183024897d4c09451d782
+- src/pages/SecurityAgentsPage.tsx | sha256 b0f522cb4599ce5b053a3345fe067092bf3934ea675c12629676e11534f01f53
+- src/pages/SecurityBillingPage.tsx | sha256 943b11d49ecc3110688c6b0173939ab95bcc1c70c6ff3c5b68b75449bf3bd151
+- src/pages/SecurityClientsPage.tsx | sha256 ba50b129d703436fd4105eff2413336b744318f0d7757f4c3b2823095321a866
+- src/pages/SecurityDashboardPage.tsx | sha256 d8ce134d13a421894f3715591a0b5276c232b7ddb70402d3a84fe85d8dcb0fcf
+- src/pages/SecurityPlanningPage.tsx | sha256 51489d165fcc69d2a64ef2beafae0a31fabd2e1074c14b40a9341885745d48f4
+- src/pages/SecuritySitesPage.tsx | sha256 234cc4581f3b30277f68452de4b648bb51596f0669ace08f2fde61404c935434
+- src/styles.css | sha256 a62c5597871fa2bd55ef624040389f5e7034a95b7cc6d3bcb4586a47b00f16c9
+- supabase/migrations/027_security_discovery_core.sql | sha256 cf899342e0c65e0545da61058c610a0bb52c923c118f8c82e7e20619aff7d9d3

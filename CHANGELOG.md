@@ -1,3 +1,17 @@
+# 2.5.0 — Socle Sécurité privée · Découverte
+
+- Activation du domaine Sécurité privée dans la création des espaces.
+- Tableau de bord Sécurité connecté aux données réelles.
+- Gestion des clients donneurs d’ordre.
+- Gestion des sites avec tarif horaire HT.
+- Gestion des agents sans accès terrain.
+- Planning hebdomadaire avec contrôle des chevauchements.
+- Calcul des heures programmées et de la prévision de facturation.
+- Génération de préfactures par client et par période.
+- PDF de préfacturation compatible Safari et iPhone.
+- Isolation multi-entreprises et règles RLS dédiées.
+- Cache PWA mis à jour en V2.5.0.
+
 # CHANGELOG
 
 ## 2.4.13 — Catalogue central des offres

@@ -31,6 +31,11 @@ import { TrainingAttendancePage } from './pages/TrainingAttendancePage';
 import { TrainingEvaluationsPage } from './pages/TrainingEvaluationsPage';
 import { TrainingSitesPage } from './pages/TrainingSitesPage';
 import { PublicTrainingSatisfactionPage } from './pages/PublicTrainingSatisfactionPage';
+import { SecurityClientsPage } from './pages/SecurityClientsPage';
+import { SecurityAgentsPage } from './pages/SecurityAgentsPage';
+import { SecuritySitesPage } from './pages/SecuritySitesPage';
+import { SecurityPlanningPage } from './pages/SecurityPlanningPage';
+import { SecurityBillingPage } from './pages/SecurityBillingPage';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
 
@@ -38,6 +43,30 @@ function DocumentsArea() {
   const { organization } = useOrganization();
   if (organization?.business_type === 'formation') return <TrainingDocumentsPage />;
   return <ModulePage />;
+}
+
+function ClientsArea() {
+  const { organization } = useOrganization();
+  const moduleKey = organization?.business_type === 'securite' ? 'security_clients' : 'clients';
+  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityClientsPage /> : <ClientsPage />}</ModuleAccessGuard>;
+}
+
+function PlanningArea() {
+  const { organization } = useOrganization();
+  const moduleKey = organization?.business_type === 'securite' ? 'security_planning' : 'planning';
+  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityPlanningPage /> : <ModulePage />}</ModuleAccessGuard>;
+}
+
+function AgentsArea() {
+  const { organization } = useOrganization();
+  const moduleKey = organization?.business_type === 'securite' ? 'security_agents' : 'agents';
+  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityAgentsPage /> : <ModulePage />}</ModuleAccessGuard>;
+}
+
+function SitesArea() {
+  const { organization } = useOrganization();
+  const moduleKey = organization?.business_type === 'securite' ? 'security_sites' : 'sites';
+  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecuritySitesPage /> : <ModulePage />}</ModuleAccessGuard>;
 }
 
 function LoadingScreen() {
@@ -104,8 +133,12 @@ export default function App() {
         <Route path="emargements" element={<ModuleAccessGuard moduleKey="attendance"><TrainingAttendancePage /></ModuleAccessGuard>} />
         <Route path="evaluations" element={<ModuleAccessGuard moduleKey="evaluations"><TrainingEvaluationsPage /></ModuleAccessGuard>} />
         <Route path="etablissements" element={<ModuleAccessGuard moduleKey="sites"><TrainingSitesPage /></ModuleAccessGuard>} />
+        <Route path="planning" element={<PlanningArea />} />
+        <Route path="agents" element={<AgentsArea />} />
+        <Route path="sites" element={<SitesArea />} />
+        <Route path="facturation" element={<ModuleAccessGuard moduleKey="security_billing"><SecurityBillingPage /></ModuleAccessGuard>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
-        <Route path="clients" element={<ModuleAccessGuard moduleKey="clients"><ClientsPage /></ModuleAccessGuard>} />
+        <Route path="clients" element={<ClientsArea />} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />
         <Route path="equipe" element={<ModuleAccessGuard moduleKey="staff"><StaffPage /></ModuleAccessGuard>} />
         <Route path="acces-equipe" element={<ModuleAccessGuard moduleKey="team_access"><TeamAccessPage /></ModuleAccessGuard>} />

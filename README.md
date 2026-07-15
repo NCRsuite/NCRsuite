@@ -1,4 +1,26 @@
-# NCR Suite — V2.4.13
+# NCR Suite — V2.5.0
+
+## V2.5.0 — Socle Sécurité privée · Découverte
+
+Cette version ouvre le domaine **Sécurité privée** avec les fonctions réellement incluses dans l’offre Découverte :
+
+- clients donneurs d’ordre ;
+- sites surveillés avec tarif horaire HT ;
+- agents gérés par le responsable, sans compte terrain ;
+- planning hebdomadaire et contrôle des chevauchements ;
+- heures programmées par agent et par site ;
+- facturation prévisionnelle calculée uniquement selon les heures programmées et le tarif du site ;
+- génération d’un PDF de préfacturation ;
+- tableau de bord Sécurité alimenté par les données réelles.
+
+Exécuter d’abord :
+
+```text
+supabase/migrations/027_security_discovery_core.sql
+```
+
+Puis envoyer le patch sur GitHub, attendre Cloudflare et rouvrir la PWA.
+
 
 ## V2.4.13 — Catalogue central des offres
 

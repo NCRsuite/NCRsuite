@@ -2,7 +2,7 @@
   "id": "/",
   "name": "NCR Suite",
   "short_name": "NCR Suite",
-  "description": "Une plateforme professionnelle, plusieurs expériences métier.",
+  "description": "NCR Suite — gestion métier pour la coiffure, la formation et la sécurité privée.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

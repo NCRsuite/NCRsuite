@@ -306,7 +306,7 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
     label: 'Sécurité privée',
     description: 'Planning, facturation, terrain, rondes et supervision.',
     icon: 'shield',
-    launchStatus: 'planned',
+    launchStatus: 'available',
     accessUnitSingular: 'agent connecté',
     accessUnitPlural: 'agents connectés',
     plans: {
