@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import {
@@ -9,15 +10,18 @@ import {
   nullableText,
   personName,
   sessionStatusLabels,
+  type TrainingAttendanceRecord,
   type TrainingDocumentRecord,
   type TrainingEnrollmentRecord,
   type TrainingModality,
   type TrainingProgramRecord,
   type TrainingSessionRecord,
   type TrainingSessionStatus,
+  type TrainingSatisfactionRecord,
   type TrainingTraineeRecord,
   type TrainingTrainerRecord
 } from '../features/training/types';
+import { closeFileWindow, navigateFileWindow, prepareFileWindow, showBlobDownload } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
 
 function dateInputValue(date: Date) {
@@ -55,6 +59,7 @@ export function TrainingSessionsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | TrainingSessionStatus>('all');
+  const [dossierBusyId, setDossierBusyId] = useState('');
   const formOpen = searchParams.get('new') === '1';
 
   useEffect(() => {
@@ -166,7 +171,7 @@ export function TrainingSessionsPage() {
     event.preventDefault();
     if (!organization || !user) return;
     if (!form.programId) { setError('Sélectionne une formation.'); return; }
-    if (organization.plan === 'metier' && !form.siteId) { setError('Sélectionne un établissement.'); return; }
+    if (organizationHasFeature(organization, 'multi_site') && !form.siteId) { setError('Sélectionne un établissement.'); return; }
     const startsAt = new Date(`${form.startDate}T${form.startTime}:00`);
     const endsAt = new Date(`${form.endDate}T${form.endTime}:00`);
     const capacity = Number(form.capacity);
@@ -178,7 +183,7 @@ export function TrainingSessionsPage() {
     try {
       if (demoMode || !supabase) {
         const created: TrainingSessionRecord = {
-          id: crypto.randomUUID(), organization_id: organization.id, site_id: organization.plan === 'metier' ? form.siteId : null,
+          id: crypto.randomUUID(), organization_id: organization.id, site_id: organizationHasFeature(organization, 'multi_site') ? form.siteId : null,
           program_id: form.programId, trainer_id: form.trainerId || null, title: form.title.trim(), starts_at: startsAt.toISOString(),
           ends_at: endsAt.toISOString(), capacity, location: nullableText(form.location), modality: form.modality, status: form.status,
           notes: nullableText(form.notes), created_at: new Date().toISOString()
@@ -192,7 +197,7 @@ export function TrainingSessionsPage() {
       } else {
         const { error: rpcError } = await supabase.rpc('create_training_session', {
           p_organization_id: organization.id,
-          p_site_id: organization.plan === 'metier' ? form.siteId : null,
+          p_site_id: organizationHasFeature(organization, 'multi_site') ? form.siteId : null,
           p_program_id: form.programId,
           p_trainer_id: form.trainerId || null,
           p_title: form.title.trim() || programMap.get(form.programId)?.title || 'Session de formation',
@@ -213,6 +218,57 @@ export function TrainingSessionsPage() {
     } catch (caught) {
       setError(`Création impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
     } finally { setSaving(false); }
+  }
+
+  async function generateSessionDossier(session: TrainingSessionRecord, mode: 'preview' | 'download') {
+    if (!organization || !organizationHasFeature(organization, 'training_session_dossier')) return;
+    const fileWindow = prepareFileWindow(
+      mode === 'preview' ? 'Dossier complet de session' : 'Téléchargement du dossier de session',
+      'NCR Suite rassemble les participants, émargements, évaluations et documents…'
+    );
+    setDossierBusyId(session.id); setError(''); setSuccess('');
+    try {
+      let attendance: TrainingAttendanceRecord[] = [];
+      let satisfaction: TrainingSatisfactionRecord[] = [];
+      if (demoMode || !supabase) {
+        const storedAttendance = localStorage.getItem(`ncr-suite-training-attendance-${organization.id}`);
+        const storedSatisfaction = localStorage.getItem(`ncr-suite-training-satisfaction-${organization.id}`);
+        attendance = (storedAttendance ? JSON.parse(storedAttendance) as TrainingAttendanceRecord[] : []).filter((item) => item.session_id === session.id);
+        satisfaction = (storedSatisfaction ? JSON.parse(storedSatisfaction) as TrainingSatisfactionRecord[] : []).filter((item) => item.session_id === session.id);
+      } else {
+        const [attendanceResult, satisfactionResult] = await Promise.all([
+          supabase.from('training_attendance').select('id,organization_id,site_id,session_id,trainee_id,attendance_date,period,status,signature_path,signatory_name,signed_at,notes,created_at,updated_at').eq('organization_id', organization.id).eq('session_id', session.id),
+          supabase.from('training_satisfaction_surveys').select('id,organization_id,site_id,session_id,trainee_id,public_token,status,scheduled_for,emailed_at,completed_at,content_rating,trainer_rating,organization_rating,objectives_rating,recommend,comment,improvement,created_at,updated_at').eq('organization_id', organization.id).eq('session_id', session.id)
+        ]);
+        const queryError = attendanceResult.error || satisfactionResult.error;
+        if (queryError) throw queryError;
+        attendance = (attendanceResult.data ?? []) as TrainingAttendanceRecord[];
+        satisfaction = (satisfactionResult.data ?? []) as TrainingSatisfactionRecord[];
+      }
+
+      const { generateSessionDossierPdf } = await import('../features/training/sessionDossierPdf');
+      const result = await generateSessionDossierPdf({
+        organization,
+        site: session.site_id ? sites.find((site) => site.id === session.site_id) ?? null : null,
+        session,
+        program: programMap.get(session.program_id) ?? null,
+        trainer: session.trainer_id ? trainerMap.get(session.trainer_id) ?? null : null,
+        trainees,
+        enrollments: enrollments.filter((item) => item.session_id === session.id),
+        attendance,
+        satisfaction,
+        documents: documents.filter((item) => item.session_id === session.id)
+      });
+      const buffer = result.bytes.buffer.slice(result.bytes.byteOffset, result.bytes.byteOffset + result.bytes.byteLength) as ArrayBuffer;
+      const url = URL.createObjectURL(new Blob([buffer], { type: 'application/pdf' }));
+      if (mode === 'preview') navigateFileWindow(fileWindow, url);
+      else showBlobDownload(fileWindow, url, result.filename, 'Dossier complet prêt');
+      window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
+      setSuccess(mode === 'preview' ? 'Le dossier complet de la session est ouvert.' : 'Le dossier complet est prêt au téléchargement.');
+    } catch (caught) {
+      closeFileWindow(fileWindow);
+      setError(`Dossier impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+    } finally { setDossierBusyId(''); }
   }
 
   async function updateStatus(session: TrainingSessionRecord, status: TrainingSessionStatus) {
@@ -253,7 +309,7 @@ export function TrainingSessionsPage() {
               <label>Formation *<select required value={form.programId} onChange={(event) => selectProgram(event.target.value)}><option value="">Sélectionner</option>{programs.map((program) => <option key={program.id} value={program.id}>{program.title}</option>)}</select></label>
               <label>Formateur<select value={form.trainerId} onChange={(event) => setForm((current) => ({ ...current, trainerId: event.target.value }))}><option value="">À définir</option>{trainers.map((trainer) => <option key={trainer.id} value={trainer.id}>{personName(trainer.first_name, trainer.last_name)}</option>)}</select></label>
               <label className="full-field">Titre de la session *<input required minLength={2} value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} /></label>
-              {organization.plan === 'metier' && <label>Établissement *<select required value={form.siteId} onChange={(event) => setForm((current) => ({ ...current, siteId: event.target.value }))}><option value="">Sélectionner</option>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>}
+              {organizationHasFeature(organization, 'multi_site') && <label>Établissement *<select required value={form.siteId} onChange={(event) => setForm((current) => ({ ...current, siteId: event.target.value }))}><option value="">Sélectionner</option>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>}
               <label>Modalité<select value={form.modality} onChange={(event) => setForm((current) => ({ ...current, modality: event.target.value as TrainingModality }))}><option value="presentiel">Présentiel</option><option value="distanciel">Distanciel</option><option value="hybride">Hybride</option></select></label>
               <label>Date de début *<input type="date" required value={form.startDate} onChange={(event) => setForm((current) => ({ ...current, startDate: event.target.value }))} /></label>
               <label>Heure de début *<input type="time" required value={form.startTime} onChange={(event) => setForm((current) => ({ ...current, startTime: event.target.value }))} /></label>
@@ -291,6 +347,10 @@ export function TrainingSessionsPage() {
                     <div className="training-document-automation-actions">
                       <Link className="secondary-button compact-button" to={`/documents?session=${encodeURIComponent(session.id)}&category=attestation`}>Attestations</Link>
                       <Link className="secondary-button compact-button" to={`/emargements?session=${encodeURIComponent(session.id)}`}>Émargements</Link>
+                      {organizationHasFeature(organization, 'training_session_dossier') && <>
+                        <button className="secondary-button compact-button" type="button" disabled={dossierBusyId === session.id} onClick={() => void generateSessionDossier(session, 'preview')}>{dossierBusyId === session.id ? 'Préparation…' : 'Dossier complet'}</button>
+                        <button className="secondary-button compact-button" type="button" disabled={dossierBusyId === session.id} onClick={() => void generateSessionDossier(session, 'download')}>Télécharger dossier</button>
+                      </>}
                       <small>{documentCounts.get(session.id)?.attestations ?? 0} attestation{(documentCounts.get(session.id)?.attestations ?? 0) > 1 ? 's' : ''} · {documentCounts.get(session.id)?.total ?? 0} document{(documentCounts.get(session.id)?.total ?? 0) > 1 ? 's' : ''}</small>
                     </div>
                   </div>

@@ -1,4 +1,5 @@
 import type { NavigationItem, Organization } from '../types';
+import { organizationHasFeature, type PlanFeature } from './planEntitlements';
 
 export const MODULE_BY_PATH: Record<string, string> = {
   '/': 'dashboard',
@@ -12,6 +13,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/planning': 'planning',
   '/agents': 'agents',
   '/sites': 'sites',
+  '/etablissements': 'sites',
   '/interventions': 'interventions',
   '/rapports': 'reports',
   '/anomalies': 'anomalies',
@@ -30,16 +32,33 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/devis': 'quotes'
 };
 
+const FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
+  '/acces-equipe': 'team_access',
+  '/personnalisation': 'commercial_branding',
+  '/etablissements': 'multi_site',
+  '/evaluations': 'training_satisfaction',
+  '/emargements': 'training_blank_attendance',
+  '/attestations': 'training_automatic_certificates'
+};
+
 export function moduleKeyForPath(pathname: string) {
   if (pathname === '/') return 'dashboard';
   const normalized = `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
   return MODULE_BY_PATH[normalized];
 }
 
+export function featureKeyForPath(pathname: string) {
+  const normalized = `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
+  return FEATURE_BY_PATH[normalized];
+}
+
 export function organizationCanAccessPath(organization: Organization, pathname: string) {
   if (pathname === '/offre-metier') {
     return organization.plan === 'metier' && ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
   }
+
+  const requiredFeature = featureKeyForPath(pathname);
+  if (requiredFeature && !organizationHasFeature(organization, requiredFeature)) return false;
 
   const moduleKey = moduleKeyForPath(pathname);
   if (!moduleKey) return true;

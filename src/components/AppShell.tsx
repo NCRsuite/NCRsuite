@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
-import { planLabel } from '../config/planEntitlements';
+import { organizationHasFeature, planLabel } from '../config/planEntitlements';
 import { filterNavigationForOrganization } from '../config/moduleAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -47,14 +47,17 @@ export function AppShell() {
   const restrictedRole = ['employee', 'viewer'].includes(organization.role ?? 'viewer');
   const hasCustomRole = organization.plan === 'metier' && Boolean(organization.custom_role_id);
   const canManageOrganization = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
+  const hasMultiSite = organizationHasFeature(organization, 'multi_site');
   const baseNavigation = pack.navigation.filter((item) => item.path !== '/abonnement');
-  let navigation = restrictedRole && !hasCustomRole
-    ? baseNavigation.filter((item) => ['/', '/rendez-vous', '/planning'].includes(item.path))
-    : baseNavigation;
+  let navigation = baseNavigation;
 
-  if (organization.plan === 'metier') {
-    navigation = filterNavigationForOrganization(organization, navigation);
+  if (restrictedRole && !hasCustomRole) {
+    navigation = organization.business_type === 'formation' && organizationHasFeature(organization, 'team_access')
+      ? baseNavigation.filter((item) => !['/acces-equipe', '/personnalisation', '/etablissements', '/parametres'].includes(item.path))
+      : baseNavigation.filter((item) => ['/', '/rendez-vous', '/planning'].includes(item.path));
   }
+
+  navigation = filterNavigationForOrganization(organization, navigation);
 
   if (organization.plan === 'metier' && canManageOrganization) {
     navigation = [...navigation, { label: 'Configuration Métier', path: '/offre-metier', icon: 'tool' }];
@@ -110,7 +113,7 @@ export function AppShell() {
           <small>{pack.label} · {planLabel(organization.plan)} · {organization.custom_role_label || organization.role || 'viewer'}</small>
         </div>
 
-        {organization.plan === 'metier' && sites.length > 0 && (
+        {hasMultiSite && sites.length > 0 && (
           <div className="site-switcher">
             <label htmlFor="active-site">Établissement</label>
             <select id="active-site" value={activeSiteId ?? 'all'} onChange={(event) => changeSite(event.target.value === 'all' ? null : event.target.value)} disabled={sitesLoading}>
@@ -238,7 +241,7 @@ export function AppShell() {
               </span>
               <span>
                 <strong>{organization.name}</strong>
-                <small>{organization.plan === 'metier' && sites.length > 0 ? (activeSite ? activeSite.name : 'Tous les établissements') : organizations.length > 1 ? 'Changer d’entreprise' : `${pack.label} · ${planLabel(organization.plan)}`}</small>
+                <small>{hasMultiSite && sites.length > 0 ? (activeSite ? activeSite.name : 'Tous les établissements') : organizations.length > 1 ? 'Changer d’entreprise' : `${pack.label} · ${planLabel(organization.plan)}`}</small>
               </span>
               <Icon name="chevronRight" size={18} />
             </button>
@@ -337,7 +340,7 @@ export function AppShell() {
               </div>
             </div>
 
-            {organization.plan === 'metier' && sites.length > 0 && (
+            {hasMultiSite && sites.length > 0 && (
               <div className="mobile-organization-section mobile-site-section">
                 <div className="mobile-sheet-title">
                   <div>

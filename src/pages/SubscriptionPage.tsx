@@ -105,7 +105,16 @@ const featureLabels: Record<string, string> = {
   training_programs: 'Catalogue des formations',
   training_trainees: 'Gestion des stagiaires',
   training_trainers: 'Gestion des formateurs',
-  training_sessions: 'Sessions et planning'
+  training_sessions: 'Sessions et planning',
+  training_documents: 'Documents de session',
+  training_blank_attendance: 'Feuille d’émargement vierge imprimable',
+  training_digital_attendance: 'Émargement numérique avec signatures',
+  training_attendance_pdf: 'PDF d’émargement signé',
+  training_automatic_certificates: 'Attestations automatiques',
+  training_document_branding: 'Personnalisation des documents',
+  training_email_branding: 'Personnalisation des e-mails',
+  training_satisfaction: 'Évaluations de satisfaction',
+  training_session_dossier: 'Dossier complet de session'
 };
 
 const statusLabels: Record<SubscriptionStatus, string> = {
@@ -299,11 +308,18 @@ export function SubscriptionPage() {
             </div>
 
             <div className="subscription-plan-grid">
-              {orderedPlans.map((plan) => {
+              {orderedPlans.map((plan, planIndex) => {
                 const current = plan.plan_key === data.subscription.plan;
                 const currentIsPaid = current && data.subscription.subscription_status === 'active';
                 const isMetier = plan.plan_key === 'metier';
+                const isFormation = data.business_type === 'formation';
                 const enabledFeatures = Object.entries(plan.features).filter(([, active]) => Boolean(active));
+                const previousPlan = planIndex > 0 ? orderedPlans[planIndex - 1] : null;
+                const previousFeatures = new Set(Object.entries(previousPlan?.features ?? {}).filter(([, active]) => Boolean(active)).map(([feature]) => feature));
+                const displayedFeatures = isFormation
+                  ? (isMetier ? [['custom_modules', true] as [string, boolean]] : enabledFeatures.filter(([feature]) => !previousFeatures.has(feature)))
+                  : enabledFeatures.slice(0, 8);
+                const progressiveLabel = !isFormation ? null : planIndex === 0 ? 'SOCLE INCLUS' : `EN PLUS DE ${previousPlan?.display_name.toUpperCase()}`;
                 return (
                   <article key={plan.plan_key} className={`subscription-plan-card${current ? ' current' : ''}${plan.recommended ? ' recommended' : ''}`}>
                     {plan.recommended && <span className="subscription-recommended">RECOMMANDÉE</span>}
@@ -313,9 +329,10 @@ export function SubscriptionPage() {
                     </div>
                     <p className="subscription-plan-description">{plan.short_description}</p>
                     <strong className="subscription-card-price">{isMetier ? 'Sur étude' : money(plan.monthly_price_cents)}<small>{isMetier ? ' configuration personnalisée' : ' HT / mois'}</small></strong>
+                    {progressiveLabel && <p className="eyebrow">{progressiveLabel}</p>}
                     <ul>
-                      <li><Icon name="users" size={16} /> Jusqu’à {plan.member_limit} accès</li>
-                      {enabledFeatures.slice(0, 8).map(([feature]) => <li key={feature}><Icon name="check" size={16} /> {featureLabels[feature] ?? feature}</li>)}
+                      <li><Icon name="users" size={16} /> {isFormation && planIndex > 0 ? `Passe à ${plan.member_limit} accès` : `Jusqu’à ${plan.member_limit} accès`}</li>
+                      {displayedFeatures.map(([feature]) => <li key={feature}><Icon name="check" size={16} /> {isFormation && isMetier ? 'Configuration des modules, rôles et limites sur mesure' : featureLabels[feature] ?? feature}</li>)}
                     </ul>
                     <button
                       type="button"

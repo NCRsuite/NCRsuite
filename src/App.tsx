@@ -29,6 +29,7 @@ import { TrainingSessionsPage } from './pages/TrainingSessionsPage';
 import { TrainingDocumentsPage } from './pages/TrainingDocumentsPage';
 import { TrainingAttendancePage } from './pages/TrainingAttendancePage';
 import { TrainingEvaluationsPage } from './pages/TrainingEvaluationsPage';
+import { TrainingSitesPage } from './pages/TrainingSitesPage';
 import { PublicTrainingSatisfactionPage } from './pages/PublicTrainingSatisfactionPage';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
@@ -102,6 +103,7 @@ export default function App() {
         <Route path="attestations" element={<ModuleAccessGuard moduleKey="certificates"><TrainingDocumentsPage /></ModuleAccessGuard>} />
         <Route path="emargements" element={<ModuleAccessGuard moduleKey="attendance"><TrainingAttendancePage /></ModuleAccessGuard>} />
         <Route path="evaluations" element={<ModuleAccessGuard moduleKey="evaluations"><TrainingEvaluationsPage /></ModuleAccessGuard>} />
+        <Route path="etablissements" element={<ModuleAccessGuard moduleKey="sites"><TrainingSitesPage /></ModuleAccessGuard>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ModuleAccessGuard moduleKey="clients"><ClientsPage /></ModuleAccessGuard>} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />

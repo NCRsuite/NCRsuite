@@ -1,5 +1,6 @@
 import { CSSProperties, FormEvent, useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
+import { organizationHasFeature } from '../config/planEntitlements';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
 
@@ -21,7 +22,7 @@ function extensionFor(file: File) {
   return 'jpg';
 }
 
-export function CommercialBrandingPage() {
+function CoiffureCommercialBrandingPage() {
   const { organization, updateCommercialBranding } = useOrganization();
   const [publicName, setPublicName] = useState('');
   const [slug, setSlug] = useState('');
@@ -230,4 +231,139 @@ export function CommercialBrandingPage() {
       </div>
     </div>
   );
+}
+
+
+function TrainingCommercialBrandingPage() {
+  const { organization, refreshOrganizations } = useOrganization();
+  const [publicName, setPublicName] = useState(organization?.public_name || organization?.name || '');
+  const [primaryColor, setPrimaryColor] = useState(organization?.primary_color || '#2997ff');
+  const [logoUrl, setLogoUrl] = useState<string | null>(organization?.logo_url || null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [address, setAddress] = useState(organization?.booking_address || '');
+  const [contactEmail, setContactEmail] = useState(organization?.booking_contact_email || '');
+  const [contactPhone, setContactPhone] = useState(organization?.booking_contact_phone || '');
+  const [signatureText, setSignatureText] = useState(organization?.booking_practical_info || '');
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!organization) return;
+    setPublicName(organization.public_name || organization.name);
+    setPrimaryColor(organization.primary_color || '#2997ff');
+    setLogoUrl(organization.logo_url || null);
+    setLogoFile(null);
+    setAddress(organization.booking_address || '');
+    setContactEmail(organization.booking_contact_email || '');
+    setContactPhone(organization.booking_contact_phone || '');
+    setSignatureText(organization.booking_practical_info || '');
+  }, [organization?.id]);
+
+  const logoPreview = useMemo(() => logoFile ? URL.createObjectURL(logoFile) : logoUrl, [logoFile, logoUrl]);
+  useEffect(() => () => { if (logoFile && logoPreview) URL.revokeObjectURL(logoPreview); }, [logoFile, logoPreview]);
+
+  if (!organization) return null;
+  const trainingOrganization = organization;
+  const canCustomize = organizationHasFeature(trainingOrganization, 'training_document_branding');
+  const canManage = ['owner', 'admin'].includes(trainingOrganization.role ?? 'viewer');
+
+  function selectLogo(file?: File) {
+    if (!file) return;
+    setError('');
+    if (!allowedTypes.includes(file.type)) { setError('Le logo doit être au format PNG, JPG ou WebP.'); return; }
+    if (file.size > 2 * 1024 * 1024) { setError('Le logo ne doit pas dépasser 2 Mo.'); return; }
+    setLogoFile(file);
+  }
+
+  async function uploadLogo(file: File) {
+    if (!supabase) throw new Error('Supabase est indisponible.');
+    const path = `${trainingOrganization.id}/training-logo-${crypto.randomUUID()}.${extensionFor(file)}`;
+    const { error: uploadError } = await supabase.storage.from('organization-branding').upload(path, file, { contentType: file.type, upsert: false });
+    if (uploadError) throw uploadError;
+    return supabase.storage.from('organization-branding').getPublicUrl(path).data.publicUrl;
+  }
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!supabase || !canManage || !canCustomize) return;
+    setSaving(true); setMessage(''); setError('');
+    try {
+      if (publicName.trim().length < 2) throw new Error('Indique un nom commercial valide.');
+      let nextLogoUrl = logoUrl;
+      if (logoFile) nextLogoUrl = await uploadLogo(logoFile);
+      const { error: rpcError } = await supabase.rpc('update_training_branding', {
+        p_organization_id: trainingOrganization.id,
+        p_public_name: publicName,
+        p_primary_color: primaryColor,
+        p_logo_url: nextLogoUrl,
+        p_address: address,
+        p_contact_email: contactEmail,
+        p_contact_phone: contactPhone,
+        p_signature_text: signatureText
+      });
+      if (rpcError) throw rpcError;
+      setLogoUrl(nextLogoUrl);
+      setLogoFile(null);
+      refreshOrganizations();
+      setMessage('La personnalisation des documents et des e-mails a été enregistrée.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
+    } finally { setSaving(false); }
+  }
+
+  if (!canCustomize) {
+    return (
+      <div className="page commercial-branding-page">
+        <header className="page-header"><div><p className="eyebrow">FORMATION · PERSONNALISATION</p><h1>Documents et e-mails</h1><p>Appliquez votre identité aux convocations, attestations, feuilles d’émargement et e-mails automatiques.</p></div></header>
+        <section className="panel upgrade-panel commercial-upgrade-panel">
+          <div className="upgrade-icon"><Icon name="sparkles" size={27} /></div>
+          <div><p className="eyebrow">OFFRE ESSENTIELLE</p><h2>Personnalisation disponible à partir de l’offre Essentielle</h2><p>La formule Découverte utilise l’identité neutre NCR Suite. Essentielle ajoute votre logo, vos couleurs, vos coordonnées et votre signature dans les PDF et les e-mails Formation.</p></div>
+          <span className="plan-lock-badge">Option supérieure</span>
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page commercial-branding-page">
+      <header className="page-header"><div><p className="eyebrow">FORMATION · PERSONNALISATION</p><h1>Documents et e-mails</h1><p>Une identité unique pour les convocations, attestations, émargements et messages automatiques.</p></div></header>
+      {error && <div className="error-message page-message" role="alert">{error}</div>}
+      {message && <div className="success-message page-message" role="status">{message}</div>}
+      <div className="commercial-branding-layout">
+        <form className="panel settings-form commercial-branding-form" onSubmit={submit}>
+          <div><p className="eyebrow">IDENTITÉ DE L’ORGANISME</p><h2>Informations affichées</h2><p className="muted">Ces réglages sont repris automatiquement lors des prochaines générations et des prochains envois.</p></div>
+          <div className="branding-form-grid">
+            <label>Nom affiché<input required minLength={2} maxLength={120} value={publicName} onChange={(event) => setPublicName(event.target.value)} disabled={!canManage} /></label>
+            <label>Couleur principale<div className="branding-color-control"><input type="color" value={primaryColor} onChange={(event) => setPrimaryColor(event.target.value)} disabled={!canManage} /><code>{primaryColor}</code></div></label>
+            <label className="full-field">Adresse<textarea rows={2} maxLength={500} value={address} onChange={(event) => setAddress(event.target.value)} disabled={!canManage} placeholder="Adresse de l’organisme ou du siège" /></label>
+            <label>E-mail de contact<input type="email" maxLength={180} value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} disabled={!canManage} /></label>
+            <label>Téléphone<input maxLength={40} value={contactPhone} onChange={(event) => setContactPhone(event.target.value)} disabled={!canManage} /></label>
+            <label className="full-field">Signature et mentions personnalisées<textarea rows={5} maxLength={1200} value={signatureText} onChange={(event) => setSignatureText(event.target.value)} disabled={!canManage} placeholder="Ex. L’équipe formation, coordonnées, consignes pratiques ou mentions à afficher en pied de document et d’e-mail." /></label>
+          </div>
+          <div className="branding-upload-card">
+            <div className="branding-upload-preview logo-preview">{logoPreview ? <img src={logoPreview} alt="Aperçu du logo" /> : <span>{publicName.slice(0, 1).toUpperCase()}</span>}</div>
+            <div><strong>Logo des documents et e-mails</strong><p>PNG, JPG ou WebP · 2 Mo maximum.</p><label className="secondary-button compact-button">Choisir un logo<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => selectLogo(event.target.files?.[0])} disabled={!canManage} /></label>{logoPreview && <button className="danger-text-button" type="button" onClick={() => { setLogoFile(null); setLogoUrl(null); }}>Retirer</button>}</div>
+          </div>
+          {canManage && <button className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer la personnalisation'}</button>}
+        </form>
+        <aside className="commercial-preview-column">
+          <div className="commercial-preview-sticky">
+            <div className="preview-heading"><div><p className="eyebrow">APERÇU</p><h2>Attestation et e-mail</h2></div><span>Automatique</span></div>
+            <div className="panel" style={{ borderTop: `5px solid ${primaryColor}` }}>
+              <div className="branding-upload-preview logo-preview">{logoPreview ? <img src={logoPreview} alt="" /> : <span>{publicName.slice(0, 1).toUpperCase()}</span>}</div>
+              <p className="eyebrow">ATTESTATION DE FORMATION</p><h3>{publicName || organization.name}</h3><p>Les convocations, attestations et feuilles d’émargement reprendront cette identité.</p>{address && <small>{address}</small>}
+            </div>
+            <div className="panel" style={{ borderLeft: `4px solid ${primaryColor}` }}><p className="eyebrow">E-MAIL AUTOMATIQUE</p><strong>{publicName || organization.name}</strong><p>Bonjour, votre document de formation est disponible.</p><small>{signatureText || `${contactEmail}${contactPhone ? ` · ${contactPhone}` : ''}` || 'Signature de l’organisme'}</small></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+export function CommercialBrandingPage() {
+  const { organization } = useOrganization();
+  if (organization?.business_type === 'formation') return <TrainingCommercialBrandingPage />;
+  return <CoiffureCommercialBrandingPage />;
 }

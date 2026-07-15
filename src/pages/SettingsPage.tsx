@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { useOrganization } from '../contexts/OrganizationContext';
-import { planHasFeature, planLabel } from '../config/planEntitlements';
+import { organizationHasFeature, planHasFeature, planLabel } from '../config/planEntitlements';
 import { getDomainPlan } from '../config/domainPlans';
 
 const slotOptions = [5, 10, 15, 20, 30, 45, 60];
@@ -64,6 +64,12 @@ export function SettingsPage() {
   const hasCalendarLinks = planHasFeature(organization.plan, 'calendar_links');
   const currentPlan = getDomainPlan(organization.business_type, organization.plan);
   const isTrainingBusiness = organization.business_type === 'formation';
+  const hasTrainingDigitalAttendance = organizationHasFeature(organization, 'training_digital_attendance');
+  const hasTrainingDocumentBranding = organizationHasFeature(organization, 'training_document_branding');
+  const hasTrainingSatisfaction = organizationHasFeature(organization, 'training_satisfaction');
+  const hasTrainingSessionDossier = organizationHasFeature(organization, 'training_session_dossier');
+  const hasTrainingMultiSite = organizationHasFeature(organization, 'multi_site');
+  const hasTrainingTeamAccess = organizationHasFeature(organization, 'team_access');
 
   async function submitBranding(event: FormEvent) {
     event.preventDefault();
@@ -156,7 +162,7 @@ export function SettingsPage() {
         <div>
           <p className="eyebrow">ADMINISTRATION</p>
           <h1>Paramètres</h1>
-          <p>Personnalisez l’espace de votre entreprise et contrôlez la réservation publique.</p>
+          <p>{isTrainingBusiness ? 'Consultez les droits de votre formule et réglez l’identité générale de votre espace Formation.' : 'Personnalisez l’espace de votre entreprise et contrôlez la réservation publique.'}</p>
         </div>
       </header>
 
@@ -181,10 +187,13 @@ export function SettingsPage() {
           <div className="plan-entitlement-grid">
             {isTrainingBusiness ? (
               <>
-                <article className="enabled"><Icon name="check" size={18} /><span><strong>Formations et sessions</strong><small>Catalogue, planning et inscriptions</small></span></article>
-                <article className="enabled"><Icon name="check" size={18} /><span><strong>Stagiaires et formateurs</strong><small>Fiches et suivi opérationnel</small></span></article>
-                <article className={planHasFeature(organization.plan, 'team_access') ? 'enabled' : 'locked'}><Icon name={planHasFeature(organization.plan, 'team_access') ? 'check' : 'lock'} size={18} /><span><strong>Accès équipe</strong><small>{planHasFeature(organization.plan, 'team_access') ? 'Comptes collaborateurs inclus' : 'À partir de l’offre Essentielle'}</small></span></article>
-                <article className={planHasFeature(organization.plan, 'commercial_branding') ? 'enabled' : 'locked'}><Icon name={planHasFeature(organization.plan, 'commercial_branding') ? 'check' : 'lock'} size={18} /><span><strong>Personnalisation complète</strong><small>{planHasFeature(organization.plan, 'commercial_branding') ? 'Logo, couleurs et identité' : 'À partir de l’offre Professionnelle'}</small></span></article>
+                <article className="enabled"><Icon name="check" size={18} /><span><strong>Gestion des formations</strong><small>Programmes, stagiaires, formateurs, sessions et documents</small></span></article>
+                <article className={hasTrainingDigitalAttendance ? 'enabled' : 'locked'}><Icon name={hasTrainingDigitalAttendance ? 'check' : 'lock'} size={18} /><span><strong>Émargement numérique</strong><small>{hasTrainingDigitalAttendance ? 'Signatures et PDF d’émargement inclus' : 'Feuille vierge uniquement · à partir de l’offre Essentielle'}</small></span></article>
+                <article className={hasTrainingDocumentBranding ? 'enabled' : 'locked'}><Icon name={hasTrainingDocumentBranding ? 'check' : 'lock'} size={18} /><span><strong>Documents et e-mails personnalisés</strong><small>{hasTrainingDocumentBranding ? 'Logo, couleurs, coordonnées et signature' : 'À partir de l’offre Essentielle'}</small></span></article>
+                <article className={hasTrainingSatisfaction ? 'enabled' : 'locked'}><Icon name={hasTrainingSatisfaction ? 'check' : 'lock'} size={18} /><span><strong>Évaluations de satisfaction</strong><small>{hasTrainingSatisfaction ? 'Collecte et synthèse incluses' : 'À partir de l’offre Professionnelle'}</small></span></article>
+                <article className={hasTrainingSessionDossier ? 'enabled' : 'locked'}><Icon name={hasTrainingSessionDossier ? 'check' : 'lock'} size={18} /><span><strong>Dossier complet de session</strong><small>{hasTrainingSessionDossier ? 'Synthèse et export PDF inclus' : 'À partir de l’offre Professionnelle'}</small></span></article>
+                <article className={hasTrainingMultiSite ? 'enabled' : 'locked'}><Icon name={hasTrainingMultiSite ? 'check' : 'lock'} size={18} /><span><strong>Multi-site</strong><small>{hasTrainingMultiSite ? 'Établissements et rattachement des sessions' : 'À partir de l’offre Professionnelle'}</small></span></article>
+                <article className={hasTrainingTeamAccess ? 'enabled' : 'locked'}><Icon name={hasTrainingTeamAccess ? 'check' : 'lock'} size={18} /><span><strong>Accès employés avec rôles</strong><small>{hasTrainingTeamAccess ? 'Comptes employés, managers et lecteurs' : 'À partir de l’offre Professionnelle'}</small></span></article>
               </>
             ) : (
               <>

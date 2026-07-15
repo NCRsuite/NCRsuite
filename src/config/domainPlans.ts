@@ -41,25 +41,25 @@ export const DOMAIN_PLAN_PRESENTATIONS: Partial<Record<BusinessType, Record<Plan
       label: 'Découverte',
       monthlyPriceCents: 3990,
       memberLimit: 1,
-      detail: 'Pour un formateur indépendant : formations, stagiaires et sessions.'
+      detail: 'Le socle Formation : gestion, documents, feuille vierge et attestations automatiques.'
     },
     essentielle: {
       label: 'Essentielle',
       monthlyPriceCents: 6990,
       memberLimit: 3,
-      detail: 'Pour une petite équipe : jusqu’à 3 accès et gestion collaborative.'
+      detail: 'Ajoute l’émargement numérique et la personnalisation des documents et e-mails.'
     },
     professionnelle: {
       label: 'Professionnelle',
       monthlyPriceCents: 9990,
       memberLimit: 10,
-      detail: 'Pour un organisme structuré : 10 accès, responsable et personnalisation.'
+      detail: 'Ajoute les évaluations, le dossier complet, le multi-site et les accès employés avec rôles.'
     },
     metier: {
       label: 'Métier',
       monthlyPriceCents: 14990,
       memberLimit: 100,
-      detail: 'Pour les organismes multi-sites et les besoins contractuels sur mesure.'
+      detail: 'Modules, rôles, limites et identité configurés sur mesure selon le contrat.'
     }
   }
 };

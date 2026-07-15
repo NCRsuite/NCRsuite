@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2.4.9 — Droits des offres Formation
+
+- Matrice Formation appliquée à Découverte, Essentielle, Professionnelle et Métier.
+- Découverte limitée à la feuille d’émargement vierge tout en conservant les attestations automatiques.
+- Émargement numérique, signatures et PDF signé réservés à Essentielle et aux offres supérieures.
+- Personnalisation des convocations, attestations, émargements et e-mails automatiques disponible à partir d’Essentielle.
+- Évaluations de satisfaction, dossier complet de session, multi-site et accès employés avec rôles réservés à Professionnelle et aux configurations Métier compatibles.
+- Nouvelle gestion des établissements Formation et rattachement des programmes, sessions et documents au bon site.
+- Génération d’un dossier complet de session avec participants, présence, satisfaction, documents et traçabilité.
+- Rubrique Mon abonnement réécrite de façon progressive : chaque offre affiche uniquement ce qu’elle ajoute.
+- Contrôles appliqués dans l’interface, les routes, les RPC Supabase, les RLS et le stockage des signatures.
+- Conservation stricte des modules Métier déjà configurés sur mesure.
+- Aucun changement de l’Edge Function Brevo : les automatisations Coiffure et Formation existantes sont conservées.
+- Cache PWA et version applicative passés en V2.4.9.
+
 ## 2.4.8 — Signatures PDF et téléchargements fiables
 
 - Recadrage automatique des signatures manuscrites avant leur insertion dans la feuille d’émargement.

@@ -2,6 +2,7 @@ import { PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState
 import { useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
+import { organizationHasFeature } from '../config/planEntitlements';
 import { useOrganization } from '../contexts/OrganizationContext';
 import {
   attendancePeriodLabels,
@@ -262,6 +263,9 @@ export function TrainingAttendancePage() {
   const [pdfBusy, setPdfBusy] = useState(false);
 
   const canManage = ['owner', 'admin', 'manager', 'employee'].includes(organization?.role ?? 'viewer');
+  const hasDigitalAttendance = Boolean(organization && organizationHasFeature(organization, 'training_digital_attendance'));
+  const hasAttendancePdf = Boolean(organization && organizationHasFeature(organization, 'training_attendance_pdf'));
+  const hasDocumentBranding = Boolean(organization && organizationHasFeature(organization, 'training_document_branding'));
 
   async function loadData() {
     if (!organization) return;
@@ -352,18 +356,18 @@ export function TrainingAttendancePage() {
   }, [enrolledTrainees, recordMap]);
 
 
-  async function createAttendancePdf(mode: 'preview' | 'download') {
+  async function createAttendancePdf(mode: 'preview' | 'download', blank = false) {
     if (!organization || !selectedSession || !date || enrolledTrainees.length === 0) return;
     const fileWindow = prepareFileWindow(
-      mode === 'preview' ? 'Feuille d’émargement' : 'Téléchargement de l’émargement',
-      'NCR Suite prépare le PDF et récupère les signatures sécurisées…'
+      mode === 'preview' ? (blank ? 'Feuille d’émargement vierge' : 'Feuille d’émargement') : 'Téléchargement de l’émargement',
+      blank ? 'NCR Suite prépare la feuille vierge à imprimer…' : 'NCR Suite prépare le PDF et récupère les signatures sécurisées…'
     );
 
     setPdfBusy(true); setError(''); setSuccess('');
     try {
       const signatureFiles = new Map<string, Blob>();
       let unavailableSignatures = 0;
-      if (!demoMode && supabase) {
+      if (!blank && !demoMode && supabase) {
         const paths = [...new Set(dayRecords.filter((record) => record.status === 'present' && record.signature_path).map((record) => record.signature_path!))];
         await Promise.all(paths.map(async (path) => {
           const { data, error: downloadError } = await supabase!.storage.from('training-signatures').download(path);
@@ -380,16 +384,25 @@ export function TrainingAttendancePage() {
       }
 
       const { generateAttendanceDayPdf } = await import('../features/training/attendancePdf');
+      const documentOrganization = hasDocumentBranding ? organization : {
+        ...organization,
+        public_name: organization.name,
+        primary_color: '#2997ff',
+        logo_url: null,
+        booking_address: null,
+        show_ncr_branding: true
+      };
       const result = await generateAttendanceDayPdf({
-        organization,
+        organization: documentOrganization,
         site: selectedSession.site_id ? sites.find((site) => site.id === selectedSession.site_id) ?? null : null,
         session: selectedSession,
         program: programMap.get(selectedSession.program_id) ?? null,
         trainer: selectedSession.trainer_id ? trainerMap.get(selectedSession.trainer_id) ?? null : null,
         attendanceDate: date,
         trainees: enrolledTrainees,
-        records: dayRecords,
-        signatureFiles
+        records: blank ? [] : dayRecords,
+        signatureFiles,
+        blank
       });
       const pdfBuffer = result.bytes.buffer.slice(result.bytes.byteOffset, result.bytes.byteOffset + result.bytes.byteLength) as ArrayBuffer;
       const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
@@ -399,8 +412,8 @@ export function TrainingAttendancePage() {
       else showBlobDownload(fileWindow, url, result.filename, 'Feuille d’émargement prête');
 
       window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
-      const warning = unavailableSignatures > 0 ? ` ${unavailableSignatures} signature${unavailableSignatures > 1 ? 's' : ''} n’a pas pu être récupérée.` : '';
-      setSuccess(`${mode === 'preview' ? 'La feuille d’émargement PDF est ouverte.' : 'Le téléchargement de la feuille d’émargement est prêt.'}${warning}`);
+      const warning = !blank && unavailableSignatures > 0 ? ` ${unavailableSignatures} signature${unavailableSignatures > 1 ? 's' : ''} n’a pas pu être récupérée.` : '';
+      setSuccess(`${blank ? 'La feuille d’émargement vierge' : 'La feuille d’émargement PDF'} ${mode === 'preview' ? 'est ouverte.' : 'est prête au téléchargement.'}${warning}`);
     } catch (reason) {
       closeFileWindow(fileWindow);
       setError(reason instanceof Error ? reason.message : 'Impossible de générer la feuille d’émargement PDF.');
@@ -410,7 +423,7 @@ export function TrainingAttendancePage() {
   }
 
   async function persistStatus(trainee: TrainingTraineeRecord, status: Exclude<TrainingAttendanceStatus, 'present'>) {
-    if (!organization || !selectedSession || !date || !canManage) return;
+    if (!organization || !selectedSession || !date || !canManage || !hasDigitalAttendance) return;
     const existing = recordMap.get(trainee.id);
     setSavingId(trainee.id); setError(''); setSuccess('');
     try {
@@ -449,7 +462,7 @@ export function TrainingAttendancePage() {
   }
 
   async function saveSignature(blob: Blob, signatoryName: string) {
-    if (!organization || !selectedSession || !date || !signatureTrainee || !canManage) return;
+    if (!organization || !selectedSession || !date || !signatureTrainee || !canManage || !hasDigitalAttendance) return;
     const trainee = signatureTrainee;
     const existing = recordMap.get(trainee.id);
     setSavingId(trainee.id); setError(''); setSuccess('');
@@ -508,7 +521,7 @@ export function TrainingAttendancePage() {
   return (
     <div className="page training-attendance-page">
       <header className="page-header">
-        <div><p className="eyebrow">FORMATION · ÉMARGEMENTS</p><h1>Présences et signatures</h1><p>Le formateur sélectionne la session, puis fait signer chaque stagiaire matin et après-midi sur le même appareil.</p></div>
+        <div><p className="eyebrow">FORMATION · ÉMARGEMENTS</p><h1>{hasDigitalAttendance ? 'Présences et signatures' : 'Feuilles d’émargement'}</h1><p>{hasDigitalAttendance ? 'Le formateur sélectionne la session, puis fait signer chaque stagiaire matin et après-midi sur le même appareil.' : 'Préparez une feuille vierge par journée pour recueillir les signatures manuellement.'}</p></div>
       </header>
 
       <section className="panel attendance-controls-panel">
@@ -518,21 +531,23 @@ export function TrainingAttendancePage() {
             {sessions.map((session) => <option key={session.id} value={session.id}>{session.title} · {formatDateTime(session.starts_at)}</option>)}
           </select></label>
           <label>Journée<select value={date} onChange={(event) => setDate(event.target.value)} disabled={dates.length === 0}>{dates.map((value) => <option key={value} value={value}>{humanDate(value)}</option>)}</select></label>
-          <div className="attendance-period-control"><span>Période</span><div role="group" aria-label="Période d’émargement">
+          {hasDigitalAttendance && <div className="attendance-period-control"><span>Période</span><div role="group" aria-label="Période d’émargement">
             {(['morning', 'afternoon'] as TrainingAttendancePeriod[]).map((value) => <button key={value} type="button" className={period === value ? 'active' : ''} onClick={() => setPeriod(value)}>{attendancePeriodLabels[value]}</button>)}
-          </div></div>
+          </div></div>}
         </div>
         {selectedSession && <div className="attendance-session-summary"><Icon name="calendar" size={19} /><span><strong>{selectedSession.title}</strong><small>{formatDateTime(selectedSession.starts_at)} → {formatDateTime(selectedSession.ends_at)}{selectedSession.location ? ` · ${selectedSession.location}` : ''}</small></span></div>}
         <div className="attendance-pdf-actions">
-          <div><strong>Feuille de la journée</strong><small>Regroupe le matin et l’après-midi avec les signatures enregistrées.</small></div>
-          <button className="primary-button" type="button" disabled={pdfBusy || !selectedSession || !date || enrolledTrainees.length === 0} onClick={() => void createAttendancePdf('preview')}><Icon name="file" size={17} />{pdfBusy ? 'Préparation…' : 'Visualiser le PDF'}</button>
-          <button className="secondary-button" type="button" disabled={pdfBusy || !selectedSession || !date || enrolledTrainees.length === 0} onClick={() => void createAttendancePdf('download')}>Télécharger</button>
+          <div><strong>{hasAttendancePdf ? 'Feuille signée de la journée' : 'Feuille vierge de la journée'}</strong><small>{hasAttendancePdf ? 'Regroupe le matin et l’après-midi avec les signatures enregistrées.' : 'À imprimer avant la formation pour recueillir les signatures manuscrites.'}</small></div>
+          <button className="primary-button" type="button" disabled={pdfBusy || !selectedSession || !date || enrolledTrainees.length === 0} onClick={() => void createAttendancePdf('preview', !hasAttendancePdf)}><Icon name="file" size={17} />{pdfBusy ? 'Préparation…' : hasAttendancePdf ? 'Visualiser le PDF' : 'Imprimer la feuille vierge'}</button>
+          <button className="secondary-button" type="button" disabled={pdfBusy || !selectedSession || !date || enrolledTrainees.length === 0} onClick={() => void createAttendancePdf('download', !hasAttendancePdf)}>Télécharger</button>
         </div>
       </section>
 
       {error && <div className="error-message page-message" role="alert">{error}</div>}
       {success && <div className="success-message page-message" role="status">{success}</div>}
 
+      {hasDigitalAttendance ? (
+        <>
       <section className="attendance-stats-grid" aria-label="Résumé de la période">
         <article><span className="attendance-stat-icon signed"><Icon name="signature" size={20} /></span><div><strong>{stats.present}</strong><small>Présents signés</small></div></article>
         <article><span className="attendance-stat-icon absent"><Icon name="close" size={20} /></span><div><strong>{stats.absent}</strong><small>Absents</small></div></article>
@@ -572,8 +587,16 @@ export function TrainingAttendancePage() {
       </section>
 
       <section className="panel attendance-legal-note"><span><Icon name="shield" size={22} /></span><div><h2>Traçabilité</h2><p>Chaque signature est horodatée, rattachée à la session, au stagiaire, à la journée et à la période. Les fichiers sont privés et accessibles uniquement aux membres autorisés de l’entreprise.</p></div></section>
+        </>
+      ) : (
+        <section className="panel upgrade-panel">
+          <div className="upgrade-icon"><Icon name="signature" size={28} /></div>
+          <div><p className="eyebrow">OFFRE ESSENTIELLE</p><h2>L’émargement numérique est disponible avec l’offre Essentielle</h2><p>Votre formule conserve la feuille vierge imprimable et les attestations automatiques. Passez à l’offre Essentielle pour signer sur l’appareil et générer le PDF horodaté.</p></div>
+          <span className="plan-lock-badge">Option supérieure</span>
+        </section>
+      )}
 
-      {signatureTrainee && date && <SignatureModal trainee={signatureTrainee} period={period} date={date} saving={savingId === signatureTrainee.id} onCancel={() => !savingId && setSignatureTrainee(null)} onSave={(blob, name) => void saveSignature(blob, name)} />}
+      {hasDigitalAttendance && signatureTrainee && date && <SignatureModal trainee={signatureTrainee} period={period} date={date} saving={savingId === signatureTrainee.id} onCancel={() => !savingId && setSignatureTrainee(null)} onSave={(blob, name) => void saveSignature(blob, name)} />}
     </div>
   );
 }

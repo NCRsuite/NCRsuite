@@ -71,6 +71,7 @@ export interface Organization {
   training_satisfaction_delay_hours?: number;
   training_satisfaction_intro?: string | null;
   role?: MemberRole;
+  plan_features?: Record<string, boolean>;
 }
 
 export interface NavigationItem {

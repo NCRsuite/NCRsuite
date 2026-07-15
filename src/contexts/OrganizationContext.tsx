@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
 import type { BusinessType, Organization, OrganizationSite, Plan } from '../types';
+import { organizationHasFeature } from '../config/planEntitlements';
 
 interface CreateOrganizationInput {
   name: string;
@@ -215,7 +216,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     let active = true;
 
     async function loadSites() {
-      if (!organization || organization.plan !== 'metier') {
+      if (!organization || !organizationHasFeature(organization, 'multi_site')) {
         if (active) {
           setSites([]);
           setActiveSiteId(null);

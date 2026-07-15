@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
+import { getPlanDefinition, organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
@@ -85,6 +86,9 @@ export function TeamAccessPage() {
 
   const canAdminister = ['owner', 'admin'].includes(organization?.role ?? 'viewer');
   const canView = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
+  const isTraining = organization?.business_type === 'formation';
+  const hasTeamAccess = Boolean(organization && organizationHasFeature(organization, 'team_access'));
+  const hasManagerRole = Boolean(organization && organizationHasFeature(organization, 'manager_role'));
 
   const load = useCallback(async () => {
     if (!organization) return;
@@ -92,14 +96,15 @@ export function TeamAccessPage() {
     setError('');
 
     if (demoMode || !supabase) {
+      const planDefinition = getPlanDefinition(organization.business_type, organization.plan);
       setSummary({
         plan: organization.plan,
-        member_limit: organization.plan === 'decouverte' ? 1 : organization.plan === 'essentielle' ? 3 : organization.plan === 'professionnelle' ? 10 : 100,
+        member_limit: planDefinition.memberLimit,
         active_members: 1,
         pending_invitations: 0,
-        available_seats: organization.plan === 'decouverte' ? 0 : organization.plan === 'essentielle' ? 2 : organization.plan === 'professionnelle' ? 9 : 99,
-        invitations_enabled: organization.plan !== 'decouverte',
-        manager_role_enabled: ['professionnelle', 'metier'].includes(organization.plan)
+        available_seats: hasTeamAccess ? Math.max(0, planDefinition.memberLimit - 1) : 0,
+        invitations_enabled: hasTeamAccess,
+        manager_role_enabled: hasManagerRole
       });
       setMembers([{ user_id: user?.id ?? 'demo', email: user?.email ?? 'demo@ncr-suite.local', full_name: 'Compte de démonstration', role: 'owner', status: 'active', staff_id: null, staff_name: null, joined_at: new Date().toISOString() }]);
       setInvitations([]);
@@ -109,7 +114,7 @@ export function TeamAccessPage() {
     }
 
     try {
-      const summaryResult = await supabase.rpc('team_plan_summary', { p_organization_id: organization.id });
+      const summaryResult = await supabase.rpc(isTraining ? 'training_team_plan_summary' : 'team_plan_summary', { p_organization_id: organization.id });
       if (summaryResult.error) throw summaryResult.error;
       setSummary((summaryResult.data?.[0] ?? null) as PlanSummary | null);
 
@@ -117,7 +122,7 @@ export function TeamAccessPage() {
         const [membersResult, invitationsResult, staffResult] = await Promise.all([
           supabase.rpc('list_team_members', { p_organization_id: organization.id }),
           supabase.rpc('list_team_invitations', { p_organization_id: organization.id }),
-          supabase.from('staff').select('id,display_name,email,linked_user_id,active').eq('organization_id', organization.id).eq('active', true).order('display_name')
+          isTraining ? Promise.resolve({ data: [], error: null }) : supabase.from('staff').select('id,display_name,email,linked_user_id,active').eq('organization_id', organization.id).eq('active', true).order('display_name')
         ]);
         const firstError = membersResult.error || invitationsResult.error || staffResult.error;
         if (firstError) throw firstError;
@@ -130,12 +135,21 @@ export function TeamAccessPage() {
     } finally {
       setLoading(false);
     }
-  }, [organization, demoMode, user, canView]);
+  }, [organization, demoMode, user, canView, isTraining, hasTeamAccess, hasManagerRole]);
 
   useEffect(() => { load(); }, [load]);
 
   const roleOptions = useMemo(() => {
     if (!summary) return [{ value: 'employee' as AccessRole, label: 'Collaborateur' }];
+    if (isTraining && summary.invitations_enabled) {
+      const options = [
+        { value: 'employee' as AccessRole, label: 'Collaborateur' },
+        { value: 'viewer' as AccessRole, label: 'Consultation' }
+      ];
+      if (summary.manager_role_enabled) options.splice(1, 0, { value: 'manager' as AccessRole, label: 'Responsable' });
+      if (summary.plan === 'metier') options.splice(1, 0, { value: 'admin' as AccessRole, label: 'Administrateur' });
+      return options;
+    }
     if (summary.plan === 'essentielle') return [{ value: 'employee' as AccessRole, label: 'Collaborateur' }];
     if (summary.plan === 'professionnelle') return [
       { value: 'employee' as AccessRole, label: 'Collaborateur' },
@@ -147,7 +161,7 @@ export function TeamAccessPage() {
       { value: 'admin' as AccessRole, label: 'Administrateur' },
       { value: 'viewer' as AccessRole, label: 'Consultation' }
     ];
-  }, [summary]);
+  }, [summary, isTraining]);
 
   const availableStaff = useMemo(() => {
     const pendingStaff = new Set(invitations.filter((item) => item.status === 'pending').map((item) => item.staff_id));
@@ -167,7 +181,7 @@ export function TeamAccessPage() {
   async function invite(event: FormEvent) {
     event.preventDefault();
     if (!organization || !supabase || !canAdminister) return;
-    if (role === 'employee' && !staffId) {
+    if (!isTraining && role === 'employee' && !staffId) {
       setError('Sélectionne le collaborateur qui recevra cet accès.');
       return;
     }
@@ -175,7 +189,7 @@ export function TeamAccessPage() {
     setError('');
     setSuccess('');
     try {
-      const { error: inviteError } = await supabase.rpc('create_team_invitation', {
+      const { error: inviteError } = await supabase.rpc(isTraining ? 'create_training_team_invitation' : 'create_team_invitation', {
         p_organization_id: organization.id,
         p_email: email,
         p_role: role,
@@ -217,7 +231,7 @@ export function TeamAccessPage() {
     setBusyId(member.user_id);
     setError('');
     try {
-      const { error: roleError } = await supabase.rpc('update_team_member_role', {
+      const { error: roleError } = await supabase.rpc(isTraining ? 'update_training_team_member_role' : 'update_team_member_role', {
         p_organization_id: organization.id,
         p_user_id: member.user_id,
         p_role: nextRole
@@ -287,11 +301,11 @@ export function TeamAccessPage() {
             <section className="panel upgrade-panel">
               <div className="upgrade-icon"><Icon name="users" size={30} /></div>
               <div>
-                <p className="eyebrow">OFFRE ESSENTIELLE</p>
+                <p className="eyebrow">{isTraining ? 'OFFRE PROFESSIONNELLE' : 'OFFRE ESSENTIELLE'}</p>
                 <h2>Donnez un accès personnel à vos collaborateurs</h2>
-                <p>La formule Découverte reste limitée au compte propriétaire. À partir de l’offre Essentielle, vous pouvez inviter jusqu’à 2 collaborateurs supplémentaires, chacun avec son propre planning.</p>
+                <p>{isTraining ? 'L’offre Professionnelle permet de créer des accès employés distincts et de choisir leur rôle dans l’espace Formation.' : 'La formule Découverte reste limitée au compte propriétaire. À partir de l’offre Essentielle, vous pouvez inviter jusqu’à 2 collaborateurs supplémentaires, chacun avec son propre planning.'}</p>
               </div>
-              <span className="plan-lock-badge">Disponible à partir de 19,90 € HT / mois</span>
+              <span className="plan-lock-badge">{isTraining ? 'Professionnelle' : 'Disponible à partir de 19,90 € HT / mois'}</span>
             </section>
           ) : !canView ? (
             <section className="panel upgrade-panel"><div><h2>Accès limité</h2><p>Votre compte ne permet pas de consulter ou modifier les accès de l’équipe.</p></div></section>
@@ -309,14 +323,14 @@ export function TeamAccessPage() {
                         {roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                       </select>
                     </label>
-                    <label>
+                    {!isTraining && <label>
                       Profil collaborateur {role === 'employee' && <span aria-hidden="true">*</span>}
                       <select value={staffId} onChange={(event) => selectStaff(event.target.value)} required={role === 'employee'}>
                         <option value="">{role === 'employee' ? 'Sélectionner un collaborateur' : 'Aucun profil associé'}</option>
                         {availableStaff.map((item) => <option key={item.id} value={item.id}>{item.display_name}{item.email ? ` · ${item.email}` : ''}</option>)}
                       </select>
                       <small>Les profils se créent d’abord dans le menu Collaborateurs.</small>
-                    </label>
+                    </label>}
                     <label>
                       Adresse e-mail <span aria-hidden="true">*</span>
                       <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="collaborateur@entreprise.fr" />
@@ -333,7 +347,7 @@ export function TeamAccessPage() {
                   {members.map((member) => (
                     <article key={member.user_id} className={`team-member-row${member.status === 'disabled' ? ' disabled' : ''}`}>
                       <div className="team-avatar">{member.full_name.slice(0, 1).toUpperCase()}</div>
-                      <div className="team-member-identity"><strong>{member.full_name}</strong><span>{member.email}</span><small>{member.staff_name ? `Profil : ${member.staff_name}` : 'Aucun profil collaborateur associé'}</small></div>
+                      <div className="team-member-identity"><strong>{member.full_name}</strong><span>{member.email}</span><small>{isTraining ? roleLabels[member.role] : member.staff_name ? `Profil : ${member.staff_name}` : 'Aucun profil collaborateur associé'}</small></div>
                       <span className={`status-chip ${member.status === 'active' ? 'active' : 'inactive'}`}>{member.status === 'active' ? 'Actif' : 'Suspendu'}</span>
                       <div className="team-member-actions">
                         {member.role === 'owner' ? <strong>Propriétaire</strong> : canAdminister ? (

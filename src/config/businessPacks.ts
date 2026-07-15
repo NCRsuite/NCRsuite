@@ -121,6 +121,9 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Émargements', path: '/emargements', icon: 'signature' },
       { label: 'Évaluations', path: '/evaluations', icon: 'chart' },
       { label: 'Attestations', path: '/attestations', icon: 'graduation' },
+      { label: 'Établissements', path: '/etablissements', icon: 'building' },
+      { label: 'Accès équipe', path: '/acces-equipe', icon: 'users' },
+      { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
       subscription,
       settings
     ],

@@ -20,6 +20,7 @@ export interface AttendancePdfInput {
   trainees: TrainingTraineeRecord[];
   records: TrainingAttendanceRecord[];
   signatureFiles: Map<string, Blob>;
+  blank?: boolean;
 }
 
 export interface AttendancePdfResult {
@@ -185,7 +186,7 @@ function drawPageHeader(
   const address = normalizePdfText(input.site?.address || input.organization.booking_address || '');
   if (address) page.drawText(address.slice(0, 95), { x: brandX, y: height - 50, size: 8.5, font: regular, color: muted });
 
-  page.drawText("FEUILLE D'EMARGEMENT", { x: MARGIN, y: height - 85, size: 19, font: bold, color: dark });
+  page.drawText(input.blank ? "FEUILLE D'EMARGEMENT VIERGE" : "FEUILLE D'EMARGEMENT", { x: MARGIN, y: height - 85, size: 19, font: bold, color: dark });
   page.drawRectangle({ x: MARGIN, y: height - 93, width: 74, height: 3, color: accent });
 
   const title = normalizePdfText(input.session.title || input.program?.title || 'Session de formation');
@@ -210,7 +211,7 @@ function drawPageHeader(
   });
 }
 
-function drawTableHeader(page: PDFPage, regular: PDFFont, bold: PDFFont, y: number) {
+function drawTableHeader(page: PDFPage, regular: PDFFont, bold: PDFFont, y: number, blank = false) {
   const dark = rgb(0.12, 0.13, 0.15);
   const muted = rgb(0.39, 0.42, 0.47);
   const soft = rgb(0.95, 0.96, 0.97);
@@ -223,8 +224,9 @@ function drawTableHeader(page: PDFPage, regular: PDFFont, bold: PDFFont, y: numb
   page.drawText('STAGIAIRE', { x: MARGIN + 10, y: y - 19, size: 8.5, font: bold, color: dark });
   page.drawText('MATIN', { x: MARGIN + PARTICIPANT_WIDTH + 10, y: y - 19, size: 8.5, font: bold, color: dark });
   page.drawText('APRÈS-MIDI', { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH + 10, y: y - 19, size: 8.5, font: bold, color: dark });
-  page.drawText('Statut, signature et horodatage', { x: MARGIN + PARTICIPANT_WIDTH + 54, y: y - 19, size: 7.6, font: regular, color: muted });
-  page.drawText('Statut, signature et horodatage', { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH + 72, y: y - 19, size: 7.6, font: regular, color: muted });
+  const periodHint = blank ? 'Signature du stagiaire' : 'Statut, signature et horodatage';
+  page.drawText(periodHint, { x: MARGIN + PARTICIPANT_WIDTH + 54, y: y - 19, size: 7.6, font: regular, color: muted });
+  page.drawText(periodHint, { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH + 72, y: y - 19, size: 7.6, font: regular, color: muted });
 }
 
 function drawPeriodCell(
@@ -236,13 +238,20 @@ function drawPeriodCell(
   width: number,
   record: TrainingAttendanceRecord | undefined,
   image: PDFImage | null,
-  timezone: string
+  timezone: string,
+  blank = false
 ) {
   const dark = rgb(0.12, 0.13, 0.15);
   const muted = rgb(0.39, 0.42, 0.47);
   const green = rgb(0.05, 0.47, 0.28);
   const red = rgb(0.72, 0.17, 0.17);
   const orange = rgb(0.68, 0.39, 0.03);
+  if (blank) {
+    page.drawLine({ start: { x: x + 16, y: y - 40 }, end: { x: x + width - 16, y: y - 40 }, color: muted, thickness: 0.65 });
+    page.drawText('Signature', { x: x + 10, y: y - 18, size: 7.8, font: regular, color: muted });
+    return;
+  }
+
   const status = record?.status ?? 'pending';
   const statusColor = status === 'present' ? green : status === 'absent' ? red : status === 'excused' ? orange : muted;
   const label = attendanceStatusLabels[status];
@@ -308,7 +317,7 @@ export async function generateAttendanceDayPdf(input: AttendancePdfInput): Promi
     const page = pdf.addPage(A4_LANDSCAPE);
     drawPageHeader(page, regular, bold, input, logo, pageIndex, totalPages);
     let y = page.getHeight() - HEADER_HEIGHT;
-    drawTableHeader(page, regular, bold, y);
+    drawTableHeader(page, regular, bold, y, input.blank === true);
     y -= TABLE_HEADER_HEIGHT;
 
     const pageTrainees = input.trainees.slice(pageIndex * rowsPerPage, (pageIndex + 1) * rowsPerPage);
@@ -326,8 +335,8 @@ export async function generateAttendanceDayPdf(input: AttendancePdfInput): Promi
 
       const morning = records.get(recordKey(trainee.id, 'morning'));
       const afternoon = records.get(recordKey(trainee.id, 'afternoon'));
-      drawPeriodCell(page, regular, bold, MARGIN + PARTICIPANT_WIDTH, y, PERIOD_WIDTH, morning, signatures.get(recordKey(trainee.id, 'morning')) ?? null, timezone);
-      drawPeriodCell(page, regular, bold, MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH, y, PERIOD_WIDTH, afternoon, signatures.get(recordKey(trainee.id, 'afternoon')) ?? null, timezone);
+      drawPeriodCell(page, regular, bold, MARGIN + PARTICIPANT_WIDTH, y, PERIOD_WIDTH, morning, signatures.get(recordKey(trainee.id, 'morning')) ?? null, timezone, input.blank === true);
+      drawPeriodCell(page, regular, bold, MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH, y, PERIOD_WIDTH, afternoon, signatures.get(recordKey(trainee.id, 'afternoon')) ?? null, timezone, input.blank === true);
       y -= ROW_HEIGHT;
     }
 
@@ -338,14 +347,14 @@ export async function generateAttendanceDayPdf(input: AttendancePdfInput): Promi
     acc[record.status] += 1;
     return acc;
   }, { present: 0, absent: 0, excused: 0, pending: 0 });
-  pdf.setTitle(`Feuille d'émargement - ${input.session.title} - ${formatDay(input.attendanceDate)}`);
+  pdf.setTitle(`${input.blank ? "Feuille d'émargement vierge" : "Feuille d'émargement"} - ${input.session.title} - ${formatDay(input.attendanceDate)}`);
   pdf.setAuthor(input.organization.public_name || input.organization.name);
-  pdf.setSubject(`Présences signées : ${totals.present} · Absences : ${totals.absent} · Justifiées : ${totals.excused}`);
+  pdf.setSubject(input.blank ? 'Feuille vierge à imprimer et signer manuellement.' : `Présences signées : ${totals.present} · Absences : ${totals.absent} · Justifiées : ${totals.excused}`);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.4.8');
+  pdf.setProducer('NCR Suite V2.4.9');
 
   return {
     bytes: await pdf.save(),
-    filename: `emargement-${slugify(input.session.title)}-${input.attendanceDate}.pdf`
+    filename: `${input.blank ? 'feuille-emargement-vierge' : 'emargement'}-${slugify(input.session.title)}-${input.attendanceDate}.pdf`
   };
 }

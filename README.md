@@ -1,5 +1,17 @@
-# NCR Suite — V2.4.8
+# NCR Suite — V2.4.9
 
+## V2.4.9 — Offres Formation et dossier complet
+
+Cette version applique réellement la répartition commerciale validée pour le domaine Formation :
+
+- **Découverte** : gestion des formations, stagiaires, formateurs et sessions, documents, feuille d’émargement vierge et attestations automatiques ;
+- **Essentielle** : ajoute l’émargement numérique avec signatures, le PDF d’émargement et la personnalisation des documents et des e-mails ;
+- **Professionnelle** : ajoute les évaluations de satisfaction, le dossier complet de session, le multi-site et les accès employés avec rôles ;
+- **Métier** : conserve la configuration sur mesure existante sans réactiver les modules volontairement désactivés.
+
+La rubrique **Mon abonnement** présente désormais chaque formule de manière progressive, uniquement avec les options qu’elle ajoute. Les menus, routes et opérations Supabase sont contrôlés selon les droits réels de l’offre.
+
+La procédure de mise à jour est détaillée dans `docs/V2.4.9_INSTALLATION.md`.
 
 ## V2.4.8 — Signatures visibles et téléchargements fiables
 

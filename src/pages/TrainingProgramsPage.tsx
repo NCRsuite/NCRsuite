@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { modalityLabels, nullableText, type TrainingModality, type TrainingProgramRecord } from '../features/training/types';
@@ -79,12 +80,12 @@ export function TrainingProgramsPage() {
     const duration = Number(form.durationHours.replace(',', '.'));
     if (form.title.trim().length < 2) { setError('Le titre doit contenir au moins 2 caractères.'); return; }
     if (!Number.isFinite(duration) || duration <= 0) { setError('La durée doit être supérieure à 0.'); return; }
-    if (organization.plan === 'metier' && !form.siteId) { setError('Sélectionne un établissement.'); return; }
+    if (organizationHasFeature(organization, 'multi_site') && !form.siteId) { setError('Sélectionne un établissement.'); return; }
 
     setSaving(true); setError(''); setSuccess('');
     const payload = {
       organization_id: organization.id,
-      site_id: organization.plan === 'metier' ? form.siteId : null,
+      site_id: organizationHasFeature(organization, 'multi_site') ? form.siteId : null,
       title: form.title.trim(),
       code: nullableText(form.code)?.toUpperCase() ?? null,
       duration_hours: duration,
@@ -148,7 +149,7 @@ export function TrainingProgramsPage() {
             <label>Code interne<input value={form.code} onChange={(event) => setForm((current) => ({ ...current, code: event.target.value }))} placeholder="SST-01" /></label>
             <label>Durée en heures *<input inputMode="decimal" required value={form.durationHours} onChange={(event) => setForm((current) => ({ ...current, durationHours: event.target.value }))} /></label>
             <label>Modalité<select value={form.modality} onChange={(event) => setForm((current) => ({ ...current, modality: event.target.value as TrainingModality }))}><option value="presentiel">Présentiel</option><option value="distanciel">Distanciel</option><option value="hybride">Hybride</option></select></label>
-            {organization.plan === 'metier' && <label>Établissement<select required value={form.siteId} onChange={(event) => setForm((current) => ({ ...current, siteId: event.target.value }))}><option value="">Sélectionner</option>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>}
+            {organizationHasFeature(organization, 'multi_site') && <label>Établissement<select required value={form.siteId} onChange={(event) => setForm((current) => ({ ...current, siteId: event.target.value }))}><option value="">Sélectionner</option>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>}
             <label className="full-field">Objectifs<textarea rows={3} value={form.objectives} onChange={(event) => setForm((current) => ({ ...current, objectives: event.target.value }))} placeholder="Compétences ou résultats attendus…" /></label>
             <label className="full-field">Description<textarea rows={3} value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} /></label>
             <div className="form-actions full-field"><button className="secondary-button" type="button" onClick={() => setSearchParams({})}>Annuler</button><button className="primary-button" type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button></div>
