@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## 2.4.6 — Évaluations et satisfaction Formation
+
+- Questionnaire public individuel envoyé après la fin d’une session.
+- Notes sur le contenu, le formateur, l’organisation et l’atteinte des objectifs.
+- Recommandation, commentaire libre et piste d’amélioration.
+- Envoi automatique Brevo configurable de 0 à 48 heures après la session.
+- Relance manuelle depuis l’espace Formation.
+- Tableau de suivi avec taux de réponse, note moyenne et taux de recommandation.
+- Isolation stricte par entreprise et établissement.
+- Conservation de toutes les automatisations e-mail Coiffure et Formation existantes.
+- Cache PWA et version applicative passés en V2.4.6.
+
+## 2.4.5 — Documents automatiques Formation
+
+- Convocations PDF individualisées générées dès qu’une session est planifiée.
+- Attestations de fin générées à la clôture de la session après contrôle d’une présence signée.
+- Classement automatique dans la bibliothèque Documents avec statut d’envoi.
+- Envoi Brevo avec PDF en pièce jointe et identité visuelle de l’organisme.
+- File de traitement sécurisée, relances automatiques et messages d’erreur exploitables.
+- Boutons de régénération / renvoi depuis les sessions.
+- Suivi par session du nombre de documents générés, en attente ou en erreur.
+- Cache PWA et version applicative passés en V2.4.5.
+
+
 ## 2.4.4 — Émargements et signatures Formation
 
 - Feuilles d’émargement par session, journée et période matin / après-midi.
