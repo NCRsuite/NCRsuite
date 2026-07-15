@@ -28,6 +28,8 @@ import { TrainingTrainersPage } from './pages/TrainingTrainersPage';
 import { TrainingSessionsPage } from './pages/TrainingSessionsPage';
 import { TrainingDocumentsPage } from './pages/TrainingDocumentsPage';
 import { TrainingAttendancePage } from './pages/TrainingAttendancePage';
+import { TrainingEvaluationsPage } from './pages/TrainingEvaluationsPage';
+import { PublicTrainingSatisfactionPage } from './pages/PublicTrainingSatisfactionPage';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
 
@@ -88,6 +90,7 @@ export default function App() {
       <Route path="/reserver/:slug" element={<PublicBookingPage />} />
       <Route path="/reservation/:token" element={<PublicBookingManagePage />} />
       <Route path="/invitation/:token" element={<InvitationPage />} />
+      <Route path="/evaluation/:token" element={<PublicTrainingSatisfactionPage />} />
       <Route path="/administration-ncr" element={<PlatformAdminArea />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
@@ -97,6 +100,7 @@ export default function App() {
         <Route path="sessions" element={<ModuleAccessGuard moduleKey="sessions"><TrainingSessionsPage /></ModuleAccessGuard>} />
         <Route path="documents" element={<ModuleAccessGuard moduleKey="documents"><DocumentsArea /></ModuleAccessGuard>} />
         <Route path="emargements" element={<ModuleAccessGuard moduleKey="attendance"><TrainingAttendancePage /></ModuleAccessGuard>} />
+        <Route path="evaluations" element={<ModuleAccessGuard moduleKey="evaluations"><TrainingEvaluationsPage /></ModuleAccessGuard>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ModuleAccessGuard moduleKey="clients"><ClientsPage /></ModuleAccessGuard>} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />

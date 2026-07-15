@@ -67,6 +67,9 @@ export interface Organization {
   booking_reminder_hours?: number;
   booking_cancellation_policy?: string | null;
   booking_privacy_notice?: string | null;
+  training_satisfaction_enabled?: boolean;
+  training_satisfaction_delay_hours?: number;
+  training_satisfaction_intro?: string | null;
   role?: MemberRole;
 }
 

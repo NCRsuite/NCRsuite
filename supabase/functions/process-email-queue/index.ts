@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.110.2';
+import { PDFDocument, StandardFonts, rgb } from 'npm:pdf-lib@1.17.1';
 
 type OutboxItem = {
   id: string;
@@ -7,6 +8,18 @@ type OutboxItem = {
   recipient_email: string;
   recipient_name: string | null;
   payload: Record<string, unknown>;
+  attempts: number;
+};
+
+
+type TrainingDocumentJob = {
+  id: string;
+  organization_id: string;
+  session_id: string;
+  trainee_id: string;
+  document_kind: 'convocation' | 'attestation';
+  generation_version: number;
+  send_email: boolean;
   attempts: number;
 };
 
@@ -67,6 +80,328 @@ function formatPrice(cents: unknown): string | null {
   const amount = Number(cents);
   if (!Number.isFinite(amount) || amount < 0) return null;
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(amount / 100);
+}
+
+
+function normalizePdfText(value: unknown): string {
+  return String(value ?? '')
+    .replaceAll('\u00a0', ' ')
+    .replace(/[’‘]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, '-')
+    .replace(/•/g, '-')
+    .replace(/œ/g, 'oe')
+    .replace(/Œ/g, 'OE')
+    .replace(/…/g, '...')
+    .replace(/[^\u0000-\u00ff]/g, '?')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function hexRgb(value: unknown) {
+  const color = safeColor(value).slice(1);
+  return rgb(
+    Number.parseInt(color.slice(0, 2), 16) / 255,
+    Number.parseInt(color.slice(2, 4), 16) / 255,
+    Number.parseInt(color.slice(4, 6), 16) / 255,
+  );
+}
+
+function wrapPdfText(text: string, font: { widthOfTextAtSize: (value: string, size: number) => number }, size: number, maxWidth: number): string[] {
+  const normalized = normalizePdfText(text);
+  if (!normalized) return [];
+  const words = normalized.split(' ');
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (!current || font.widthOfTextAtSize(candidate, size) <= maxWidth) current = candidate;
+    else {
+      lines.push(current);
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+function formatTrainingDate(value: unknown, timezone: string, withTime = false): string {
+  const date = new Date(String(value ?? ''));
+  if (Number.isNaN(date.getTime())) return 'À confirmer';
+  return new Intl.DateTimeFormat('fr-FR', {
+    timeZone: timezone,
+    day: '2-digit', month: 'long', year: 'numeric',
+    ...(withTime ? { hour: '2-digit', minute: '2-digit' } : {}),
+  }).format(date);
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(index, Math.min(index + chunkSize, bytes.length)));
+  }
+  return btoa(binary);
+}
+
+async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Uint8Array> {
+  const kind = String(payload.document_kind ?? 'convocation');
+  const timezone = String(payload.organization_timezone ?? 'Europe/Paris');
+  const pdf = await PDFDocument.create();
+  const page = pdf.addPage([595.28, 841.89]);
+  const regular = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const accent = hexRgb(payload.organization_primary_color);
+  const dark = rgb(0.11, 0.11, 0.12);
+  const muted = rgb(0.42, 0.42, 0.45);
+  const soft = rgb(0.96, 0.96, 0.97);
+  const margin = 48;
+  const contentWidth = page.getWidth() - margin * 2;
+  let y = page.getHeight() - 48;
+
+  page.drawRectangle({ x: 0, y: page.getHeight() - 10, width: page.getWidth(), height: 10, color: accent });
+
+  const logoUrl = safeImageUrl(payload.organization_logo_url);
+  if (logoUrl) {
+    try {
+      const response = await fetch(logoUrl);
+      if (response.ok) {
+        const contentType = response.headers.get('content-type') ?? '';
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        const image = contentType.includes('png') ? await pdf.embedPng(bytes) : contentType.includes('jpeg') || contentType.includes('jpg') ? await pdf.embedJpg(bytes) : null;
+        if (image) {
+          const scaled = image.scale(Math.min(150 / image.width, 58 / image.height, 1));
+          page.drawImage(image, { x: margin, y: y - scaled.height, width: scaled.width, height: scaled.height });
+        }
+      }
+    } catch {
+      // Le document reste générable même si le logo externe est temporairement indisponible.
+    }
+  }
+
+  const organization = normalizePdfText(payload.organization_name || 'Organisme de formation');
+  page.drawText(organization, { x: margin, y: y - 8, size: 13, font: bold, color: dark });
+  const address = normalizePdfText(payload.site_address || payload.organization_address);
+  if (address) page.drawText(address.slice(0, 105), { x: margin, y: y - 27, size: 9, font: regular, color: muted });
+  y -= 88;
+
+  const title = kind === 'attestation' ? 'ATTESTATION DE FIN DE FORMATION' : 'CONVOCATION À UNE FORMATION';
+  page.drawText(title, { x: margin, y, size: kind === 'attestation' ? 21 : 23, font: bold, color: dark });
+  y -= 12;
+  page.drawRectangle({ x: margin, y, width: 86, height: 4, color: accent });
+  y -= 38;
+
+  const traineeName = normalizePdfText(`${payload.trainee_first_name ?? ''} ${payload.trainee_last_name ?? ''}`);
+  const company = normalizePdfText(payload.trainee_company);
+  const program = normalizePdfText(payload.program_title || payload.session_title || 'Formation');
+  const session = normalizePdfText(payload.session_title || program);
+  const trainer = normalizePdfText(payload.trainer_name);
+  const location = normalizePdfText(payload.location || payload.site_address || payload.organization_address || 'À confirmer');
+  const modalityLabels: Record<string, string> = { presentiel: 'Présentiel', distanciel: 'Distanciel', hybride: 'Hybride' };
+  const modality = modalityLabels[String(payload.modality ?? '')] ?? normalizePdfText(payload.modality);
+  const starts = formatTrainingDate(payload.starts_at, timezone, true);
+  const ends = formatTrainingDate(payload.ends_at, timezone, true);
+  const duration = Number(payload.duration_hours ?? 0);
+  const reference = normalizePdfText(String(payload.job_id ?? '').replaceAll('-', '').slice(0, 12).toUpperCase());
+
+  const intro = kind === 'attestation'
+    ? `${organization} atteste que ${traineeName}${company ? `, rattaché(e) à ${company}` : ''}, a participé à la formation indiquée ci-dessous.`
+    : `Madame, Monsieur, ${traineeName}${company ? ` (${company})` : ''} est convoqué(e) à la session de formation indiquée ci-dessous.`;
+  for (const line of wrapPdfText(intro, regular, 11, contentWidth)) {
+    page.drawText(line, { x: margin, y, size: 11, font: regular, color: dark });
+    y -= 17;
+  }
+  y -= 14;
+
+  const fields: Array<[string, string]> = [
+    ['Formation', program],
+    ['Session', session],
+    ['Début', starts],
+    ['Fin', ends],
+    ['Durée prévue', duration > 0 ? `${String(duration).replace('.', ',')} heures` : 'À confirmer'],
+    ['Modalité', modality || 'À confirmer'],
+    ['Lieu / accès', location],
+    ['Formateur', trainer || 'À définir'],
+  ];
+
+  page.drawRectangle({ x: margin, y: y - fields.length * 34 - 10, width: contentWidth, height: fields.length * 34 + 18, color: soft });
+  y -= 18;
+  for (const [label, value] of fields) {
+    page.drawText(label, { x: margin + 16, y, size: 9, font: bold, color: muted });
+    const valueLines = wrapPdfText(value || 'À confirmer', regular, 10.5, contentWidth - 150).slice(0, 2);
+    valueLines.forEach((line, index) => page.drawText(line, { x: margin + 136, y: y - index * 13, size: 10.5, font: regular, color: dark }));
+    y -= 34;
+  }
+  y -= 22;
+
+  if (kind === 'convocation') {
+    const objectives = normalizePdfText(payload.program_objectives);
+    if (objectives) {
+      page.drawText('Objectifs principaux', { x: margin, y, size: 11, font: bold, color: dark });
+      y -= 18;
+      for (const line of wrapPdfText(objectives, regular, 10, contentWidth).slice(0, 5)) {
+        page.drawText(line, { x: margin, y, size: 10, font: regular, color: muted });
+        y -= 15;
+      }
+      y -= 8;
+    }
+    const footer = normalizePdfText(payload.document_footer);
+    if (footer) {
+      page.drawText('Informations pratiques', { x: margin, y, size: 11, font: bold, color: dark });
+      y -= 18;
+      for (const line of wrapPdfText(footer, regular, 10, contentWidth).slice(0, 5)) {
+        page.drawText(line, { x: margin, y, size: 10, font: regular, color: muted });
+        y -= 15;
+      }
+    }
+  } else {
+    const present = Number(payload.attendance_present ?? 0);
+    const absent = Number(payload.attendance_absent ?? 0);
+    const excused = Number(payload.attendance_excused ?? 0);
+    page.drawText('Éléments de présence enregistrés', { x: margin, y, size: 11, font: bold, color: dark });
+    y -= 20;
+    page.drawText(`Présences signées : ${present}  ·  Absences : ${absent}  ·  Absences justifiées : ${excused}`, { x: margin, y, size: 10, font: regular, color: muted });
+    y -= 40;
+    const signatoryName = normalizePdfText(payload.signatory_name) || 'Le responsable de l’organisme';
+    const signatoryTitle = normalizePdfText(payload.signatory_title);
+    page.drawText('Fait le ' + formatTrainingDate(new Date().toISOString(), timezone), { x: margin, y, size: 10, font: regular, color: muted });
+    y -= 35;
+    page.drawText(signatoryName, { x: margin, y, size: 12, font: bold, color: dark });
+    if (signatoryTitle) page.drawText(signatoryTitle, { x: margin, y: y - 17, size: 10, font: regular, color: muted });
+  }
+
+  page.drawText(`Référence : ${reference || 'NCR-SUITE'}`, { x: margin, y: 32, size: 8, font: regular, color: muted });
+  if (payload.show_ncr_branding !== false) {
+    const branding = 'Document généré automatiquement par NCR Suite';
+    page.drawText(branding, { x: page.getWidth() - margin - regular.widthOfTextAtSize(branding, 8), y: 32, size: 8, font: regular, color: muted });
+  }
+
+  pdf.setTitle(`${title} - ${traineeName}`);
+  pdf.setAuthor(organization);
+  pdf.setSubject(program);
+  pdf.setCreator('NCR Suite');
+  return await pdf.save();
+}
+
+async function processTrainingDocumentJobs(supabase: any) {
+  const { data, error } = await supabase.rpc('claim_training_document_jobs', { p_limit: 10 });
+  if (error) throw new Error(`File documents : ${error.message}`);
+
+  const jobs = (data ?? []) as TrainingDocumentJob[];
+  let generated = 0;
+  let failed = 0;
+
+  for (const job of jobs) {
+    try {
+      const { data: rawPayload, error: payloadError } = await supabase.rpc('training_document_job_payload', { p_job_id: job.id });
+      if (payloadError) throw payloadError;
+      const trainingPayload = (rawPayload ?? {}) as Record<string, unknown>;
+      if (!trainingPayload.job_id) throw new Error('Données de génération introuvables.');
+
+      if (job.document_kind === 'attestation') {
+        if (String(trainingPayload.session_status) !== 'completed') throw new Error('La session n’est pas terminée.');
+        if (Number(trainingPayload.attendance_present ?? 0) < 1) {
+          throw new Error('ATTENDANCE_REQUIRED: aucune présence signée pour ce stagiaire.');
+        }
+      }
+
+      const pdfBytes = await generateTrainingPdf(trainingPayload);
+      const safeName = `${job.document_kind}-${normalizePdfText(trainingPayload.trainee_first_name).toLowerCase()}-${normalizePdfText(trainingPayload.trainee_last_name).toLowerCase()}`
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || job.document_kind;
+      const storagePath = `${job.organization_id}/${job.session_id}/automatiques/${job.document_kind}/${safeName}-v${job.generation_version}.pdf`;
+      const { error: uploadError } = await supabase.storage.from('training-documents').upload(storagePath, pdfBytes, {
+        contentType: 'application/pdf', cacheControl: '3600', upsert: true,
+      });
+      if (uploadError) throw uploadError;
+
+      const title = job.document_kind === 'attestation'
+        ? `Attestation de fin — ${normalizePdfText(trainingPayload.trainee_first_name)} ${normalizePdfText(trainingPayload.trainee_last_name)}`
+        : `Convocation — ${normalizePdfText(trainingPayload.trainee_first_name)} ${normalizePdfText(trainingPayload.trainee_last_name)}`;
+      const { data: documentRow, error: documentError } = await supabase
+        .from('training_documents')
+        .upsert({
+          organization_id: job.organization_id,
+          site_id: trainingPayload.site_id || null,
+          session_id: job.session_id,
+          program_id: trainingPayload.program_id || null,
+          trainee_id: job.trainee_id,
+          title,
+          category: job.document_kind === 'attestation' ? 'attestation' : 'convocation',
+          storage_path: storagePath,
+          mime_type: 'application/pdf',
+          size_bytes: pdfBytes.length,
+          visibility: 'trainee',
+          status: 'published',
+          notes: `Document généré automatiquement · version ${job.generation_version}`,
+          generated_automatically: true,
+          automation_key: String(trainingPayload.automation_key),
+          generated_at: new Date().toISOString(),
+        }, { onConflict: 'automation_key' })
+        .select('id')
+        .single();
+      if (documentError) throw documentError;
+      const documentId = documentRow?.id;
+      if (!documentId) throw new Error('Document généré mais référence introuvable.');
+
+      const recipientEmail = String(trainingPayload.trainee_email ?? '').trim().toLowerCase();
+      const shouldEmail = job.send_email && /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(recipientEmail);
+      if (shouldEmail) {
+        const emailTemplate = job.document_kind === 'attestation' ? 'training_attestation' : 'training_convocation';
+        const { error: emailError } = await supabase.from('email_outbox').upsert({
+          organization_id: job.organization_id,
+          appointment_id: null,
+          template_key: emailTemplate,
+          recipient_email: recipientEmail,
+          recipient_name: normalizePdfText(`${trainingPayload.trainee_first_name ?? ''} ${trainingPayload.trainee_last_name ?? ''}`),
+          payload: {
+            ...trainingPayload,
+            document_title: title,
+            attachment_bucket: 'training-documents',
+            attachment_path: storagePath,
+            attachment_name: `${safeName}.pdf`,
+          },
+          dedupe_key: `training-email:${job.id}`,
+          status: 'pending',
+          scheduled_for: new Date().toISOString(),
+          attempts: 0,
+          locked_at: null,
+          sent_at: null,
+          provider_message_id: null,
+          last_error: null,
+        }, { onConflict: 'dedupe_key', ignoreDuplicates: true });
+        if (emailError) throw emailError;
+      }
+
+      const { error: completedError } = await supabase
+        .from('training_document_jobs')
+        .update({
+          status: 'completed', completed_at: new Date().toISOString(), locked_at: null,
+          document_id: documentId, last_error: shouldEmail ? null : 'Document généré. Aucun e-mail valide à envoyer.',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', job.id);
+      if (completedError) throw completedError;
+      generated += 1;
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : String(caught);
+      const attendanceBlocked = message.startsWith('ATTENDANCE_REQUIRED:');
+      const exhausted = attendanceBlocked || job.attempts >= 4;
+      const retryMinutes = Math.min(30, Math.max(2, 2 ** job.attempts));
+      await supabase
+        .from('training_document_jobs')
+        .update({
+          status: exhausted ? 'failed' : 'pending',
+          scheduled_for: new Date(Date.now() + retryMinutes * 60_000).toISOString(),
+          locked_at: null,
+          last_error: message.replace('ATTENDANCE_REQUIRED:', '').trim().slice(0, 2000),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', job.id);
+      failed += 1;
+    }
+  }
+
+  return { claimed: jobs.length, generated, failed };
 }
 
 function templateCopy(templateKey: string, payload: Record<string, unknown>) {
@@ -130,6 +465,27 @@ function templateCopy(templateKey: string, payload: Record<string, unknown>) {
         title: 'Un client a annulé son rendez-vous',
         message: `Le rendez-vous du ${date.date} à ${date.time} a été annulé.`,
       };
+    case 'training_convocation':
+      return {
+        subject: `Convocation à votre formation — ${organization}`,
+        eyebrow: 'CONVOCATION FORMATION',
+        title: 'Votre convocation est disponible',
+        message: `Vous trouverez en pièce jointe votre convocation pour la session « ${String(payload.session_title ?? payload.program_title ?? 'Formation')} » prévue du ${formatTrainingDate(payload.starts_at, String(payload.organization_timezone ?? 'Europe/Paris'), true)} au ${formatTrainingDate(payload.ends_at, String(payload.organization_timezone ?? 'Europe/Paris'), true)}.`,
+      };
+    case 'training_attestation':
+      return {
+        subject: `Attestation de fin de formation — ${organization}`,
+        eyebrow: 'ATTESTATION DE FIN',
+        title: 'Votre attestation est disponible',
+        message: `Vous trouverez en pièce jointe votre attestation relative à la formation « ${String(payload.program_title ?? payload.session_title ?? 'Formation')} ».`
+      };
+    case 'training_satisfaction_request':
+      return {
+        subject: `Votre avis sur la formation — ${organization}`,
+        eyebrow: 'QUESTIONNAIRE DE SATISFACTION',
+        title: 'Votre avis compte',
+        message: `Prenez quelques instants pour évaluer la formation « ${String(payload.program_title ?? payload.session_title ?? 'Formation')} ».`
+      };
     case 'team_invitation':
       return {
         subject: `Invitation à rejoindre ${organization} sur NCR Suite`,
@@ -179,6 +535,83 @@ function buildEmail(item: OutboxItem, publicUrl: string) {
     const text = `${copy.title}\n\n${copy.message}\n\nAccès : ${role}\nInvitation valable jusqu’au ${expiry}.\n\nAccepter l’invitation : ${inviteUrl}`;
     return { subject: copy.subject, html, text, replyTo: null };
   }
+  if (item.template_key === 'training_satisfaction_request') {
+    const accent = safeColor(payload.organization_primary_color);
+    const organization = escapeHtml(payload.organization_name ?? 'NCR Suite');
+    const trainee = escapeHtml(payload.trainee_first_name ?? item.recipient_name ?? '');
+    const program = escapeHtml(payload.program_title ?? payload.session_title ?? 'Formation');
+    const trainer = escapeHtml(payload.trainer_name ?? '');
+    const timezone = String(payload.organization_timezone ?? 'Europe/Paris');
+    const contactEmail = String(payload.contact_email ?? '').trim();
+    const contactPhone = String(payload.contact_phone ?? '').trim();
+    const organizationLogoUrl = safeImageUrl(payload.organization_logo_url);
+    const surveyToken = String(payload.survey_token ?? '').trim();
+    const surveyUrl = `${publicUrl.replace(/\/$/, '')}/evaluation/${encodeURIComponent(surveyToken)}`;
+    const emailLogo = organizationLogoUrl
+      ? `<div style="margin-bottom:22px"><img src="${escapeHtml(organizationLogoUrl)}" alt="${organization}" style="display:block;max-width:180px;max-height:72px;object-fit:contain"></div>`
+      : '';
+    const intro = escapeHtml(payload.intro_text ?? copy.message);
+    const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;background:#f5f5f7;font-family:Arial,Helvetica,sans-serif;color:#1d1d1f">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;padding:28px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 12px 35px rgba(0,0,0,.08)">
+<tr><td style="height:8px;background:${accent}"></td></tr>
+<tr><td style="padding:34px 32px 14px">${emailLogo}<div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">Bonjour ${trainee}, ${intro}</p></td></tr>
+<tr><td style="padding:18px 32px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;border-radius:20px;padding:8px 18px">
+<tr><td style="padding:13px 0;color:#6e6e73">Organisme</td><td align="right" style="font-weight:700">${organization}</td></tr>
+<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Formation</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${program}</td></tr>
+<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Période</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${escapeHtml(formatTrainingDate(payload.starts_at, timezone, true))}</td></tr>
+${trainer ? `<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Formateur</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${trainer}</td></tr>` : ''}
+</table></td></tr>
+<tr><td style="padding:8px 32px 30px"><a href="${escapeHtml(surveyUrl)}" style="display:inline-block;background:${accent};color:#fff;text-decoration:none;font-weight:700;padding:14px 24px;border-radius:999px">Donner mon avis</a></td></tr>
+<tr><td style="padding:22px 32px 32px;border-top:1px solid #ededf0;color:#86868b;font-size:13px;line-height:1.6">${contactEmail || contactPhone ? `Une question ? ${[contactEmail, contactPhone].filter(Boolean).map(escapeHtml).join(' · ')}<br>` : ''}${payload.show_ncr_branding !== false ? `Propulsé par NCR Suite pour ${organization}.` : `E-mail envoyé automatiquement pour ${organization}.`}</td></tr>
+</table></td></tr></table></body></html>`;
+    const text = `${copy.title}
+
+${copy.message}
+
+Formation : ${payload.program_title ?? payload.session_title ?? ''}
+Répondre au questionnaire : ${surveyUrl}`;
+    return { subject: copy.subject, html, text, replyTo: contactEmail || null };
+  }
+
+  if (item.template_key === 'training_convocation' || item.template_key === 'training_attestation') {
+    const accent = safeColor(payload.organization_primary_color);
+    const organization = escapeHtml(payload.organization_name ?? 'NCR Suite');
+    const trainee = escapeHtml(`${payload.trainee_first_name ?? ''} ${payload.trainee_last_name ?? item.recipient_name ?? ''}`.trim());
+    const program = escapeHtml(payload.program_title ?? payload.session_title ?? 'Formation');
+    const timezone = String(payload.organization_timezone ?? 'Europe/Paris');
+    const starts = escapeHtml(formatTrainingDate(payload.starts_at, timezone, true));
+    const ends = escapeHtml(formatTrainingDate(payload.ends_at, timezone, true));
+    const location = escapeHtml(payload.location ?? payload.site_address ?? payload.organization_address ?? 'À confirmer');
+    const trainer = escapeHtml(payload.trainer_name ?? 'À définir');
+    const contactEmail = String(payload.contact_email ?? '').trim();
+    const contactPhone = String(payload.contact_phone ?? '').trim();
+    const organizationLogoUrl = safeImageUrl(payload.organization_logo_url);
+    const emailLogo = organizationLogoUrl
+      ? `<div style="margin-bottom:22px"><img src="${escapeHtml(organizationLogoUrl)}" alt="${organization}" style="display:block;max-width:180px;max-height:72px;object-fit:contain"></div>`
+      : '';
+    const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;background:#f5f5f7;font-family:Arial,Helvetica,sans-serif;color:#1d1d1f">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;padding:28px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 12px 35px rgba(0,0,0,.08)">
+<tr><td style="height:8px;background:${accent}"></td></tr>
+<tr><td style="padding:34px 32px 14px">${emailLogo}<div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">Bonjour ${trainee}, ${escapeHtml(copy.message)}</p></td></tr>
+<tr><td style="padding:18px 32px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;border-radius:20px;padding:8px 18px">
+<tr><td style="padding:13px 0;color:#6e6e73">Organisme</td><td align="right" style="font-weight:700">${organization}</td></tr>
+<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Formation</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${program}</td></tr>
+<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Début</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${starts}</td></tr>
+<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Fin</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${ends}</td></tr>
+<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Lieu / accès</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${location}</td></tr>
+<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Formateur</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${trainer}</td></tr>
+</table></td></tr>
+<tr><td style="padding:8px 32px 28px"><div style="display:inline-block;background:${accent};color:#fff;font-weight:700;padding:13px 22px;border-radius:999px">Document PDF joint à cet e-mail</div></td></tr>
+<tr><td style="padding:22px 32px 32px;border-top:1px solid #ededf0;color:#86868b;font-size:13px;line-height:1.6">${contactEmail || contactPhone ? `Une question ? ${[contactEmail, contactPhone].filter(Boolean).map(escapeHtml).join(' · ')}<br>` : ''}${payload.show_ncr_branding !== false ? `Propulsé par NCR Suite pour ${organization}.` : `E-mail envoyé automatiquement pour ${organization}.`}</td></tr>
+</table></td></tr></table></body></html>`;
+    const text = `${copy.title}\n\n${copy.message}\n\nFormation : ${payload.program_title ?? ''}\nDébut : ${formatTrainingDate(payload.starts_at, timezone, true)}\nFin : ${formatTrainingDate(payload.ends_at, timezone, true)}\nLieu / accès : ${payload.location ?? payload.site_address ?? payload.organization_address ?? 'À confirmer'}\n\nLe document PDF est joint à cet e-mail.`;
+    return { subject: copy.subject, html, text, replyTo: contactEmail || null };
+  }
+
   const accent = safeColor(payload.organization_primary_color);
   const organization = escapeHtml(payload.organization_name ?? 'NCR Suite');
   const clientFirstName = escapeHtml(payload.client_first_name ?? item.recipient_name ?? '');
@@ -276,6 +709,13 @@ Deno.serve(async (request) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
+  let documentJobs = { claimed: 0, generated: 0, failed: 0 };
+  try {
+    documentJobs = await processTrainingDocumentJobs(supabase);
+  } catch (caught) {
+    console.error('Training document processor:', caught);
+  }
+
   const { data, error } = await supabase.rpc('claim_email_outbox', { p_limit: 20 });
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
@@ -329,6 +769,18 @@ Deno.serve(async (request) => {
       };
       if (email.replyTo) payload.replyTo = { email: email.replyTo };
 
+      const attachmentBucket = String(item.payload?.attachment_bucket ?? '').trim();
+      const attachmentPath = String(item.payload?.attachment_path ?? '').trim();
+      if (attachmentBucket && attachmentPath) {
+        const { data: attachmentBlob, error: attachmentError } = await supabase.storage.from(attachmentBucket).download(attachmentPath);
+        if (attachmentError || !attachmentBlob) throw attachmentError ?? new Error('Pièce jointe introuvable.');
+        const attachmentBytes = new Uint8Array(await attachmentBlob.arrayBuffer());
+        payload.attachment = [{
+          name: String(item.payload?.attachment_name ?? 'document.pdf'),
+          content: bytesToBase64(attachmentBytes),
+        }];
+      }
+
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
@@ -356,6 +808,12 @@ Deno.serve(async (request) => {
         })
         .eq('id', item.id);
       if (updateError) throw updateError;
+      if (item.template_key === 'training_convocation' || item.template_key === 'training_attestation') {
+        const automationKey = String(item.payload?.automation_key ?? '').trim();
+        if (automationKey) {
+          await supabase.from('training_documents').update({ emailed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('automation_key', automationKey);
+        }
+      }
       sent += 1;
     } catch (caught) {
       const errorMessage = caught instanceof Error ? caught.message : String(caught);
@@ -375,7 +833,7 @@ Deno.serve(async (request) => {
     }
   }
 
-  return new Response(JSON.stringify({ claimed: items.length, sent, failed }), {
+  return new Response(JSON.stringify({ documents: documentJobs, emails: { claimed: items.length, sent, failed } }), {
     status: 200,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });

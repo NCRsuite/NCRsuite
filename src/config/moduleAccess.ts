@@ -25,6 +25,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/formateurs': 'trainers',
   '/sessions': 'sessions',
   '/emargements': 'attendance',
+  '/evaluations': 'evaluations',
   '/attestations': 'certificates',
   '/devis': 'quotes'
 };

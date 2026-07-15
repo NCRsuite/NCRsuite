@@ -83,7 +83,8 @@ const ORGANIZATION_FIELDS = [
   'booking_reminder_hours','booking_cancellation_policy','booking_privacy_notice','public_name','booking_tagline','booking_banner_url',
   'booking_address','booking_hours_text','booking_practical_info','show_ncr_branding','metier_setup_fee_cents','metier_member_limit',
   'metier_site_limit','metier_storage_limit_mb','metier_contract_reference','metier_modules_configured','white_label_enabled',
-  'custom_domain','custom_domain_status','custom_domain_verified_at'
+  'custom_domain','custom_domain_status','custom_domain_verified_at','training_satisfaction_enabled',
+  'training_satisfaction_delay_hours','training_satisfaction_intro'
 ].join(',');
 
 function slugify(value: string) {

@@ -1,4 +1,42 @@
-# NCR Suite — V2.4.4
+# NCR Suite — V2.4.6
+
+## V2.4.6 — Évaluations et satisfaction Formation
+
+Cette version complète le cycle qualité du pack Formation :
+
+- questionnaire individuel envoyé automatiquement quand une session est terminée ;
+- formulaire public sans compte stagiaire ;
+- notes sur le contenu, le formateur, l’organisation et les objectifs ;
+- recommandation, commentaires et pistes d’amélioration ;
+- statistiques et suivi des réponses dans **Formation → Évaluations** ;
+- réglage du délai d’envoi et relance manuelle.
+
+Après le SQL 022, exécuter :
+
+```text
+supabase/migrations/023_training_satisfaction.sql
+```
+
+Puis redéployer la fonction `process-email-queue` avec la version V2.4.6. Aucun nouveau secret ni nouveau Cron n’est nécessaire.
+
+## V2.4.5 — Convocations et attestations automatiques
+
+Cette version automatise le cycle documentaire Formation :
+
+- génération d’une convocation PDF individualisée quand une session est planifiée ;
+- envoi automatique au stagiaire par Brevo avec le PDF en pièce jointe ;
+- génération d’une attestation de fin lorsque la session est terminée et qu’une présence signée existe ;
+- classement automatique dans la bibliothèque Documents ;
+- boutons de régénération et de renvoi depuis la fiche de session ;
+- suivi des traitements en attente, terminés ou en erreur.
+
+Après le SQL 021, exécuter :
+
+```text
+supabase/migrations/022_training_automatic_documents.sql
+```
+
+Puis redéployer la fonction `process-email-queue`, car elle génère désormais les PDF, les stocke et les joint aux e-mails transactionnels.
 
 
 ## V2.4.4 — Émargements et signatures Formation

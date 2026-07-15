@@ -86,7 +86,31 @@ export interface TrainingDocumentRecord {
   visibility: TrainingDocumentVisibility;
   status: TrainingDocumentStatus;
   notes: string | null;
+  generated_automatically?: boolean;
+  automation_key?: string | null;
+  generated_at?: string | null;
+  emailed_at?: string | null;
   created_at: string;
+}
+
+export type TrainingDocumentJobKind = 'convocation' | 'attestation';
+export type TrainingDocumentJobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+
+export interface TrainingDocumentJobRecord {
+  id: string;
+  organization_id: string;
+  site_id: string | null;
+  session_id: string;
+  trainee_id: string;
+  document_kind: TrainingDocumentJobKind;
+  generation_version: number;
+  send_email: boolean;
+  status: TrainingDocumentJobStatus;
+  attempts: number;
+  document_id: string | null;
+  last_error: string | null;
+  created_at: string;
+  completed_at: string | null;
 }
 
 export const trainingDocumentCategoryLabels: Record<TrainingDocumentCategory, string> = {
@@ -165,3 +189,36 @@ export const attendanceStatusLabels: Record<TrainingAttendanceStatus, string> = 
   absent: 'Absent',
   excused: 'Absence justifiée'
 };
+
+export type TrainingSatisfactionStatus = 'pending' | 'sent' | 'completed' | 'expired' | 'cancelled';
+
+export interface TrainingSatisfactionRecord {
+  id: string;
+  organization_id: string;
+  site_id: string | null;
+  session_id: string;
+  trainee_id: string;
+  public_token: string;
+  status: TrainingSatisfactionStatus;
+  scheduled_for: string;
+  emailed_at: string | null;
+  completed_at: string | null;
+  content_rating: number | null;
+  trainer_rating: number | null;
+  organization_rating: number | null;
+  objectives_rating: number | null;
+  recommend: boolean | null;
+  comment: string | null;
+  improvement: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrainingSatisfactionSummary {
+  total: number;
+  completed: number;
+  pending: number;
+  response_rate: number;
+  average_rating: number | null;
+  recommendation_rate: number;
+}
