@@ -1,4 +1,21 @@
-# NCR Suite — V2.4.6
+# NCR Suite — V2.4.8
+
+
+## V2.4.8 — Signatures visibles et téléchargements fiables
+
+Cette version fiabilise les documents du pack Formation :
+
+- recadrage automatique des signatures manuscrites avant insertion dans le PDF ;
+- signatures du matin et de l’après-midi agrandies et visibles dans leurs cellules ;
+- génération du PDF maintenue même si une ancienne signature est temporairement inaccessible ;
+- visualisation des documents ouverte dès le clic pour éviter le blocage Safari ;
+- téléchargement des attestations et documents via une URL Supabase signée avec un nom de fichier propre ;
+- page de téléchargement de secours pour les PDF d’émargement sur iPhone, iPad et PWA ;
+- conservation de tous les accès aux attestations et PDF ajoutés en V2.4.7.
+
+Aucune nouvelle migration SQL et aucun changement de l’Edge Function ne sont nécessaires pour passer de la V2.4.7 à la V2.4.8.
+
+La procédure de mise à jour est détaillée dans `docs/V2.4.8_INSTALLATION.md`.
 
 ## V2.4.6 — Évaluations et satisfaction Formation
 

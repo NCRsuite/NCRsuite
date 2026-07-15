@@ -15,6 +15,7 @@ import {
   type TrainingSessionRecord,
   type TrainingTraineeRecord
 } from '../features/training/types';
+import { closeFileWindow, navigateFileWindow, prepareFileWindow } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
@@ -235,33 +236,61 @@ export function TrainingDocumentsPage() {
     setSaving(false);
   }
 
+  function downloadFileName(document: TrainingDocumentRecord) {
+    const storageName = document.storage_path.split('/').pop() ?? '';
+    const extensionMatch = storageName.match(/(\.[a-z0-9]{1,8})$/i);
+    const mimeExtensions: Record<string, string> = {
+      'application/pdf': '.pdf',
+      'image/png': '.png',
+      'image/jpeg': '.jpg',
+      'image/webp': '.webp',
+      'application/msword': '.doc',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+      'application/vnd.ms-excel': '.xls',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+      'text/plain': '.txt'
+    };
+    const extension = extensionMatch?.[1].toLowerCase() || mimeExtensions[document.mime_type ?? ''] || '';
+    const title = safeFileName(document.title).replace(/\.[a-z0-9]{1,8}$/i, '');
+    return `${title}${extension}`;
+  }
+
   async function openDocument(document: TrainingDocumentRecord) {
     if (demoMode || !supabase) { setError('La visualisation réelle nécessite Supabase.'); return; }
+    const target = prepareFileWindow('Ouverture du document', 'NCR Suite prépare un accès sécurisé au fichier…');
     setDownloadingId(`open-${document.id}`); setError('');
-    const { data, error: signedError } = await supabase.storage.from('training-documents').createSignedUrl(document.storage_path, 120);
-    if (signedError || !data?.signedUrl) setError(`Visualisation impossible : ${signedError?.message || 'lien indisponible'}`);
-    else window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
-    setDownloadingId('');
+    try {
+      const { data, error: signedError } = await supabase.storage
+        .from('training-documents')
+        .createSignedUrl(document.storage_path, 300);
+      if (signedError || !data?.signedUrl) throw new Error(signedError?.message || 'lien indisponible');
+      navigateFileWindow(target, data.signedUrl);
+    } catch (reason) {
+      closeFileWindow(target);
+      setError(`Visualisation impossible : ${reason instanceof Error ? reason.message : 'fichier indisponible'}`);
+    } finally {
+      setDownloadingId('');
+    }
   }
 
   async function downloadDocument(document: TrainingDocumentRecord) {
     if (demoMode || !supabase) { setError('Le téléchargement réel nécessite Supabase.'); return; }
+    const filename = downloadFileName(document);
+    const target = prepareFileWindow('Téléchargement du document', 'NCR Suite prépare le téléchargement sécurisé…');
     setDownloadingId(`download-${document.id}`); setError('');
-    const { data, error: downloadError } = await supabase.storage.from('training-documents').download(document.storage_path);
-    if (downloadError || !data) {
-      setError(`Téléchargement impossible : ${downloadError?.message || 'fichier indisponible'}`);
-    } else {
-      const extension = document.mime_type === 'application/pdf' ? '.pdf' : '';
-      const url = URL.createObjectURL(data);
-      const anchor = globalThis.document.createElement('a');
-      anchor.href = url;
-      anchor.download = `${safeFileName(document.title)}${extension}`;
-      globalThis.document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    try {
+      const { data, error: signedError } = await supabase.storage
+        .from('training-documents')
+        .createSignedUrl(document.storage_path, 300, { download: filename });
+      if (signedError || !data?.signedUrl) throw new Error(signedError?.message || 'lien indisponible');
+      navigateFileWindow(target, data.signedUrl);
+      setSuccess(`Téléchargement de « ${document.title} » lancé.`);
+    } catch (reason) {
+      closeFileWindow(target);
+      setError(`Téléchargement impossible : ${reason instanceof Error ? reason.message : 'fichier indisponible'}`);
+    } finally {
+      setDownloadingId('');
     }
-    setDownloadingId('');
   }
 
   async function archiveDocument(document: TrainingDocumentRecord) {

@@ -138,8 +138,13 @@ async function embedSignature(pdf: PDFDocument, blob: Blob | undefined): Promise
   if (!blob) return null;
   try {
     const bytes = new Uint8Array(await blob.arrayBuffer());
-    if (blob.type.includes('jpeg') || blob.type.includes('jpg')) return await pdf.embedJpg(bytes);
-    return await pdf.embedPng(bytes);
+    const isPng = bytes.length > 8
+      && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+    const isJpeg = bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    if (isPng) return await pdf.embedPng(bytes);
+    if (isJpeg) return await pdf.embedJpg(bytes);
+    try { return await pdf.embedPng(bytes); }
+    catch { return await pdf.embedJpg(bytes); }
   } catch {
     return null;
   }
@@ -245,15 +250,20 @@ function drawPeriodCell(
   page.drawText(normalizePdfText(label), { x: x + 10, y: y - 18, size: 8.5, font: bold, color: statusColor });
   if (status === 'present') {
     if (image) {
-      const scale = Math.min((width - 126) / image.width, 31 / image.height, 1);
+      const signatureX = x + 98;
+      const maxWidth = Math.max(40, width - 108);
+      const maxHeight = 36;
+      const scale = Math.min(maxWidth / image.width, maxHeight / image.height);
+      const imageWidth = image.width * scale;
+      const imageHeight = image.height * scale;
       page.drawImage(image, {
-        x: x + 108,
-        y: y - 42,
-        width: image.width * scale,
-        height: image.height * scale
+        x: signatureX + (maxWidth - imageWidth) / 2,
+        y: y - 47 + (maxHeight - imageHeight) / 2,
+        width: imageWidth,
+        height: imageHeight
       });
     } else {
-      page.drawText('Signature enregistrée', { x: x + 108, y: y - 28, size: 7.4, font: regular, color: muted });
+      page.drawText('Image de signature indisponible', { x: x + 98, y: y - 29, size: 6.9, font: regular, color: muted });
     }
     if (record?.signatory_name) page.drawText(normalizePdfText(record.signatory_name).slice(0, 34), { x: x + 10, y: y - 33, size: 7.3, font: regular, color: dark });
     if (record?.signed_at) page.drawText(formatDateTime(record.signed_at, timezone), { x: x + 10, y: y - 45, size: 6.8, font: regular, color: muted });
@@ -332,7 +342,7 @@ export async function generateAttendanceDayPdf(input: AttendancePdfInput): Promi
   pdf.setAuthor(input.organization.public_name || input.organization.name);
   pdf.setSubject(`Présences signées : ${totals.present} · Absences : ${totals.absent} · Justifiées : ${totals.excused}`);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.4.7');
+  pdf.setProducer('NCR Suite V2.4.8');
 
   return {
     bytes: await pdf.save(),

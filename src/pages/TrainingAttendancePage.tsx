@@ -17,6 +17,7 @@ import {
   type TrainingTraineeRecord,
   type TrainingTrainerRecord
 } from '../features/training/types';
+import { closeFileWindow, navigateFileWindow, prepareFileWindow, showBlobDownload } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
 
 function isoDate(date: Date) {
@@ -42,6 +43,92 @@ function sessionDates(session: TrainingSessionRecord | undefined) {
 
 function humanDate(value: string) {
   return new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(`${value}T12:00:00`));
+}
+
+function canvasBlob(canvas: HTMLCanvasElement) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('Conversion de la signature impossible.')), 'image/png', 0.96);
+  });
+}
+
+function loadBlobImage(blob: Blob) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const image = new Image();
+    image.onload = () => { URL.revokeObjectURL(url); resolve(image); };
+    image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image de signature illisible.')); };
+    image.src = url;
+  });
+}
+
+async function normalizeSignatureForPdf(blob: Blob) {
+  const image = await loadBlobImage(blob);
+  const source = document.createElement('canvas');
+  source.width = Math.max(1, image.naturalWidth || image.width);
+  source.height = Math.max(1, image.naturalHeight || image.height);
+  const sourceContext = source.getContext('2d', { willReadFrequently: true });
+  if (!sourceContext) return blob;
+
+  sourceContext.fillStyle = '#ffffff';
+  sourceContext.fillRect(0, 0, source.width, source.height);
+  sourceContext.drawImage(image, 0, 0, source.width, source.height);
+
+  const pixels = sourceContext.getImageData(0, 0, source.width, source.height).data;
+  let minX = source.width;
+  let minY = source.height;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let y = 0; y < source.height; y += 1) {
+    for (let x = 0; x < source.width; x += 1) {
+      const index = (y * source.width + x) * 4;
+      const alpha = pixels[index + 3];
+      const red = pixels[index];
+      const green = pixels[index + 1];
+      const blue = pixels[index + 2];
+      const hasInk = alpha > 20 && (red < 235 || green < 235 || blue < 235);
+      if (!hasInk) continue;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+
+  if (maxX < minX || maxY < minY) return blob;
+
+  const paddingX = Math.max(8, Math.round((maxX - minX + 1) * 0.08));
+  const paddingY = Math.max(8, Math.round((maxY - minY + 1) * 0.18));
+  const cropX = Math.max(0, minX - paddingX);
+  const cropY = Math.max(0, minY - paddingY);
+  const cropWidth = Math.min(source.width - cropX, maxX - minX + 1 + paddingX * 2);
+  const cropHeight = Math.min(source.height - cropY, maxY - minY + 1 + paddingY * 2);
+
+  const target = document.createElement('canvas');
+  target.width = 900;
+  target.height = 260;
+  const targetContext = target.getContext('2d');
+  if (!targetContext) return blob;
+  targetContext.fillStyle = '#ffffff';
+  targetContext.fillRect(0, 0, target.width, target.height);
+
+  const maxWidth = target.width - 40;
+  const maxHeight = target.height - 32;
+  const scale = Math.min(maxWidth / cropWidth, maxHeight / cropHeight);
+  const drawWidth = cropWidth * scale;
+  const drawHeight = cropHeight * scale;
+  targetContext.drawImage(
+    source,
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
+    (target.width - drawWidth) / 2,
+    (target.height - drawHeight) / 2,
+    drawWidth,
+    drawHeight
+  );
+  return canvasBlob(target);
 }
 
 interface SignatureModalProps {
@@ -267,20 +354,28 @@ export function TrainingAttendancePage() {
 
   async function createAttendancePdf(mode: 'preview' | 'download') {
     if (!organization || !selectedSession || !date || enrolledTrainees.length === 0) return;
-    const previewWindow = mode === 'preview' ? window.open('', '_blank') : null;
-    if (previewWindow) {
-      previewWindow.document.write('<!doctype html><title>Feuille d\'émargement</title><body style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#f5f5f7;color:#1d1d1f"><p>Préparation du PDF…</p></body>');
-    }
+    const fileWindow = prepareFileWindow(
+      mode === 'preview' ? 'Feuille d’émargement' : 'Téléchargement de l’émargement',
+      'NCR Suite prépare le PDF et récupère les signatures sécurisées…'
+    );
 
     setPdfBusy(true); setError(''); setSuccess('');
     try {
       const signatureFiles = new Map<string, Blob>();
+      let unavailableSignatures = 0;
       if (!demoMode && supabase) {
         const paths = [...new Set(dayRecords.filter((record) => record.status === 'present' && record.signature_path).map((record) => record.signature_path!))];
         await Promise.all(paths.map(async (path) => {
           const { data, error: downloadError } = await supabase!.storage.from('training-signatures').download(path);
-          if (downloadError || !data) throw new Error(`Signature inaccessible : ${downloadError?.message ?? 'fichier indisponible'}`);
-          signatureFiles.set(path, data);
+          if (downloadError || !data) {
+            unavailableSignatures += 1;
+            return;
+          }
+          try {
+            signatureFiles.set(path, await normalizeSignatureForPdf(data));
+          } catch {
+            signatureFiles.set(path, data);
+          }
         }));
       }
 
@@ -300,21 +395,14 @@ export function TrainingAttendancePage() {
       const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
 
-      if (mode === 'preview') {
-        if (previewWindow) previewWindow.location.replace(url);
-        else window.open(url, '_blank', 'noopener,noreferrer');
-      } else {
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = result.filename;
-        document.body.appendChild(anchor);
-        anchor.click();
-        anchor.remove();
-      }
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      setSuccess(mode === 'preview' ? 'La feuille d’émargement PDF est ouverte.' : 'La feuille d’émargement PDF a été téléchargée.');
+      if (mode === 'preview') navigateFileWindow(fileWindow, url);
+      else showBlobDownload(fileWindow, url, result.filename, 'Feuille d’émargement prête');
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
+      const warning = unavailableSignatures > 0 ? ` ${unavailableSignatures} signature${unavailableSignatures > 1 ? 's' : ''} n’a pas pu être récupérée.` : '';
+      setSuccess(`${mode === 'preview' ? 'La feuille d’émargement PDF est ouverte.' : 'Le téléchargement de la feuille d’émargement est prêt.'}${warning}`);
     } catch (reason) {
-      if (previewWindow && !previewWindow.closed) previewWindow.close();
+      closeFileWindow(fileWindow);
       setError(reason instanceof Error ? reason.message : 'Impossible de générer la feuille d’émargement PDF.');
     } finally {
       setPdfBusy(false);

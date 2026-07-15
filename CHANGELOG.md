@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## 2.4.8 — Signatures PDF et téléchargements fiables
+
+- Recadrage automatique des signatures manuscrites avant leur insertion dans la feuille d’émargement.
+- Affichage agrandi et lisible des signatures du matin et de l’après-midi dans le PDF.
+- Détection fiable des fichiers PNG et JPEG, même lorsque Supabase renvoie un type MIME générique.
+- Une signature temporairement inaccessible ne bloque plus la génération de toute la feuille d’émargement.
+- Téléchargement des documents par URL Supabase signée avec nom de fichier et en-tête de téléchargement.
+- Fenêtre préparée dès le clic pour éviter le blocage Safari/iPhone après l’appel asynchrone à Supabase.
+- Page de secours avec boutons Télécharger et Ouvrir pour les PDF d’émargement générés localement.
+- Aucun changement Supabase ni Edge Function requis depuis la V2.4.7.
+- Cache PWA et version applicative passés en V2.4.8.
+
+## 2.4.7 — Attestations et émargement PDF
+
+- Accès direct aux attestations générées depuis chaque session.
+- Bibliothèque Documents filtrable par session et par catégorie.
+- Boutons distincts pour visualiser ou télécharger chaque document.
+- Badge d’identification des documents générés automatiquement.
+- Génération locale sécurisée d’une feuille d’émargement PDF par journée.
+- Regroupement des émargements du matin et de l’après-midi avec signatures et horodatages.
+- PDF paysage multipage adapté aux sessions nombreuses.
+- Aucun changement Supabase ni Edge Function requis depuis la V2.4.6.
+- Cache PWA et version applicative passés en V2.4.7.
+
 ## 2.4.6 — Évaluations et satisfaction Formation
 
 - Questionnaire public individuel envoyé après la fin d’une session.
