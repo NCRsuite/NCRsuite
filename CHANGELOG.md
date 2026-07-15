@@ -1,3 +1,20 @@
+# 2.5.1 — Sécurité privée · Offre Essentielle
+
+- Ajout de 10 comptes agents connectés maximum selon la formule.
+- Espace terrain personnel avec planning limité aux missions de l’agent.
+- Rondes QR : création des points, QR imprimables, démarrage, scan et clôture contrôlée.
+- Scan des QR compatible Safari/iPhone par photo avec décodage local, plus saisie manuelle de secours.
+- Main courante intelligente avec catégories et niveaux de gravité prédéfinis.
+- Consignes et alertes propres à chaque site avec accusé de lecture.
+- Export PDF de la main courante réservé aux responsables.
+- Planning hebdomadaire en matrice sites × jours, avec une couleur distincte par site.
+- Duplication d’une mission sur les jours choisis de la semaine.
+- Planning collaborateur PDF mensuel : sites en lignes, jours en colonnes, horaires, totaux journaliers et hebdomadaires.
+- RLS renforcée : un agent ne voit que sa fiche, son planning, ses sites, ses rondes et sa main courante.
+- Dépendances publiques `qrcode` et `jsqr` : génération des QR imprimables et décodage local des photos sur mobile.
+- Rubrique Paramètres / abonnement alignée sur les droits réels de l’offre Sécurité.
+- Cache PWA mis à jour en V2.5.1.
+
 # 2.5.0 — Socle Sécurité privée · Découverte
 
 - Activation du domaine Sécurité privée dans la création des espaces.

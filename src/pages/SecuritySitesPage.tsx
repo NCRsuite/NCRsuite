@@ -6,8 +6,8 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import { formatSecurityMoney, nullableSecurityText, type SecurityClientRecord, type SecuritySiteRecord } from '../features/security/types';
 import { supabase } from '../lib/supabase';
 
-type FormState = { clientId: string; name: string; code: string; address: string; postalCode: string; city: string; contactName: string; contactPhone: string; hourlyRate: string; notes: string };
-const emptyForm: FormState = { clientId: '', name: '', code: '', address: '', postalCode: '', city: '', contactName: '', contactPhone: '', hourlyRate: '', notes: '' };
+type FormState = { clientId: string; name: string; code: string; address: string; postalCode: string; city: string; contactName: string; contactPhone: string; hourlyRate: string; colorHex: string; notes: string };
+const emptyForm: FormState = { clientId: '', name: '', code: '', address: '', postalCode: '', city: '', contactName: '', contactPhone: '', hourlyRate: '', colorHex: '#0A84FF', notes: '' };
 
 export function SecuritySitesPage() {
   const { organization } = useOrganization();
@@ -36,7 +36,7 @@ export function SecuritySitesPage() {
         return;
       }
       const [{ data: siteData, error: siteError }, { data: clientData, error: clientError }] = await Promise.all([
-        supabase.from('security_sites').select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,timezone,notes,status,created_at,security_clients(company_name)').eq('organization_id', organizationId).neq('status', 'archived').order('name'),
+        supabase.from('security_sites').select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,timezone,notes,status,created_at,security_clients(company_name)').eq('organization_id', organizationId).neq('status', 'archived').order('name'),
         supabase.from('security_clients').select('id,organization_id,company_name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,payment_terms_days,notes,status,created_at').eq('organization_id', organizationId).eq('status', 'active').order('company_name')
       ]);
       if (!active) return;
@@ -66,7 +66,7 @@ export function SecuritySitesPage() {
     const payload = {
       organization_id: organization.id, client_id: form.clientId, name: form.name.trim(), code: nullableSecurityText(form.code),
       address: nullableSecurityText(form.address), postal_code: nullableSecurityText(form.postalCode), city: nullableSecurityText(form.city),
-      contact_name: nullableSecurityText(form.contactName), contact_phone: nullableSecurityText(form.contactPhone), hourly_rate_cents: Math.round(rate * 100),
+      contact_name: nullableSecurityText(form.contactName), contact_phone: nullableSecurityText(form.contactPhone), hourly_rate_cents: Math.round(rate * 100), color_hex: form.colorHex,
       timezone: 'Europe/Paris', notes: nullableSecurityText(form.notes), created_by: user.id
     };
     try {
@@ -77,7 +77,7 @@ export function SecuritySitesPage() {
         localStorage.setItem(`ncr-suite-security-sites-${organization.id}`, JSON.stringify([...rows, created]));
       } else {
         const { data, error: insertError } = await supabase.from('security_sites').insert(payload)
-          .select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,timezone,notes,status,created_at,security_clients(company_name)').single();
+          .select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,timezone,notes,status,created_at,security_clients(company_name)').single();
         if (insertError) throw insertError; created = data as unknown as SecuritySiteRecord;
       }
       setRows((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name, 'fr')));
@@ -108,6 +108,7 @@ export function SecuritySitesPage() {
         <label>Nom du site *<input autoFocus required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}/></label>
         <label>Code interne<input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })}/></label>
         <label>Tarif horaire HT *<div className="security-money-input"><input required inputMode="decimal" placeholder="24,50" value={form.hourlyRate} onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}/><span>€/h</span></div></label>
+        <label>Couleur du planning<div className="security-color-input"><input type="color" value={form.colorHex} onChange={(e) => setForm({ ...form, colorHex: e.target.value.toUpperCase() })}/><span>{form.colorHex}</span></div></label>
         <label className="full-field">Adresse<input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}/></label>
         <label>Code postal<input value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })}/></label>
         <label>Ville<input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}/></label>
@@ -118,7 +119,7 @@ export function SecuritySitesPage() {
       </form></section>}
     {error && <div className="error-message page-message">{error}</div>}{success && <div className="success-message page-message">{success}</div>}
     <section className="panel security-list-panel"><div className="security-toolbar"><div><p className="eyebrow">SITES SURVEILLÉS</p><h2>{rows.length} site{rows.length > 1 ? 's' : ''}</h2></div><input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Site, client, ville…"/></div>
-      {loading ? <div className="security-empty">Chargement…</div> : filtered.length === 0 ? <div className="security-empty"><Icon name="map" size={30}/><strong>Aucun site</strong><span>Ajoute un site et son tarif pour calculer la facturation.</span></div> : <div className="security-card-list">{filtered.map((row) => <article className="security-record-card" key={row.id}><span className="security-record-icon"><Icon name="map" size={20}/></span><div className="security-record-main"><strong>{row.name}</strong><span>{row.security_clients?.company_name || 'Client inconnu'}{row.code ? ` · ${row.code}` : ''}</span><small>{[row.address, row.postal_code, row.city].filter(Boolean).join(' · ') || 'Adresse à compléter'}</small></div><div className="security-rate"><strong>{formatSecurityMoney(row.hourly_rate_cents)}</strong><small>par heure</small></div><button className="secondary-button compact-button" type="button" onClick={() => void archive(row)}>Archiver</button></article>)}</div>}
+      {loading ? <div className="security-empty">Chargement…</div> : filtered.length === 0 ? <div className="security-empty"><Icon name="map" size={30}/><strong>Aucun site</strong><span>Ajoute un site et son tarif pour calculer la facturation.</span></div> : <div className="security-card-list">{filtered.map((row) => <article className="security-record-card" key={row.id}><span className="security-record-icon" style={{ background: `${row.color_hex || '#0A84FF'}22`, color: row.color_hex || '#0A84FF' }}><Icon name="map" size={20}/></span><div className="security-record-main"><strong>{row.name}</strong><span>{row.security_clients?.company_name || 'Client inconnu'}{row.code ? ` · ${row.code}` : ''}</span><small>{[row.address, row.postal_code, row.city].filter(Boolean).join(' · ') || 'Adresse à compléter'}</small></div><div className="security-rate"><strong>{formatSecurityMoney(row.hourly_rate_cents)}</strong><small>par heure</small></div><button className="secondary-button compact-button" type="button" onClick={() => void archive(row)}>Archiver</button></article>)}</div>}
     </section>
   </div>;
 }

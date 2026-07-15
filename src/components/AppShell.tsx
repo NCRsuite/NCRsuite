@@ -51,10 +51,18 @@ export function AppShell() {
   const baseNavigation = pack.navigation.filter((item) => item.path !== '/abonnement');
   let navigation = baseNavigation;
 
+  if (organization.business_type === 'securite' && organization.role !== 'employee') {
+    navigation = navigation.filter((item) => item.path !== '/terrain');
+  }
+
   if (restrictedRole && !hasCustomRole) {
-    navigation = organization.business_type === 'formation' && organizationHasFeature(organization, 'team_access')
-      ? baseNavigation.filter((item) => !['/acces-equipe', '/personnalisation', '/etablissements', '/parametres'].includes(item.path))
-      : baseNavigation.filter((item) => ['/', '/rendez-vous', '/planning'].includes(item.path));
+    if (organization.business_type === 'securite' && organization.role === 'employee') {
+      navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes'].includes(item.path));
+    } else if (organization.business_type === 'formation' && organizationHasFeature(organization, 'team_access')) {
+      navigation = baseNavigation.filter((item) => !['/acces-equipe', '/personnalisation', '/etablissements', '/parametres'].includes(item.path));
+    } else {
+      navigation = baseNavigation.filter((item) => ['/', '/rendez-vous', '/planning'].includes(item.path));
+    }
   }
 
   navigation = filterNavigationForOrganization(organization, navigation);
@@ -66,7 +74,7 @@ export function AppShell() {
   const hasCommercialBrandingModule = navigation.some((item) => item.path === '/personnalisation');
   const canManageSubscription = !restrictedRole;
 
-  const primaryMobileItem = navigation.find((item) => ['/rendez-vous', '/planning'].includes(item.path))
+  const primaryMobileItem = navigation.find((item) => organization.business_type === 'securite' && restrictedRole ? item.path === '/terrain' : ['/rendez-vous', '/planning'].includes(item.path))
     ?? navigation.find((item) => item.path !== '/')
     ?? navigation[0];
   const quickAction = !restrictedRole ? pack.quickActions[0] : null;

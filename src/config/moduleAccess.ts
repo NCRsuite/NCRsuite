@@ -11,6 +11,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/fidelite': 'loyalty',
   '/personnalisation': 'commercial_branding',
   '/planning': 'planning',
+  '/terrain': 'security_agent_portal',
   '/agents': 'agents',
   '/sites': 'sites',
   '/etablissements': 'sites',
@@ -22,6 +23,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/rondes': 'patrols',
   '/alertes': 'alerts',
   '/facturation': 'security_billing',
+  '/consignes': 'security_site_instructions',
   '/documents': 'documents',
   '/formations': 'training_programs',
   '/stagiaires': 'trainees',
@@ -45,7 +47,11 @@ const FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/etablissements': 'multi_site',
   '/evaluations': 'training_satisfaction',
   '/emargements': 'training_blank_attendance',
-  '/attestations': 'training_automatic_certificates'
+  '/attestations': 'training_automatic_certificates',
+  '/terrain': 'security_agent_portal',
+  '/rondes': 'security_qr_patrols',
+  '/main-courante': 'security_smart_logbook',
+  '/consignes': 'security_site_instructions'
 };
 
 export function moduleKeyForPath(pathname: string, businessType?: Organization['business_type']) {
@@ -53,11 +59,15 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
   const normalized = `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
   if (businessType === 'securite') {
     const securityModules: Record<string, string> = {
+      '/terrain': 'security_agent_portal',
       '/clients': 'security_clients',
       '/sites': 'security_sites',
       '/agents': 'security_agents',
       '/planning': 'security_planning',
-      '/facturation': 'security_billing'
+      '/facturation': 'security_billing',
+      '/rondes': 'security_qr_patrols',
+      '/main-courante': 'security_smart_logbook',
+      '/consignes': 'security_site_instructions'
     };
     if (securityModules[normalized]) return securityModules[normalized];
   }
@@ -70,6 +80,13 @@ export function featureKeyForPath(pathname: string) {
 }
 
 export function organizationCanAccessPath(organization: Organization, pathname: string) {
+  const normalized = pathname === '/' ? '/' : `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
+
+  if (organization.business_type === 'securite' && organization.role === 'employee') {
+    const agentPaths = ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes'];
+    if (!agentPaths.includes(normalized)) return false;
+  }
+
   if (pathname === '/offre-metier') {
     return organization.plan === 'metier' && ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
   }

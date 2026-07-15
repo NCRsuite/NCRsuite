@@ -36,6 +36,10 @@ import { SecurityAgentsPage } from './pages/SecurityAgentsPage';
 import { SecuritySitesPage } from './pages/SecuritySitesPage';
 import { SecurityPlanningPage } from './pages/SecurityPlanningPage';
 import { SecurityBillingPage } from './pages/SecurityBillingPage';
+import { SecurityPatrolsPage } from './pages/SecurityPatrolsPage';
+import { SecurityLogbookPage } from './pages/SecurityLogbookPage';
+import { SecurityInstructionsPage } from './pages/SecurityInstructionsPage';
+import { SecurityAgentPortalPage } from './pages/SecurityAgentPortalPage';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
 
@@ -133,10 +137,14 @@ export default function App() {
         <Route path="emargements" element={<ModuleAccessGuard moduleKey="attendance"><TrainingAttendancePage /></ModuleAccessGuard>} />
         <Route path="evaluations" element={<ModuleAccessGuard moduleKey="evaluations"><TrainingEvaluationsPage /></ModuleAccessGuard>} />
         <Route path="etablissements" element={<ModuleAccessGuard moduleKey="sites"><TrainingSitesPage /></ModuleAccessGuard>} />
+        <Route path="terrain" element={<ModuleAccessGuard moduleKey="security_agent_portal"><SecurityAgentPortalPage /></ModuleAccessGuard>} />
         <Route path="planning" element={<PlanningArea />} />
         <Route path="agents" element={<AgentsArea />} />
         <Route path="sites" element={<SitesArea />} />
         <Route path="facturation" element={<ModuleAccessGuard moduleKey="security_billing"><SecurityBillingPage /></ModuleAccessGuard>} />
+        <Route path="rondes" element={<ModuleAccessGuard moduleKey="security_qr_patrols"><SecurityPatrolsPage /></ModuleAccessGuard>} />
+        <Route path="main-courante" element={<ModuleAccessGuard moduleKey="security_smart_logbook"><SecurityLogbookPage /></ModuleAccessGuard>} />
+        <Route path="consignes" element={<ModuleAccessGuard moduleKey="security_site_instructions"><SecurityInstructionsPage /></ModuleAccessGuard>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ClientsArea />} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />

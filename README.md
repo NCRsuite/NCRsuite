@@ -1,4 +1,31 @@
-# NCR Suite — V2.5.0
+# NCR Suite — V2.5.1
+
+## V2.5.1 — Sécurité privée · Offre Essentielle
+
+Cette version ajoute le terrain connecté au socle Sécurité V2.5.0 :
+
+- jusqu’à 10 agents connectés avec un compte personnel ;
+- espace Agent limité à son planning et à ses actions terrain ;
+- rondes QR avec points de passage, QR imprimables et historique ;
+- scan QR compatible Safari/iPhone par photo avec décodage local et code manuel de secours ;
+- main courante intelligente avec catégories prédéfinies ;
+- consignes et alertes propres à chaque site ;
+- accusé de lecture des alertes ;
+- export PDF de la main courante pour le responsable ;
+- planning hebdomadaire en matrice sites × jours, avec une couleur distincte par site ;
+- duplication d’une mission sur les jours choisis de la semaine ;
+- planning collaborateur PDF mensuel avec horaires et totaux journaliers / hebdomadaires ;
+- droits Supabase limitant chaque agent à sa fiche, ses missions et ses sites ;
+- rubrique Paramètres / abonnement adaptée aux droits Sécurité.
+
+Exécuter d’abord :
+
+```text
+supabase/migrations/028_security_essential_field.sql
+```
+
+Puis envoyer le patch sur GitHub, attendre Cloudflare et rouvrir la PWA.
+
 
 ## V2.5.0 — Socle Sécurité privée · Découverte
 

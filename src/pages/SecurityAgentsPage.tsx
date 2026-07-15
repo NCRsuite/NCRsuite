@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -35,7 +35,7 @@ export function SecurityAgentsPage() {
         return;
       }
       const { data, error: loadError } = await supabase.from('security_agents')
-        .select('id,organization_id,first_name,last_name,employee_number,email,phone,contract_type,weekly_hours,notes,status,created_at')
+        .select('id,organization_id,first_name,last_name,employee_number,email,phone,contract_type,weekly_hours,notes,status,linked_user_id,created_at')
         .eq('organization_id', organizationId).neq('status', 'archived').order('last_name').order('first_name');
       if (!active) return;
       if (loadError) setError(`Chargement impossible : ${loadError.message}`); else setRows((data ?? []) as SecurityAgentRecord[]);
@@ -67,7 +67,7 @@ export function SecurityAgentsPage() {
         localStorage.setItem(`ncr-suite-security-agents-${organization.id}`, JSON.stringify([...rows, created]));
       } else {
         const { data, error: insertError } = await supabase.from('security_agents').insert(payload)
-          .select('id,organization_id,first_name,last_name,employee_number,email,phone,contract_type,weekly_hours,notes,status,created_at').single();
+          .select('id,organization_id,first_name,last_name,employee_number,email,phone,contract_type,weekly_hours,notes,status,linked_user_id,created_at').single();
         if (insertError) throw insertError; created = data as SecurityAgentRecord;
       }
       setRows((current) => [...current, created].sort((a, b) => securityPersonName(a.first_name, a.last_name).localeCompare(securityPersonName(b.first_name, b.last_name), 'fr')));
@@ -90,7 +90,7 @@ export function SecurityAgentsPage() {
 
   if (!organization) return null;
   return <div className="page security-page">
-    <header className="page-header"><div><p className="eyebrow">SÉCURITÉ PRIVÉE</p><h1>Agents</h1><p>Gère le fichier des agents avant de construire le planning.</p></div><button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18}/>Ajouter un agent</button></header>
+    <header className="page-header"><div><p className="eyebrow">SÉCURITÉ PRIVÉE</p><h1>Agents</h1><p>Gère le fichier des agents et relie leurs comptes terrain.</p></div><div className="header-actions"><Link className="secondary-button" to="/acces-equipe"><Icon name="users" size={18}/>Accès agents</Link><button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18}/>Ajouter un agent</button></div></header>
     {formOpen && <section className="panel security-form-panel"><div className="panel-header"><div><p className="eyebrow">NOUVEL AGENT</p><h2>Créer une fiche agent</h2></div><button className="secondary-button compact-button" type="button" onClick={() => { setSearchParams({}); setForm(emptyForm); }}>Fermer</button></div>
       <form className="security-form-grid" onSubmit={createAgent}>
         <label>Prénom *<input autoFocus required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })}/></label>
@@ -105,7 +105,7 @@ export function SecurityAgentsPage() {
       </form></section>}
     {error && <div className="error-message page-message">{error}</div>}{success && <div className="success-message page-message">{success}</div>}
     <section className="panel security-list-panel"><div className="security-toolbar"><div><p className="eyebrow">EFFECTIF</p><h2>{rows.length} agent{rows.length > 1 ? 's' : ''}</h2></div><input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nom, matricule, e-mail…"/></div>
-      {loading ? <div className="security-empty">Chargement…</div> : filtered.length === 0 ? <div className="security-empty"><Icon name="users" size={30}/><strong>Aucun agent</strong><span>Ajoute un agent pour commencer le planning.</span></div> : <div className="security-card-list">{filtered.map((row) => <article className="security-record-card" key={row.id}><span className="security-record-icon"><Icon name="shield" size={20}/></span><div className="security-record-main"><strong>{securityPersonName(row.first_name, row.last_name)}</strong><span>{[row.employee_number && `Matricule ${row.employee_number}`, contractLabels[row.contract_type], `${Number(row.weekly_hours)} h/sem.`].filter(Boolean).join(' · ')}</span><small>{[row.email, row.phone].filter(Boolean).join(' · ') || 'Coordonnées à compléter'}</small></div><span className="security-status-pill active">Actif</span><button className="secondary-button compact-button" type="button" onClick={() => void archive(row)}>Archiver</button></article>)}</div>}
+      {loading ? <div className="security-empty">Chargement…</div> : filtered.length === 0 ? <div className="security-empty"><Icon name="users" size={30}/><strong>Aucun agent</strong><span>Ajoute un agent pour commencer le planning.</span></div> : <div className="security-card-list">{filtered.map((row) => <article className="security-record-card" key={row.id}><span className="security-record-icon"><Icon name="shield" size={20}/></span><div className="security-record-main"><strong>{securityPersonName(row.first_name, row.last_name)}</strong><span>{[row.employee_number && `Matricule ${row.employee_number}`, contractLabels[row.contract_type], `${Number(row.weekly_hours)} h/sem.`].filter(Boolean).join(' · ')}</span><small>{[row.email, row.phone].filter(Boolean).join(' · ') || 'Coordonnées à compléter'}</small></div><span className={`security-status-pill ${row.linked_user_id ? 'completed' : 'active'}`}>{row.linked_user_id ? 'Connecté' : 'Interne'}</span><button className="secondary-button compact-button" type="button" onClick={() => void archive(row)}>Archiver</button></article>)}</div>}
     </section>
   </div>;
 }

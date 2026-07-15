@@ -88,11 +88,16 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
     launchStatus: 'available',
     navigation: [
       { label: 'Tableau de bord', path: '/', icon: 'home' },
+      { label: 'Espace agent', path: '/terrain', icon: 'shield' },
       { label: 'Planning', path: '/planning', icon: 'calendar' },
       { label: 'Clients', path: '/clients', icon: 'building' },
       { label: 'Agents', path: '/agents', icon: 'users' },
       { label: 'Sites', path: '/sites', icon: 'map' },
       { label: 'Facturation', path: '/facturation', icon: 'creditCard' },
+      { label: 'Accès agents', path: '/acces-equipe', icon: 'users' },
+      { label: 'Rondes QR', path: '/rondes', icon: 'shield' },
+      { label: 'Main courante', path: '/main-courante', icon: 'clipboard' },
+      { label: 'Consignes & alertes', path: '/consignes', icon: 'alert' },
       subscription,
       settings
     ],

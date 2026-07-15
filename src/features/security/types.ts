@@ -28,6 +28,7 @@ export interface SecuritySiteRecord {
   contact_name: string | null;
   contact_phone: string | null;
   hourly_rate_cents: number;
+  color_hex?: string | null;
   timezone: string;
   notes: string | null;
   status: 'active' | 'inactive' | 'archived';
@@ -47,6 +48,7 @@ export interface SecurityAgentRecord {
   weekly_hours: number;
   notes: string | null;
   status: 'active' | 'inactive' | 'archived';
+  linked_user_id?: string | null;
   created_at: string;
 }
 
@@ -61,8 +63,10 @@ export interface SecurityShiftRecord {
   break_minutes: number;
   status: 'planned' | 'completed' | 'canceled';
   notes: string | null;
+  recurrence_group_id?: string | null;
+  duplicated_from_id?: string | null;
   created_at: string;
-  security_sites?: { name: string; hourly_rate_cents: number; city: string | null; security_clients?: { company_name: string } | null } | null;
+  security_sites?: { name: string; hourly_rate_cents: number; color_hex?: string | null; city: string | null; security_clients?: { company_name: string } | null } | null;
   security_agents?: { first_name: string; last_name: string } | null;
 }
 
@@ -144,4 +148,105 @@ export function monthRange(reference = new Date()) {
     return local.toISOString().slice(0, 10);
   };
   return { start: toDate(start), end: toDate(end) };
+}
+
+
+export interface SecurityAgentAccessRecord {
+  agent_id: string;
+  full_name: string;
+  email: string | null;
+  linked_user_id: string | null;
+  access_status: 'active' | 'disabled' | 'pending' | 'expired' | 'none';
+  invitation_id: string | null;
+  invitation_status: string | null;
+  invitation_expires_at: string | null;
+}
+
+export interface SecurityInstructionRecord {
+  id: string;
+  organization_id: string;
+  site_id: string;
+  title: string;
+  content: string;
+  priority: 'normal' | 'important' | 'critical';
+  active_from: string | null;
+  active_until: string | null;
+  status: 'active' | 'archived';
+  created_at: string;
+  security_sites?: { name: string } | null;
+}
+
+export interface SecurityAlertRecord {
+  id: string;
+  organization_id: string;
+  site_id: string;
+  agent_id: string | null;
+  title: string;
+  message: string;
+  severity: 'info' | 'warning' | 'critical';
+  status: 'open' | 'resolved';
+  resolved_at: string | null;
+  created_at: string;
+  security_sites?: { name: string } | null;
+  security_agents?: { first_name: string; last_name: string } | null;
+  acknowledged?: boolean;
+}
+
+export interface SecurityLogbookEntryRecord {
+  id: string;
+  organization_id: string;
+  site_id: string;
+  agent_id: string;
+  occurred_at: string;
+  category: 'prise_poste' | 'fin_poste' | 'ronde' | 'anomalie' | 'incident' | 'visiteur' | 'livraison' | 'appel' | 'consigne' | 'autre';
+  severity: 'info' | 'attention' | 'urgent';
+  title: string;
+  details: string | null;
+  status: 'open' | 'processed' | 'archived';
+  created_at: string;
+  security_sites?: { name: string; color_hex?: string | null } | null;
+  security_agents?: { first_name: string; last_name: string } | null;
+}
+
+export interface SecurityPatrolPointRecord {
+  id: string;
+  organization_id: string;
+  site_id: string;
+  label: string;
+  qr_code: string;
+  sequence_number: number;
+  instructions: string | null;
+  status: 'active' | 'inactive' | 'archived';
+  created_at: string;
+  security_sites?: { name: string } | null;
+}
+
+export interface SecurityPatrolScanRecord {
+  id: string;
+  organization_id: string;
+  patrol_id: string;
+  point_id: string;
+  scanned_at: string;
+  status: 'valid' | 'unexpected';
+  created_at?: string;
+  security_patrol_points?: { label: string; sequence_number?: number } | null;
+}
+
+export interface SecurityPatrolRecord {
+  id: string;
+  organization_id: string;
+  site_id: string;
+  agent_id: string;
+  started_at: string;
+  completed_at: string | null;
+  status: 'in_progress' | 'completed' | 'abandoned';
+  notes: string | null;
+  created_at: string;
+  security_sites?: { name: string } | null;
+  security_agents?: { first_name: string; last_name: string } | null;
+  security_patrol_scans?: SecurityPatrolScanRecord[];
+}
+
+export function securityPriorityLabel(value: SecurityInstructionRecord['priority']) {
+  return value === 'critical' ? 'Critique' : value === 'important' ? 'Importante' : 'Normale';
 }

@@ -6,13 +6,14 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import { BookingDashboardPage } from './BookingDashboardPage';
 import { TrainingDashboardPage } from './TrainingDashboardPage';
 import { SecurityDashboardPage } from './SecurityDashboardPage';
+import { SecurityAgentPortalPage } from './SecurityAgentPortalPage';
 
 export function DashboardPage() {
   const { organization } = useOrganization();
   if (!organization) return null;
   if (organization.business_type === 'coiffure') return <BookingDashboardPage />;
   if (organization.business_type === 'formation') return <TrainingDashboardPage />;
-  if (organization.business_type === 'securite') return <SecurityDashboardPage />;
+  if (organization.business_type === 'securite') return organization.role === 'employee' ? <SecurityAgentPortalPage /> : <SecurityDashboardPage />;
   const pack = businessPacks[organization.business_type];
 
   return (

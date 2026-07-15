@@ -1,87 +1,186 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Icon } from '../components/Icon';
-import { useOrganization } from '../contexts/OrganizationContext';
-import { organizationHasFeature, planHasFeature, planLabel } from '../config/planEntitlements';
-import { getDomainPlan } from '../config/domainPlans';
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Icon } from "../components/Icon";
+import { useOrganization } from "../contexts/OrganizationContext";
+import {
+  organizationHasFeature,
+  planHasFeature,
+  planLabel,
+} from "../config/planEntitlements";
+import { getDomainPlan } from "../config/domainPlans";
 
 const slotOptions = [5, 10, 15, 20, 30, 45, 60];
 
 export function SettingsPage() {
-  const { organization, updateBranding, updateBookingSettings, updateEmailNotificationSettings, updateClientExperienceSettings } = useOrganization();
-  const [name, setName] = useState('');
-  const [primaryColor, setPrimaryColor] = useState('#2997ff');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const {
+    organization,
+    updateBranding,
+    updateBookingSettings,
+    updateEmailNotificationSettings,
+    updateClientExperienceSettings,
+  } = useOrganization();
+  const [name, setName] = useState("");
+  const [primaryColor, setPrimaryColor] = useState("#2997ff");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [savingBranding, setSavingBranding] = useState(false);
   const [savingBooking, setSavingBooking] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingClientExperience, setSavingClientExperience] = useState(false);
   const [bookingEnabled, setBookingEnabled] = useState(false);
-  const [confirmationMode, setConfirmationMode] = useState<'automatic' | 'manual'>('automatic');
+  const [confirmationMode, setConfirmationMode] = useState<
+    "automatic" | "manual"
+  >("automatic");
   const [slotInterval, setSlotInterval] = useState(15);
   const [minNoticeHours, setMinNoticeHours] = useState(2);
   const [maxDaysAhead, setMaxDaysAhead] = useState(60);
   const [cancelNoticeHours, setCancelNoticeHours] = useState(12);
-  const [welcomeText, setWelcomeText] = useState('');
+  const [welcomeText, setWelcomeText] = useState("");
   const [copied, setCopied] = useState(false);
-  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState(true);
-  const [contactEmail, setContactEmail] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] =
+    useState(true);
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
   const [reminderHours, setReminderHours] = useState(24);
-  const [cancellationPolicy, setCancellationPolicy] = useState('Toute modification ou annulation doit être effectuée avant le délai indiqué. Au-delà, contactez directement l’établissement.');
-  const [privacyNotice, setPrivacyNotice] = useState('Vos coordonnées sont utilisées uniquement pour organiser, confirmer et suivre votre rendez-vous.');
+  const [cancellationPolicy, setCancellationPolicy] = useState(
+    "Toute modification ou annulation doit être effectuée avant le délai indiqué. Au-delà, contactez directement l’établissement.",
+  );
+  const [privacyNotice, setPrivacyNotice] = useState(
+    "Vos coordonnées sont utilisées uniquement pour organiser, confirmer et suivre votre rendez-vous.",
+  );
 
   useEffect(() => {
     if (!organization) return;
     setName(organization.name);
     setPrimaryColor(organization.primary_color);
     setBookingEnabled(Boolean(organization.booking_enabled));
-    setConfirmationMode(organization.booking_confirmation_mode ?? 'automatic');
+    setConfirmationMode(organization.booking_confirmation_mode ?? "automatic");
     setSlotInterval(organization.booking_slot_interval ?? 15);
     setMinNoticeHours(organization.booking_min_notice_hours ?? 2);
     setMaxDaysAhead(organization.booking_max_days_ahead ?? 60);
     setCancelNoticeHours(organization.booking_cancel_notice_hours ?? 12);
-    setWelcomeText(organization.booking_welcome_text ?? '');
-    setEmailNotificationsEnabled(organization.email_notifications_enabled ?? true);
-    setContactEmail(organization.booking_contact_email ?? '');
-    setContactPhone(organization.booking_contact_phone ?? '');
+    setWelcomeText(organization.booking_welcome_text ?? "");
+    setEmailNotificationsEnabled(
+      organization.email_notifications_enabled ?? true,
+    );
+    setContactEmail(organization.booking_contact_email ?? "");
+    setContactPhone(organization.booking_contact_phone ?? "");
     setReminderHours(organization.booking_reminder_hours ?? 24);
-    setCancellationPolicy(organization.booking_cancellation_policy ?? 'Toute modification ou annulation doit être effectuée avant le délai indiqué. Au-delà, contactez directement l’établissement.');
-    setPrivacyNotice(organization.booking_privacy_notice ?? 'Vos coordonnées sont utilisées uniquement pour organiser, confirmer et suivre votre rendez-vous.');
+    setCancellationPolicy(
+      organization.booking_cancellation_policy ??
+        "Toute modification ou annulation doit être effectuée avant le délai indiqué. Au-delà, contactez directement l’établissement.",
+    );
+    setPrivacyNotice(
+      organization.booking_privacy_notice ??
+        "Vos coordonnées sont utilisées uniquement pour organiser, confirmer et suivre votre rendez-vous.",
+    );
   }, [organization]);
 
   const bookingUrl = useMemo(() => {
-    if (!organization || typeof window === 'undefined') return '';
+    if (!organization || typeof window === "undefined") return "";
     return `${window.location.origin}/reserver/${organization.slug}`;
   }, [organization]);
 
   if (!organization) return null;
 
-  const canManage = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
-  const isBookingBusiness = organization.business_type === 'coiffure';
-  const hasAutomaticReminders = planHasFeature(organization.plan, 'automatic_reminders');
-  const hasOnlineBookingManagement = planHasFeature(organization.plan, 'online_booking_management');
-  const hasCalendarLinks = planHasFeature(organization.plan, 'calendar_links');
-  const currentPlan = getDomainPlan(organization.business_type, organization.plan);
-  const isTrainingBusiness = organization.business_type === 'formation';
-  const hasTrainingDigitalAttendance = organizationHasFeature(organization, 'training_digital_attendance');
-  const hasTrainingDocumentBranding = organizationHasFeature(organization, 'training_document_branding');
-  const hasTrainingSatisfaction = organizationHasFeature(organization, 'training_satisfaction');
-  const hasTrainingSessionDossier = organizationHasFeature(organization, 'training_session_dossier');
-  const hasTrainingMultiSite = organizationHasFeature(organization, 'multi_site');
-  const hasTrainingTeamAccess = organizationHasFeature(organization, 'team_access');
+  const canManage = ["owner", "admin", "manager"].includes(
+    organization.role ?? "viewer",
+  );
+  const isBookingBusiness = organization.business_type === "coiffure";
+  const hasAutomaticReminders = planHasFeature(
+    organization.plan,
+    "automatic_reminders",
+  );
+  const hasOnlineBookingManagement = planHasFeature(
+    organization.plan,
+    "online_booking_management",
+  );
+  const hasCalendarLinks = planHasFeature(organization.plan, "calendar_links");
+  const currentPlan = getDomainPlan(
+    organization.business_type,
+    organization.plan,
+  );
+  const isTrainingBusiness = organization.business_type === "formation";
+  const isSecurityBusiness = organization.business_type === "securite";
+  const hasTrainingDigitalAttendance = organizationHasFeature(
+    organization,
+    "training_digital_attendance",
+  );
+  const hasTrainingDocumentBranding = organizationHasFeature(
+    organization,
+    "training_document_branding",
+  );
+  const hasTrainingSatisfaction = organizationHasFeature(
+    organization,
+    "training_satisfaction",
+  );
+  const hasTrainingSessionDossier = organizationHasFeature(
+    organization,
+    "training_session_dossier",
+  );
+  const hasTrainingMultiSite = organizationHasFeature(
+    organization,
+    "multi_site",
+  );
+  const hasTrainingTeamAccess = organizationHasFeature(
+    organization,
+    "team_access",
+  );
+  const hasSecurityAgentPortal = organizationHasFeature(
+    organization,
+    "security_agent_portal",
+  );
+  const hasSecurityQrPatrols = organizationHasFeature(
+    organization,
+    "security_qr_patrols",
+  );
+  const hasSecuritySmartLogbook = organizationHasFeature(
+    organization,
+    "security_smart_logbook",
+  );
+  const hasSecuritySiteInstructions = organizationHasFeature(
+    organization,
+    "security_site_instructions",
+  );
+  const hasSecurityLogbookPdf = organizationHasFeature(
+    organization,
+    "security_logbook_pdf",
+  );
+  const hasSecurityGeolocation = organizationHasFeature(
+    organization,
+    "security_geolocation",
+  );
+  const hasSecurityPtiSos = organizationHasFeature(
+    organization,
+    "security_pti_sos",
+  );
+  const hasSecurityRealtimeSupervision = organizationHasFeature(
+    organization,
+    "security_realtime_supervision",
+  );
+  const hasSecurityAgentRoles = organizationHasFeature(
+    organization,
+    "security_agent_roles",
+  );
+  const planPrice = `${(currentPlan.monthlyPriceCents / 100).toFixed(2).replace(".", ",")} € HT / mois`;
+  const domainPriceLabel = isTrainingBusiness
+    ? "Formation"
+    : isSecurityBusiness
+      ? "Sécurité privée"
+      : "Coiffure";
 
   async function submitBranding(event: FormEvent) {
     event.preventDefault();
     if (!canManage) return;
     setSavingBranding(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
     try {
       await updateBranding({ name, primaryColor });
-      setMessage('L’identité de l’espace a été enregistrée.');
+      setMessage("L’identité de l’espace a été enregistrée.");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
+      setError(
+        caught instanceof Error ? caught.message : "Enregistrement impossible.",
+      );
     } finally {
       setSavingBranding(false);
     }
@@ -91,8 +190,8 @@ export function SettingsPage() {
     event.preventDefault();
     if (!canManage || !isBookingBusiness) return;
     setSavingBooking(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
     try {
       await updateBookingSettings({
         enabled: bookingEnabled,
@@ -101,33 +200,36 @@ export function SettingsPage() {
         minNoticeHours,
         maxDaysAhead,
         cancelNoticeHours,
-        welcomeText
+        welcomeText,
       });
-      setMessage('Les paramètres de réservation ont été enregistrés.');
+      setMessage("Les paramètres de réservation ont été enregistrés.");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
+      setError(
+        caught instanceof Error ? caught.message : "Enregistrement impossible.",
+      );
     } finally {
       setSavingBooking(false);
     }
   }
 
-
   async function submitEmailNotifications(event: FormEvent) {
     event.preventDefault();
     if (!canManage || !isBookingBusiness) return;
     setSavingEmail(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
     try {
       await updateEmailNotificationSettings({
         enabled: emailNotificationsEnabled,
         contactEmail,
         contactPhone,
-        reminderHours: hasAutomaticReminders ? reminderHours : 0
+        reminderHours: hasAutomaticReminders ? reminderHours : 0,
       });
-      setMessage('Les e-mails automatiques ont été configurés.');
+      setMessage("Les e-mails automatiques ont été configurés.");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
+      setError(
+        caught instanceof Error ? caught.message : "Enregistrement impossible.",
+      );
     } finally {
       setSavingEmail(false);
     }
@@ -137,13 +239,20 @@ export function SettingsPage() {
     event.preventDefault();
     if (!canManage || !isBookingBusiness) return;
     setSavingClientExperience(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
     try {
-      await updateClientExperienceSettings({ cancellationPolicy, privacyNotice });
-      setMessage('Les informations destinées aux clients ont été enregistrées.');
+      await updateClientExperienceSettings({
+        cancellationPolicy,
+        privacyNotice,
+      });
+      setMessage(
+        "Les informations destinées aux clients ont été enregistrées.",
+      );
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
+      setError(
+        caught instanceof Error ? caught.message : "Enregistrement impossible.",
+      );
     } finally {
       setSavingClientExperience(false);
     }
@@ -162,17 +271,32 @@ export function SettingsPage() {
         <div>
           <p className="eyebrow">ADMINISTRATION</p>
           <h1>Paramètres</h1>
-          <p>{isTrainingBusiness ? 'Consultez les droits de votre formule et réglez l’identité générale de votre espace Formation.' : 'Personnalisez l’espace de votre entreprise et contrôlez la réservation publique.'}</p>
+          <p>
+            {isTrainingBusiness
+              ? "Consultez les droits de votre formule et réglez l’identité générale de votre espace Formation."
+              : isSecurityBusiness
+                ? "Consultez les droits de votre formule Sécurité privée et l’identité de votre espace opérationnel."
+                : "Personnalisez l’espace de votre entreprise et contrôlez la réservation publique."}
+          </p>
         </div>
       </header>
 
       {!canManage && (
         <div className="info-message page-message" role="status">
-          Votre rôle permet de consulter ces paramètres, mais pas de les modifier.
+          Votre rôle permet de consulter ces paramètres, mais pas de les
+          modifier.
         </div>
       )}
-      {error && <div className="error-message page-message" role="alert">{error}</div>}
-      {message && <div className="success-message page-message" role="status">{message}</div>}
+      {error && (
+        <div className="error-message page-message" role="alert">
+          {error}
+        </div>
+      )}
+      {message && (
+        <div className="success-message page-message" role="status">
+          {message}
+        </div>
+      )}
 
       <div className="settings-layout">
         <section className="panel settings-form plan-overview-card">
@@ -180,65 +304,383 @@ export function SettingsPage() {
             <div>
               <p className="eyebrow">ABONNEMENT</p>
               <h2>Formule {planLabel(organization.plan)}</h2>
-              <p className="muted">Les fonctionnalités sont activées automatiquement selon la formule attribuée par NCR Suite.</p>
+              <p className="muted">
+                Les fonctionnalités sont activées automatiquement selon la
+                formule attribuée par NCR Suite.
+              </p>
             </div>
-            <span className="plan-price-badge">{organization.plan === 'metier' ? 'Tarif contractuel · sur devis' : `${(currentPlan.monthlyPriceCents / 100).toFixed(2).replace('.', ',')} € HT / mois · tarif ${organization.business_type === 'formation' ? 'Formation' : 'catalogue'}`}</span>
+            <span className="plan-price-badge">
+              {currentPlan.startingAt
+                ? `À partir de ${planPrice} · sur devis`
+                : `${planPrice} · tarif ${domainPriceLabel}`}
+            </span>
           </div>
           <div className="plan-entitlement-grid">
             {isTrainingBusiness ? (
               <>
-                <article className="enabled"><Icon name="check" size={18} /><span><strong>Gestion des formations</strong><small>Programmes, stagiaires, formateurs, sessions et documents</small></span></article>
-                <article className={hasTrainingDigitalAttendance ? 'enabled' : 'locked'}><Icon name={hasTrainingDigitalAttendance ? 'check' : 'lock'} size={18} /><span><strong>Émargement numérique</strong><small>{hasTrainingDigitalAttendance ? 'Signatures et PDF d’émargement inclus' : 'Feuille vierge uniquement · à partir de l’offre Essentielle'}</small></span></article>
-                <article className={hasTrainingDocumentBranding ? 'enabled' : 'locked'}><Icon name={hasTrainingDocumentBranding ? 'check' : 'lock'} size={18} /><span><strong>Documents et e-mails personnalisés</strong><small>{hasTrainingDocumentBranding ? 'Logo, couleurs, coordonnées et signature' : 'À partir de l’offre Essentielle'}</small></span></article>
-                <article className={hasTrainingSatisfaction ? 'enabled' : 'locked'}><Icon name={hasTrainingSatisfaction ? 'check' : 'lock'} size={18} /><span><strong>Évaluations de satisfaction</strong><small>{hasTrainingSatisfaction ? 'Collecte et synthèse incluses' : 'À partir de l’offre Professionnelle'}</small></span></article>
-                <article className={hasTrainingSessionDossier ? 'enabled' : 'locked'}><Icon name={hasTrainingSessionDossier ? 'check' : 'lock'} size={18} /><span><strong>Dossier complet de session</strong><small>{hasTrainingSessionDossier ? 'Synthèse et export PDF inclus' : 'À partir de l’offre Professionnelle'}</small></span></article>
-                <article className={hasTrainingMultiSite ? 'enabled' : 'locked'}><Icon name={hasTrainingMultiSite ? 'check' : 'lock'} size={18} /><span><strong>Multi-site</strong><small>{hasTrainingMultiSite ? 'Établissements et rattachement des sessions' : 'À partir de l’offre Professionnelle'}</small></span></article>
-                <article className={hasTrainingTeamAccess ? 'enabled' : 'locked'}><Icon name={hasTrainingTeamAccess ? 'check' : 'lock'} size={18} /><span><strong>Accès employés avec rôles</strong><small>{hasTrainingTeamAccess ? 'Comptes employés, managers et lecteurs' : 'À partir de l’offre Professionnelle'}</small></span></article>
+                <article className="enabled">
+                  <Icon name="check" size={18} />
+                  <span>
+                    <strong>Gestion des formations</strong>
+                    <small>
+                      Programmes, stagiaires, formateurs, sessions et documents
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={
+                    hasTrainingDigitalAttendance ? "enabled" : "locked"
+                  }
+                >
+                  <Icon
+                    name={hasTrainingDigitalAttendance ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Émargement numérique</strong>
+                    <small>
+                      {hasTrainingDigitalAttendance
+                        ? "Signatures et PDF d’émargement inclus"
+                        : "Feuille vierge uniquement · à partir de l’offre Essentielle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={hasTrainingDocumentBranding ? "enabled" : "locked"}
+                >
+                  <Icon
+                    name={hasTrainingDocumentBranding ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Documents et e-mails personnalisés</strong>
+                    <small>
+                      {hasTrainingDocumentBranding
+                        ? "Logo, couleurs, coordonnées et signature"
+                        : "À partir de l’offre Essentielle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={hasTrainingSatisfaction ? "enabled" : "locked"}
+                >
+                  <Icon
+                    name={hasTrainingSatisfaction ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Évaluations de satisfaction</strong>
+                    <small>
+                      {hasTrainingSatisfaction
+                        ? "Collecte et synthèse incluses"
+                        : "À partir de l’offre Professionnelle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={hasTrainingSessionDossier ? "enabled" : "locked"}
+                >
+                  <Icon
+                    name={hasTrainingSessionDossier ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Dossier complet de session</strong>
+                    <small>
+                      {hasTrainingSessionDossier
+                        ? "Synthèse et export PDF inclus"
+                        : "À partir de l’offre Professionnelle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={hasTrainingMultiSite ? "enabled" : "locked"}
+                >
+                  <Icon
+                    name={hasTrainingMultiSite ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Multi-site</strong>
+                    <small>
+                      {hasTrainingMultiSite
+                        ? "Établissements et rattachement des sessions"
+                        : "À partir de l’offre Professionnelle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={hasTrainingTeamAccess ? "enabled" : "locked"}
+                >
+                  <Icon
+                    name={hasTrainingTeamAccess ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Accès employés avec rôles</strong>
+                    <small>
+                      {hasTrainingTeamAccess
+                        ? "Comptes employés, managers et lecteurs"
+                        : "À partir de l’offre Professionnelle"}
+                    </small>
+                  </span>
+                </article>
+              </>
+            ) : isSecurityBusiness ? (
+              <>
+                <article className="enabled">
+                  <Icon name="check" size={18} />
+                  <span>
+                    <strong>Planning et facturation</strong>
+                    <small>
+                      Sites colorés, duplication des missions, PDF agent et
+                      préfacturation programmée
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={hasSecurityAgentPortal ? "enabled" : "locked"}
+                >
+                  <Icon
+                    name={hasSecurityAgentPortal ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Espace terrain des agents</strong>
+                    <small>
+                      {hasSecurityAgentPortal
+                        ? "Jusqu’à 10 agents connectés sur l’offre Essentielle"
+                        : "Aucun accès agent · à partir de l’offre Essentielle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={hasSecurityQrPatrols ? "enabled" : "locked"}
+                >
+                  <Icon
+                    name={hasSecurityQrPatrols ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Rondes QR</strong>
+                    <small>
+                      {hasSecurityQrPatrols
+                        ? "Points de passage, scan local et historique des rondes"
+                        : "À partir de l’offre Essentielle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={
+                    hasSecuritySmartLogbook && hasSecurityLogbookPdf
+                      ? "enabled"
+                      : "locked"
+                  }
+                >
+                  <Icon
+                    name={
+                      hasSecuritySmartLogbook && hasSecurityLogbookPdf
+                        ? "check"
+                        : "lock"
+                    }
+                    size={18}
+                  />
+                  <span>
+                    <strong>Main courante intelligente</strong>
+                    <small>
+                      {hasSecuritySmartLogbook && hasSecurityLogbookPdf
+                        ? "Choix prédéfinis, traitement et export PDF"
+                        : "À partir de l’offre Essentielle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={hasSecuritySiteInstructions ? "enabled" : "locked"}
+                >
+                  <Icon
+                    name={hasSecuritySiteInstructions ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Consignes et alertes par site</strong>
+                    <small>
+                      {hasSecuritySiteInstructions
+                        ? "Publication responsable et accusé de lecture agent"
+                        : "À partir de l’offre Essentielle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={
+                    hasSecurityGeolocation &&
+                    hasSecurityPtiSos &&
+                    hasSecurityRealtimeSupervision &&
+                    hasSecurityAgentRoles
+                      ? "enabled"
+                      : "locked"
+                  }
+                >
+                  <Icon
+                    name={
+                      hasSecurityGeolocation &&
+                      hasSecurityPtiSos &&
+                      hasSecurityRealtimeSupervision &&
+                      hasSecurityAgentRoles
+                        ? "check"
+                        : "lock"
+                    }
+                    size={18}
+                  />
+                  <span>
+                    <strong>Supervision Professionnelle</strong>
+                    <small>
+                      {hasSecurityGeolocation &&
+                      hasSecurityPtiSos &&
+                      hasSecurityRealtimeSupervision &&
+                      hasSecurityAgentRoles
+                        ? "Géolocalisation, PTI/SOS, temps réel et rôles Agent/Chef de poste"
+                        : "À partir de l’offre Professionnelle"}
+                    </small>
+                  </span>
+                </article>
               </>
             ) : (
               <>
-                <article className="enabled"><Icon name="check" size={18} /><span><strong>Réservation publique</strong><small>Disponible sur votre formule</small></span></article>
-                <article className={hasAutomaticReminders ? 'enabled' : 'locked'}><Icon name={hasAutomaticReminders ? 'check' : 'lock'} size={18} /><span><strong>Rappels automatiques</strong><small>{hasAutomaticReminders ? 'Activables dans les réglages' : 'À partir de l’offre Essentielle'}</small></span></article>
-                <article className={hasOnlineBookingManagement ? 'enabled' : 'locked'}><Icon name={hasOnlineBookingManagement ? 'check' : 'lock'} size={18} /><span><strong>Modification en ligne</strong><small>{hasOnlineBookingManagement ? 'Déplacement et annulation client' : 'À partir de l’offre Essentielle'}</small></span></article>
-                <article className={planHasFeature(organization.plan, 'commercial_branding') ? 'enabled' : 'locked'}><Icon name={planHasFeature(organization.plan, 'commercial_branding') ? 'check' : 'lock'} size={18} /><span><strong>Personnalisation complète</strong><small>{planHasFeature(organization.plan, 'commercial_branding') ? 'Logo, bannière et couleurs' : 'À partir de l’offre Professionnelle'}</small></span></article>
+                <article className="enabled">
+                  <Icon name="check" size={18} />
+                  <span>
+                    <strong>Réservation publique</strong>
+                    <small>Disponible sur votre formule</small>
+                  </span>
+                </article>
+                <article
+                  className={hasAutomaticReminders ? "enabled" : "locked"}
+                >
+                  <Icon
+                    name={hasAutomaticReminders ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Rappels automatiques</strong>
+                    <small>
+                      {hasAutomaticReminders
+                        ? "Activables dans les réglages"
+                        : "À partir de l’offre Essentielle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={hasOnlineBookingManagement ? "enabled" : "locked"}
+                >
+                  <Icon
+                    name={hasOnlineBookingManagement ? "check" : "lock"}
+                    size={18}
+                  />
+                  <span>
+                    <strong>Modification en ligne</strong>
+                    <small>
+                      {hasOnlineBookingManagement
+                        ? "Déplacement et annulation client"
+                        : "À partir de l’offre Essentielle"}
+                    </small>
+                  </span>
+                </article>
+                <article
+                  className={
+                    planHasFeature(organization.plan, "commercial_branding")
+                      ? "enabled"
+                      : "locked"
+                  }
+                >
+                  <Icon
+                    name={
+                      planHasFeature(organization.plan, "commercial_branding")
+                        ? "check"
+                        : "lock"
+                    }
+                    size={18}
+                  />
+                  <span>
+                    <strong>Personnalisation complète</strong>
+                    <small>
+                      {planHasFeature(organization.plan, "commercial_branding")
+                        ? "Logo, bannière et couleurs"
+                        : "À partir de l’offre Professionnelle"}
+                    </small>
+                  </span>
+                </article>
               </>
             )}
           </div>
-          <div className="plan-usage-line"><span>Accès utilisateurs inclus</span><strong>{currentPlan.memberLimit}</strong></div>
+          <div className="plan-usage-line">
+            <span>
+              {isSecurityBusiness
+                ? organization.plan === "decouverte"
+                  ? "Accès responsable inclus"
+                  : "Agents connectés inclus"
+                : "Accès utilisateurs inclus"}
+            </span>
+            <strong>{currentPlan.memberLimit}</strong>
+          </div>
         </section>
 
         <form className="panel settings-form" onSubmit={submitBranding}>
           <div>
             <p className="eyebrow">IDENTITÉ</p>
             <h2>Identité de l’espace</h2>
-            <p className="muted">Le nom et la couleur sont propres à votre entreprise.</p>
+            <p className="muted">
+              Le nom et la couleur sont propres à votre entreprise.
+            </p>
           </div>
           <label>
             Nom affiché
-            <input value={name} onChange={(event) => setName(event.target.value)} disabled={!canManage} minLength={2} maxLength={120} />
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              disabled={!canManage}
+              minLength={2}
+              maxLength={120}
+            />
           </label>
           <label className="color-field">
             Couleur principale
             <div>
-              <input type="color" value={primaryColor} onChange={(event) => setPrimaryColor(event.target.value)} disabled={!canManage} />
+              <input
+                type="color"
+                value={primaryColor}
+                onChange={(event) => setPrimaryColor(event.target.value)}
+                disabled={!canManage}
+              />
               <span>{primaryColor}</span>
             </div>
           </label>
           <div className="settings-summary">
-            <span>Type d’activité</span><strong>{organization.business_type}</strong>
-            <span>Formule</span><strong>{planLabel(organization.plan)}</strong>
-            <span>Identifiant</span><code>{organization.slug}</code>
+            <span>Type d’activité</span>
+            <strong>{organization.business_type}</strong>
+            <span>Formule</span>
+            <strong>{planLabel(organization.plan)}</strong>
+            <span>Identifiant</span>
+            <code>{organization.slug}</code>
           </div>
-          {canManage && <button className="primary-button" disabled={savingBranding}>{savingBranding ? 'Enregistrement…' : 'Enregistrer l’identité'}</button>}
+          {canManage && (
+            <button className="primary-button" disabled={savingBranding}>
+              {savingBranding ? "Enregistrement…" : "Enregistrer l’identité"}
+            </button>
+          )}
         </form>
 
         {isBookingBusiness && (
-          <form className="panel settings-form booking-settings-form" onSubmit={submitBooking}>
+          <form
+            className="panel settings-form booking-settings-form"
+            onSubmit={submitBooking}
+          >
             <div className="settings-section-heading">
               <div>
                 <p className="eyebrow">RÉSERVATION PUBLIQUE</p>
                 <h2>Prise de rendez-vous en ligne</h2>
-                <p className="muted">Le client ne voit que les créneaux réellement disponibles.</p>
+                <p className="muted">
+                  Le client ne voit que les créneaux réellement disponibles.
+                </p>
               </div>
               <label className="switch-field">
                 <input
@@ -248,39 +690,76 @@ export function SettingsPage() {
                   disabled={!canManage}
                 />
                 <span aria-hidden="true" />
-                <b>{bookingEnabled ? 'Activée' : 'Désactivée'}</b>
+                <b>{bookingEnabled ? "Activée" : "Désactivée"}</b>
               </label>
             </div>
 
             <div className="booking-link-box">
-              <div className="booking-link-icon"><Icon name="calendar" size={22} /></div>
+              <div className="booking-link-icon">
+                <Icon name="calendar" size={22} />
+              </div>
               <div>
                 <span>Lien public de réservation</span>
                 <strong>{bookingUrl}</strong>
               </div>
-              <button type="button" className="secondary-button compact-button" onClick={copyBookingUrl}>
-                {copied ? 'Copié' : 'Copier'}
+              <button
+                type="button"
+                className="secondary-button compact-button"
+                onClick={copyBookingUrl}
+              >
+                {copied ? "Copié" : "Copier"}
               </button>
-              <a className="secondary-button compact-button" href={bookingUrl} target="_blank" rel="noreferrer">Ouvrir</a>
+              <a
+                className="secondary-button compact-button"
+                href={bookingUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Ouvrir
+              </a>
             </div>
 
             <div className="booking-settings-grid">
               <label>
                 Validation des demandes
-                <select value={confirmationMode} onChange={(event) => setConfirmationMode(event.target.value as 'automatic' | 'manual')} disabled={!canManage}>
+                <select
+                  value={confirmationMode}
+                  onChange={(event) =>
+                    setConfirmationMode(
+                      event.target.value as "automatic" | "manual",
+                    )
+                  }
+                  disabled={!canManage}
+                >
                   <option value="automatic">Confirmation automatique</option>
                   <option value="manual">Validation manuelle</option>
                 </select>
               </label>
               <label>
                 Intervalle entre les créneaux
-                <select value={slotInterval} onChange={(event) => setSlotInterval(Number(event.target.value))} disabled={!canManage}>
-                  {slotOptions.map((value) => <option key={value} value={value}>{value} minutes</option>)}
+                <select
+                  value={slotInterval}
+                  onChange={(event) =>
+                    setSlotInterval(Number(event.target.value))
+                  }
+                  disabled={!canManage}
+                >
+                  {slotOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {value} minutes
+                    </option>
+                  ))}
                 </select>
               </label>
               <label>
                 Réservation au minimum
-                <select value={minNoticeHours} onChange={(event) => setMinNoticeHours(Number(event.target.value))} disabled={!canManage}>
+                <select
+                  value={minNoticeHours}
+                  onChange={(event) =>
+                    setMinNoticeHours(Number(event.target.value))
+                  }
+                  disabled={!canManage}
+                >
                   <option value={0}>Sans délai minimum</option>
                   <option value={1}>1 heure avant</option>
                   <option value={2}>2 heures avant</option>
@@ -292,7 +771,13 @@ export function SettingsPage() {
               </label>
               <label>
                 Réservable jusqu’à
-                <select value={maxDaysAhead} onChange={(event) => setMaxDaysAhead(Number(event.target.value))} disabled={!canManage}>
+                <select
+                  value={maxDaysAhead}
+                  onChange={(event) =>
+                    setMaxDaysAhead(Number(event.target.value))
+                  }
+                  disabled={!canManage}
+                >
                   <option value={14}>14 jours</option>
                   <option value={30}>30 jours</option>
                   <option value={60}>60 jours</option>
@@ -303,7 +788,13 @@ export function SettingsPage() {
               </label>
               <label>
                 Annulation en ligne jusqu’à
-                <select value={cancelNoticeHours} onChange={(event) => setCancelNoticeHours(Number(event.target.value))} disabled={!canManage || !hasOnlineBookingManagement}>
+                <select
+                  value={cancelNoticeHours}
+                  onChange={(event) =>
+                    setCancelNoticeHours(Number(event.target.value))
+                  }
+                  disabled={!canManage || !hasOnlineBookingManagement}
+                >
                   <option value={0}>Jusqu’au rendez-vous</option>
                   <option value={2}>2 heures avant</option>
                   <option value={6}>6 heures avant</option>
@@ -311,7 +802,11 @@ export function SettingsPage() {
                   <option value={24}>24 heures avant</option>
                   <option value={48}>48 heures avant</option>
                 </select>
-                {!hasOnlineBookingManagement && <small className="feature-lock-copy">Disponible à partir de l’offre Essentielle.</small>}
+                {!hasOnlineBookingManagement && (
+                  <small className="feature-lock-copy">
+                    Disponible à partir de l’offre Essentielle.
+                  </small>
+                )}
               </label>
               <label className="full-field">
                 Message d’accueil facultatif
@@ -326,27 +821,41 @@ export function SettingsPage() {
               </label>
             </div>
 
-            {canManage && <button className="primary-button" disabled={savingBooking}>{savingBooking ? 'Enregistrement…' : 'Enregistrer la réservation publique'}</button>}
+            {canManage && (
+              <button className="primary-button" disabled={savingBooking}>
+                {savingBooking
+                  ? "Enregistrement…"
+                  : "Enregistrer la réservation publique"}
+              </button>
+            )}
           </form>
         )}
 
         {isBookingBusiness && (
-          <form className="panel settings-form booking-settings-form email-settings-form" onSubmit={submitEmailNotifications}>
+          <form
+            className="panel settings-form booking-settings-form email-settings-form"
+            onSubmit={submitEmailNotifications}
+          >
             <div className="settings-section-heading">
               <div>
                 <p className="eyebrow">E-MAILS AUTOMATIQUES</p>
                 <h2>Confirmations et rappels</h2>
-                <p className="muted">NCR Suite informe le client lors d’une confirmation, modification, annulation et avant le rendez-vous.</p>
+                <p className="muted">
+                  NCR Suite informe le client lors d’une confirmation,
+                  modification, annulation et avant le rendez-vous.
+                </p>
               </div>
               <label className="switch-field">
                 <input
                   type="checkbox"
                   checked={emailNotificationsEnabled}
-                  onChange={(event) => setEmailNotificationsEnabled(event.target.checked)}
+                  onChange={(event) =>
+                    setEmailNotificationsEnabled(event.target.checked)
+                  }
                   disabled={!canManage}
                 />
                 <span aria-hidden="true" />
-                <b>{emailNotificationsEnabled ? 'Activés' : 'Désactivés'}</b>
+                <b>{emailNotificationsEnabled ? "Activés" : "Désactivés"}</b>
               </label>
             </div>
 
@@ -360,7 +869,10 @@ export function SettingsPage() {
                   placeholder="contact@entreprise.fr"
                   disabled={!canManage}
                 />
-                <small>Utilisé pour les alertes professionnelles et comme adresse de réponse.</small>
+                <small>
+                  Utilisé pour les alertes professionnelles et comme adresse de
+                  réponse.
+                </small>
               </label>
               <label>
                 Téléphone de contact facultatif
@@ -375,7 +887,13 @@ export function SettingsPage() {
               </label>
               <label>
                 Rappel automatique
-                <select value={hasAutomaticReminders ? reminderHours : 0} onChange={(event) => setReminderHours(Number(event.target.value))} disabled={!canManage || !hasAutomaticReminders}>
+                <select
+                  value={hasAutomaticReminders ? reminderHours : 0}
+                  onChange={(event) =>
+                    setReminderHours(Number(event.target.value))
+                  }
+                  disabled={!canManage || !hasAutomaticReminders}
+                >
                   <option value={0}>Aucun rappel</option>
                   <option value={2}>2 heures avant</option>
                   <option value={6}>6 heures avant</option>
@@ -384,25 +902,46 @@ export function SettingsPage() {
                   <option value={48}>48 heures avant</option>
                   <option value={72}>72 heures avant</option>
                 </select>
-                {!hasAutomaticReminders && <small className="feature-lock-copy">Disponible à partir de l’offre Essentielle.</small>}
+                {!hasAutomaticReminders && (
+                  <small className="feature-lock-copy">
+                    Disponible à partir de l’offre Essentielle.
+                  </small>
+                )}
               </label>
             </div>
 
             <div className="info-message booking-email-note">
-              Les confirmations sont incluses. {hasAutomaticReminders ? 'Les rappels automatiques sont actifs sur votre formule.' : 'Les rappels automatiques sont réservés à l’offre Essentielle et aux offres supérieures.'}
-              {hasCalendarLinks ? ' Les liens Apple, Google et Outlook sont également disponibles.' : ''}
+              Les confirmations sont incluses.{" "}
+              {hasAutomaticReminders
+                ? "Les rappels automatiques sont actifs sur votre formule."
+                : "Les rappels automatiques sont réservés à l’offre Essentielle et aux offres supérieures."}
+              {hasCalendarLinks
+                ? " Les liens Apple, Google et Outlook sont également disponibles."
+                : ""}
             </div>
 
-            {canManage && <button className="primary-button" disabled={savingEmail}>{savingEmail ? 'Enregistrement…' : 'Enregistrer les e-mails automatiques'}</button>}
+            {canManage && (
+              <button className="primary-button" disabled={savingEmail}>
+                {savingEmail
+                  ? "Enregistrement…"
+                  : "Enregistrer les e-mails automatiques"}
+              </button>
+            )}
           </form>
         )}
 
         {isBookingBusiness && (
-          <form className="panel settings-form booking-settings-form client-experience-settings" onSubmit={submitClientExperience}>
+          <form
+            className="panel settings-form booking-settings-form client-experience-settings"
+            onSubmit={submitClientExperience}
+          >
             <div>
               <p className="eyebrow">EXPÉRIENCE CLIENT</p>
               <h2>Règles et confidentialité</h2>
-              <p className="muted">Ces textes sont affichés avant la réservation et dans l’espace de gestion du rendez-vous.</p>
+              <p className="muted">
+                Ces textes sont affichés avant la réservation et dans l’espace
+                de gestion du rendez-vous.
+              </p>
             </div>
 
             <div className="booking-settings-grid">
@@ -412,7 +951,9 @@ export function SettingsPage() {
                   rows={4}
                   maxLength={1500}
                   value={cancellationPolicy}
-                  onChange={(event) => setCancellationPolicy(event.target.value)}
+                  onChange={(event) =>
+                    setCancellationPolicy(event.target.value)
+                  }
                   placeholder="Ex. Toute annulation doit être effectuée au moins 24 h avant le rendez-vous."
                   disabled={!canManage}
                 />
@@ -433,10 +974,22 @@ export function SettingsPage() {
             </div>
 
             <div className="info-message booking-email-note">
-              NCR Suite enregistre la date du consentement donné lors de la réservation. Ces textes ne remplacent pas, à eux seuls, les mentions légales ou la politique de confidentialité complète de l’entreprise.
+              NCR Suite enregistre la date du consentement donné lors de la
+              réservation. Ces textes ne remplacent pas, à eux seuls, les
+              mentions légales ou la politique de confidentialité complète de
+              l’entreprise.
             </div>
 
-            {canManage && <button className="primary-button" disabled={savingClientExperience}>{savingClientExperience ? 'Enregistrement…' : 'Enregistrer l’expérience client'}</button>}
+            {canManage && (
+              <button
+                className="primary-button"
+                disabled={savingClientExperience}
+              >
+                {savingClientExperience
+                  ? "Enregistrement…"
+                  : "Enregistrer l’expérience client"}
+              </button>
+            )}
           </form>
         )}
       </div>
