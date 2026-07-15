@@ -5305,3 +5305,74 @@ button { max-width: 100%; }
   .security-mission-select > .security-status-pill { grid-column: 2; justify-self: start; }
   .security-mission-card { grid-template-columns: minmax(0, 1fr) 52px; }
 }
+
+/* NCR Suite V2.5.3 - Scan QR en direct & facturation fiabilisée */
+.security-camera-stage {
+  position: relative;
+  overflow: hidden;
+  margin-top: 12px;
+  border-radius: 18px;
+  background: #000;
+}
+.security-camera-stage video {
+  display: block;
+  width: 100%;
+  min-height: 280px;
+  max-height: 58vh;
+  margin: 0;
+  object-fit: cover;
+}
+.security-camera-guide {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: min(62vw, 250px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 3px solid rgba(255,255,255,.96);
+  border-radius: 24px;
+  box-shadow: 0 0 0 999px rgba(0,0,0,.34), 0 0 30px rgba(41,151,255,.45);
+  pointer-events: none;
+}
+.security-camera-guide::before,
+.security-camera-guide::after {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  background: #34c759;
+  box-shadow: 0 0 12px rgba(52,199,89,.9);
+}
+.security-camera-guide::before { top: 24%; }
+.security-camera-guide::after { bottom: 24%; }
+.security-photo-fallback {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.security-photo-fallback input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.security-billing-existing {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 13px 14px;
+  border: 1px solid rgba(41,151,255,.28);
+  border-radius: 14px;
+  background: rgba(41,151,255,.07);
+}
+.security-billing-existing > div { display: grid; gap: 3px; }
+.security-billing-existing span { color: var(--text-secondary); font-size: 12px; line-height: 1.45; }
+.security-billing-existing.issued,
+.security-billing-existing.paid { border-color: rgba(255,159,10,.32); background: rgba(255,159,10,.08); }
+@media (max-width: 520px) {
+  .security-scanner-overlay { padding: 10px; }
+  .security-scanner { padding: 15px; border-radius: 20px; }
+  .security-camera-stage video { min-height: 360px; }
+}
