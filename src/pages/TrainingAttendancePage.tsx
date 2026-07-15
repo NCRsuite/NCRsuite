@@ -1,4 +1,5 @@
 import { PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -11,8 +12,10 @@ import {
   type TrainingAttendanceRecord,
   type TrainingAttendanceStatus,
   type TrainingEnrollmentRecord,
+  type TrainingProgramRecord,
   type TrainingSessionRecord,
-  type TrainingTraineeRecord
+  type TrainingTraineeRecord,
+  type TrainingTrainerRecord
 } from '../features/training/types';
 import { supabase } from '../lib/supabase';
 
@@ -152,9 +155,12 @@ function SignatureModal({ trainee, period, date, saving, onCancel, onSave }: Sig
 }
 
 export function TrainingAttendancePage() {
-  const { organization, activeSiteId } = useOrganization();
+  const { organization, activeSiteId, sites } = useOrganization();
   const { demoMode } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [sessions, setSessions] = useState<TrainingSessionRecord[]>([]);
+  const [programs, setPrograms] = useState<TrainingProgramRecord[]>([]);
+  const [trainers, setTrainers] = useState<TrainingTrainerRecord[]>([]);
   const [trainees, setTrainees] = useState<TrainingTraineeRecord[]>([]);
   const [enrollments, setEnrollments] = useState<TrainingEnrollmentRecord[]>([]);
   const [records, setRecords] = useState<TrainingAttendanceRecord[]>([]);
@@ -166,6 +172,7 @@ export function TrainingAttendancePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [signatureTrainee, setSignatureTrainee] = useState<TrainingTraineeRecord | null>(null);
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   const canManage = ['owner', 'admin', 'manager', 'employee'].includes(organization?.role ?? 'viewer');
 
@@ -179,6 +186,8 @@ export function TrainingAttendancePage() {
       };
       const loadedSessions = get<TrainingSessionRecord[]>(`ncr-suite-training-sessions-${organization.id}`).filter((item) => item.status !== 'canceled');
       setSessions(loadedSessions);
+      setPrograms(get<TrainingProgramRecord[]>(`ncr-suite-training-programs-${organization.id}`));
+      setTrainers(get<TrainingTrainerRecord[]>(`ncr-suite-training-trainers-${organization.id}`));
       setTrainees(get<TrainingTraineeRecord[]>(`ncr-suite-training-trainees-${organization.id}`));
       setEnrollments(get<TrainingEnrollmentRecord[]>(`ncr-suite-training-enrollments-${organization.id}`));
       setRecords(get<TrainingAttendanceRecord[]>(`ncr-suite-training-attendance-${organization.id}`));
@@ -194,16 +203,20 @@ export function TrainingAttendancePage() {
       .order('starts_at', { ascending: false });
     if (activeSiteId) sessionsQuery = sessionsQuery.eq('site_id', activeSiteId);
 
-    const [sessionsResult, traineesResult, enrollmentsResult, attendanceResult] = await Promise.all([
+    const [sessionsResult, programsResult, trainersResult, traineesResult, enrollmentsResult, attendanceResult] = await Promise.all([
       sessionsQuery,
+      supabase.from('training_programs').select('id,organization_id,site_id,title,code,duration_hours,modality,objectives,description,status,created_at').eq('organization_id', organization.id),
+      supabase.from('training_trainers').select('id,organization_id,first_name,last_name,email,phone,specialties,notes,status,created_at').eq('organization_id', organization.id),
       supabase.from('training_trainees').select('id,organization_id,first_name,last_name,email,phone,company,notes,status,created_at').eq('organization_id', organization.id).order('last_name'),
       supabase.from('training_session_enrollments').select('organization_id,session_id,trainee_id,status').eq('organization_id', organization.id),
       supabase.from('training_attendance').select('id,organization_id,site_id,session_id,trainee_id,attendance_date,period,status,signature_path,signatory_name,signed_at,notes,created_at,updated_at').eq('organization_id', organization.id)
     ]);
-    const firstError = sessionsResult.error || traineesResult.error || enrollmentsResult.error || attendanceResult.error;
+    const firstError = sessionsResult.error || programsResult.error || trainersResult.error || traineesResult.error || enrollmentsResult.error || attendanceResult.error;
     if (firstError) setError(`Chargement impossible : ${firstError.message}`);
     else {
       setSessions((sessionsResult.data ?? []) as TrainingSessionRecord[]);
+      setPrograms((programsResult.data ?? []).map((row) => ({ ...row, duration_hours: Number(row.duration_hours) })) as TrainingProgramRecord[]);
+      setTrainers((trainersResult.data ?? []) as TrainingTrainerRecord[]);
       setTrainees((traineesResult.data ?? []) as TrainingTraineeRecord[]);
       setEnrollments((enrollmentsResult.data ?? []) as TrainingEnrollmentRecord[]);
       setRecords((attendanceResult.data ?? []) as TrainingAttendanceRecord[]);
@@ -215,8 +228,13 @@ export function TrainingAttendancePage() {
 
   useEffect(() => {
     if (sessions.length === 0) { setSessionId(''); return; }
+    const requestedSessionId = searchParams.get('session');
+    if (requestedSessionId && sessions.some((item) => item.id === requestedSessionId)) {
+      if (sessionId !== requestedSessionId) setSessionId(requestedSessionId);
+      return;
+    }
     if (!sessions.some((item) => item.id === sessionId)) setSessionId(sessions[0].id);
-  }, [sessions, sessionId]);
+  }, [sessions, sessionId, searchParams]);
 
   const selectedSession = useMemo(() => sessions.find((item) => item.id === sessionId), [sessions, sessionId]);
   const dates = useMemo(() => sessionDates(selectedSession), [selectedSession]);
@@ -228,6 +246,8 @@ export function TrainingAttendancePage() {
   }, [sessionId, dates.join('|')]);
 
   const traineeMap = useMemo(() => new Map(trainees.map((item) => [item.id, item])), [trainees]);
+  const programMap = useMemo(() => new Map(programs.map((item) => [item.id, item])), [programs]);
+  const trainerMap = useMemo(() => new Map(trainers.map((item) => [item.id, item])), [trainers]);
   const enrolledTrainees = useMemo(() => enrollments
     .filter((item) => item.session_id === sessionId && item.status !== 'canceled')
     .map((item) => traineeMap.get(item.trainee_id))
@@ -235,13 +255,71 @@ export function TrainingAttendancePage() {
     .sort((a, b) => `${a.last_name}${a.first_name}`.localeCompare(`${b.last_name}${b.first_name}`, 'fr')),
   [enrollments, sessionId, traineeMap]);
 
-  const currentRecords = useMemo(() => records.filter((item) => item.session_id === sessionId && item.attendance_date === date && item.period === period), [records, sessionId, date, period]);
+  const dayRecords = useMemo(() => records.filter((item) => item.session_id === sessionId && item.attendance_date === date), [records, sessionId, date]);
+  const currentRecords = useMemo(() => dayRecords.filter((item) => item.period === period), [dayRecords, period]);
   const recordMap = useMemo(() => new Map(currentRecords.map((item) => [item.trainee_id, item])), [currentRecords]);
   const stats = useMemo(() => {
     const counts = { present: 0, absent: 0, excused: 0, pending: 0 };
     for (const trainee of enrolledTrainees) counts[recordMap.get(trainee.id)?.status ?? 'pending'] += 1;
     return counts;
   }, [enrolledTrainees, recordMap]);
+
+
+  async function createAttendancePdf(mode: 'preview' | 'download') {
+    if (!organization || !selectedSession || !date || enrolledTrainees.length === 0) return;
+    const previewWindow = mode === 'preview' ? window.open('', '_blank') : null;
+    if (previewWindow) {
+      previewWindow.document.write('<!doctype html><title>Feuille d\'émargement</title><body style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#f5f5f7;color:#1d1d1f"><p>Préparation du PDF…</p></body>');
+    }
+
+    setPdfBusy(true); setError(''); setSuccess('');
+    try {
+      const signatureFiles = new Map<string, Blob>();
+      if (!demoMode && supabase) {
+        const paths = [...new Set(dayRecords.filter((record) => record.status === 'present' && record.signature_path).map((record) => record.signature_path!))];
+        await Promise.all(paths.map(async (path) => {
+          const { data, error: downloadError } = await supabase!.storage.from('training-signatures').download(path);
+          if (downloadError || !data) throw new Error(`Signature inaccessible : ${downloadError?.message ?? 'fichier indisponible'}`);
+          signatureFiles.set(path, data);
+        }));
+      }
+
+      const { generateAttendanceDayPdf } = await import('../features/training/attendancePdf');
+      const result = await generateAttendanceDayPdf({
+        organization,
+        site: selectedSession.site_id ? sites.find((site) => site.id === selectedSession.site_id) ?? null : null,
+        session: selectedSession,
+        program: programMap.get(selectedSession.program_id) ?? null,
+        trainer: selectedSession.trainer_id ? trainerMap.get(selectedSession.trainer_id) ?? null : null,
+        attendanceDate: date,
+        trainees: enrolledTrainees,
+        records: dayRecords,
+        signatureFiles
+      });
+      const pdfBuffer = result.bytes.buffer.slice(result.bytes.byteOffset, result.bytes.byteOffset + result.bytes.byteLength) as ArrayBuffer;
+      const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+
+      if (mode === 'preview') {
+        if (previewWindow) previewWindow.location.replace(url);
+        else window.open(url, '_blank', 'noopener,noreferrer');
+      } else {
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = result.filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      }
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      setSuccess(mode === 'preview' ? 'La feuille d’émargement PDF est ouverte.' : 'La feuille d’émargement PDF a été téléchargée.');
+    } catch (reason) {
+      if (previewWindow && !previewWindow.closed) previewWindow.close();
+      setError(reason instanceof Error ? reason.message : 'Impossible de générer la feuille d’émargement PDF.');
+    } finally {
+      setPdfBusy(false);
+    }
+  }
 
   async function persistStatus(trainee: TrainingTraineeRecord, status: Exclude<TrainingAttendanceStatus, 'present'>) {
     if (!organization || !selectedSession || !date || !canManage) return;
@@ -347,7 +425,7 @@ export function TrainingAttendancePage() {
 
       <section className="panel attendance-controls-panel">
         <div className="attendance-control-grid">
-          <label>Session<select value={sessionId} onChange={(event) => setSessionId(event.target.value)} disabled={loading}>
+          <label>Session<select value={sessionId} onChange={(event) => { const value = event.target.value; setSessionId(value); setSearchParams(value ? { session: value } : {}); }} disabled={loading}>
             {sessions.length === 0 && <option value="">Aucune session</option>}
             {sessions.map((session) => <option key={session.id} value={session.id}>{session.title} · {formatDateTime(session.starts_at)}</option>)}
           </select></label>
@@ -357,6 +435,11 @@ export function TrainingAttendancePage() {
           </div></div>
         </div>
         {selectedSession && <div className="attendance-session-summary"><Icon name="calendar" size={19} /><span><strong>{selectedSession.title}</strong><small>{formatDateTime(selectedSession.starts_at)} → {formatDateTime(selectedSession.ends_at)}{selectedSession.location ? ` · ${selectedSession.location}` : ''}</small></span></div>}
+        <div className="attendance-pdf-actions">
+          <div><strong>Feuille de la journée</strong><small>Regroupe le matin et l’après-midi avec les signatures enregistrées.</small></div>
+          <button className="primary-button" type="button" disabled={pdfBusy || !selectedSession || !date || enrolledTrainees.length === 0} onClick={() => void createAttendancePdf('preview')}><Icon name="file" size={17} />{pdfBusy ? 'Préparation…' : 'Visualiser le PDF'}</button>
+          <button className="secondary-button" type="button" disabled={pdfBusy || !selectedSession || !date || enrolledTrainees.length === 0} onClick={() => void createAttendancePdf('download')}>Télécharger</button>
+        </div>
       </section>
 
       {error && <div className="error-message page-message" role="alert">{error}</div>}

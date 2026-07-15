@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -58,6 +58,8 @@ export function TrainingDocumentsPage() {
   const { organization, activeSiteId } = useOrganization();
   const { user, demoMode } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const attestationsArea = location.pathname.endsWith('/attestations');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [documents, setDocuments] = useState<TrainingDocumentRecord[]>([]);
   const [sessions, setSessions] = useState<TrainingSessionRecord[]>([]);
@@ -69,8 +71,12 @@ export function TrainingDocumentsPage() {
   const [downloadingId, setDownloadingId] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<'all' | TrainingDocumentCategory>('all');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | TrainingDocumentCategory>(() => {
+    const requested = searchParams.get('category');
+    return requested && requested in trainingDocumentCategoryLabels ? requested as TrainingDocumentCategory : attestationsArea ? 'attestation' : 'all';
+  });
   const [statusFilter, setStatusFilter] = useState<'current' | 'archived'>('current');
+  const [sessionFilter, setSessionFilter] = useState(() => searchParams.get('session') ?? 'all');
   const [search, setSearch] = useState('');
   const formOpen = searchParams.get('new') === '1';
 
@@ -92,7 +98,7 @@ export function TrainingDocumentsPage() {
 
     let documentQuery = supabase
       .from('training_documents')
-      .select('id,organization_id,site_id,session_id,program_id,trainee_id,title,category,storage_path,mime_type,size_bytes,visibility,status,notes,created_at')
+      .select('id,organization_id,site_id,session_id,program_id,trainee_id,title,category,storage_path,mime_type,size_bytes,visibility,status,notes,generated_automatically,automation_key,generated_at,emailed_at,created_at')
       .eq('organization_id', organization.id)
       .order('created_at', { ascending: false });
     let sessionQuery = supabase
@@ -129,6 +135,13 @@ export function TrainingDocumentsPage() {
 
   useEffect(() => { void loadData(); }, [organization?.id, activeSiteId, demoMode]);
 
+  useEffect(() => {
+    const requestedSession = searchParams.get('session');
+    const requestedCategory = searchParams.get('category');
+    setSessionFilter(requestedSession || 'all');
+    setCategoryFilter(requestedCategory && requestedCategory in trainingDocumentCategoryLabels ? requestedCategory as TrainingDocumentCategory : attestationsArea ? 'attestation' : 'all');
+  }, [searchParams, attestationsArea]);
+
   const sessionMap = useMemo(() => new Map(sessions.map((session) => [session.id, session])), [sessions]);
   const traineeMap = useMemo(() => new Map(trainees.map((trainee) => [trainee.id, trainee])), [trainees]);
   const filteredDocuments = useMemo(() => {
@@ -137,6 +150,7 @@ export function TrainingDocumentsPage() {
       if (statusFilter === 'current' && document.status === 'archived') return false;
       if (statusFilter === 'archived' && document.status !== 'archived') return false;
       if (categoryFilter !== 'all' && document.category !== categoryFilter) return false;
+      if (sessionFilter !== 'all' && document.session_id !== sessionFilter) return false;
       if (!normalizedSearch) return true;
       const session = document.session_id ? sessionMap.get(document.session_id) : null;
       const trainee = document.trainee_id ? traineeMap.get(document.trainee_id) : null;
@@ -144,7 +158,7 @@ export function TrainingDocumentsPage() {
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(normalizedSearch));
     });
-  }, [documents, statusFilter, categoryFilter, search, sessionMap, traineeMap]);
+  }, [documents, statusFilter, categoryFilter, sessionFilter, search, sessionMap, traineeMap]);
 
   function resetForm() {
     setForm(initialForm());
@@ -221,12 +235,32 @@ export function TrainingDocumentsPage() {
     setSaving(false);
   }
 
+  async function openDocument(document: TrainingDocumentRecord) {
+    if (demoMode || !supabase) { setError('La visualisation réelle nécessite Supabase.'); return; }
+    setDownloadingId(`open-${document.id}`); setError('');
+    const { data, error: signedError } = await supabase.storage.from('training-documents').createSignedUrl(document.storage_path, 120);
+    if (signedError || !data?.signedUrl) setError(`Visualisation impossible : ${signedError?.message || 'lien indisponible'}`);
+    else window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    setDownloadingId('');
+  }
+
   async function downloadDocument(document: TrainingDocumentRecord) {
     if (demoMode || !supabase) { setError('Le téléchargement réel nécessite Supabase.'); return; }
-    setDownloadingId(document.id); setError('');
-    const { data, error: signedError } = await supabase.storage.from('training-documents').createSignedUrl(document.storage_path, 120);
-    if (signedError || !data?.signedUrl) setError(`Téléchargement impossible : ${signedError?.message || 'lien indisponible'}`);
-    else window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+    setDownloadingId(`download-${document.id}`); setError('');
+    const { data, error: downloadError } = await supabase.storage.from('training-documents').download(document.storage_path);
+    if (downloadError || !data) {
+      setError(`Téléchargement impossible : ${downloadError?.message || 'fichier indisponible'}`);
+    } else {
+      const extension = document.mime_type === 'application/pdf' ? '.pdf' : '';
+      const url = URL.createObjectURL(data);
+      const anchor = globalThis.document.createElement('a');
+      anchor.href = url;
+      anchor.download = `${safeFileName(document.title)}${extension}`;
+      globalThis.document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    }
     setDownloadingId('');
   }
 
@@ -249,8 +283,8 @@ export function TrainingDocumentsPage() {
   return (
     <div className="page training-documents-page">
       <header className="page-header">
-        <div><p className="eyebrow">PACK FORMATION</p><h1>Documents</h1><p>Centralise les convocations, programmes, supports et attestations de chaque session.</p></div>
-        <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Ajouter un document</button>
+        <div><p className="eyebrow">FORMATION · {attestationsArea ? 'ATTESTATIONS' : 'DOCUMENTS'}</p><h1>{attestationsArea ? 'Attestations' : 'Documents'}</h1><p>{attestationsArea ? 'Retrouve, visualise et télécharge les attestations générées pour chaque stagiaire.' : 'Centralise les convocations, programmes, supports et attestations de chaque session.'}</p></div>
+        <button className="primary-button" type="button" onClick={() => { setForm({ ...initialForm(), category: attestationsArea ? 'attestation' : 'convocation' }); setSearchParams({ new: '1' }); }}><Icon name="plus" size={18} />{attestationsArea ? 'Ajouter une attestation' : 'Ajouter un document'}</button>
       </header>
 
       {formOpen && (
@@ -278,13 +312,14 @@ export function TrainingDocumentsPage() {
           <div><p className="eyebrow">BIBLIOTHÈQUE</p><h2>{filteredDocuments.length} document{filteredDocuments.length > 1 ? 's' : ''}</h2></div>
           <div className="training-document-filters">
             <label><span className="sr-only">Rechercher</span><div className="search-field"><Icon name="search" size={17} /><input placeholder="Rechercher…" value={search} onChange={(event) => setSearch(event.target.value)} /></div></label>
-            <label><span className="sr-only">Catégorie</span><select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as 'all' | TrainingDocumentCategory)}><option value="all">Toutes les catégories</option>{Object.entries(trainingDocumentCategoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <label><span className="sr-only">Session</span><select value={sessionFilter} onChange={(event) => { const value = event.target.value; setSessionFilter(value); const next = new URLSearchParams(searchParams); if (value === 'all') next.delete('session'); else next.set('session', value); setSearchParams(next); }}><option value="all">Toutes les sessions</option>{sessions.map((session) => <option key={session.id} value={session.id}>{session.title}</option>)}</select></label>
+            {!attestationsArea && <label><span className="sr-only">Catégorie</span><select value={categoryFilter} onChange={(event) => { const value = event.target.value as 'all' | TrainingDocumentCategory; setCategoryFilter(value); const next = new URLSearchParams(searchParams); if (value === 'all') next.delete('category'); else next.set('category', value); setSearchParams(next); }}><option value="all">Toutes les catégories</option>{Object.entries(trainingDocumentCategoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>}
             <label><span className="sr-only">État</span><select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'current' | 'archived')}><option value="current">Documents actifs</option><option value="archived">Archives</option></select></label>
           </div>
         </div>
 
         {loading ? <div className="training-empty">Chargement…</div> : filteredDocuments.length === 0 ? (
-          <div className="training-empty"><Icon name="file" size={30} /><strong>Aucun document</strong><span>Dépose le premier fichier ou modifie les filtres.</span></div>
+          <div className="training-empty"><Icon name="file" size={30} /><strong>{attestationsArea ? 'Aucune attestation' : 'Aucun document'}</strong><span>{attestationsArea ? 'Les attestations générées apparaîtront ici après la clôture des sessions.' : 'Dépose le premier fichier ou modifie les filtres.'}</span></div>
         ) : (
           <div className="training-document-list">
             {filteredDocuments.map((document) => {
@@ -294,13 +329,14 @@ export function TrainingDocumentsPage() {
                 <article key={document.id} className="training-document-card">
                   <span className={`training-document-icon category-${document.category}`}><Icon name="file" size={22} /></span>
                   <div className="training-document-main">
-                    <div><strong>{document.title}</strong><span className={`training-status-pill ${document.status === 'published' ? 'active' : ''}`}>{document.status === 'draft' ? 'Brouillon' : document.status === 'archived' ? 'Archivé' : 'Publié'}</span></div>
+                    <div><strong>{document.title}</strong><span className={`training-status-pill ${document.status === 'published' ? 'active' : ''}`}>{document.status === 'draft' ? 'Brouillon' : document.status === 'archived' ? 'Archivé' : 'Publié'}</span>{document.generated_automatically && <span className="training-status-pill automation">Automatique</span>}{document.emailed_at && <span className="training-status-pill emailed">Envoyé</span>}</div>
                     <p>{trainingDocumentCategoryLabels[document.category]} · {formatSize(document.size_bytes)}</p>
-                    <small>{session ? `Session : ${session.title}` : 'Document général'}{trainee ? ` · ${personName(trainee.first_name, trainee.last_name)}` : ''} · {formatDateTime(document.created_at)}</small>
+                    <small>{session ? `Session : ${session.title}` : 'Document général'}{trainee ? ` · ${personName(trainee.first_name, trainee.last_name)}` : ''} · {formatDateTime(document.generated_at || document.created_at)}</small>
                   </div>
                   <div className="training-document-actions">
-                    <button className="secondary-button compact-button" type="button" disabled={downloadingId === document.id} onClick={() => downloadDocument(document)}>{downloadingId === document.id ? 'Ouverture…' : 'Ouvrir'}</button>
-                    <button className="text-button" type="button" onClick={() => archiveDocument(document)}>{document.status === 'archived' ? 'Restaurer' : 'Archiver'}</button>
+                    <button className="primary-button compact-button" type="button" disabled={Boolean(downloadingId)} onClick={() => void openDocument(document)}>{downloadingId === `open-${document.id}` ? 'Ouverture…' : 'Visualiser'}</button>
+                    <button className="secondary-button compact-button" type="button" disabled={Boolean(downloadingId)} onClick={() => void downloadDocument(document)}>{downloadingId === `download-${document.id}` ? 'Téléchargement…' : 'Télécharger'}</button>
+                    <button className="text-button" type="button" onClick={() => void archiveDocument(document)}>{document.status === 'archived' ? 'Restaurer' : 'Archiver'}</button>
                   </div>
                 </article>
               );

@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -9,6 +9,7 @@ import {
   nullableText,
   personName,
   sessionStatusLabels,
+  type TrainingDocumentRecord,
   type TrainingEnrollmentRecord,
   type TrainingModality,
   type TrainingProgramRecord,
@@ -47,6 +48,7 @@ export function TrainingSessionsPage() {
   const [trainers, setTrainers] = useState<TrainingTrainerRecord[]>([]);
   const [trainees, setTrainees] = useState<TrainingTraineeRecord[]>([]);
   const [enrollments, setEnrollments] = useState<TrainingEnrollmentRecord[]>([]);
+  const [documents, setDocuments] = useState<TrainingDocumentRecord[]>([]);
   const [form, setForm] = useState<FormState>(initialForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -74,6 +76,7 @@ export function TrainingSessionsPage() {
       setTrainers(get<TrainingTrainerRecord[]>(`ncr-suite-training-trainers-${organization.id}`));
       setTrainees(get<TrainingTraineeRecord[]>(`ncr-suite-training-trainees-${organization.id}`));
       setEnrollments(get<TrainingEnrollmentRecord[]>(`ncr-suite-training-enrollments-${organization.id}`));
+      setDocuments(get<TrainingDocumentRecord[]>(`ncr-suite-training-documents-${organization.id}`));
       setLoading(false);
       return;
     }
@@ -94,15 +97,16 @@ export function TrainingSessionsPage() {
       programsQuery = programsQuery.eq('site_id', activeSiteId);
     }
 
-    const [sessionsResult, programsResult, trainersResult, traineesResult, enrollmentsResult] = await Promise.all([
+    const [sessionsResult, programsResult, trainersResult, traineesResult, enrollmentsResult, documentsResult] = await Promise.all([
       sessionsQuery,
       programsQuery,
       supabase.from('training_trainers').select('id,organization_id,first_name,last_name,email,phone,specialties,notes,status,created_at').eq('organization_id', organization.id).eq('status', 'active').order('last_name'),
       supabase.from('training_trainees').select('id,organization_id,first_name,last_name,email,phone,company,notes,status,created_at').eq('organization_id', organization.id).eq('status', 'active').order('last_name'),
-      supabase.from('training_session_enrollments').select('organization_id,session_id,trainee_id,status').eq('organization_id', organization.id)
+      supabase.from('training_session_enrollments').select('organization_id,session_id,trainee_id,status').eq('organization_id', organization.id),
+      supabase.from('training_documents').select('id,organization_id,site_id,session_id,program_id,trainee_id,title,category,storage_path,mime_type,size_bytes,visibility,status,notes,generated_automatically,automation_key,generated_at,emailed_at,created_at').eq('organization_id', organization.id).neq('status', 'archived')
     ]);
 
-    const firstError = sessionsResult.error || programsResult.error || trainersResult.error || traineesResult.error || enrollmentsResult.error;
+    const firstError = sessionsResult.error || programsResult.error || trainersResult.error || traineesResult.error || enrollmentsResult.error || documentsResult.error;
     if (firstError) setError(`Chargement impossible : ${firstError.message}`);
     else {
       setSessions((sessionsResult.data ?? []) as TrainingSessionRecord[]);
@@ -110,6 +114,7 @@ export function TrainingSessionsPage() {
       setTrainers((trainersResult.data ?? []) as TrainingTrainerRecord[]);
       setTrainees((traineesResult.data ?? []) as TrainingTraineeRecord[]);
       setEnrollments((enrollmentsResult.data ?? []) as TrainingEnrollmentRecord[]);
+      setDocuments((documentsResult.data ?? []).map((row) => ({ ...row, size_bytes: row.size_bytes ? Number(row.size_bytes) : null })) as TrainingDocumentRecord[]);
     }
     setLoading(false);
   }
@@ -127,6 +132,17 @@ export function TrainingSessionsPage() {
     }
     return map;
   }, [enrollments]);
+  const documentCounts = useMemo(() => {
+    const map = new Map<string, { total: number; attestations: number }>();
+    for (const document of documents) {
+      if (!document.session_id || document.status === 'archived') continue;
+      const current = map.get(document.session_id) ?? { total: 0, attestations: 0 };
+      current.total += 1;
+      if (document.category === 'attestation') current.attestations += 1;
+      map.set(document.session_id, current);
+    }
+    return map;
+  }, [documents]);
 
   function toggleTrainee(id: string) {
     setForm((current) => ({
@@ -270,7 +286,14 @@ export function TrainingSessionsPage() {
                   <div className="training-session-date"><strong>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit' }).format(new Date(session.starts_at))}</strong><span>{new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(new Date(session.starts_at))}</span></div>
                   <div className="training-session-main"><div><strong>{session.title}</strong><span>{program?.title || 'Formation'} · {modalityLabels[session.modality]}</span></div><p>{formatDateTime(session.starts_at)} → {formatDateTime(session.ends_at)}</p><small>{trainer ? `Formateur : ${personName(trainer.first_name, trainer.last_name)}` : 'Formateur à définir'}{session.location ? ` · ${session.location}` : ''}</small></div>
                   <div className="training-session-capacity"><strong>{count}/{session.capacity}</strong><span>stagiaires</span></div>
-                  <label className={`training-status-select status-${session.status}`}><span className="sr-only">Statut</span><select value={session.status} onChange={(event) => updateStatus(session, event.target.value as TrainingSessionStatus)}>{Object.entries(sessionStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+                  <div className="training-session-controls">
+                    <label className={`training-status-select status-${session.status}`}><span className="sr-only">Statut</span><select value={session.status} onChange={(event) => updateStatus(session, event.target.value as TrainingSessionStatus)}>{Object.entries(sessionStatusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+                    <div className="training-document-automation-actions">
+                      <Link className="secondary-button compact-button" to={`/documents?session=${encodeURIComponent(session.id)}&category=attestation`}>Attestations</Link>
+                      <Link className="secondary-button compact-button" to={`/emargements?session=${encodeURIComponent(session.id)}`}>Émargements</Link>
+                      <small>{documentCounts.get(session.id)?.attestations ?? 0} attestation{(documentCounts.get(session.id)?.attestations ?? 0) > 1 ? 's' : ''} · {documentCounts.get(session.id)?.total ?? 0} document{(documentCounts.get(session.id)?.total ?? 0) > 1 ? 's' : ''}</small>
+                    </div>
+                  </div>
                 </article>
               );
             })}

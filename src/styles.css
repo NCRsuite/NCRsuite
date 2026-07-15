@@ -3374,3 +3374,37 @@ button { max-width: 100%; }
   .public-rating-field button { min-height:60px;padding:6px;border-radius:13px; }
   .public-rating-field button small { display:none; }
 }
+
+
+/* V2.4.7 — accès aux attestations et feuille d’émargement PDF */
+.attendance-pdf-actions {
+  margin-top: 14px;
+  padding-top: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid #e7e9ed;
+}
+.attendance-pdf-actions > div { min-width: 0; display: grid; gap: 3px; }
+.attendance-pdf-actions strong { font-size: .84rem; }
+.attendance-pdf-actions small { color: var(--muted); font-size: .72rem; line-height: 1.4; }
+.attendance-pdf-actions .primary-button,
+.attendance-pdf-actions .secondary-button { white-space: nowrap; justify-content: center; }
+.training-session-controls .secondary-button { text-decoration: none; }
+.training-document-main > div:first-child { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.training-document-actions { min-width: 130px; }
+.training-document-filters { flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .attendance-pdf-actions { grid-template-columns: 1fr 1fr; }
+  .attendance-pdf-actions > div { grid-column: 1 / -1; }
+  .attendance-pdf-actions .primary-button,
+  .attendance-pdf-actions .secondary-button { width: 100%; }
+  .training-document-actions { min-width: 0; }
+}
+
+@media (max-width: 430px) {
+  .attendance-pdf-actions { grid-template-columns: 1fr; }
+  .attendance-pdf-actions > div { grid-column: auto; }
+}
