@@ -1,11 +1,11 @@
-# 2.5.3 — Scan QR & facturation Sécurité
+# 2.5.4 — QR validé, PDF stable et sites visibles en facturation
 
-- Scanner QR en direct avec la caméra arrière sur iPhone, Android et PWA.
-- Conservation d’un mode photo amélioré et de la saisie manuelle de secours.
-- Décodage QR renforcé avec BarcodeDetector puis jsQR.
-- Requêtes de rondes rendues explicites pour éviter les relations Supabase ambiguës.
-- Aperçu de facturation calculé directement par Supabase.
-- Recalcul possible d’une préfacture encore en brouillon.
-- Statuts Émise et Payée avec horodatages fiables.
-- Relations de facturation Supabase explicites.
-- Cache PWA mis à jour en V2.5.3.
+- Correction de l’ambiguïté PostgreSQL qui empêchait l’enregistrement d’un QR pourtant détecté.
+- Messages d’erreur Supabase désormais lisibles au lieu de « erreur inconnue ».
+- Génération du PDF de préfacturation chargée statiquement pour éviter la réponse HTML à la place du module JavaScript.
+- Service worker sécurisé : une page HTML n’est plus renvoyée pour un fichier JavaScript manquant.
+- Tous les sites actifs rattachés au client sont visibles dans l’aperçu de facturation.
+- Les sites sans mission sont affichés comme non facturés.
+- Bouton d’actualisation du calcul ajouté.
+- Les brouillons continuent à être recalculables avec le planning actuel.
+- Cache PWA passé en V2.5.4.

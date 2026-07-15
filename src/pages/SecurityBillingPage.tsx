@@ -13,6 +13,7 @@ import {
   type SecurityShiftRecord,
   type SecuritySiteRecord
 } from '../features/security/types';
+import { generateSecurityInvoicePdf } from '../features/security/invoicePdf';
 import { prepareFileWindow, showBlobDownload, closeFileWindow } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
 
@@ -26,11 +27,21 @@ function invoiceStatusLabel(status: SecurityInvoiceRecord['status']) {
 }
 
 function billingErrorMessage(caught: unknown) {
-  const message = caught instanceof Error ? caught.message : 'erreur inconnue';
-  if (message.includes('security_scheduled_billing')) return 'La facturation Sécurité n’est pas activée pour cette offre.';
-  if (message.includes('Aucune heure programmée')) return 'Aucune mission facturable n’a été trouvée pour ce client et cette période.';
-  if (message.includes('déjà') && message.includes('préfacture')) return message;
-  return message;
+  const message = caught instanceof Error
+    ? caught.message
+    : typeof caught === 'object' && caught !== null && 'message' in caught
+      ? String((caught as { message?: unknown }).message || '')
+      : typeof caught === 'string'
+        ? caught
+        : '';
+  const details = typeof caught === 'object' && caught !== null && 'details' in caught
+    ? String((caught as { details?: unknown }).details || '')
+    : '';
+  const readable = [message, details].filter(Boolean).join(' — ') || 'erreur inconnue';
+  if (readable.includes('security_scheduled_billing')) return 'La facturation Sécurité n’est pas activée pour cette offre.';
+  if (readable.includes('Aucune heure programmée')) return 'Aucune mission facturable n’a été trouvée pour ce client et cette période.';
+  if (readable.includes('déjà') && readable.includes('préfacture')) return readable;
+  return readable;
 }
 
 export function SecurityBillingPage() {
@@ -52,6 +63,7 @@ export function SecurityBillingPage() {
   const [exportingId, setExportingId] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [previewNonce, setPreviewNonce] = useState(0);
 
   async function readInvoices(organizationId: string) {
     if (!supabase) return [];
@@ -109,7 +121,7 @@ export function SecurityBillingPage() {
             const siteShifts = demoShifts.filter((shift) => shift.site_id === site.id && shift.status !== 'canceled' && new Date(shift.starts_at) >= start && new Date(shift.starts_at) <= end);
             const scheduledMinutes = siteShifts.reduce((sum, shift) => sum + Math.max(0, Math.round((new Date(shift.ends_at).getTime() - new Date(shift.starts_at).getTime()) / 60000) - shift.break_minutes), 0);
             return { siteId: site.id, siteName: site.name, scheduledMinutes, hourlyRateCents: site.hourly_rate_cents, lineTotalCents: Math.round((scheduledMinutes / 60) * site.hourly_rate_cents) };
-          }).filter((line) => line.scheduledMinutes > 0);
+          });
           if (active) setPreview(lines);
           return;
         }
@@ -134,16 +146,17 @@ export function SecurityBillingPage() {
       } finally { if (active) setPreviewLoading(false); }
     }, 220);
     return () => { active = false; window.clearTimeout(timer); };
-  }, [organization?.id, clientId, periodStart, periodEnd, demoMode, demoSites, demoShifts]);
+  }, [organization?.id, clientId, periodStart, periodEnd, demoMode, demoSites, demoShifts, previewNonce]);
 
-  const previewTotal = preview.reduce((sum, line) => sum + line.lineTotalCents, 0);
-  const previewMinutes = preview.reduce((sum, line) => sum + line.scheduledMinutes, 0);
+  const billablePreview = preview.filter((line) => line.scheduledMinutes > 0);
+  const previewTotal = billablePreview.reduce((sum, line) => sum + line.lineTotalCents, 0);
+  const previewMinutes = billablePreview.reduce((sum, line) => sum + line.scheduledMinutes, 0);
   const existingForPeriod = invoices.find((invoice) => invoice.client_id === clientId && invoice.period_start === periodStart && invoice.period_end === periodEnd && invoice.status !== 'canceled');
 
   async function generateInvoice(event: FormEvent) {
     event.preventDefault();
     if (!organization || !user || !clientId) return;
-    if (!preview.length) { setError('Aucune heure programmée facturable sur cette période.'); return; }
+    if (!billablePreview.length) { setError('Aucune heure programmée facturable sur cette période.'); return; }
     setSaving(true); setError(''); setSuccess('');
     try {
       let created: SecurityInvoiceRecord;
@@ -151,7 +164,7 @@ export function SecurityBillingPage() {
       if (demoMode || !supabase) {
         const previousDraft = invoices.find((invoice) => invoice.client_id === clientId && invoice.period_start === periodStart && invoice.period_end === periodEnd && invoice.status === 'draft');
         const id = previousDraft?.id || crypto.randomUUID();
-        const lines: SecurityInvoiceLineRecord[] = preview.map((line) => ({ id: crypto.randomUUID(), organization_id: organization.id, invoice_id: id, site_id: line.siteId, description: `Heures de sécurité programmées — ${line.siteName}`, scheduled_minutes: line.scheduledMinutes, hourly_rate_cents: line.hourlyRateCents, line_total_cents: line.lineTotalCents, security_sites: { name: line.siteName } }));
+        const lines: SecurityInvoiceLineRecord[] = billablePreview.map((line) => ({ id: crypto.randomUUID(), organization_id: organization.id, invoice_id: id, site_id: line.siteId, description: `Heures de sécurité programmées — ${line.siteName}`, scheduled_minutes: line.scheduledMinutes, hourly_rate_cents: line.hourlyRateCents, line_total_cents: line.lineTotalCents, security_sites: { name: line.siteName } }));
         created = { id, organization_id: organization.id, client_id: clientId, invoice_number: previousDraft?.invoice_number || `SEC-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(6, '0')}`, period_start: periodStart, period_end: periodEnd, status: 'draft', subtotal_cents: previewTotal, total_cents: previewTotal, notes: notes.trim() || null, issued_at: null, paid_at: null, created_at: previousDraft?.created_at || new Date().toISOString(), security_clients: client, security_invoice_lines: lines };
         const next = [created, ...invoices.filter((invoice) => invoice.id !== id)];
         localStorage.setItem(`ncr-suite-security-invoices-${organization.id}`, JSON.stringify(next));
@@ -195,7 +208,6 @@ export function SecurityBillingPage() {
     const target = prepareFileWindow('Préparation du PDF', 'La facture prévisionnelle est en cours de génération.');
     setExportingId(invoice.id); setError('');
     try {
-      const { generateSecurityInvoicePdf } = await import('../features/security/invoicePdf');
       const result = await generateSecurityInvoicePdf(organization, invoice);
       const url = URL.createObjectURL(result.blob);
       showBlobDownload(target, url, result.filename, 'Facture prévisionnelle prête');
@@ -212,10 +224,10 @@ export function SecurityBillingPage() {
     <section className="security-billing-grid"><article className="panel security-billing-builder"><div className="panel-header"><div><p className="eyebrow">NOUVELLE PRÉFACTURE</p><h2>Choisir la période</h2><p>Le calcul affiché vient désormais directement de Supabase : l’aperçu et la préfacture utilisent exactement les mêmes missions.</p></div></div>
       <form className="security-form-grid" onSubmit={generateInvoice}><label>Client *<select required value={clientId} onChange={(event) => setClientId(event.target.value)}><option value="">Sélectionner</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.company_name}</option>)}</select></label><span/>
         <label>Du<input type="date" required value={periodStart} onChange={(event) => setPeriodStart(event.target.value)}/></label><label>Au<input type="date" required value={periodEnd} onChange={(event) => setPeriodEnd(event.target.value)}/></label><label className="full-field">Note interne<textarea rows={2} value={notes} onChange={(event) => setNotes(event.target.value)}/></label>
-        <div className="full-field security-preview"><div><span>Heures programmées</span><strong>{previewLoading ? 'Calcul…' : formatSecurityDuration(previewMinutes)}</strong></div><div><span>Sites facturés</span><strong>{previewLoading ? '—' : preview.length}</strong></div><div><span>Total prévisionnel HT</span><strong>{previewLoading ? 'Calcul…' : formatSecurityMoney(previewTotal)}</strong></div></div>
-        {preview.length > 0 && <div className="full-field security-preview-lines">{preview.map((line) => <div key={line.siteId}><span><strong>{line.siteName}</strong><small>{formatSecurityDuration(line.scheduledMinutes)} × {formatSecurityMoney(line.hourlyRateCents)}/h</small></span><b>{formatSecurityMoney(line.lineTotalCents)}</b></div>)}</div>}
+        <div className="full-field security-preview"><div><span>Heures programmées</span><strong>{previewLoading ? 'Calcul…' : formatSecurityDuration(previewMinutes)}</strong></div><div><span>Sites facturés</span><strong>{previewLoading ? '—' : billablePreview.length}</strong><small>{previewLoading ? '' : `${preview.length} site(s) rattaché(s)`}</small></div><div><span>Total prévisionnel HT</span><strong>{previewLoading ? 'Calcul…' : formatSecurityMoney(previewTotal)}</strong></div></div>
+        {preview.length > 0 && <div className="full-field security-preview-lines">{preview.map((line) => <div key={line.siteId} className={line.scheduledMinutes > 0 ? '' : 'not-billable'}><span><strong>{line.siteName}</strong><small>{line.scheduledMinutes > 0 ? `${formatSecurityDuration(line.scheduledMinutes)} × ${formatSecurityMoney(line.hourlyRateCents)}/h` : `Aucune mission programmée sur la période · ${formatSecurityMoney(line.hourlyRateCents)}/h`}</small></span><b>{line.scheduledMinutes > 0 ? formatSecurityMoney(line.lineTotalCents) : 'Non facturé'}</b></div>)}</div>}
         {existingForPeriod && <div className={`full-field security-billing-existing ${existingForPeriod.status}`}><Icon name="file" size={18}/><div><strong>{existingForPeriod.invoice_number} existe déjà</strong><span>{existingForPeriod.status === 'draft' ? 'Le bouton ci-dessous recalculera ce brouillon avec le planning actuel.' : `Cette préfacture est ${invoiceStatusLabel(existingForPeriod.status).toLowerCase()} et ne peut plus être remplacée.`}</span></div></div>}
-        <div className="form-actions full-field"><button className="primary-button" disabled={saving || previewLoading || !preview.length || Boolean(existingForPeriod && existingForPeriod.status !== 'draft')}>{saving ? 'Génération…' : existingForPeriod?.status === 'draft' ? 'Recalculer le brouillon' : 'Générer la préfacture'}</button></div>
+        <div className="form-actions full-field"><button className="secondary-button" type="button" disabled={previewLoading} onClick={() => setPreviewNonce((value) => value + 1)}>Actualiser le calcul</button><button className="primary-button" disabled={saving || previewLoading || !billablePreview.length || Boolean(existingForPeriod && existingForPeriod.status !== 'draft')}>{saving ? 'Génération…' : existingForPeriod?.status === 'draft' ? 'Recalculer le brouillon' : 'Générer la préfacture'}</button></div>
       </form></article>
       <aside className="panel security-billing-rule"><span><Icon name="shield" size={24}/></span><p className="eyebrow">RÈGLE DÉCOUVERTE</p><h2>Calcul simple et transparent</h2><p>Pour chaque site : <strong>heures programmées × tarif horaire du site</strong>. Les absences, remplacements ou heures supplémentaires restent visibles dans le planning, mais ne changent pas automatiquement la facture.</p></aside>
     </section>

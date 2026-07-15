@@ -1,4 +1,6 @@
 import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import jsQR from 'jsqr';
+import QRCode from 'qrcode';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -19,11 +21,18 @@ type BarcodeDetectorConstructor = new (options: { formats: string[] }) => Barcod
 const emptyPoint: PointForm = { siteId: '', label: '', sequence: '1', instructions: '' };
 
 function scannerErrorMessage(caught: unknown) {
-  if (!(caught instanceof Error)) return 'erreur inconnue';
-  if (caught.name === 'NotAllowedError') return 'Accès à la caméra refusé. Autorise la caméra dans les réglages du navigateur.';
-  if (caught.name === 'NotFoundError') return 'Aucune caméra compatible n’a été trouvée.';
-  if (caught.name === 'NotReadableError') return 'La caméra est déjà utilisée par une autre application.';
-  return caught.message;
+  const name = caught instanceof Error ? caught.name : typeof caught === 'object' && caught !== null && 'name' in caught ? String((caught as { name?: unknown }).name || '') : '';
+  const message = caught instanceof Error
+    ? caught.message
+    : typeof caught === 'object' && caught !== null && 'message' in caught
+      ? String((caught as { message?: unknown }).message || '')
+      : typeof caught === 'string'
+        ? caught
+        : '';
+  if (name === 'NotAllowedError') return 'Accès à la caméra refusé. Autorise la caméra dans les réglages du navigateur.';
+  if (name === 'NotFoundError') return 'Aucune caméra compatible n’a été trouvée.';
+  if (name === 'NotReadableError') return 'La caméra est déjà utilisée par une autre application.';
+  return message || 'erreur inconnue';
 }
 
 export function SecurityPatrolsPage() {
@@ -144,16 +153,15 @@ export function SecurityPatrolsPage() {
       setOpen(false);
       setSuccess('Le point de ronde QR a été créé.');
     } catch (caught) {
-      setError(`Création impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+      setError(`Création impossible : ${scannerErrorMessage(caught)}`);
     } finally { setSaving(false); }
   }
 
   async function preview(point: SecurityPatrolPointRecord) {
     try {
-      const { default: QRCode } = await import('qrcode');
       const url = await QRCode.toDataURL(point.qr_code, { width: 720, margin: 4, errorCorrectionLevel: 'H' });
       setQrPreview({ point, url });
-    } catch (caught) { setError(caught instanceof Error ? caught.message : 'QR impossible'); }
+    } catch (caught) { setError(scannerErrorMessage(caught)); }
   }
 
   function downloadQr() {
@@ -185,7 +193,7 @@ export function SecurityPatrolsPage() {
         if (rpcError) throw rpcError;
         await load(); setSuccess(`Ronde démarrée (${data}).`);
       }
-    } catch (caught) { setError(`Démarrage impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+    } catch (caught) { setError(`Démarrage impossible : ${scannerErrorMessage(caught)}`); }
     finally { setSaving(false); }
   }
 
@@ -210,7 +218,7 @@ export function SecurityPatrolsPage() {
       setManualCode('');
       return true;
     } catch (caught) {
-      setError(`Scan impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+      setError(`Scan impossible : ${scannerErrorMessage(caught)}`);
       return false;
     } finally { setSaving(false); }
   }
@@ -241,7 +249,6 @@ export function SecurityPatrolsPage() {
         if (Detector) {
           try { detector = new Detector({ formats: ['qr_code'] }); } catch { detector = null; }
         }
-        const { default: jsQR } = await import('jsqr');
 
         async function scanFrame() {
           if (cancelled || scanLockedRef.current) return;
@@ -299,7 +306,6 @@ export function SecurityPatrolsPage() {
     if (!file) return;
     setSaving(true); setError(''); setSuccess('');
     try {
-      const { default: jsQR } = await import('jsqr');
       const objectUrl = URL.createObjectURL(file);
       let code = '';
       try {

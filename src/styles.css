@@ -5376,3 +5376,21 @@ button { max-width: 100%; }
   .security-scanner { padding: 15px; border-radius: 20px; }
   .security-camera-stage video { min-height: 360px; }
 }
+
+
+/* NCR Suite V2.5.4 - QR validé, PDF stable et sites visibles en facturation */
+.security-preview > div > small {
+  color: var(--muted);
+  font-size: .68rem;
+}
+
+.security-preview-lines > div.not-billable {
+  opacity: .72;
+  border: 1px dashed var(--border);
+  background: transparent;
+}
+
+.security-preview-lines > div.not-billable > b {
+  color: var(--muted);
+  font-size: .75rem;
+}
