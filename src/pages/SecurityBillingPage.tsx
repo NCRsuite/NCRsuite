@@ -11,6 +11,7 @@ import {
   securityPersonName,
   securityShiftMinutes,
   type SecurityClientRecord,
+  type SecurityDocumentEmailLogRecord,
   type SecurityInvoiceLineRecord,
   type SecurityInvoiceRecord,
   type SecurityInvoiceShiftItemRecord,
@@ -18,6 +19,7 @@ import {
   type SecuritySiteRecord
 } from '../features/security/types';
 import { generateSecurityInvoicePdf } from '../features/security/invoicePdf';
+import { sendSecurityDocumentEmail } from '../features/security/documentEmail';
 import { prepareFileWindow, showBlobDownload, closeFileWindow } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
 
@@ -64,12 +66,27 @@ export function SecurityBillingPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [previewNonce, setPreviewNonce] = useState(0);
+  const [emailLogs, setEmailLogs] = useState<SecurityDocumentEmailLogRecord[]>([]);
+  const [emailInvoice, setEmailInvoice] = useState<SecurityInvoiceRecord | null>(null);
+  const [emailRecipient, setEmailRecipient] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [copySender, setCopySender] = useState(true);
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [deletingId, setDeletingId] = useState('');
 
   async function readInvoices(organizationId: string) {
     if (!supabase) return [];
     const { data, error: readError } = await supabase.from('security_invoices').select(invoiceSelect).eq('organization_id', organizationId).order('created_at', { ascending: false });
     if (readError) throw readError;
     return (data ?? []) as unknown as SecurityInvoiceRecord[];
+  }
+
+  async function readEmailLogs(organizationId: string) {
+    if (!supabase) return [];
+    const { data, error: readError } = await supabase.from('security_document_email_logs').select('id,organization_id,document_kind,document_id,recipient_email,recipient_name,subject,message,status,provider_message_id,last_error,sent_at,created_at').eq('organization_id', organizationId).eq('document_kind', 'invoice').order('created_at', { ascending: false });
+    if (readError) throw readError;
+    return (data ?? []) as SecurityDocumentEmailLogRecord[];
   }
 
   useEffect(() => {
@@ -91,14 +108,15 @@ export function SecurityBillingPage() {
           }
           return;
         }
-        const [clientResult, invoiceRows] = await Promise.all([
+        const [clientResult, invoiceRows, emailRows] = await Promise.all([
           supabase.from('security_clients').select('id,organization_id,company_name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,payment_terms_days,notes,status,created_at').eq('organization_id', organizationId).eq('status', 'active').order('company_name'),
-          readInvoices(organizationId)
+          readInvoices(organizationId),
+          readEmailLogs(organizationId)
         ]);
         if (clientResult.error) throw clientResult.error;
         if (!active) return;
         const clientRows = (clientResult.data ?? []) as SecurityClientRecord[];
-        setClients(clientRows); setInvoices(invoiceRows); setClientId((current) => current || clientRows[0]?.id || '');
+        setClients(clientRows); setInvoices(invoiceRows); setEmailLogs(emailRows); setClientId((current) => current || clientRows[0]?.id || '');
       } catch (caught) { if (active) setError(`Chargement impossible : ${billingErrorMessage(caught)}`); }
       finally { if (active) setLoading(false); }
     }
@@ -159,7 +177,9 @@ export function SecurityBillingPage() {
 
   async function refreshInvoices() {
     if (!organization || demoMode || !supabase) return;
-    setInvoices(await readInvoices(organization.id));
+    const [invoiceRows, emailRows] = await Promise.all([readInvoices(organization.id), readEmailLogs(organization.id)]);
+    setInvoices(invoiceRows);
+    setEmailLogs(emailRows);
   }
 
   async function saveActual(shift: CompletedShift) {
@@ -210,6 +230,63 @@ export function SecurityBillingPage() {
     } catch (caught) { setError(`Mise à jour impossible : ${billingErrorMessage(caught)}`); }
   }
 
+  async function deleteProforma(invoice: SecurityInvoiceRecord) {
+    if (!organization || !supabase || invoice.status !== 'draft' || invoice.document_kind === 'invoice') return;
+    if (!window.confirm(`Supprimer définitivement la préfacture ${invoice.invoice_number} ?`)) return;
+    setDeletingId(invoice.id); setError(''); setSuccess('');
+    try {
+      const { error: rpcError } = await supabase.rpc('delete_security_proforma', { p_organization_id: organization.id, p_invoice_id: invoice.id });
+      if (rpcError) throw rpcError;
+      await refreshInvoices();
+      setSuccess(`La préfacture ${invoice.invoice_number} a été supprimée.`);
+    } catch (caught) { setError(`Suppression impossible : ${billingErrorMessage(caught)}`); }
+    finally { setDeletingId(''); }
+  }
+
+  function openInvoiceEmail(invoice: SecurityInvoiceRecord) {
+    if (invoice.document_kind !== 'invoice') return;
+    const client = invoice.security_clients;
+    const company = client?.company_name || invoice.client_snapshot?.company_name || 'Client';
+    setEmailInvoice(invoice);
+    setEmailRecipient(client?.email || invoice.client_snapshot?.email || '');
+    setEmailSubject(`Facture ${invoice.invoice_number} — ${organization?.public_name || organization?.name || 'NCR Suite'}`);
+    setEmailBody(`Bonjour${client?.contact_name ? ` ${client.contact_name}` : ''},
+
+Veuillez trouver en pièce jointe la facture ${invoice.invoice_number}, d’un montant de ${formatSecurityMoney(invoice.total_cents)} TTC.
+
+Échéance : ${invoice.due_date ? formatSecurityDate(invoice.due_date) : 'selon les conditions indiquées sur la facture'}.
+
+Cordialement,
+${organization?.public_name || organization?.name || ''}`);
+    setCopySender(true); setError('');
+  }
+
+  async function sendInvoiceEmail(event: FormEvent) {
+    event.preventDefault();
+    if (!organization || !emailInvoice) return;
+    setSendingEmail(true); setError(''); setSuccess('');
+    try {
+      const result = await generateSecurityInvoicePdf(organization, emailInvoice);
+      await sendSecurityDocumentEmail({
+        organizationId: organization.id,
+        documentKind: 'invoice',
+        documentId: emailInvoice.id,
+        recipientEmail: emailRecipient,
+        recipientName: emailInvoice.security_clients?.contact_name || emailInvoice.client_snapshot?.contact_name || null,
+        subject: emailSubject,
+        message: emailBody,
+        filename: result.filename,
+        blob: result.blob,
+        copySender
+      });
+      const sentNumber = emailInvoice.invoice_number;
+      setEmailInvoice(null);
+      await refreshInvoices();
+      setSuccess(`La facture ${sentNumber} a été envoyée au client.`);
+    } catch (caught) { setError(`Envoi impossible : ${billingErrorMessage(caught)}`); }
+    finally { setSendingEmail(false); }
+  }
+
   async function download(invoice: SecurityInvoiceRecord) {
     if (!organization) return;
     const final = invoice.document_kind === 'invoice';
@@ -234,6 +311,8 @@ export function SecurityBillingPage() {
 
     {mode === 'invoice' && !billingProfileReady && <div className="security-callout"><Icon name="alert" size={20}/><div><strong>Profil de facturation à compléter</strong><span>Renseigne au minimum l’adresse et le SIRET dans Personnalisation avant la première facture.</span></div><Link className="secondary-button compact-button" to="/personnalisation">Configurer</Link></div>}
 
+    {emailInvoice && <section className="panel security-email-panel"><div className="panel-header"><div><p className="eyebrow">ENVOI PAR E-MAIL</p><h2>{emailInvoice.invoice_number}</h2></div><button className="secondary-button compact-button" type="button" onClick={() => setEmailInvoice(null)}>Fermer</button></div><form className="security-form-grid" onSubmit={sendInvoiceEmail}><label className="full-field">Destinataire *<input required type="email" value={emailRecipient} onChange={(e) => setEmailRecipient(e.target.value)}/></label><label className="full-field">Objet *<input required value={emailSubject} onChange={(e) => setEmailSubject(e.target.value)}/></label><label className="full-field">Message *<textarea required rows={7} value={emailBody} onChange={(e) => setEmailBody(e.target.value)}/></label><label className="full-field checkbox-label"><input type="checkbox" checked={copySender} onChange={(e) => setCopySender(e.target.checked)}/><span>Recevoir une copie sur l’e-mail de l’entreprise</span></label><div className="form-actions full-field"><button className="primary-button" disabled={sendingEmail}>{sendingEmail ? 'Envoi…' : 'Envoyer la facture PDF'}</button></div></form></section>}
+
     <section className="security-billing-grid"><article className="panel security-billing-builder"><div className="panel-header"><div><p className="eyebrow">{mode === 'invoice' ? 'NOUVELLE FACTURE' : 'NOUVELLE PRÉFACTURE'}</p><h2>{mode === 'invoice' ? 'Vacations réalisées' : 'Heures programmées'}</h2><p>{mode === 'invoice' ? 'Seules les missions marquées Réalisées et encore non facturées sont intégrées.' : 'Le calcul reprend les heures programmées et le tarif de chaque site.'}</p></div></div>
       <form className="security-form-grid" onSubmit={generateDocument}><label>Client *<select required value={clientId} onChange={(e) => setClientId(e.target.value)}><option value="">Sélectionner</option>{clients.map((client) => <option key={client.id} value={client.id}>{client.company_name}</option>)}</select></label><span/>
         <label>Du<input type="date" required value={periodStart} onChange={(e) => setPeriodStart(e.target.value)}/></label><label>Au<input type="date" required value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)}/></label><label className="full-field">Note{mode === 'proforma' ? ' interne' : ''}<textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)}/></label>
@@ -247,7 +326,7 @@ export function SecurityBillingPage() {
     </section>
 
     <section className="panel security-list-panel"><div className="panel-header"><div><p className="eyebrow">HISTORIQUE</p><h2>{history.length} {mode === 'invoice' ? 'facture' : 'préfacture'}{history.length > 1 ? 's' : ''}</h2></div></div>
-      {loading ? <div className="security-empty">Chargement…</div> : history.length === 0 ? <div className="security-empty"><Icon name="creditCard" size={30}/><strong>Aucun document</strong><span>{mode === 'invoice' ? 'Marque les vacations comme réalisées pour émettre la première facture.' : 'Sélectionne un client et une période.'}</span></div> : <div className="security-invoice-list">{history.map((invoice) => <article key={invoice.id} className={`security-invoice-card ${invoice.document_kind || 'proforma'}`}><div className="security-invoice-number"><span><Icon name="file" size={19}/></span><div><strong>{invoice.invoice_number}</strong><small>{invoice.security_clients?.company_name || invoice.client_snapshot?.company_name || 'Client'} · du {formatSecurityDate(invoice.period_start)} au {formatSecurityDate(invoice.period_end)}</small></div></div><div className="security-invoice-total"><strong>{formatSecurityMoney(invoice.total_cents)}</strong><small>{invoice.document_kind === 'invoice' ? 'TTC' : 'HT'}</small></div><span className={`security-status-pill ${invoice.status}`}>{statusLabel(invoice.status)}</span><div className="security-record-actions"><button className="secondary-button compact-button" disabled={exportingId === invoice.id} onClick={() => void download(invoice)}>{exportingId === invoice.id ? 'PDF…' : 'Télécharger'}</button>{invoice.document_kind === 'invoice' ? <>{invoice.status === 'issued' && <button className="secondary-button compact-button" onClick={() => void updateStatus(invoice, 'sent')}>Marquer envoyée</button>}{['issued','sent','overdue'].includes(invoice.status) && <button className="primary-button compact-button" onClick={() => void updateStatus(invoice, 'paid')}>Marquer payée</button>}</> : <>{invoice.status === 'draft' && <button className="secondary-button compact-button" onClick={() => void updateStatus(invoice, 'issued')}>Marquer émise</button>}{invoice.status === 'issued' && <button className="primary-button compact-button" onClick={() => void updateStatus(invoice, 'paid')}>Marquer payée</button>}</>}</div></article>)}</div>}
+      {loading ? <div className="security-empty">Chargement…</div> : history.length === 0 ? <div className="security-empty"><Icon name="creditCard" size={30}/><strong>Aucun document</strong><span>{mode === 'invoice' ? 'Marque les vacations comme réalisées pour émettre la première facture.' : 'Sélectionne un client et une période.'}</span></div> : <div className="security-invoice-list">{history.map((invoice) => <article key={invoice.id} className={`security-invoice-card ${invoice.document_kind || 'proforma'}`}><div className="security-invoice-number"><span><Icon name="file" size={19}/></span><div><strong>{invoice.invoice_number}</strong><small>{invoice.security_clients?.company_name || invoice.client_snapshot?.company_name || 'Client'} · du {formatSecurityDate(invoice.period_start)} au {formatSecurityDate(invoice.period_end)}</small>{invoice.document_kind === 'invoice' && (() => { const log = emailLogs.find((row) => row.document_id === invoice.id); return log ? <em className={`security-email-state ${log.status}`}>{log.status === 'sent' ? `E-mail envoyé le ${formatSecurityDate(log.sent_at || log.created_at, { dateStyle: 'short', timeStyle: 'short' })}` : log.status === 'failed' ? 'Dernier envoi en échec' : 'Envoi en cours'}</em> : null; })()}</div></div><div className="security-invoice-total"><strong>{formatSecurityMoney(invoice.total_cents)}</strong><small>{invoice.document_kind === 'invoice' ? 'TTC' : 'HT'}</small></div><span className={`security-status-pill ${invoice.status}`}>{statusLabel(invoice.status)}</span><div className="security-record-actions"><button className="secondary-button compact-button" disabled={exportingId === invoice.id} onClick={() => void download(invoice)}>{exportingId === invoice.id ? 'PDF…' : 'Télécharger'}</button>{invoice.document_kind === 'invoice' ? <><button className="primary-button compact-button" onClick={() => openInvoiceEmail(invoice)}>{emailLogs.some((log) => log.document_id === invoice.id && log.status === 'sent') ? 'Renvoyer par e-mail' : 'Envoyer par e-mail'}</button>{['issued','sent','overdue'].includes(invoice.status) && <button className="secondary-button compact-button" onClick={() => void updateStatus(invoice, 'paid')}>Marquer payée</button>}</> : <>{invoice.status === 'draft' && <button className="secondary-button compact-button" onClick={() => void updateStatus(invoice, 'issued')}>Marquer émise</button>}{invoice.status === 'issued' && <button className="primary-button compact-button" onClick={() => void updateStatus(invoice, 'paid')}>Marquer payée</button>}{invoice.status === 'draft' && <button className="danger-text-button" disabled={deletingId === invoice.id} onClick={() => void deleteProforma(invoice)}>{deletingId === invoice.id ? 'Suppression…' : 'Supprimer'}</button>}</>}</div></article>)}</div>}
     </section>
   </div>;
 }

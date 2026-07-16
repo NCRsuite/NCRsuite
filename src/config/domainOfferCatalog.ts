@@ -35,6 +35,9 @@ export type OfferFeatureKey =
   | 'security_scheduled_billing'
   | 'security_final_billing'
   | 'security_document_branding'
+  | 'security_quotes'
+  | 'security_bank_details'
+  | 'security_document_email'
   | 'security_agent_portal'
   | 'security_qr_patrols'
   | 'security_smart_logbook'
@@ -150,7 +153,10 @@ const securityDecouverte: OfferFeatureKey[] = [
   'security_site_rates',
   'security_scheduled_billing',
   'security_final_billing',
-  'security_document_branding'
+  'security_document_branding',
+  'security_quotes',
+  'security_bank_details',
+  'security_document_email'
 ];
 const securityEssentielle: OfferFeatureKey[] = [
   ...securityDecouverte,
@@ -317,7 +323,7 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       decouverte: {
         label: 'Découverte', monthlyPriceCents: 3990, memberLimit: 1,
         detail: 'Le pilotage bureau : planning des agents et facturation selon les heures programmées et le tarif du site.',
-        additions: ['Planning des agents', 'Clients et sites', 'Tarif propre à chaque site', 'Préfacturation programmée et factures après vacation', 'Logo sur les documents Sécurité'],
+        additions: ['Planning des agents avec totaux par agent et site', 'Clients et sites', 'Tarif propre à chaque site', 'Préfacturation et factures après vacation', 'Devis prospects et conversion en client', 'Logo, coordonnées bancaires et envoi e-mail des documents'],
         features: securityDecouverte
       },
       essentielle: {
@@ -451,6 +457,9 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   security_scheduled_billing: 'Préfacturation liée aux heures programmées',
   security_final_billing: 'Factures depuis les vacations réalisées',
   security_document_branding: 'Logo sur les documents Sécurité',
+  security_quotes: 'Devis prospects et conversion en client',
+  security_bank_details: 'Coordonnées bancaires sur les documents',
+  security_document_email: 'Envoi des devis et factures par e-mail',
   security_agent_portal: 'Espace terrain des agents',
   security_qr_patrols: 'Rondes QR',
   security_smart_logbook: 'Main courante intelligente',

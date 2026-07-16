@@ -84,7 +84,7 @@ const ORGANIZATION_FIELDS = [
   'booking_reminder_hours','booking_cancellation_policy','booking_privacy_notice','public_name','booking_tagline','booking_banner_url',
   'booking_address','booking_hours_text','booking_practical_info','show_ncr_branding','security_billing_address','security_billing_postal_code',
   'security_billing_city','security_billing_siret','security_billing_vat_number','security_billing_email','security_billing_phone',
-  'security_default_vat_rate','security_payment_terms_days','security_late_penalty_text','security_tax_exemption_text','metier_setup_fee_cents','metier_member_limit',
+  'security_default_vat_rate','security_payment_terms_days','security_late_penalty_text','security_tax_exemption_text','security_bank_account_holder','security_bank_name','security_bank_iban','security_bank_bic','security_quote_validity_days','metier_setup_fee_cents','metier_member_limit',
   'metier_site_limit','metier_storage_limit_mb','metier_contract_reference','metier_modules_configured','white_label_enabled',
   'custom_domain','custom_domain_status','custom_domain_verified_at','training_satisfaction_enabled',
   'training_satisfaction_delay_hours','training_satisfaction_intro'

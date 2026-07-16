@@ -1,9 +1,9 @@
-# NCR Suite — V2.5.8
+# NCR Suite — V2.5.9
 
-Base stable : V2.5.7.
+Base stable : V2.5.8 corrigée.
 
-Cette version finalise le métier Sécurité avec la clôture contrôlée de chaque vacation, le classement des dossiers, leur archivage et un PDF complet regroupant les données opérationnelles de la mission.
+Cette version finalise la partie commerciale du métier Sécurité : synthèses du planning, nettoyage des préfactures, devis prospects, conversion en client, coordonnées bancaires et envoi direct des devis et factures PDF par e-mail.
 
-Installation : voir `A_LIRE_INSTALLATION.txt` et `docs/V2.5.8_INSTALLATION.md`.
+Installation : voir `A_LIRE_INSTALLATION.txt` et `docs/V2.5.9_INSTALLATION.md`.
 
-CORRECTIF SQL : la fonction start_security_patrol conserve son type de retour UUID existant afin que la migration soit compatible avec les versions 2.5.1 à 2.5.7.
+L’envoi des documents utilise la nouvelle Edge Function `send-security-document`, séparée de `process-email-queue`.

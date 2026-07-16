@@ -37,7 +37,7 @@ function wrap(text: string, font: PDFFont, size: number, width: number) {
 }
 
 function snapshotIssuer(organization: Organization, invoice: SecurityInvoiceRecord): SecurityBillingSnapshot {
-  return invoice.issuer_snapshot ?? {
+  return {
     name: organization.public_name || organization.name,
     logo_url: organization.logo_url,
     address: organization.security_billing_address,
@@ -48,7 +48,12 @@ function snapshotIssuer(organization: Organization, invoice: SecurityInvoiceReco
     email: organization.security_billing_email,
     phone: organization.security_billing_phone,
     late_penalty_text: organization.security_late_penalty_text,
-    tax_exemption_text: organization.security_tax_exemption_text
+    tax_exemption_text: organization.security_tax_exemption_text,
+    bank_account_holder: organization.security_bank_account_holder,
+    bank_name: organization.security_bank_name,
+    bank_iban: organization.security_bank_iban,
+    bank_bic: organization.security_bank_bic,
+    ...(invoice.issuer_snapshot ?? {})
   };
 }
 
@@ -207,11 +212,15 @@ export async function generateSecurityInvoicePdf(organization: Organization, inv
     const footerText = isFinal
       ? clean(issuer.late_penalty_text || 'Indemnité forfaitaire pour frais de recouvrement : 40 €.')
       : 'Document prévisionnel sans valeur de facture définitive.';
-    current.drawText(footerText.slice(0, 104), { x: MARGIN, y: footerY, size: 6.2, font: regular, color: muted });
+    current.drawText(footerText.slice(0, 104), { x: MARGIN, y: footerY + 1, size: 5.8, font: regular, color: muted });
+    const bankLine = isFinal && issuer.bank_iban
+      ? clean(`Virement : ${issuer.bank_account_holder || issuer.name || ''}${issuer.bank_name ? ` · ${issuer.bank_name}` : ''} · IBAN ${issuer.bank_iban}${issuer.bank_bic ? ` · BIC ${issuer.bank_bic}` : ''}`)
+      : '';
+    if (bankLine) current.drawText(bankLine.slice(0, 118), { x: MARGIN, y: footerY - 9, size: 5.8, font: bold, color: dark });
     if (isFinal && (invoice.tax_rate_basis_points || 0) === 0 && issuer.tax_exemption_text) {
-      current.drawText(clean(issuer.tax_exemption_text).slice(0, 95), { x: MARGIN, y: footerY - 10, size: 6.2, font: bold, color: dark });
+      current.drawText(clean(issuer.tax_exemption_text).slice(0, 95), { x: MARGIN, y: footerY - (bankLine ? 18 : 9), size: 5.6, font: bold, color: dark });
     }
-    current.drawText('Généré avec NCR Suite', { x: PAGE[0] - MARGIN - 92, y: footerY, size: 6.4, font: bold, color: accent });
+    current.drawText('Généré avec NCR Suite', { x: PAGE[0] - MARGIN - 92, y: footerY + 1, size: 6.2, font: bold, color: accent });
   }
 
   pdf.setTitle(`${title} ${invoice.invoice_number}`);

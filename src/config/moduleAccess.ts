@@ -84,6 +84,7 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
       '/sites': 'security_sites',
       '/agents': 'security_agents',
       '/planning': 'security_planning',
+      '/devis': 'security_quotes',
       '/facturation': 'security_billing',
       '/rondes': 'security_qr_patrols',
       '/main-courante': 'security_smart_logbook',

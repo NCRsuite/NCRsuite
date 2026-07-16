@@ -81,6 +81,11 @@ export interface Organization {
   security_payment_terms_days?: number;
   security_late_penalty_text?: string | null;
   security_tax_exemption_text?: string | null;
+  security_bank_account_holder?: string | null;
+  security_bank_name?: string | null;
+  security_bank_iban?: string | null;
+  security_bank_bic?: string | null;
+  security_quote_validity_days?: number;
   role?: MemberRole;
   plan_features?: Record<string, boolean>;
 }

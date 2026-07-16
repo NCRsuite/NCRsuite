@@ -127,6 +127,10 @@ export interface SecurityBillingSnapshot {
   phone?: string | null;
   late_penalty_text?: string | null;
   tax_exemption_text?: string | null;
+  bank_account_holder?: string | null;
+  bank_name?: string | null;
+  bank_iban?: string | null;
+  bank_bic?: string | null;
   company_name?: string | null;
   contact_name?: string | null;
   billing_address?: string | null;
@@ -159,6 +163,74 @@ export interface SecurityInvoiceRecord {
   security_clients?: SecurityClientRecord | null;
   security_invoice_lines?: SecurityInvoiceLineRecord[];
   security_invoice_shift_items?: SecurityInvoiceShiftItemRecord[];
+}
+
+export type SecurityQuoteStatus = 'draft' | 'sent' | 'accepted' | 'refused' | 'expired' | 'canceled';
+
+export interface SecurityQuoteLineRecord {
+  id: string;
+  organization_id: string;
+  quote_id: string;
+  position: number;
+  label: string;
+  description: string | null;
+  quantity: number;
+  unit: 'heure' | 'jour' | 'vacation' | 'forfait' | 'unite';
+  unit_price_cents: number;
+  line_total_cents: number;
+  created_at: string;
+}
+
+export interface SecurityQuoteRecord {
+  id: string;
+  organization_id: string;
+  quote_number: string;
+  status: SecurityQuoteStatus;
+  prospect_company_name: string;
+  prospect_contact_name: string | null;
+  prospect_email: string | null;
+  prospect_phone: string | null;
+  prospect_billing_address: string | null;
+  prospect_postal_code: string | null;
+  prospect_city: string | null;
+  prospect_siret: string | null;
+  prospect_vat_number: string | null;
+  proposed_site_name: string | null;
+  proposed_site_address: string | null;
+  proposed_hourly_rate_cents: number | null;
+  valid_until: string;
+  notes: string | null;
+  subtotal_cents: number;
+  tax_rate_basis_points: number;
+  tax_cents: number;
+  total_cents: number;
+  issuer_snapshot: SecurityBillingSnapshot;
+  prospect_snapshot: SecurityBillingSnapshot;
+  sent_at: string | null;
+  accepted_at: string | null;
+  refused_at: string | null;
+  canceled_at: string | null;
+  converted_client_id: string | null;
+  converted_site_id: string | null;
+  created_at: string;
+  updated_at: string;
+  security_quote_lines?: SecurityQuoteLineRecord[];
+}
+
+export interface SecurityDocumentEmailLogRecord {
+  id: string;
+  organization_id: string;
+  document_kind: 'invoice' | 'quote';
+  document_id: string;
+  recipient_email: string;
+  recipient_name: string | null;
+  subject: string;
+  message: string | null;
+  status: 'sending' | 'sent' | 'failed';
+  provider_message_id: string | null;
+  last_error: string | null;
+  sent_at: string | null;
+  created_at: string;
 }
 
 export function nullableSecurityText(value: string) {

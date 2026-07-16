@@ -1,2 +1,5 @@
 [functions.process-email-queue]
 verify_jwt = false
+
+[functions.send-security-document]
+verify_jwt = true

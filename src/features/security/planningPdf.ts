@@ -234,8 +234,9 @@ export async function generateSecurityAgentPlanningPdf({ organization, agent, sh
             const siteColor = parseHex(site.color_hex);
             page.drawRectangle({ x, y: rowY - 13, width: 4, height: 18, color: siteColor });
             page.drawText(fitText(bold, site.name, detailColumnWidth - 12, 6.7), { x: x + 9, y: rowY, size: 6.7, font: bold, color: dark });
+            const siteMinutes = activeShifts.filter((shift) => shift.site_id === site.id).reduce((sum, shift) => sum + securityShiftMinutes(shift), 0);
             const address = [site.address, site.postal_code, site.city].filter(Boolean).join(' · ') || site.security_clients?.company_name || 'Site client';
-            page.drawText(fitText(regular, address, detailColumnWidth - 12, 5.7), { x: x + 9, y: rowY - 11, size: 5.7, font: regular, color: muted });
+            page.drawText(fitText(regular, `${formatSecurityDuration(siteMinutes)} · ${address}`, detailColumnWidth - 12, 5.7), { x: x + 9, y: rowY - 11, size: 5.7, font: regular, color: muted });
           });
 
           const summaryX = MARGIN + 535;

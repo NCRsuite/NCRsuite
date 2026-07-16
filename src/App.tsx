@@ -45,6 +45,7 @@ import { SecurityGeolocationPage } from './pages/SecurityGeolocationPage';
 import { SecurityPtiPage } from './pages/SecurityPtiPage';
 import { SecuritySupervisionPage } from './pages/SecuritySupervisionPage';
 import { SecurityShiftDossiersPage } from './pages/SecurityShiftDossiersPage';
+import { SecurityQuotesPage } from './pages/SecurityQuotesPage';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
 
@@ -163,6 +164,7 @@ export default function App() {
         <Route path="agents" element={<AgentsArea />} />
         <Route path="sites" element={<SitesArea />} />
         <Route path="facturation" element={<ModuleAccessGuard moduleKey="security_billing"><SecurityBillingPage /></ModuleAccessGuard>} />
+        <Route path="devis" element={<ModuleAccessGuard moduleKey="security_quotes"><SecurityQuotesPage /></ModuleAccessGuard>} />
         <Route path="rondes" element={<SecurityFeatureGate feature="security_qr_patrols" requiredPlan="Essentielle" description="Créez les points de passage, imprimez leurs QR codes et contrôlez chaque ronde depuis l’espace agent."><SecurityPatrolsPage /></SecurityFeatureGate>} />
         <Route path="main-courante" element={<SecurityFeatureGate feature="security_smart_logbook" requiredPlan="Essentielle" description="Chaque vacation dispose de sa main courante structurée et de son PDF dédié."><SecurityLogbookPage /></SecurityFeatureGate>} />
         <Route path="consignes" element={<SecurityFeatureGate feature="security_site_instructions" requiredPlan="Essentielle" description="Diffusez les consignes et alertes propres à chaque site et suivez leur lecture par les agents."><SecurityInstructionsPage /></SecurityFeatureGate>} />

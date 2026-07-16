@@ -379,6 +379,11 @@ function SecurityDocumentBrandingPage() {
   const [paymentTerms, setPaymentTerms] = useState('30');
   const [latePenalty, setLatePenalty] = useState('Pénalités de retard exigibles au taux légal en vigueur. Indemnité forfaitaire pour frais de recouvrement : 40 €.');
   const [taxExemption, setTaxExemption] = useState('');
+  const [bankAccountHolder, setBankAccountHolder] = useState('');
+  const [bankName, setBankName] = useState('');
+  const [bankIban, setBankIban] = useState('');
+  const [bankBic, setBankBic] = useState('');
+  const [quoteValidityDays, setQuoteValidityDays] = useState('30');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -399,6 +404,11 @@ function SecurityDocumentBrandingPage() {
     setPaymentTerms(String(organization.security_payment_terms_days ?? 30));
     setLatePenalty(organization.security_late_penalty_text || 'Pénalités de retard exigibles au taux légal en vigueur. Indemnité forfaitaire pour frais de recouvrement : 40 €.');
     setTaxExemption(organization.security_tax_exemption_text || '');
+    setBankAccountHolder(organization.security_bank_account_holder || '');
+    setBankName(organization.security_bank_name || '');
+    setBankIban(organization.security_bank_iban || '');
+    setBankBic(organization.security_bank_bic || '');
+    setQuoteValidityDays(String(organization.security_quote_validity_days ?? 30));
   }, [organization?.id]);
 
   const logoPreview = useMemo(() => logoFile ? URL.createObjectURL(logoFile) : logoUrl, [logoFile, logoUrl]);
@@ -432,8 +442,10 @@ function SecurityDocumentBrandingPage() {
       if (publicName.trim().length < 2) throw new Error('Indique un nom affiché valide.');
       const numericVat = Number(vatRate);
       const numericTerms = Number(paymentTerms);
+      const numericQuoteValidity = Number(quoteValidityDays);
       if (!Number.isFinite(numericVat) || numericVat < 0 || numericVat > 100) throw new Error('Le taux de TVA est invalide.');
       if (!Number.isInteger(numericTerms) || numericTerms < 0 || numericTerms > 180) throw new Error('Le délai de paiement est invalide.');
+      if (!Number.isInteger(numericQuoteValidity) || numericQuoteValidity < 1 || numericQuoteValidity > 180) throw new Error('La durée de validité des devis est invalide.');
       let nextLogo = logoUrl;
       if (logoFile) nextLogo = await uploadLogo(logoFile);
       const { error: rpcError } = await supabase.rpc('update_security_document_branding', {
@@ -450,7 +462,12 @@ function SecurityDocumentBrandingPage() {
         p_default_vat_rate: numericVat,
         p_payment_terms_days: numericTerms,
         p_late_penalty_text: latePenalty,
-        p_tax_exemption_text: numericVat === 0 ? taxExemption : null
+        p_tax_exemption_text: numericVat === 0 ? taxExemption : null,
+        p_bank_account_holder: bankAccountHolder,
+        p_bank_name: bankName,
+        p_bank_iban: bankIban,
+        p_bank_bic: bankBic,
+        p_quote_validity_days: numericQuoteValidity
       });
       if (rpcError) throw rpcError;
       setLogoUrl(nextLogo); setLogoFile(null);
@@ -462,7 +479,7 @@ function SecurityDocumentBrandingPage() {
   }
 
   return <div className="page commercial-branding-page security-branding-page">
-    <header className="page-header"><div><p className="eyebrow">SÉCURITÉ · TOUTES LES OFFRES</p><h1>Logo & facturation</h1><p>Applique ton identité aux plannings, mains courantes, préfactures et factures définitives.</p></div></header>
+    <header className="page-header"><div><p className="eyebrow">SÉCURITÉ · TOUTES LES OFFRES</p><h1>Logo & facturation</h1><p>Applique ton identité aux plannings, mains courantes, devis, préfactures et factures définitives.</p></div></header>
     {error && <div className="error-message page-message">{error}</div>}{message && <div className="success-message page-message">{message}</div>}
     <div className="commercial-branding-layout">
       <form className="panel settings-form commercial-branding-form" onSubmit={submit}>
@@ -477,10 +494,14 @@ function SecurityDocumentBrandingPage() {
           <label>Taux de TVA (%)<input type="number" min="0" max="100" step="0.01" value={vatRate} onChange={(e) => setVatRate(e.target.value)} disabled={!canManage}/></label><label>Délai de paiement (jours)<input type="number" min="0" max="180" value={paymentTerms} onChange={(e) => setPaymentTerms(e.target.value)} disabled={!canManage}/></label>
           {Number(vatRate) === 0 && <label className="full-field">Mention d’exonération de TVA<textarea rows={2} value={taxExemption} onChange={(e) => setTaxExemption(e.target.value)} disabled={!canManage} placeholder="Ex. TVA non applicable…"/></label>}
           <label className="full-field">Pénalités et recouvrement<textarea rows={3} value={latePenalty} onChange={(e) => setLatePenalty(e.target.value)} disabled={!canManage}/></label>
+          <div className="full-field security-branding-divider"><p className="eyebrow">PAIEMENT & DEVIS</p><h3>Coordonnées bancaires</h3><p className="muted">Ces informations apparaissent dans le pied de page des factures et des devis.</p></div>
+          <label>Titulaire du compte<input value={bankAccountHolder} onChange={(e) => setBankAccountHolder(e.target.value)} disabled={!canManage}/></label><label>Banque<input value={bankName} onChange={(e) => setBankName(e.target.value)} disabled={!canManage}/></label>
+          <label className="full-field">IBAN<input value={bankIban} onChange={(e) => setBankIban(e.target.value.toUpperCase())} disabled={!canManage} placeholder="FR76 …"/></label>
+          <label>BIC / SWIFT<input value={bankBic} onChange={(e) => setBankBic(e.target.value.toUpperCase())} disabled={!canManage}/></label><label>Validité par défaut des devis (jours)<input type="number" min="1" max="180" value={quoteValidityDays} onChange={(e) => setQuoteValidityDays(e.target.value)} disabled={!canManage}/></label>
         </div>
         {canManage && <button className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>}
       </form>
-      <aside className="commercial-preview-column"><div className="commercial-preview-sticky"><div className="preview-heading"><div><p className="eyebrow">APERÇU</p><h2>Facture Sécurité</h2></div><span>Toutes offres</span></div><div className="panel security-document-preview" style={{ borderTop: `5px solid ${securityOrganization.primary_color || '#0A84FF'}` }}><div className="branding-upload-preview logo-preview">{logoPreview ? <img src={logoPreview} alt=""/> : <span>{publicName.slice(0,1).toUpperCase()}</span>}</div><p className="eyebrow">FACTURE</p><h3>{publicName || securityOrganization.name}</h3><p>{[address, postalCode, city].filter(Boolean).join(' · ') || 'Adresse du siège'}</p><small>SIRET {siret || 'à compléter'} · TVA {vatRate}%</small></div></div></aside>
+      <aside className="commercial-preview-column"><div className="commercial-preview-sticky"><div className="preview-heading"><div><p className="eyebrow">APERÇU</p><h2>Facture Sécurité</h2></div><span>Toutes offres</span></div><div className="panel security-document-preview" style={{ borderTop: `5px solid ${securityOrganization.primary_color || '#0A84FF'}` }}><div className="branding-upload-preview logo-preview">{logoPreview ? <img src={logoPreview} alt=""/> : <span>{publicName.slice(0,1).toUpperCase()}</span>}</div><p className="eyebrow">FACTURE</p><h3>{publicName || securityOrganization.name}</h3><p>{[address, postalCode, city].filter(Boolean).join(' · ') || 'Adresse du siège'}</p><small>SIRET {siret || 'à compléter'} · TVA {vatRate}%</small>{bankIban && <div className="security-document-bank-preview"><strong>Règlement par virement</strong><span>IBAN {bankIban}</span>{bankBic && <span>BIC {bankBic}</span>}</div>}</div></div></aside>
     </div>
   </div>;
 }

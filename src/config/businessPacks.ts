@@ -93,6 +93,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Clients', path: '/clients', icon: 'building' },
       { label: 'Agents', path: '/agents', icon: 'users' },
       { label: 'Sites', path: '/sites', icon: 'map' },
+      { label: 'Devis', path: '/devis', icon: 'file' },
       { label: 'Facturation', path: '/facturation', icon: 'creditCard' },
       { label: 'Accès agents', path: '/acces-equipe', icon: 'users' },
       { label: 'Rondes QR', path: '/rondes', icon: 'shield' },

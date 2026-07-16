@@ -1,3 +1,16 @@
+# 2.5.9 — Planning, devis et facturation commerciale Sécurité
+
+- Totaux d’heures du planning par agent et par site, visibles à l’écran et dans les PDF.
+- Suppression sécurisée des préfactures uniquement lorsqu’elles sont encore en brouillon.
+- Nouveau module Devis pour les prospects : lignes personnalisées, TVA, validité, statuts et PDF.
+- Conversion d’un devis accepté en client et site sans ressaisie.
+- Coordonnées bancaires configurables : titulaire, banque, IBAN et BIC.
+- Pied de page bancaire sur les factures définitives et les devis.
+- Envoi direct des devis et factures PDF par e-mail via une Edge Function Brevo dédiée.
+- Historique des envois, statut envoyé/échec, renvoi et passage automatique de la facture au statut Envoyée.
+- Aucun changement apporté à process-email-queue.
+- Cache PWA passé en V2.5.9.
+
 # 2.5.8 — Clôture et dossier complet de vacation
 
 - Nouvelle rubrique Dossiers de vacation pour les responsables et Chefs de poste.
