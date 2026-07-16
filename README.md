@@ -1,7 +1,7 @@
-# NCR Suite — V2.5.6
+# NCR Suite — V2.5.7
 
-Base stable : V2.5.5 corrigée.
+Base stable : V2.5.6.
 
-Cette version active l’offre Professionnelle Sécurité : géolocalisation pendant les vacations, PTI / SOS, supervision temps réel et rôle Chef de poste. Les fonctions des offres supérieures restent visibles mais verrouillées pour favoriser la montée en gamme.
+Cette version renforce le fonctionnement terrain de la PWA Sécurité : mode vacation, présence applicative, maintien d'écran lorsque disponible, positions GPS conservées hors réseau puis synchronisées, battement de présence et détection des agents dont l'application est suspendue.
 
-Installation : voir `A_LIRE_INSTALLATION.txt` et `docs/V2.5.6_INSTALLATION.md`.
+Installation : voir `A_LIRE_INSTALLATION.txt` et `docs/V2.5.7_INSTALLATION.md`.

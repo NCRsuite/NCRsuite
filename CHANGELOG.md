@@ -1,14 +1,13 @@
-# 2.5.6 — Sécurité Professionnelle
+# 2.5.7 — Fiabilité terrain PWA
 
-- Géolocalisation volontaire des agents pendant une vacation active.
-- Enregistrement sécurisé des positions avec précision et horodatage.
-- PTI avec intervalle de confirmation configurable, relance et clôture.
-- Bouton SOS à maintien long avec dernière position disponible.
-- Détection des dépassements PTI et création d’une urgence.
-- Supervision temps réel : vacations, GPS, PTI et urgences.
-- Prise en charge puis résolution des alertes SOS / PTI.
-- Rôle Chef de poste disponible avec l’offre Professionnelle.
-- Capacité portée à 50 agents connectés selon la grille existante.
-- Fonctions Essentielles et Professionnelles visibles mais verrouillées sur les offres inférieures.
-- Blocage réel par les droits de formule, les routes et les fonctions Supabase.
-- Cache PWA passé en V2.5.6.
+- Nouveau mode vacation rattaché à une mission précise.
+- Démarrage groupé du GPS, de la présence terrain et du maintien d'écran lorsque le navigateur le permet.
+- Battement applicatif transmis toutes les 45 secondes pendant la vacation.
+- Statut réseau, visibilité de l'application, GPS et maintien d'écran affichés à l'agent.
+- Positions GPS conservées localement en cas de coupure réseau puis synchronisées au retour de la connexion.
+- Reprise explicite du mode vacation après fermeture ou rechargement de la PWA.
+- Compte à rebours PTI en temps réel.
+- SOS bloqué hors connexion avec message d'urgence clair.
+- Supervision enrichie : agent connecté, application en arrière-plan, GPS interrompu ou connexion perdue.
+- Alerte de supervision lorsqu'un agent en vacation n'a plus de battement récent.
+- Cache PWA passé en V2.5.7.

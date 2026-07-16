@@ -1,16 +1,22 @@
-NCR SUITE V2.5.2 — FICHIERS DU PATCH
+NCR SUITE V2.5.7 — MANIFESTE DU PATCH
 
-A_LIRE_INSTALLATION.txt
-CHANGELOG.md
-README.md
-package.json
-package-lock.json
-public/sw.js
-docs/V2.5.2_INSTALLATION.md
-supabase/migrations/029_security_logbook_by_shift.sql
-src/features/security/logbookPdf.ts
-src/features/security/types.ts
-src/pages/SecurityDashboardPage.tsx
-src/pages/SecurityInstructionsPage.tsx
-src/pages/SecurityLogbookPage.tsx
-src/styles.css
+Base requise : V2.5.6
+
+Fichiers modifiés ou ajoutés :
+- A_LIRE_INSTALLATION.txt
+- CHANGELOG.md
+- README.md
+- docs/V2.5.7_INSTALLATION.md
+- package.json
+- package-lock.json
+- public/sw.js
+- src/components/Icon.tsx
+- src/features/security/offlinePositionQueue.ts
+- src/features/security/types.ts
+- src/pages/SecurityPtiPage.tsx
+- src/pages/SecuritySupervisionPage.tsx
+- src/styles.css
+- src/types.ts
+- supabase/migrations/034_security_web_shift_presence.sql
+
+Ordre : SQL Supabase, puis GitHub, puis Cloudflare, puis fermeture/réouverture de la PWA.

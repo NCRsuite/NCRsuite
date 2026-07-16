@@ -121,4 +121,7 @@ export type IconName =
   | 'search'
   | 'lock'
   | 'menu'
-  | 'plus';
+  | 'plus'
+  | 'eye'
+  | 'sun'
+  | 'clock';

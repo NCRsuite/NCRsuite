@@ -362,3 +362,22 @@ export interface SecurityEmergencyAlertRecord {
   security_agents?: { first_name: string; last_name: string; phone?: string | null } | null;
   security_shifts?: { starts_at: string; ends_at: string; title: string | null; security_sites?: { name: string; address?: string | null; city?: string | null } | null } | null;
 }
+
+export interface SecurityAgentPresenceRecord {
+  id: string;
+  organization_id: string;
+  agent_id: string;
+  shift_id: string;
+  status: 'active' | 'paused' | 'stopped';
+  network_status: 'online' | 'offline';
+  app_state: 'visible' | 'hidden';
+  tracking_active: boolean;
+  wake_lock_active: boolean;
+  started_at: string;
+  last_seen_at: string;
+  stopped_at: string | null;
+  created_at: string;
+  updated_at: string;
+  security_agents?: { first_name: string; last_name: string; phone?: string | null } | null;
+  security_shifts?: { starts_at: string; ends_at: string; title: string | null; security_sites?: { name: string; address?: string | null; city?: string | null } | null } | null;
+}
