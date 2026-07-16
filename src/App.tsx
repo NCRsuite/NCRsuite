@@ -44,6 +44,7 @@ import { SecurityAgentPortalPage } from './pages/SecurityAgentPortalPage';
 import { SecurityGeolocationPage } from './pages/SecurityGeolocationPage';
 import { SecurityPtiPage } from './pages/SecurityPtiPage';
 import { SecuritySupervisionPage } from './pages/SecuritySupervisionPage';
+import { SecurityShiftDossiersPage } from './pages/SecurityShiftDossiersPage';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
 
@@ -168,6 +169,7 @@ export default function App() {
         <Route path="geolocalisation" element={<SecurityFeatureGate feature="security_geolocation" requiredPlan="Professionnelle" description="Visualisez la dernière position transmise par les agents pendant leurs vacations."><SecurityGeolocationPage /></SecurityFeatureGate>} />
         <Route path="pti" element={<SecurityFeatureGate feature="security_pti_sos" requiredPlan="Professionnelle" description="Activez la protection du travailleur isolé, les confirmations périodiques et le bouton SOS."><SecurityPtiPage /></SecurityFeatureGate>} />
         <Route path="supervision" element={<SecurityFeatureGate feature="security_realtime_supervision" requiredPlan="Professionnelle" description="Regroupez vacations en cours, positions GPS, PTI et urgences sur un écran de supervision."><SecuritySupervisionPage /></SecurityFeatureGate>} />
+        <Route path="dossiers-vacations" element={<ModuleAccessGuard moduleKey="security_planning"><SecurityShiftDossiersPage /></ModuleAccessGuard>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ClientsArea />} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />

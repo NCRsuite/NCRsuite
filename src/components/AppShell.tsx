@@ -66,7 +66,7 @@ export function AppShell() {
   }
 
   if (organization.business_type === 'securite' && organization.role === 'manager') {
-    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision'].includes(item.path));
+    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations'].includes(item.path));
   }
 
   navigation = filterNavigationForOrganization(organization, navigation);

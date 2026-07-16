@@ -70,6 +70,14 @@ export interface SecurityShiftRecord {
   completed_at?: string | null;
   completed_by?: string | null;
   final_invoice_id?: string | null;
+  dossier_status?: 'open' | 'closed' | 'archived';
+  dossier_closed_at?: string | null;
+  dossier_closed_by?: string | null;
+  dossier_archived_at?: string | null;
+  dossier_archived_by?: string | null;
+  dossier_reopened_at?: string | null;
+  dossier_reopened_by?: string | null;
+  dossier_note?: string | null;
   created_at: string;
   security_sites?: { name: string; hourly_rate_cents: number; color_hex?: string | null; address?: string | null; postal_code?: string | null; city: string | null; security_clients?: { company_name: string } | null } | null;
   security_agents?: { first_name: string; last_name: string } | null;
@@ -292,6 +300,7 @@ export interface SecurityPatrolRecord {
   organization_id: string;
   site_id: string;
   agent_id: string;
+  shift_id?: string | null;
   started_at: string;
   completed_at: string | null;
   status: 'in_progress' | 'completed' | 'abandoned';
@@ -380,4 +389,18 @@ export interface SecurityAgentPresenceRecord {
   updated_at: string;
   security_agents?: { first_name: string; last_name: string; phone?: string | null } | null;
   security_shifts?: { starts_at: string; ends_at: string; title: string | null; security_sites?: { name: string; address?: string | null; city?: string | null } | null } | null;
+}
+
+
+export interface SecurityShiftDossierReadiness {
+  ready: boolean;
+  reasons: string[];
+  logbook_count: number;
+  has_start: boolean;
+  has_end: boolean;
+  patrol_points: number;
+  completed_patrols: number;
+  active_pti: number;
+  open_emergencies: number;
+  active_presence: number;
 }

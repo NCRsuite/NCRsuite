@@ -5582,3 +5582,40 @@ button { max-width: 100%; }
   .security-runtime-statuses { display: grid; grid-template-columns: 1fr 1fr; }
   .security-runtime-statuses > span { justify-content: center; text-align: center; }
 }
+
+/* V2.5.8 — Dossiers de vacation Sécurité */
+.security-dossier-summary { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px; }
+.security-dossier-panel { padding:0;overflow:hidden; }
+.security-dossier-tabs { display:flex;gap:8px;padding:16px;border-bottom:1px solid var(--line);overflow-x:auto;background:color-mix(in srgb,var(--panel) 92%,#f4f5f8); }
+.security-dossier-tabs button { flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;min-height:39px;padding:0 14px;border:0;border-radius:999px;background:#eceef2;color:var(--muted);font:inherit;font-size:.78rem;font-weight:850;cursor:pointer; }
+.security-dossier-tabs button b { min-width:22px;height:22px;padding:0 6px;display:grid;place-items:center;border-radius:999px;background:#fff;color:var(--text);font-size:.7rem; }
+.security-dossier-tabs button.active { background:var(--accent);color:#fff; }
+.security-dossier-tabs button.active b { color:var(--accent); }
+.security-dossier-list { display:grid;gap:12px;padding:18px; }
+.security-dossier-card { padding:16px;border:1px solid var(--line);border-radius:20px;background:var(--panel);box-shadow:0 8px 24px rgba(20,24,35,.04); }
+.security-dossier-card-head { display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:12px; }
+.security-dossier-card-head > div { min-width:0;display:grid;gap:3px; }
+.security-dossier-card-head strong { font-size:.96rem; }
+.security-dossier-card-head span,.security-dossier-card-head small { color:var(--muted);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.security-dossier-status { padding:7px 10px;border-radius:999px;font-style:normal;font-size:.68rem;font-weight:900;white-space:nowrap; }
+.security-dossier-status.to_complete { color:#a53f00;background:#fff0df; }
+.security-dossier-status.ready { color:#087a42;background:#e4f8ed; }
+.security-dossier-status.closed { color:#1262b1;background:#e6f2ff; }
+.security-dossier-status.archived { color:#5c5f68;background:#eceef2; }
+.security-dossier-checks { display:flex;flex-wrap:wrap;gap:7px;margin-top:14px; }
+.security-dossier-checks span { position:relative;padding:7px 9px 7px 25px;border-radius:10px;background:#fff0df;color:#8c4b16;font-size:.69rem;font-weight:800; }
+.security-dossier-checks span::before { content:'!';position:absolute;left:8px;top:50%;transform:translateY(-50%);width:12px;height:12px;display:grid;place-items:center;border-radius:50%;background:#e89138;color:#fff;font-size:.58rem; }
+.security-dossier-checks span.ok { background:#e8f7ee;color:#147347; }
+.security-dossier-checks span.ok::before { content:'✓';background:#20a464; }
+.security-dossier-reasons { display:grid;gap:6px;margin-top:12px;padding:11px;border-radius:14px;background:#fff8ef;border:1px solid #f2d7b4; }
+.security-dossier-reasons span { display:flex;gap:7px;align-items:flex-start;color:#85501e;font-size:.75rem;line-height:1.35; }
+.security-dossier-note { margin:12px 0 0;padding:10px 12px;border-radius:12px;background:#f5f6f8;color:var(--muted);font-size:.76rem; }
+.security-dossier-actions { display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:14px; }
+@media (max-width:1000px) { .security-dossier-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:640px) {
+  .security-dossier-summary { grid-template-columns:1fr 1fr;gap:9px; }
+  .security-dossier-card-head { grid-template-columns:42px minmax(0,1fr); }
+  .security-dossier-status { grid-column:1/-1;justify-self:start; }
+  .security-dossier-actions { justify-content:stretch; }
+  .security-dossier-actions button { flex:1 1 145px;justify-content:center; }
+}

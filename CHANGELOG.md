@@ -1,3 +1,14 @@
+# 2.5.8 — Clôture et dossier complet de vacation
+
+- Nouvelle rubrique Dossiers de vacation pour les responsables et Chefs de poste.
+- Classement automatique : à compléter, prêts à clôturer, clôturés et archivés.
+- Contrôle serveur avant clôture : vacation réalisée, durée validée, prise et fin de poste, ronde QR, PTI, SOS et mode vacation.
+- Clôture opérationnelle par un responsable ; réouverture et archivage réservés au propriétaire ou administrateur.
+- Verrouillage des données terrain après clôture.
+- Rattachement automatique des rondes QR à la vacation correspondante.
+- PDF complet par mission : main courante, rondes, PTI/SOS, GPS, facturation, clôture et archivage.
+- Cache PWA passé en V2.5.8.
+
 # 2.5.7 — Fiabilité terrain PWA
 
 - Nouveau mode vacation rattaché à une mission précise.
@@ -11,3 +22,4 @@
 - Supervision enrichie : agent connecté, application en arrière-plan, GPS interrompu ou connexion perdue.
 - Alerte de supervision lorsqu'un agent en vacation n'a plus de battement récent.
 - Cache PWA passé en V2.5.7.
+- Correctif migration 035 : conservation du retour UUID de `start_security_patrol` pour éviter l’erreur PostgreSQL 42P13.

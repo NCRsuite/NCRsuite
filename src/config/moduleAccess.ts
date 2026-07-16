@@ -27,6 +27,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/geolocalisation': 'security_geolocation',
   '/pti': 'security_pti_sos',
   '/supervision': 'security_realtime_supervision',
+  '/dossiers-vacations': 'security_planning',
   '/documents': 'documents',
   '/formations': 'training_programs',
   '/stagiaires': 'trainees',
@@ -66,7 +67,7 @@ const SECURITY_UPSELL_PATHS = new Set([
 
 const SECURITY_CHEF_PATHS = new Set([
   '/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante',
-  '/consignes', '/geolocalisation', '/pti', '/supervision'
+  '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations'
 ]);
 
 export function normalizedModulePath(pathname: string) {
@@ -90,7 +91,8 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
       '/personnalisation': 'security_document_branding',
       '/geolocalisation': 'security_geolocation',
       '/pti': 'security_pti_sos',
-      '/supervision': 'security_realtime_supervision'
+      '/supervision': 'security_realtime_supervision',
+      '/dossiers-vacations': 'security_planning'
     };
     if (securityModules[normalized]) return securityModules[normalized];
   }

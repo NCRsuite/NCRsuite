@@ -101,6 +101,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Géolocalisation', path: '/geolocalisation', icon: 'map' },
       { label: 'PTI / SOS', path: '/pti', icon: 'shield' },
       { label: 'Supervision', path: '/supervision', icon: 'activity' },
+      { label: 'Dossiers vacations', path: '/dossiers-vacations', icon: 'file' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
       subscription,
       settings
