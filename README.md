@@ -1,9 +1,9 @@
-# NCR Suite — V2.6.0
+# NCR Suite — V2.6.2
 
-Base stable : V2.5.9.
+Base stable : V2.6.1.
 
-Cette version installe un système central de notifications push PWA pour tous les domaines NCR Suite : centre de notifications, préférences par utilisateur, abonnements multi-appareils, rappels programmés et alertes métier.
+Cette version finalise le métier Sécurité : envoi des devis, fiche agent détaillée, règle de facturation basée sur les heures planifiées, prise et fin de poste simplifiées, régularisation QG, clôture de la main courante et diagnostic GPS renforcé pour la PWA, avec première position transmise lors de la prise de poste en offre Professionnelle.
 
-Installation : voir `A_LIRE_INSTALLATION.txt` et `docs/V2.6.0_INSTALLATION.md`.
+Installation : voir `A_LIRE_INSTALLATION.txt` et `docs/V2.6.2_INSTALLATION.md`.
 
-Les notifications Web Push utilisent deux nouvelles Edge Functions séparées de `process-email-queue` et de `send-security-document`.
+Aucune modification n’est apportée aux Edge Functions existantes, à `process-email-queue`, aux autres métiers ou à NCR Academy.

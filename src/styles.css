@@ -5661,3 +5661,125 @@ button { max-width: 100%; }
 .push-admin-panel > .primary-button { margin-top: 16px; }
 @media (max-width: 900px) { .notification-grid { grid-template-columns: 1fr; } .compact-metrics { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .push-activation-card,.notification-preferences-card,.notification-inbox,.push-admin-panel { padding: 18px; } .notification-event { grid-template-columns: 40px minmax(0,1fr) auto; } .notification-event > i { display: none; } }
+
+/* NCR Suite V2.6.2 — finalisation opérationnelle Sécurité */
+.security-agent-clickable-card {
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-items: center;
+}
+.security-agent-card-link {
+  color: inherit;
+  text-decoration: none;
+  border-radius: 12px;
+  padding: 3px 5px;
+  margin: -3px -5px;
+}
+.security-agent-card-link:hover strong { color: var(--accent, #2997ff); }
+.security-agent-identity-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.security-agent-identity-card > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+.security-agent-identity-card span,
+.security-agent-identity-card small { color: var(--text-secondary, #6e6e73); }
+.security-agent-period-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px 180px;
+  align-items: end;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.security-agent-period-panel label { display: grid; gap: 6px; }
+.security-agent-shift-list { display: grid; gap: 10px; }
+.security-agent-shift-list > article {
+  display: grid;
+  grid-template-columns: 6px minmax(220px, 1fr) auto auto minmax(220px, auto);
+  align-items: center;
+  gap: 13px;
+  padding: 13px;
+  border: 1px solid var(--border, #e5e5ea);
+  border-radius: 16px;
+  background: var(--surface-subtle, #fafafa);
+}
+.security-agent-shift-color {
+  align-self: stretch;
+  min-height: 48px;
+  border-radius: 999px;
+  background: var(--site-color, #2997ff);
+}
+.security-agent-shift-list > article > div:nth-of-type(1) {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.security-agent-shift-list > article > div:nth-of-type(1) span,
+.security-agent-shift-list > article > div:nth-of-type(1) small,
+.security-agent-shift-hours small { color: var(--text-secondary, #6e6e73); }
+.security-agent-shift-hours { display: grid; gap: 3px; text-align: right; white-space: nowrap; }
+.security-agent-shift-checks { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.security-agent-shift-checks span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(142, 142, 147, .12);
+  color: var(--text-secondary, #6e6e73);
+  font-size: 11px;
+  font-weight: 750;
+}
+.security-agent-shift-checks span.ok { background: rgba(52, 199, 89, .13); color: #16813e; }
+.security-agent-clock-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 16px;
+  border-color: color-mix(in srgb, var(--accent, #2997ff) 30%, var(--border, #e5e5ea));
+}
+.security-agent-clock-card > div:first-child { display: grid; gap: 5px; }
+.security-agent-clock-card > div:first-child p { margin: 0; }
+.security-agent-clock-card > div:first-child span { color: var(--text-secondary, #6e6e73); }
+.security-agent-clock-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.security-completed-shifts > div.billing-overridden {
+  border-color: rgba(255, 159, 10, .5);
+  background: rgba(255, 159, 10, .06);
+}
+.security-completed-shifts > div:not(.security-completed-heading) {
+  grid-template-columns: minmax(0, 1fr) 96px minmax(170px, .75fr) auto;
+}
+.security-billing-reason input { width: 100% !important; min-width: 0; }
+.security-vacation-mode-card small a { color: var(--accent, #2997ff); font-weight: 700; }
+
+@media (max-width: 1080px) {
+  .security-agent-clickable-card { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .security-agent-clickable-card > .secondary-button,
+  .security-agent-clickable-card > .danger-text-button { grid-column: 2 / -1; justify-self: start; }
+  .security-agent-shift-list > article { grid-template-columns: 6px minmax(0, 1fr) auto; }
+  .security-agent-shift-hours { grid-column: 2; text-align: left; }
+  .security-agent-shift-checks { grid-column: 2 / -1; justify-content: flex-start; }
+  .security-completed-shifts > div:not(.security-completed-heading) { grid-template-columns: minmax(0, 1fr) 96px; }
+  .security-billing-reason { grid-column: 1 / -1; }
+  .security-completed-shifts > div > button { grid-column: 1 / -1; justify-self: start; }
+}
+
+@media (max-width: 720px) {
+  .security-agent-period-panel { grid-template-columns: 1fr; align-items: stretch; }
+  .security-agent-clickable-card { grid-template-columns: auto minmax(0, 1fr); }
+  .security-agent-clickable-card .security-status-pill { grid-column: 2; justify-self: start; }
+  .security-agent-clickable-card > .secondary-button,
+  .security-agent-clickable-card > .danger-text-button { grid-column: 2; }
+  .security-agent-shift-list > article { grid-template-columns: 5px minmax(0, 1fr); align-items: start; }
+  .security-agent-shift-list > article > .security-status-pill,
+  .security-agent-shift-hours,
+  .security-agent-shift-checks { grid-column: 2; justify-self: start; text-align: left; }
+  .security-agent-clock-card { grid-template-columns: 1fr; }
+  .security-agent-clock-actions { justify-content: stretch; }
+  .security-agent-clock-actions > * { width: 100%; justify-content: center; }
+  .security-completed-shifts > div:not(.security-completed-heading) { grid-template-columns: 1fr; }
+  .security-completed-shifts label,
+  .security-completed-shifts input { width: 100% !important; }
+}

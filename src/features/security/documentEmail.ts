@@ -12,6 +12,27 @@ function blobToBase64(blob: Blob) {
   });
 }
 
+async function functionErrorMessage(error: unknown) {
+  const fallback = error instanceof Error ? error.message : String(error || 'Erreur d’envoi inconnue.');
+  if (!error || typeof error !== 'object') return fallback;
+  const context = (error as { context?: unknown }).context as { clone?: () => Response; json?: () => Promise<unknown>; text?: () => Promise<string> } | undefined;
+  try {
+    const response = context?.clone ? context.clone() : context;
+    if (response?.json) {
+      const body = await response.json() as { error?: unknown; message?: unknown };
+      const detail = String(body?.error || body?.message || '').trim();
+      if (detail) return detail;
+    }
+  } catch {
+    try {
+      const response = context?.clone ? context.clone() : context;
+      const text = response?.text ? await response.text() : '';
+      if (text.trim()) return text.trim().slice(0, 1000);
+    } catch { /* le message Supabase reste disponible */ }
+  }
+  return fallback;
+}
+
 export async function sendSecurityDocumentEmail(input: {
   organizationId: string;
   documentKind: 'invoice' | 'quote';
@@ -25,22 +46,40 @@ export async function sendSecurityDocumentEmail(input: {
   copySender?: boolean;
 }) {
   if (!supabase) throw new Error('Supabase est indisponible.');
+  if (!input.recipientEmail.trim()) throw new Error('L’adresse e-mail du destinataire est obligatoire.');
   const pdfBase64 = await blobToBase64(input.blob);
-  const { data, error } = await supabase.functions.invoke('send-security-document', {
-    body: {
-      organization_id: input.organizationId,
-      document_kind: input.documentKind,
-      document_id: input.documentId,
-      recipient_email: input.recipientEmail,
-      recipient_name: input.recipientName || null,
-      subject: input.subject,
-      message: input.message,
-      filename: input.filename,
-      pdf_base64: pdfBase64,
-      copy_sender: Boolean(input.copySender)
-    }
-  });
-  if (error) throw error;
-  if (data?.error) throw new Error(String(data.error));
-  return data as { success: true; message_id?: string; sent_at?: string };
+  const body = {
+    organization_id: input.organizationId,
+    document_kind: input.documentKind,
+    document_id: input.documentId,
+    recipient_email: input.recipientEmail.trim().toLowerCase(),
+    recipient_name: input.recipientName || null,
+    subject: input.subject.trim(),
+    message: input.message.trim(),
+    filename: input.filename,
+    pdf_base64: pdfBase64,
+    copy_sender: Boolean(input.copySender)
+  };
+
+  async function invoke(accessToken: string) {
+    return supabase!.functions.invoke('send-security-document', {
+      body,
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+  }
+
+  let { data: sessionData } = await supabase.auth.getSession();
+  let accessToken = sessionData.session?.access_token;
+  if (!accessToken) throw new Error('Ta session a expiré. Reconnecte-toi avant l’envoi.');
+
+  let response = await invoke(accessToken);
+  if (response.error && /jwt|session|401|unauthor/i.test(response.error.message)) {
+    const refreshed = await supabase.auth.refreshSession();
+    accessToken = refreshed.data.session?.access_token;
+    if (accessToken) response = await invoke(accessToken);
+  }
+  if (response.error) throw new Error(await functionErrorMessage(response.error));
+  if (response.data?.error) throw new Error(String(response.data.error));
+  if (!response.data?.success) throw new Error('Le serveur n’a pas confirmé l’envoi du document.');
+  return response.data as { success: true; message_id?: string; sent_at?: string };
 }

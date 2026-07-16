@@ -68,7 +68,7 @@ export function SecurityShiftDossiersPage() {
     from.setDate(from.getDate() - 180);
     const { data, error: shiftError } = await client
       .from('security_shifts')
-      .select('id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,actual_minutes,actual_validation_note,completed_at,completed_by,final_invoice_id,dossier_status,dossier_closed_at,dossier_closed_by,dossier_archived_at,dossier_archived_by,dossier_reopened_at,dossier_reopened_by,dossier_note,created_at,security_sites(name,hourly_rate_cents,color_hex,address,postal_code,city,security_clients(company_name)),security_agents(first_name,last_name)')
+      .select('id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,actual_minutes,actual_validation_note,completed_at,completed_by,final_invoice_id,clocked_in_at,clocked_in_source,clocked_out_at,clocked_out_source,logbook_status,logbook_closed_at,logbook_closed_source,billing_minutes_override,billing_override_reason,dossier_status,dossier_closed_at,dossier_closed_by,dossier_archived_at,dossier_archived_by,dossier_reopened_at,dossier_reopened_by,dossier_note,created_at,security_sites(name,hourly_rate_cents,color_hex,address,postal_code,city,security_clients(company_name)),security_agents(first_name,last_name)')
       .eq('organization_id', organization.id)
       .neq('status', 'canceled')
       .gte('ends_at', from.toISOString())
@@ -104,6 +104,39 @@ export function SecurityShiftDossiersPage() {
   }), [rows]);
 
   const visible = grouped[tab];
+
+  async function qgPresenceAction(row: DossierRow, action: 'start' | 'end') {
+    if (!organization || !supabase || !canManage) return;
+    const label = action === 'start' ? 'prise de poste' : 'fin de poste et clôture de la vacation';
+    const reason = window.prompt(`Motif de la ${label} par le QG :`, action === 'start' ? 'Régularisation par le QG.' : 'Vacation clôturée par le QG, l’agent ne l’ayant pas fait.');
+    if (reason === null) return;
+    setBusyId(row.id); setError(''); setSuccess('');
+    const { error: actionError } = await supabase.rpc('set_security_shift_presence_event', {
+      p_organization_id: organization.id,
+      p_shift_id: row.id,
+      p_action: action,
+      p_note: reason,
+      p_force: true
+    });
+    if (actionError) setError(actionError.message);
+    else { setSuccess(action === 'start' ? 'La prise de poste a été régularisée par le QG.' : 'La vacation et sa main courante ont été clôturées par le QG.'); await load(); }
+    setBusyId(null);
+  }
+
+  async function reopenOperations(row: DossierRow) {
+    if (!organization || !supabase || !canReopen) return;
+    const reason = window.prompt('Motif de réouverture des opérations :');
+    if (reason === null) return;
+    setBusyId(row.id); setError(''); setSuccess('');
+    const { error: reopenError } = await supabase.rpc('reopen_security_shift_operations', {
+      p_organization_id: organization.id,
+      p_shift_id: row.id,
+      p_note: reason
+    });
+    if (reopenError) setError(reopenError.message);
+    else { setSuccess('La vacation et la main courante sont rouvertes.'); await load(); setTab('to_complete'); }
+    setBusyId(null);
+  }
 
   async function closeDossier(row: DossierRow) {
     if (!organization || !supabase || !canManage) return;
@@ -217,10 +250,10 @@ export function SecurityShiftDossiersPage() {
         const busy = busyId === row.id;
         return <article className="security-dossier-card" key={row.id}>
           <div className="security-dossier-card-head"><span className="security-record-icon" style={{ background: `${row.security_sites?.color_hex || '#0A84FF'}22`, color: row.security_sites?.color_hex || '#0A84FF' }}><Icon name="shield" size={20}/></span><div><strong>{site}</strong><span>{agent} · {formatSecurityDateTime(row.starts_at)}</span><small>{formatSecurityDuration(row.actual_minutes ?? securityShiftMinutes(row))} réalisée · {row.security_sites?.security_clients?.company_name || 'Client'}</small></div><em className={`security-dossier-status ${dossierBucket(row)}`}>{statusLabel(row)}</em></div>
-          <div className="security-dossier-checks"><span className={row.readiness.has_start ? 'ok' : ''}>Prise de poste</span><span className={row.readiness.has_end ? 'ok' : ''}>Fin de poste</span><span className={row.readiness.patrol_points === 0 || row.readiness.completed_patrols > 0 ? 'ok' : ''}>Ronde QR</span><span className={row.readiness.active_pti === 0 ? 'ok' : ''}>PTI fermé</span><span className={row.readiness.open_emergencies === 0 ? 'ok' : ''}>Alertes traitées</span></div>
+          <div className="security-dossier-checks"><span className={row.clocked_in_at || row.readiness.has_start ? 'ok' : ''}>Prise de poste</span><span className={row.clocked_out_at || row.readiness.has_end ? 'ok' : ''}>Fin de poste</span><span className={row.readiness.patrol_points === 0 || row.readiness.completed_patrols > 0 ? 'ok' : ''}>Ronde QR</span><span className={row.readiness.active_pti === 0 ? 'ok' : ''}>PTI fermé</span><span className={row.readiness.open_emergencies === 0 ? 'ok' : ''}>Alertes traitées</span></div>
           {row.readiness.reasons.length > 0 && row.dossier_status === 'open' && <div className="security-dossier-reasons">{row.readiness.reasons.map((reason) => <span key={reason}><Icon name="alert" size={14}/>{reason}</span>)}</div>}
           {row.dossier_note && <p className="security-dossier-note"><strong>Note :</strong> {row.dossier_note}</p>}
-          <div className="security-dossier-actions"><button className="secondary-button compact-button" disabled={busy} onClick={() => void downloadDossier(row)}><Icon name="file" size={16}/>PDF complet</button>{dossierBucket(row) === 'ready' && <button className="primary-button compact-button" disabled={busy} onClick={() => void closeDossier(row)}><Icon name="check" size={16}/>Clôturer</button>}{dossierBucket(row) === 'closed' && canReopen && <><button className="secondary-button compact-button" disabled={busy} onClick={() => void reopenDossier(row)}>Rouvrir</button><button className="primary-button compact-button" disabled={busy} onClick={() => void archiveDossier(row)}>Archiver</button></>}{dossierBucket(row) === 'archived' && canReopen && <button className="secondary-button compact-button" disabled={busy} onClick={() => void reopenDossier(row)}>Rouvrir</button>}</div>
+          <div className="security-dossier-actions"><button className="secondary-button compact-button" disabled={busy} onClick={() => void downloadDossier(row)}><Icon name="file" size={16}/>PDF complet</button>{dossierBucket(row) === 'to_complete' && !row.clocked_in_at && <button className="secondary-button compact-button" disabled={busy} onClick={() => void qgPresenceAction(row, 'start')}><Icon name="check" size={16}/>Prise de poste QG</button>}{dossierBucket(row) === 'to_complete' && (!row.clocked_out_at || row.status !== 'completed' || row.logbook_status !== 'closed') && <button className="primary-button compact-button" disabled={busy} onClick={() => void qgPresenceAction(row, 'end')}><Icon name="check" size={16}/>Clôturer vacation QG</button>}{dossierBucket(row) === 'ready' && <button className="primary-button compact-button" disabled={busy} onClick={() => void closeDossier(row)}><Icon name="check" size={16}/>Clôturer le dossier</button>}{row.logbook_status === 'closed' && row.dossier_status === 'open' && canReopen && <button className="secondary-button compact-button" disabled={busy} onClick={() => void reopenOperations(row)}>Rouvrir les opérations</button>}{dossierBucket(row) === 'closed' && canReopen && <><button className="secondary-button compact-button" disabled={busy} onClick={() => void reopenDossier(row)}>Rouvrir</button><button className="primary-button compact-button" disabled={busy} onClick={() => void archiveDossier(row)}>Archiver</button></>}{dossierBucket(row) === 'archived' && canReopen && <button className="secondary-button compact-button" disabled={busy} onClick={() => void reopenDossier(row)}>Rouvrir</button>}</div>
         </article>;
       })}</div>}
     </section>

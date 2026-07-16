@@ -116,7 +116,7 @@ export function SecurityLogbookPage() {
 
     const shiftResult = await supabase
       .from('security_shifts')
-      .select('id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,recurrence_group_id,duplicated_from_id,created_at,security_sites!security_shifts_site_fk(name,hourly_rate_cents,color_hex,address,postal_code,city,security_clients(company_name)),security_agents!security_shifts_agent_fk(first_name,last_name)')
+      .select('id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,recurrence_group_id,duplicated_from_id,clocked_in_at,clocked_in_source,clocked_out_at,clocked_out_source,logbook_status,logbook_closed_at,logbook_closed_source,created_at,security_sites!security_shifts_site_fk(name,hourly_rate_cents,color_hex,address,postal_code,city,security_clients(company_name)),security_agents!security_shifts_agent_fk(first_name,last_name)')
       .eq('organization_id', organization.id)
       .neq('status', 'canceled')
       .lt('starts_at', `${to}T23:59:59`)
@@ -209,6 +209,7 @@ export function SecurityLogbookPage() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!organization || !user || !selectedShift) return;
+    if (selectedShift.logbook_status === 'closed') { setError('La main courante de cette vacation est clôturée.'); setOpen(false); return; }
     setSaving(true);
     setError('');
 
@@ -301,9 +302,9 @@ export function SecurityLogbookPage() {
             <button className="secondary-button" onClick={() => void exportMissionPdf(selectedShift)}>
               <Icon name="file" size={18} /> PDF de la mission
             </button>
-            <button className="primary-button" onClick={() => setOpen(true)}>
+            {selectedShift.logbook_status !== 'closed' ? <button className="primary-button" onClick={() => setOpen(true)}>
               <Icon name="plus" size={18} /> Ajouter un événement
-            </button>
+            </button> : <span className="security-status-pill completed"><Icon name="lock" size={15}/>Main courante clôturée</span>}
           </div>
         )}
       </header>
@@ -381,11 +382,13 @@ export function SecurityLogbookPage() {
                   </div>
                   <div className="security-mission-summary-actions">
                     <button className="secondary-button compact-button" onClick={() => void exportMissionPdf(selectedShift)}><Icon name="file" size={16} />PDF</button>
-                    <button className="primary-button compact-button" onClick={() => setOpen(true)}><Icon name="plus" size={16} />Événement</button>
+                    {selectedShift.logbook_status !== 'closed' ? <button className="primary-button compact-button" onClick={() => setOpen(true)}><Icon name="plus" size={16} />Événement</button> : <span className="security-status-pill completed"><Icon name="lock" size={14}/>Clôturée</span>}
                   </div>
                 </section>
 
-                {open && (
+                {selectedShift.logbook_status === 'closed' && <div className="security-callout"><Icon name="lock" size={20}/><div><strong>Main courante clôturée</strong><span>Aucun nouvel événement ne peut être ajouté. Le QG peut rouvrir les opérations depuis Dossiers de vacation si une correction est nécessaire.</span></div></div>}
+
+                {open && selectedShift.logbook_status !== 'closed' && (
                   <section className="panel security-form-panel">
                     <div className="panel-header">
                       <div><p className="eyebrow">NOUVEL ÉVÉNEMENT</p><h2>{selectedShift.security_sites?.name} · {timeLabel(selectedShift.starts_at)} - {timeLabel(selectedShift.ends_at)}</h2></div>

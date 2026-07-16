@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -53,6 +53,7 @@ function durationUntil(value: string, now: number) {
 export function SecurityPtiPage() {
   const { organization } = useOrganization();
   const { user, demoMode } = useAuth();
+  const [searchParams] = useSearchParams();
   const [agent, setAgent] = useState<SecurityAgentRecord | null>(null);
   const [shifts, setShifts] = useState<SecurityShiftRecord[]>([]);
   const [selectedShiftId, setSelectedShiftId] = useState('');
@@ -60,6 +61,8 @@ export function SecurityPtiPage() {
   const [intervalMinutes, setIntervalMinutes] = useState(30);
   const [gps, setGps] = useState<GpsState | null>(null);
   const [tracking, setTracking] = useState(false);
+  const [gpsBusy, setGpsBusy] = useState(false);
+  const [permissionState, setPermissionState] = useState<'granted' | 'prompt' | 'denied' | 'unsupported'>('prompt');
   const [modeActive, setModeActive] = useState(false);
   const [resumeSuggested, setResumeSuggested] = useState(false);
   const [online, setOnline] = useState(navigator.onLine);
@@ -150,6 +153,8 @@ export function SecurityPtiPage() {
     setPti(activePti);
     setSelectedShiftId((current) => {
       if (activePti?.shift_id) return activePti.shift_id;
+      const requestedShift = searchParams.get('shift') || '';
+      if (requestedShift && shiftRows.some((row) => row.id === requestedShift)) return requestedShift;
       if (storedShift && shiftRows.some((row) => row.id === storedShift)) return storedShift;
       if (current && shiftRows.some((row) => row.id === current)) return current;
       const active = shiftRows.find((row) => new Date(row.starts_at) <= now && new Date(row.ends_at) >= now);
@@ -159,9 +164,28 @@ export function SecurityPtiPage() {
     setPendingPositions(pendingSecurityPositionCount(organization.id));
     if (activePti) setIntervalMinutes(activePti.check_interval_minutes);
     setLoading(false);
-  }, [organization, user, demoMode, storagePrefix]);
+  }, [organization, user, demoMode, storagePrefix, searchParams]);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => {
+    let active = true;
+    const permissions = navigator.permissions as Permissions | undefined;
+    if (!permissions?.query) {
+      setPermissionState(navigator.geolocation ? 'prompt' : 'unsupported');
+      return;
+    }
+    permissions.query({ name: 'geolocation' }).then((status) => {
+      if (!active) return;
+      setPermissionState(status.state as 'granted' | 'prompt' | 'denied');
+      status.addEventListener('change', () => {
+        if (active) setPermissionState(status.state as 'granted' | 'prompt' | 'denied');
+      });
+    }).catch(() => {
+      if (active) setPermissionState(navigator.geolocation ? 'prompt' : 'unsupported');
+    });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     const client = supabase;
@@ -318,23 +342,84 @@ export function SecurityPtiPage() {
     }
   }
 
-  function startTracking() {
+  async function locateOnce(options: PositionOptions) {
+    return new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, options);
+    });
+  }
+
+  async function testGps() {
+    if (!selectedShiftId) { setError('Sélectionne d’abord une vacation.'); return; }
+    if (!navigator.geolocation) { setPermissionState('unsupported'); setError('La géolocalisation n’est pas disponible sur cet appareil.'); return; }
+    setGpsBusy(true); setError(''); setSuccess('');
+    try {
+      let position: GeolocationPosition;
+      try {
+        position = await locateOnce({ enableHighAccuracy: true, maximumAge: 0, timeout: 18000 });
+      } catch (firstError) {
+        if ((firstError as GeolocationPositionError).code === 1) throw firstError;
+        position = await locateOnce({ enableHighAccuracy: false, maximumAge: 60000, timeout: 12000 });
+      }
+      setPermissionState('granted');
+      await savePosition(position, true);
+      setSuccess(`Position trouvée avec une précision d’environ ${Math.round(position.coords.accuracy)} m.`);
+    } catch (caught) {
+      const geoError = caught as GeolocationPositionError;
+      if (geoError.code === 1) setPermissionState('denied');
+      setError(positionErrorMessage(geoError));
+    } finally { setGpsBusy(false); }
+  }
+
+  async function startTracking() {
     if (!selectedShiftId) {
       setError('Sélectionne d’abord une vacation.');
       return false;
     }
     if (!navigator.geolocation) {
+      setPermissionState('unsupported');
       setError('La géolocalisation n’est pas disponible sur cet appareil.');
       return false;
     }
-    if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
-    watchIdRef.current = navigator.geolocation.watchPosition(
-      (position) => void savePosition(position),
-      (geoError) => { setTracking(false); setError(positionErrorMessage(geoError)); void updatePresence('paused'); },
-      { enableHighAccuracy: true, maximumAge: 15000, timeout: 20000 }
-    );
-    setTracking(true);
-    return true;
+    setGpsBusy(true);
+    try {
+      let firstPosition: GeolocationPosition;
+      try {
+        firstPosition = await locateOnce({ enableHighAccuracy: true, maximumAge: 0, timeout: 18000 });
+      } catch (firstError) {
+        if ((firstError as GeolocationPositionError).code === 1) throw firstError;
+        firstPosition = await locateOnce({ enableHighAccuracy: false, maximumAge: 60000, timeout: 12000 });
+      }
+      setPermissionState('granted');
+      await savePosition(firstPosition, true);
+      if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = navigator.geolocation.watchPosition(
+        (position) => {
+          setPermissionState('granted');
+          setTracking(true);
+          setError('');
+          void savePosition(position);
+        },
+        (geoError) => {
+          setError(positionErrorMessage(geoError));
+          if (geoError.code === geoError.PERMISSION_DENIED) {
+            setPermissionState('denied');
+            if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current);
+            watchIdRef.current = null;
+            setTracking(false);
+            void updatePresence('paused');
+          }
+        },
+        { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 }
+      );
+      setTracking(true);
+      return true;
+    } catch (caught) {
+      const geoError = caught as GeolocationPositionError;
+      if (geoError.code === 1) setPermissionState('denied');
+      setTracking(false);
+      setError(positionErrorMessage(geoError));
+      return false;
+    } finally { setGpsBusy(false); }
   }
 
   function stopTracking() {
@@ -350,7 +435,7 @@ export function SecurityPtiPage() {
       setError('Sélectionne d’abord une vacation.');
       return;
     }
-    const started = startTracking();
+    const started = await startTracking();
     if (!started) return;
     setModeActive(true);
     modeActiveRef.current = true;
@@ -476,14 +561,15 @@ export function SecurityPtiPage() {
               <div><p className="eyebrow">MODE VACATION PWA</p><h2>{modeActive ? 'Vacation suivie' : 'Suivi inactif'}</h2><p>Active le GPS, la présence applicative et le maintien d’écran lorsque le navigateur le permet.</p></div>
             </div>
             <div className="security-runtime-statuses">
+              <span className={permissionState === 'granted' ? 'good' : permissionState === 'denied' || permissionState === 'unsupported' ? 'danger' : 'warning'}><Icon name="map" size={15}/>{permissionState === 'granted' ? 'Autorisation GPS accordée' : permissionState === 'denied' ? 'Autorisation GPS refusée' : permissionState === 'unsupported' ? 'GPS indisponible' : 'Autorisation GPS à demander'}</span>
               <span className={online ? 'good' : 'danger'}><Icon name="activity" size={15}/>{online ? 'Réseau disponible' : 'Hors connexion'}</span>
               <span className={pageVisible ? 'good' : 'warning'}><Icon name="eye" size={15}/>{pageVisible ? 'Application visible' : 'Arrière-plan'}</span>
               <span className={tracking ? 'good' : 'muted'}><Icon name="map" size={15}/>{tracking ? 'GPS actif' : 'GPS arrêté'}</span>
               <span className={wakeLockActive ? 'good' : 'muted'}><Icon name="sun" size={15}/>{wakeLockActive ? 'Écran maintenu' : 'Maintien indisponible'}</span>
               {pendingPositions > 0 && <span className="warning"><Icon name="clock" size={15}/>{pendingPositions} position(s) en attente</span>}
             </div>
-            {gps && <small>Dernière position locale : {new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(gps.recordedAt))} · précision {Math.round(gps.accuracy ?? 0)} m</small>}
-            <button className={modeActive ? 'secondary-button' : 'primary-button'} type="button" disabled={!selectedShiftId} onClick={() => void (modeActive ? stopVacationMode() : startVacationMode())}>{modeActive ? 'Arrêter le mode vacation' : resumeSuggested ? 'Reprendre le mode vacation' : 'Démarrer le mode vacation'}</button>
+            {gps && <small>Dernière position locale : {new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(gps.recordedAt))} · précision {Math.round(gps.accuracy ?? 0)} m · <a href={`https://maps.google.com/?q=${gps.latitude},${gps.longitude}`} target="_blank" rel="noreferrer">ouvrir sur la carte</a></small>}
+            <div className="security-inline-actions"><button className="secondary-button" type="button" disabled={!selectedShiftId || gpsBusy} onClick={() => void testGps()}>{gpsBusy ? 'Recherche GPS…' : 'Tester ma position'}</button><button className={modeActive ? 'secondary-button' : 'primary-button'} type="button" disabled={!selectedShiftId || gpsBusy} onClick={() => void (modeActive ? stopVacationMode() : startVacationMode())}>{modeActive ? 'Arrêter le mode vacation' : resumeSuggested ? 'Reprendre le mode vacation' : 'Démarrer le mode vacation'}</button></div>
           </section>
 
           <section className="security-professional-grid">

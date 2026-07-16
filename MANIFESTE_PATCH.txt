@@ -1,22 +1,28 @@
-NCR SUITE V2.5.7 — MANIFESTE DU PATCH
+NCR SUITE V2.6.2 — MANIFESTE DU PATCH
 
-Base requise : V2.5.6
+Base requise : V2.6.1
 
 Fichiers modifiés ou ajoutés :
 - A_LIRE_INSTALLATION.txt
 - CHANGELOG.md
 - README.md
-- docs/V2.5.7_INSTALLATION.md
+- MANIFESTE_PATCH.txt
+- docs/V2.6.2_INSTALLATION.md
 - package.json
 - package-lock.json
 - public/sw.js
-- src/components/Icon.tsx
-- src/features/security/offlinePositionQueue.ts
+- src/App.tsx
+- src/features/security/documentEmail.ts
 - src/features/security/types.ts
+- src/pages/SecurityAgentDetailPage.tsx
+- src/pages/SecurityAgentsPage.tsx
+- src/pages/SecurityBillingPage.tsx
+- src/pages/SecurityDashboardPage.tsx
+- src/pages/SecurityLogbookPage.tsx
 - src/pages/SecurityPtiPage.tsx
-- src/pages/SecuritySupervisionPage.tsx
+- src/pages/SecurityShiftDossiersPage.tsx
 - src/styles.css
-- src/types.ts
-- supabase/migrations/034_security_web_shift_presence.sql
+- supabase/migrations/039_security_operations_finalization.sql
 
-Ordre : SQL Supabase, puis GitHub, puis Cloudflare, puis fermeture/réouverture de la PWA.
+Ordre obligatoire : SQL Supabase, puis GitHub, puis Cloudflare, puis fermeture/réouverture de la PWA.
+Aucune Edge Function à redéployer. Ne pas modifier process-email-queue.

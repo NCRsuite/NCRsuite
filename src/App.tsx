@@ -34,6 +34,7 @@ import { TrainingSitesPage } from './pages/TrainingSitesPage';
 import { PublicTrainingSatisfactionPage } from './pages/PublicTrainingSatisfactionPage';
 import { SecurityClientsPage } from './pages/SecurityClientsPage';
 import { SecurityAgentsPage } from './pages/SecurityAgentsPage';
+import { SecurityAgentDetailPage } from './pages/SecurityAgentDetailPage';
 import { SecuritySitesPage } from './pages/SecuritySitesPage';
 import { SecurityPlanningPage } from './pages/SecurityPlanningPage';
 import { SecurityBillingPage } from './pages/SecurityBillingPage';
@@ -163,6 +164,7 @@ export default function App() {
         <Route path="terrain" element={<ModuleAccessGuard moduleKey="security_agent_portal"><SecurityAgentPortalPage /></ModuleAccessGuard>} />
         <Route path="planning" element={<PlanningArea />} />
         <Route path="agents" element={<AgentsArea />} />
+        <Route path="agents/:agentId" element={<ModuleAccessGuard moduleKey="security_agents"><SecurityAgentDetailPage /></ModuleAccessGuard>} />
         <Route path="sites" element={<SitesArea />} />
         <Route path="facturation" element={<ModuleAccessGuard moduleKey="security_billing"><SecurityBillingPage /></ModuleAccessGuard>} />
         <Route path="devis" element={<ModuleAccessGuard moduleKey="security_quotes"><SecurityQuotesPage /></ModuleAccessGuard>} />

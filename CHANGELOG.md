@@ -1,3 +1,14 @@
+# V2.6.2 — Finalisation opérationnelle Sécurité
+
+- Répare l’envoi des devis avec transmission explicite et renouvellement automatique de la session Supabase.
+- Ajoute une fiche détaillée par agent : planning individuel, missions, heures programmées et heures terminées.
+- Clarifie la facturation définitive : heures planifiées par défaut, correction uniquement sur action volontaire avec motif obligatoire.
+- Ajoute la prise de poste et la fin de poste directes pour l’agent.
+- Permet au QG de régulariser une prise de poste manquante, clôturer la vacation et fermer la main courante.
+- Verrouille la main courante après clôture avec réouverture réservée aux administrateurs.
+- Fiabilise la géolocalisation PWA : position immédiate lors de la prise de poste en offre Professionnelle, diagnostic d’autorisation, test manuel, second mode de localisation, reprise du suivi et erreurs explicites.
+- Cache PWA passé en V2.6.2.
+
 # V2.6.1 — Correctif réservation Coiffure
 
 - Corrige le champ collaborateur utilisé par le déclencheur Push (`display_name`).

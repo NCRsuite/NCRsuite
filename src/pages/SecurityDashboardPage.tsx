@@ -35,6 +35,9 @@ export function SecurityDashboardPage() {
   const [entries, setEntries] = useState<SecurityLogbookEntryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [shiftBusy, setShiftBusy] = useState('');
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   useEffect(() => {
     if (!organization) return;
@@ -69,7 +72,7 @@ export function SecurityDashboardPage() {
       const [agentResult, siteResult, shiftResult] = await Promise.all([
         supabase.from('security_agents').select('id,organization_id,first_name,last_name,employee_number,email,phone,contract_type,weekly_hours,notes,status,linked_user_id,created_at').eq('organization_id', organizationId).eq('status', 'active'),
         supabase.from('security_sites').select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,timezone,notes,status,created_at,security_clients(company_name)').eq('organization_id', organizationId).eq('status', 'active'),
-        supabase.from('security_shifts').select('id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,recurrence_group_id,duplicated_from_id,created_at,security_sites(name,hourly_rate_cents,color_hex,city,security_clients(company_name)),security_agents(first_name,last_name)').eq('organization_id', organizationId).gte('starts_at', monthStart).lte('starts_at', monthEnd).order('starts_at')
+        supabase.from('security_shifts').select('id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,recurrence_group_id,duplicated_from_id,actual_minutes,clocked_in_at,clocked_in_source,clocked_out_at,clocked_out_source,logbook_status,billing_minutes_override,billing_override_reason,created_at,security_sites(name,hourly_rate_cents,color_hex,city,security_clients(company_name)),security_agents(first_name,last_name)').eq('organization_id', organizationId).gte('starts_at', monthStart).lte('starts_at', monthEnd).order('starts_at')
       ]);
       if (!active) return;
       const firstError = agentResult.error || siteResult.error || shiftResult.error;
@@ -97,15 +100,72 @@ export function SecurityDashboardPage() {
 
     void load();
     return () => { active = false; };
-  }, [organization?.id, organization?.role, organization?.plan, demoMode, essentialEnabled]);
+  }, [organization?.id, organization?.role, organization?.plan, demoMode, essentialEnabled, refreshNonce]);
 
   const activeShifts = shifts.filter((row) => row.status !== 'canceled');
   const minutes = activeShifts.reduce((sum, row) => sum + securityShiftMinutes(row), 0);
   const forecast = activeShifts.reduce((sum, row) => sum + Math.round((securityShiftMinutes(row) / 60) * (row.security_sites?.hourly_rate_cents || 0)), 0);
-  const upcoming = useMemo(() => activeShifts.filter((row) => new Date(row.ends_at) >= new Date()).slice(0, 6), [activeShifts]);
+  const upcoming = useMemo(() => activeShifts.filter((row) => row.status !== 'completed' && new Date(row.ends_at) >= new Date()).slice(0, 6), [activeShifts]);
   const activePatrols = patrols.filter((row) => row.status === 'in_progress');
   const criticalAlerts = alerts.filter((row) => row.severity === 'critical');
   const setupMissing = [agents.length === 0 ? 'un agent' : '', sites.length === 0 ? 'un site' : ''].filter(Boolean);
+  const now = Date.now();
+  const terrainShift = activeShifts.find((row) => row.clocked_in_at && !row.clocked_out_at)
+    || activeShifts.find((row) => row.status !== 'completed' && new Date(row.starts_at).getTime() <= now + 4 * 60 * 60 * 1000 && new Date(row.ends_at).getTime() >= now - 8 * 60 * 60 * 1000)
+    || null;
+
+  async function captureClockPosition(shift: SecurityShiftRecord) {
+    if (!professionalEnabled || !supabase || !navigator.geolocation) return null;
+    const locate = (options: PositionOptions) => new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, options));
+    let position: GeolocationPosition;
+    try {
+      position = await locate({ enableHighAccuracy: true, maximumAge: 0, timeout: 12000 });
+    } catch (firstError) {
+      if ((firstError as GeolocationPositionError).code === 1) throw firstError;
+      position = await locate({ enableHighAccuracy: false, maximumAge: 60000, timeout: 8000 });
+    }
+    const { error: positionError } = await supabase.rpc('record_security_agent_position_at', {
+      p_organization_id: organization!.id,
+      p_shift_id: shift.id,
+      p_latitude: position.coords.latitude,
+      p_longitude: position.coords.longitude,
+      p_accuracy_m: Number.isFinite(position.coords.accuracy) ? position.coords.accuracy : null,
+      p_recorded_at: new Date().toISOString()
+    });
+    if (positionError) throw positionError;
+    return Math.round(position.coords.accuracy);
+  }
+
+  async function shiftPresenceAction(shift: SecurityShiftRecord, action: 'start' | 'end') {
+    if (!organization || !supabase) return;
+    if (action === 'end' && !window.confirm('Terminer le poste et clôturer la main courante de cette vacation ?')) return;
+    setShiftBusy(`${shift.id}-${action}`); setError(''); setSuccess('');
+    try {
+      const { error: rpcError } = await supabase.rpc('set_security_shift_presence_event', {
+        p_organization_id: organization.id,
+        p_shift_id: shift.id,
+        p_action: action,
+        p_note: null,
+        p_force: false
+      });
+      if (rpcError) throw rpcError;
+      if (action === 'start') {
+        try {
+          const accuracy = await captureClockPosition(shift);
+          setSuccess(accuracy == null ? 'Prise de poste enregistrée.' : `Prise de poste enregistrée et position GPS transmise (précision env. ${accuracy} m).`);
+        } catch (gpsError) {
+          const detail = gpsError instanceof Error ? gpsError.message : 'autorisation ou signal indisponible';
+          setSuccess('Prise de poste enregistrée.');
+          setError(`La position GPS n’a pas été transmise : ${detail}. Ouvre GPS / PTI pour tester le suivi.`);
+        }
+      } else {
+        setSuccess('Fin de poste enregistrée et main courante clôturée.');
+      }
+      setRefreshNonce((value) => value + 1);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Action impossible.');
+    } finally { setShiftBusy(''); }
+  }
 
   if (!organization) return null;
 
@@ -113,8 +173,9 @@ export function SecurityDashboardPage() {
     const currentAgent = agents[0];
     return <div className="page security-page security-dashboard-page">
       <header className="page-header"><div><p className="eyebrow">ESPACE AGENT · SÉCURITÉ PRIVÉE</p><h1>{currentAgent ? `Bonjour ${currentAgent.first_name}` : 'Bonjour, ton terrain est prêt.'}</h1><p>Retrouve ton planning, les consignes de tes sites, tes rondes et la main courante.</p></div><Link className="primary-button" to="/consignes"><Icon name="alert" size={18}/>Voir les consignes</Link></header>
-      {error && <div className="error-message page-message">{error}</div>}
+      {error && <div className="error-message page-message">{error}</div>}{success && <div className="success-message page-message">{success}</div>}
       {criticalAlerts.length > 0 && <div className="security-callout critical"><Icon name="alert" size={21}/><div><strong>{criticalAlerts.length} alerte{criticalAlerts.length > 1 ? 's' : ''} critique{criticalAlerts.length > 1 ? 's' : ''}</strong><span>Consulte les alertes et applique immédiatement les consignes du site.</span></div></div>}
+      {terrainShift && <section className="panel security-agent-clock-card"><div><p className="eyebrow">VACATION À TRAITER</p><h2>{terrainShift.security_sites?.name || 'Site'}</h2><p>{formatSecurityDateTime(terrainShift.starts_at)} → {new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.ends_at))}</p><span>{terrainShift.clocked_in_at ? `Poste pris à ${new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.clocked_in_at))}` : 'Prise de poste non enregistrée'}</span></div><div className="security-agent-clock-actions">{!terrainShift.clocked_in_at && <button className="primary-button" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'start')}><Icon name="check" size={18}/>{shiftBusy ? 'Enregistrement…' : 'Prendre mon poste'}</button>}{terrainShift.clocked_in_at && !terrainShift.clocked_out_at && <button className="primary-button" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'end')}><Icon name="check" size={18}/>{shiftBusy ? 'Clôture…' : 'Terminer mon poste'}</button>}{professionalEnabled && <Link className="secondary-button" to={`/pti?shift=${terrainShift.id}`}><Icon name="map" size={18}/>GPS / PTI</Link>}<Link className="secondary-button" to="/main-courante"><Icon name="clipboard" size={18}/>Main courante</Link></div></section>}
       <section className="stats-grid"><StatCard label="Missions du mois" value={loading ? '…' : String(activeShifts.length)} detail="affectées à ton compte" icon="calendar"/><StatCard label="Heures programmées" value={loading ? '…' : formatSecurityDuration(minutes)} detail="sur le mois en cours" icon="activity"/><StatCard label="Rondes aujourd’hui" value={loading ? '…' : String(patrols.length)} detail={`${activePatrols.length} en cours`} icon="shield"/><StatCard label="Main courante" value={loading ? '…' : String(entries.length)} detail="saisies aujourd’hui" icon="clipboard"/></section>
       <section className="dashboard-grid"><article className="panel large-panel security-dashboard-schedule"><div className="panel-header"><div><p className="eyebrow">PROCHAINES MISSIONS</p><h2>Mon planning</h2></div><Link className="secondary-button" to="/planning">Tout voir</Link></div>{loading ? <div className="security-empty">Chargement…</div> : upcoming.length === 0 ? <div className="security-empty"><Icon name="calendar" size={30}/><strong>Aucune mission à venir</strong><span>Ton responsable n’a rien planifié sur la période.</span></div> : <div className="security-upcoming-list">{upcoming.map((shift) => <article key={shift.id}><span className="security-record-icon" style={{ background: `${shift.security_sites?.color_hex || '#0A84FF'}22`, color: shift.security_sites?.color_hex || '#0A84FF' }}><Icon name="shield" size={19}/></span><div><strong>{shift.security_sites?.name || 'Site'}</strong><span>{shift.title || 'Mission de sécurité'}</span><small>{formatSecurityDateTime(shift.starts_at)} · {formatSecurityDuration(securityShiftMinutes(shift))}</small></div></article>)}</div>}</article><aside className="panel security-dashboard-actions"><div className="panel-header"><div><p className="eyebrow">ACTIONS TERRAIN</p><h2>Accès rapide</h2></div></div><div className="security-action-list"><Link to="/rondes"><span><Icon name="shield" size={19}/></span><div><strong>Mes rondes QR</strong><small>Démarrer ou poursuivre une ronde</small></div><Icon name="chevronRight" size={17}/></Link><Link to="/main-courante"><span><Icon name="clipboard" size={19}/></span><div><strong>Main courante</strong><small>Ajouter un événement</small></div><Icon name="chevronRight" size={17}/></Link><Link to="/consignes"><span><Icon name="alert" size={19}/></span><div><strong>Consignes & alertes</strong><small>Consulter les informations terrain</small></div><Icon name="chevronRight" size={17}/></Link>{professionalEnabled && <Link to="/pti"><span><Icon name="shield" size={19}/></span><div><strong>PTI / SOS</strong><small>Activer la protection et la localisation</small></div><Icon name="chevronRight" size={17}/></Link>}</div></aside></section>
     </div>;
