@@ -305,3 +305,60 @@ export interface SecurityPatrolRecord {
 export function securityPriorityLabel(value: SecurityInstructionRecord['priority']) {
   return value === 'critical' ? 'Critique' : value === 'important' ? 'Importante' : 'Normale';
 }
+
+export interface SecurityAgentPositionRecord {
+  id: string;
+  organization_id: string;
+  agent_id: string;
+  shift_id: string;
+  latitude: number;
+  longitude: number;
+  accuracy_m: number | null;
+  recorded_at: string;
+  created_at: string;
+  security_agents?: { first_name: string; last_name: string; phone?: string | null } | null;
+  security_shifts?: { starts_at: string; ends_at: string; title: string | null; security_sites?: { name: string; address?: string | null; city?: string | null } | null } | null;
+}
+
+export interface SecurityPtiSessionRecord {
+  id: string;
+  organization_id: string;
+  agent_id: string;
+  shift_id: string;
+  status: 'active' | 'alerted' | 'closed';
+  check_interval_minutes: number;
+  activated_at: string;
+  last_check_in_at: string;
+  next_check_due_at: string;
+  triggered_at: string | null;
+  trigger_reason: string | null;
+  closed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  security_agents?: { first_name: string; last_name: string; phone?: string | null } | null;
+  security_shifts?: { starts_at: string; ends_at: string; title: string | null; security_sites?: { name: string; address?: string | null; city?: string | null } | null } | null;
+}
+
+export interface SecurityEmergencyAlertRecord {
+  id: string;
+  organization_id: string;
+  agent_id: string;
+  shift_id: string;
+  pti_session_id: string | null;
+  alert_type: 'sos' | 'pti_timeout';
+  status: 'open' | 'acknowledged' | 'resolved';
+  latitude: number | null;
+  longitude: number | null;
+  accuracy_m: number | null;
+  message: string | null;
+  triggered_at: string;
+  acknowledged_at: string | null;
+  acknowledged_by: string | null;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  resolution_notes: string | null;
+  created_at: string;
+  updated_at: string;
+  security_agents?: { first_name: string; last_name: string; phone?: string | null } | null;
+  security_shifts?: { starts_at: string; ends_at: string; title: string | null; security_sites?: { name: string; address?: string | null; city?: string | null } | null } | null;
+}

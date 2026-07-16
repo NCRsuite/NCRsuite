@@ -24,6 +24,9 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/alertes': 'alerts',
   '/facturation': 'security_billing',
   '/consignes': 'security_site_instructions',
+  '/geolocalisation': 'security_geolocation',
+  '/pti': 'security_pti_sos',
+  '/supervision': 'security_realtime_supervision',
   '/documents': 'documents',
   '/formations': 'training_programs',
   '/stagiaires': 'trainees',
@@ -50,12 +53,29 @@ const FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/terrain': 'security_agent_portal',
   '/rondes': 'security_qr_patrols',
   '/main-courante': 'security_smart_logbook',
-  '/consignes': 'security_site_instructions'
+  '/consignes': 'security_site_instructions',
+  '/geolocalisation': 'security_geolocation',
+  '/pti': 'security_pti_sos',
+  '/supervision': 'security_realtime_supervision'
 };
+
+const SECURITY_UPSELL_PATHS = new Set([
+  '/acces-equipe', '/rondes', '/main-courante', '/consignes',
+  '/geolocalisation', '/pti', '/supervision'
+]);
+
+const SECURITY_CHEF_PATHS = new Set([
+  '/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante',
+  '/consignes', '/geolocalisation', '/pti', '/supervision'
+]);
+
+export function normalizedModulePath(pathname: string) {
+  return pathname === '/' ? '/' : `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
+}
 
 export function moduleKeyForPath(pathname: string, businessType?: Organization['business_type']) {
   if (pathname === '/') return 'dashboard';
-  const normalized = `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
+  const normalized = normalizedModulePath(pathname);
   if (businessType === 'securite') {
     const securityModules: Record<string, string> = {
       '/terrain': 'security_agent_portal',
@@ -67,7 +87,10 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
       '/rondes': 'security_qr_patrols',
       '/main-courante': 'security_smart_logbook',
       '/consignes': 'security_site_instructions',
-      '/personnalisation': 'security_document_branding'
+      '/personnalisation': 'security_document_branding',
+      '/geolocalisation': 'security_geolocation',
+      '/pti': 'security_pti_sos',
+      '/supervision': 'security_realtime_supervision'
     };
     if (securityModules[normalized]) return securityModules[normalized];
   }
@@ -75,16 +98,31 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
 }
 
 export function featureKeyForPath(pathname: string) {
-  const normalized = `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
-  return FEATURE_BY_PATH[normalized];
+  return FEATURE_BY_PATH[normalizedModulePath(pathname)];
+}
+
+export function securityRequiredPlanForPath(pathname: string): 'Essentielle' | 'Professionnelle' | null {
+  const normalized = normalizedModulePath(pathname);
+  if (['/geolocalisation', '/pti', '/supervision'].includes(normalized)) return 'Professionnelle';
+  if (['/acces-equipe', '/rondes', '/main-courante', '/consignes'].includes(normalized)) return 'Essentielle';
+  return null;
+}
+
+export function securityPathIsLocked(organization: Organization, pathname: string) {
+  if (organization.business_type !== 'securite') return false;
+  const feature = featureKeyForPath(pathname);
+  return Boolean(feature && !organizationHasFeature(organization, feature));
 }
 
 export function organizationCanAccessPath(organization: Organization, pathname: string) {
-  const normalized = pathname === '/' ? '/' : `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
+  const normalized = normalizedModulePath(pathname);
 
-  if (organization.business_type === 'securite' && organization.role === 'employee') {
-    const agentPaths = ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes'];
-    if (!agentPaths.includes(normalized)) return false;
+  if (organization.business_type === 'securite') {
+    if (organization.role === 'employee') {
+      const agentPaths = ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti'];
+      if (!agentPaths.includes(normalized)) return false;
+    }
+    if (organization.role === 'manager' && !SECURITY_CHEF_PATHS.has(normalized)) return false;
   }
 
   if (pathname === '/offre-metier') {
@@ -94,7 +132,15 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
   const requiredFeature = normalized === '/personnalisation'
     ? (organization.business_type === 'securite' ? 'security_document_branding' : 'commercial_branding')
     : featureKeyForPath(pathname);
-  if (requiredFeature && !organizationHasFeature(organization, requiredFeature)) return false;
+
+  if (requiredFeature && !organizationHasFeature(organization, requiredFeature)) {
+    // Les propriétaires et administrateurs Sécurité peuvent ouvrir une page premium
+    // verrouillée pour découvrir la fonction et changer de formule.
+    if (organization.business_type === 'securite'
+      && ['owner', 'admin'].includes(organization.role ?? 'viewer')
+      && SECURITY_UPSELL_PATHS.has(normalized)) return true;
+    return false;
+  }
 
   const moduleKey = moduleKeyForPath(pathname, organization.business_type);
   if (!moduleKey) return true;

@@ -148,7 +148,11 @@ export function TeamAccessPage() {
   useEffect(() => { load(); }, [load]);
 
   const roleOptions = useMemo(() => {
-    if (isSecurity) return [{ value: 'employee' as AccessRole, label: 'Agent' }];
+    if (isSecurity) {
+      const options: Array<{ value: AccessRole; label: string }> = [{ value: 'employee', label: 'Agent' }];
+      if (summary?.manager_role_enabled) options.push({ value: 'manager' as AccessRole, label: 'Chef de poste' });
+      return options;
+    }
     if (!summary) return [{ value: 'employee' as AccessRole, label: 'Collaborateur' }];
     if (isTraining && summary.invitations_enabled) {
       const options = [
@@ -190,7 +194,7 @@ export function TeamAccessPage() {
   async function invite(event: FormEvent) {
     event.preventDefault();
     if (!organization || !supabase || !canAdminister) return;
-    if (!isTraining && role === 'employee' && !staffId) {
+    if (!isTraining && (isSecurity || role === 'employee') && !staffId) {
       setError(isSecurity ? 'Sélectionne l’agent qui recevra cet accès.' : 'Sélectionne le collaborateur qui recevra cet accès.');
       return;
     }
@@ -198,9 +202,9 @@ export function TeamAccessPage() {
     setError('');
     setSuccess('');
     try {
-      const invitationRpc = isTraining ? 'create_training_team_invitation' : isSecurity ? 'create_security_agent_invitation' : 'create_team_invitation';
+      const invitationRpc = isTraining ? 'create_training_team_invitation' : isSecurity ? 'create_security_team_invitation' : 'create_team_invitation';
       const invitationPayload = isSecurity
-        ? { p_organization_id: organization.id, p_email: email, p_security_agent_id: staffId }
+        ? { p_organization_id: organization.id, p_email: email, p_security_agent_id: staffId, p_role: role }
         : { p_organization_id: organization.id, p_email: email, p_role: role, p_staff_id: staffId || null };
       const { error: inviteError } = await supabase.rpc(invitationRpc, invitationPayload);
       if (inviteError) throw inviteError;
@@ -235,11 +239,12 @@ export function TeamAccessPage() {
   }
 
   async function changeMemberRole(member: TeamMember, nextRole: AccessRole) {
-    if (!organization || !supabase || !canAdminister || isSecurity) return;
+    if (!organization || !supabase || !canAdminister) return;
     setBusyId(member.user_id);
     setError('');
     try {
-      const { error: roleError } = await supabase.rpc(isTraining ? 'update_training_team_member_role' : 'update_team_member_role', {
+      const roleRpc = isSecurity ? 'set_security_team_member_role' : isTraining ? 'update_training_team_member_role' : 'update_team_member_role';
+      const { error: roleError } = await supabase.rpc(roleRpc, {
         p_organization_id: organization.id,
         p_user_id: member.user_id,
         p_role: nextRole
@@ -284,7 +289,7 @@ export function TeamAccessPage() {
         <div>
           <p className="eyebrow">COMPTES & PERMISSIONS</p>
           <h1>{isSecurity ? 'Accès agents' : 'Accès équipe'}</h1>
-          <p>{isSecurity ? 'Reliez jusqu’à 10 agents à leur espace terrain personnel.' : 'Invitez chaque personne avec son propre compte, sans partager le mot de passe du propriétaire.'}</p>
+          <p>{isSecurity ? `Reliez jusqu’à ${summary?.member_limit ?? (organization.plan === 'professionnelle' ? 50 : 10)} agents à leur espace terrain personnel et attribuez le rôle Chef de poste avec l’offre Professionnelle.` : 'Invitez chaque personne avec son propre compte, sans partager le mot de passe du propriétaire.'}</p>
         </div>
       </header>
 
@@ -332,9 +337,9 @@ export function TeamAccessPage() {
                       </select>
                     </label>
                     {!isTraining && <label>
-                      {isSecurity ? 'Agent' : 'Profil collaborateur'} {role === 'employee' && <span aria-hidden="true">*</span>}
-                      <select value={staffId} onChange={(event) => selectStaff(event.target.value)} required={role === 'employee'}>
-                        <option value="">{role === 'employee' ? (isSecurity ? 'Sélectionner un agent' : 'Sélectionner un collaborateur') : 'Aucun profil associé'}</option>
+                      {isSecurity ? 'Agent' : 'Profil collaborateur'} {(isSecurity || role === 'employee') && <span aria-hidden="true">*</span>}
+                      <select value={staffId} onChange={(event) => selectStaff(event.target.value)} required={isSecurity || role === 'employee'}>
+                        <option value="">{isSecurity ? 'Sélectionner un agent' : role === 'employee' ? 'Sélectionner un collaborateur' : 'Aucun profil associé'}</option>
                         {availableStaff.map((item) => <option key={item.id} value={item.id}>{item.display_name}{item.email ? ` · ${item.email}` : ''}</option>)}
                       </select>
                       <small>{isSecurity ? 'Les fiches agents se créent d’abord dans le menu Agents.' : 'Les profils se créent d’abord dans le menu Collaborateurs.'}</small>
@@ -355,12 +360,12 @@ export function TeamAccessPage() {
                   {members.map((member) => (
                     <article key={member.user_id} className={`team-member-row${member.status === 'disabled' ? ' disabled' : ''}`}>
                       <div className="team-avatar">{member.full_name.slice(0, 1).toUpperCase()}</div>
-                      <div className="team-member-identity"><strong>{member.full_name}</strong><span>{member.email}</span><small>{isTraining ? roleLabels[member.role] : isSecurity ? (member.staff_name ? `Agent : ${member.staff_name}` : roleLabels[member.role]) : member.staff_name ? `Profil : ${member.staff_name}` : 'Aucun profil collaborateur associé'}</small></div>
+                      <div className="team-member-identity"><strong>{member.full_name}</strong><span>{member.email}</span><small>{isTraining ? roleLabels[member.role] : isSecurity ? (member.staff_name ? `${member.role === 'manager' ? 'Chef de poste' : 'Agent'} : ${member.staff_name}` : roleLabels[member.role]) : member.staff_name ? `Profil : ${member.staff_name}` : 'Aucun profil collaborateur associé'}</small></div>
                       <span className={`status-chip ${member.status === 'active' ? 'active' : 'inactive'}`}>{member.status === 'active' ? 'Actif' : 'Suspendu'}</span>
                       <div className="team-member-actions">
                         {member.role === 'owner' ? <strong>Propriétaire</strong> : canAdminister ? (
                           <>
-                            {isSecurity ? <strong>Agent</strong> : <select value={member.role} disabled={busyId === member.user_id} onChange={(event) => changeMemberRole(member, event.target.value as AccessRole)} aria-label={`Rôle de ${member.full_name}`}>
+                            {isSecurity ? <select value={member.role} disabled={busyId === member.user_id} onChange={(event) => changeMemberRole(member, event.target.value as AccessRole)} aria-label={`Rôle de ${member.full_name}`}>{roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <select value={member.role} disabled={busyId === member.user_id} onChange={(event) => changeMemberRole(member, event.target.value as AccessRole)} aria-label={`Rôle de ${member.full_name}`}>
                               {roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                             </select>}
                             <button type="button" className="secondary-button compact-button" disabled={busyId === member.user_id} onClick={() => toggleMember(member)}>{member.status === 'active' ? 'Suspendre' : 'Réactiver'}</button>
@@ -379,7 +384,7 @@ export function TeamAccessPage() {
                     {invitations.map((invitation) => (
                       <article key={invitation.invitation_id} className="team-member-row invitation-row">
                         <div className="team-avatar pending"><Icon name="users" size={20} /></div>
-                        <div className="team-member-identity"><strong>{invitation.email}</strong><span>{isSecurity ? 'Agent' : roleLabels[invitation.role]}</span><small>{invitation.staff_name ? `${isSecurity ? 'Agent' : 'Profil'} : ${invitation.staff_name}` : `Expire le ${formatDate(invitation.expires_at)}`}</small></div>
+                        <div className="team-member-identity"><strong>{invitation.email}</strong><span>{isSecurity ? (invitation.role === 'manager' ? 'Chef de poste' : 'Agent') : roleLabels[invitation.role]}</span><small>{invitation.staff_name ? `${isSecurity ? 'Agent' : 'Profil'} : ${invitation.staff_name}` : `Expire le ${formatDate(invitation.expires_at)}`}</small></div>
                         <span className={`status-chip ${invitation.status === 'pending' ? 'pending' : 'inactive'}`}>{invitation.status === 'pending' ? 'Envoyée' : 'Expirée'}</span>
                         {canAdminister && <div className="team-member-actions"><button type="button" className="secondary-button compact-button" disabled={busyId === invitation.invitation_id} onClick={() => runAction('resend', invitation.invitation_id)}>Renvoyer</button><button type="button" className="danger-text-button" disabled={busyId === invitation.invitation_id} onClick={() => runAction('revoke', invitation.invitation_id)}>Révoquer</button></div>}
                       </article>

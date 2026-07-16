@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { ModuleAccessGuard } from './components/ModuleAccessGuard';
+import { SecurityFeatureGate } from './components/SecurityFeatureGate';
 import { useAuth } from './contexts/AuthContext';
 import { useOrganization } from './contexts/OrganizationContext';
 import { usePlatformAdmin } from './contexts/PlatformAdminContext';
@@ -40,6 +41,9 @@ import { SecurityPatrolsPage } from './pages/SecurityPatrolsPage';
 import { SecurityLogbookPage } from './pages/SecurityLogbookPage';
 import { SecurityInstructionsPage } from './pages/SecurityInstructionsPage';
 import { SecurityAgentPortalPage } from './pages/SecurityAgentPortalPage';
+import { SecurityGeolocationPage } from './pages/SecurityGeolocationPage';
+import { SecurityPtiPage } from './pages/SecurityPtiPage';
+import { SecuritySupervisionPage } from './pages/SecuritySupervisionPage';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
 
@@ -78,6 +82,15 @@ function BrandingArea() {
   const { organization } = useOrganization();
   const moduleKey = organization?.business_type === 'securite' ? 'security_document_branding' : 'commercial_branding';
   return <ModuleAccessGuard moduleKey={moduleKey}><CommercialBrandingPage /></ModuleAccessGuard>;
+}
+
+
+function TeamAccessArea() {
+  const { organization } = useOrganization();
+  if (organization?.business_type === 'securite') {
+    return <SecurityFeatureGate feature="team_access" requiredPlan="Essentielle" description="Connectez les agents à leur planning, leurs rondes et leur main courante. L’offre Professionnelle ajoute le rôle Chef de poste."><TeamAccessPage /></SecurityFeatureGate>;
+  }
+  return <ModuleAccessGuard moduleKey="team_access"><TeamAccessPage /></ModuleAccessGuard>;
 }
 
 function LoadingScreen() {
@@ -149,14 +162,17 @@ export default function App() {
         <Route path="agents" element={<AgentsArea />} />
         <Route path="sites" element={<SitesArea />} />
         <Route path="facturation" element={<ModuleAccessGuard moduleKey="security_billing"><SecurityBillingPage /></ModuleAccessGuard>} />
-        <Route path="rondes" element={<ModuleAccessGuard moduleKey="security_qr_patrols"><SecurityPatrolsPage /></ModuleAccessGuard>} />
-        <Route path="main-courante" element={<ModuleAccessGuard moduleKey="security_smart_logbook"><SecurityLogbookPage /></ModuleAccessGuard>} />
-        <Route path="consignes" element={<ModuleAccessGuard moduleKey="security_site_instructions"><SecurityInstructionsPage /></ModuleAccessGuard>} />
+        <Route path="rondes" element={<SecurityFeatureGate feature="security_qr_patrols" requiredPlan="Essentielle" description="Créez les points de passage, imprimez leurs QR codes et contrôlez chaque ronde depuis l’espace agent."><SecurityPatrolsPage /></SecurityFeatureGate>} />
+        <Route path="main-courante" element={<SecurityFeatureGate feature="security_smart_logbook" requiredPlan="Essentielle" description="Chaque vacation dispose de sa main courante structurée et de son PDF dédié."><SecurityLogbookPage /></SecurityFeatureGate>} />
+        <Route path="consignes" element={<SecurityFeatureGate feature="security_site_instructions" requiredPlan="Essentielle" description="Diffusez les consignes et alertes propres à chaque site et suivez leur lecture par les agents."><SecurityInstructionsPage /></SecurityFeatureGate>} />
+        <Route path="geolocalisation" element={<SecurityFeatureGate feature="security_geolocation" requiredPlan="Professionnelle" description="Visualisez la dernière position transmise par les agents pendant leurs vacations."><SecurityGeolocationPage /></SecurityFeatureGate>} />
+        <Route path="pti" element={<SecurityFeatureGate feature="security_pti_sos" requiredPlan="Professionnelle" description="Activez la protection du travailleur isolé, les confirmations périodiques et le bouton SOS."><SecurityPtiPage /></SecurityFeatureGate>} />
+        <Route path="supervision" element={<SecurityFeatureGate feature="security_realtime_supervision" requiredPlan="Professionnelle" description="Regroupez vacations en cours, positions GPS, PTI et urgences sur un écran de supervision."><SecuritySupervisionPage /></SecurityFeatureGate>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ClientsArea />} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />
         <Route path="equipe" element={<ModuleAccessGuard moduleKey="staff"><StaffPage /></ModuleAccessGuard>} />
-        <Route path="acces-equipe" element={<ModuleAccessGuard moduleKey="team_access"><TeamAccessPage /></ModuleAccessGuard>} />
+        <Route path="acces-equipe" element={<TeamAccessArea />} />
         <Route path="personnalisation" element={<BrandingArea />} />
         <Route path="abonnement" element={<SubscriptionPage />} />
         <Route path="offre-metier" element={<MetierWorkspacePage />} />

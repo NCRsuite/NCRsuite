@@ -98,6 +98,9 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Rondes QR', path: '/rondes', icon: 'shield' },
       { label: 'Main courante', path: '/main-courante', icon: 'clipboard' },
       { label: 'Consignes & alertes', path: '/consignes', icon: 'alert' },
+      { label: 'Géolocalisation', path: '/geolocalisation', icon: 'map' },
+      { label: 'PTI / SOS', path: '/pti', icon: 'shield' },
+      { label: 'Supervision', path: '/supervision', icon: 'activity' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
       subscription,
       settings

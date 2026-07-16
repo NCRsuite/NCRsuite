@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
 import { organizationHasFeature, planLabel } from '../config/planEntitlements';
-import { filterNavigationForOrganization } from '../config/moduleAccess';
+import { filterNavigationForOrganization, securityPathIsLocked, securityRequiredPlanForPath } from '../config/moduleAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { Icon } from './Icon';
@@ -51,18 +51,22 @@ export function AppShell() {
   const baseNavigation = pack.navigation.filter((item) => item.path !== '/abonnement');
   let navigation = baseNavigation;
 
-  if (organization.business_type === 'securite' && organization.role !== 'employee') {
+  if (organization.business_type === 'securite' && ['owner', 'admin'].includes(organization.role ?? 'viewer')) {
     navigation = navigation.filter((item) => item.path !== '/terrain');
   }
 
   if (restrictedRole && !hasCustomRole) {
     if (organization.business_type === 'securite' && organization.role === 'employee') {
-      navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes'].includes(item.path));
+      navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti'].includes(item.path));
     } else if (organization.business_type === 'formation' && organizationHasFeature(organization, 'team_access')) {
       navigation = baseNavigation.filter((item) => !['/acces-equipe', '/personnalisation', '/etablissements', '/parametres'].includes(item.path));
     } else {
       navigation = baseNavigation.filter((item) => ['/', '/rendez-vous', '/planning'].includes(item.path));
     }
+  }
+
+  if (organization.business_type === 'securite' && organization.role === 'manager') {
+    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision'].includes(item.path));
   }
 
   navigation = filterNavigationForOrganization(organization, navigation);
@@ -72,7 +76,7 @@ export function AppShell() {
   }
 
   const hasCommercialBrandingModule = navigation.some((item) => item.path === '/personnalisation');
-  const canManageSubscription = !restrictedRole;
+  const canManageSubscription = !restrictedRole && !(organization.business_type === 'securite' && organization.role === 'manager');
 
   const primaryMobileItem = navigation.find((item) => organization.business_type === 'securite' && restrictedRole ? item.path === '/terrain' : ['/rendez-vous', '/planning'].includes(item.path))
     ?? navigation.find((item) => item.path !== '/')
@@ -133,13 +137,16 @@ export function AppShell() {
         )}
 
         <nav className="main-nav" aria-label="Navigation principale">
-          {navigation.map((item) => (
-            <NavLink key={item.path} to={item.path} end={item.path === '/'}>
+          {navigation.map((item) => {
+            const locked = securityPathIsLocked(organization, item.path);
+            const requiredPlan = securityRequiredPlanForPath(item.path);
+            return <NavLink key={item.path} to={item.path} end={item.path === '/'} className={({ isActive }) => `${isActive ? 'active' : ''}${locked ? ' premium-locked' : ''}`}>
               <Icon name={item.icon} size={20} />
               <span>{item.label}</span>
-              {item.badge && <b className="nav-badge">{item.badge}</b>}
-            </NavLink>
-          ))}
+              {locked && <Icon name="lock" size={14} />}
+              {locked && requiredPlan ? <b className="nav-badge premium">{requiredPlan}</b> : item.badge && <b className="nav-badge">{item.badge}</b>}
+            </NavLink>;
+          })}
         </nav>
 
         {canManageSubscription && (
@@ -264,14 +271,17 @@ export function AppShell() {
 
             <div className="mobile-drawer-section-title">Navigation</div>
             <nav className="mobile-drawer-nav" aria-label="Toutes les rubriques">
-              {navigation.map((item) => (
-                <NavLink key={item.path} to={item.path} end={item.path === '/'} onClick={() => setMobileMenuOpen(false)}>
+              {navigation.map((item) => {
+                const locked = securityPathIsLocked(organization, item.path);
+                const requiredPlan = securityRequiredPlanForPath(item.path);
+                return <NavLink key={item.path} to={item.path} end={item.path === '/'} onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => `${isActive ? 'active' : ''}${locked ? ' premium-locked' : ''}`}>
                   <span className="mobile-drawer-nav-icon"><Icon name={item.icon} size={20} /></span>
                   <span>{item.label}</span>
-                  {item.badge && <b className="nav-badge">{item.badge}</b>}
+                  {locked && <Icon name="lock" size={14} />}
+                  {locked && requiredPlan ? <b className="nav-badge premium">{requiredPlan}</b> : item.badge && <b className="nav-badge">{item.badge}</b>}
                   <Icon name="chevronRight" size={17} />
-                </NavLink>
-              ))}
+                </NavLink>;
+              })}
             </nav>
 
             <div className="mobile-drawer-account">
