@@ -1,3 +1,13 @@
+# V2.6.3 — Correctif fin de poste & autorisation GPS iPhone
+
+- Autorise l’agent à terminer une vacation déjà prise même après la fenêtre horaire prévue.
+- Corrige les anciennes vacations dont la main courante avait été fermée sans fin de poste complète.
+- Évite les doublons d’événements Prise de poste / Fin de poste.
+- Affiche désormais le véritable message Supabase au lieu de « Action impossible ».
+- Remplace le message GPS limité à Safari par un diagnostic adapté au navigateur iPhone utilisé.
+- Ajoute un guide visible et un bouton de nouveau test lorsque la localisation a été refusée.
+- Cache PWA passé en V2.6.3.
+
 # V2.6.2 — Finalisation opérationnelle Sécurité
 
 - Répare l’envoi des devis avec transmission explicite et renouvellement automatique de la session Supabase.

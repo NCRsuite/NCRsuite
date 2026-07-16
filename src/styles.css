@@ -5783,3 +5783,12 @@ button { max-width: 100%; }
   .security-completed-shifts label,
   .security-completed-shifts input { width: 100% !important; }
 }
+
+/* NCR Suite V2.6.3 — correctif fin de poste & GPS iPhone */
+.security-gps-permission-help > div {
+  display: grid;
+  gap: 10px;
+}
+.security-gps-permission-help .secondary-button {
+  justify-self: start;
+}

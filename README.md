@@ -1,9 +1,9 @@
-# NCR Suite — V2.6.2
+# NCR Suite — V2.6.3
 
-Base stable : V2.6.1.
+Base stable : V2.6.2.
 
-Cette version finalise le métier Sécurité : envoi des devis, fiche agent détaillée, règle de facturation basée sur les heures planifiées, prise et fin de poste simplifiées, régularisation QG, clôture de la main courante et diagnostic GPS renforcé pour la PWA, avec première position transmise lors de la prise de poste en offre Professionnelle.
+Cette version corrige la fin de poste des vacations restées ouvertes après leur horaire prévu et améliore la gestion de l’autorisation GPS sur iPhone. Les messages d’erreur terrain affichent désormais la cause réelle.
 
-Installation : voir `A_LIRE_INSTALLATION.txt` et `docs/V2.6.2_INSTALLATION.md`.
+Installation : voir `A_LIRE_INSTALLATION.txt` et `docs/V2.6.3_INSTALLATION.md`.
 
-Aucune modification n’est apportée aux Edge Functions existantes, à `process-email-queue`, aux autres métiers ou à NCR Academy.
+Aucune Edge Function à redéployer. Aucun changement sur les autres métiers, les notifications globales, `process-email-queue` ou NCR Academy.

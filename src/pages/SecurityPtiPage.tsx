@@ -31,10 +31,24 @@ interface WakeLockSentinelLike {
 }
 
 
+function currentIosBrowserName() {
+  const agent = navigator.userAgent;
+  if (/EdgiOS/i.test(agent)) return 'Microsoft Edge';
+  if (/CriOS/i.test(agent)) return 'Google Chrome';
+  if (/FxiOS/i.test(agent)) return 'Firefox';
+  if (/OPiOS/i.test(agent)) return 'Opera';
+  return 'Safari';
+}
+
+function gpsPermissionInstructions() {
+  const browser = currentIosBrowserName();
+  return `Sur iPhone : ouvre Réglages > Apps > ${browser} (ou NCR Suite si elle est installée) > Localisation, choisis « Lorsque l’app est active » et active « Localisation précise ». Reviens ensuite ici et appuie sur « Retester ma position ».`;
+}
+
 function positionErrorMessage(error: GeolocationPositionError) {
-  if (error.code === error.PERMISSION_DENIED) return 'Autorise la localisation dans les réglages de Safari pour utiliser cette fonction.';
-  if (error.code === error.POSITION_UNAVAILABLE) return 'La position GPS est temporairement indisponible.';
-  if (error.code === error.TIMEOUT) return 'La localisation a mis trop de temps à répondre.';
+  if (error.code === error.PERMISSION_DENIED) return `La localisation est refusée. ${gpsPermissionInstructions()}`;
+  if (error.code === error.POSITION_UNAVAILABLE) return 'La position GPS est temporairement indisponible. Place-toi près d’une fenêtre ou à l’extérieur, puis réessaie.';
+  if (error.code === error.TIMEOUT) return 'La localisation a mis trop de temps à répondre. Vérifie que le mode économie d’énergie est désactivé puis réessaie.';
   return 'Impossible de récupérer la position.';
 }
 
@@ -555,6 +569,8 @@ export function SecurityPtiPage() {
 
           {resumeSuggested && !modeActive && <div className="security-callout warning"><Icon name="alert" size={22}/><div><strong>Mode vacation interrompu</strong><span>L’application a été fermée ou rechargée. Appuie sur « Reprendre » pour relancer le GPS et la présence terrain.</span></div></div>}
 
+          {permissionState === 'denied' && <div className="security-callout critical security-gps-permission-help"><Icon name="map" size={22}/><div><strong>Autorisation GPS à réactiver</strong><span>{gpsPermissionInstructions()}</span><button className="secondary-button" type="button" disabled={!selectedShiftId || gpsBusy} onClick={() => void testGps()}>{gpsBusy ? 'Recherche GPS…' : 'Retester ma position'}</button></div></div>}
+
           <section className={`panel security-vacation-mode-card${modeActive ? ' active' : ''}`}>
             <div className="security-vacation-mode-main">
               <span className={`security-live-dot${modeActive ? ' active' : ''}`}/>
@@ -569,7 +585,7 @@ export function SecurityPtiPage() {
               {pendingPositions > 0 && <span className="warning"><Icon name="clock" size={15}/>{pendingPositions} position(s) en attente</span>}
             </div>
             {gps && <small>Dernière position locale : {new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(gps.recordedAt))} · précision {Math.round(gps.accuracy ?? 0)} m · <a href={`https://maps.google.com/?q=${gps.latitude},${gps.longitude}`} target="_blank" rel="noreferrer">ouvrir sur la carte</a></small>}
-            <div className="security-inline-actions"><button className="secondary-button" type="button" disabled={!selectedShiftId || gpsBusy} onClick={() => void testGps()}>{gpsBusy ? 'Recherche GPS…' : 'Tester ma position'}</button><button className={modeActive ? 'secondary-button' : 'primary-button'} type="button" disabled={!selectedShiftId || gpsBusy} onClick={() => void (modeActive ? stopVacationMode() : startVacationMode())}>{modeActive ? 'Arrêter le mode vacation' : resumeSuggested ? 'Reprendre le mode vacation' : 'Démarrer le mode vacation'}</button></div>
+            <div className="security-inline-actions"><button className="secondary-button" type="button" disabled={!selectedShiftId || gpsBusy} onClick={() => void testGps()}>{gpsBusy ? 'Recherche GPS…' : permissionState === 'denied' ? 'Retester ma position' : 'Tester ma position'}</button><button className={modeActive ? 'secondary-button' : 'primary-button'} type="button" disabled={!selectedShiftId || gpsBusy} onClick={() => void (modeActive ? stopVacationMode() : startVacationMode())}>{modeActive ? 'Arrêter le mode vacation' : resumeSuggested ? 'Reprendre le mode vacation' : 'Démarrer le mode vacation'}</button></div>
           </section>
 
           <section className="security-professional-grid">

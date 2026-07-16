@@ -21,6 +21,24 @@ import {
 } from '../features/security/types';
 import { supabase } from '../lib/supabase';
 
+
+function readableActionError(error: unknown, fallback = 'Action impossible.') {
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = String((error as { message?: unknown }).message ?? '').trim();
+    if (message) return message;
+  }
+  if (typeof error === 'string' && error.trim()) return error.trim();
+  return fallback;
+}
+
+function readableGpsError(error: unknown) {
+  const geoError = error as Partial<GeolocationPositionError> | null;
+  if (geoError?.code === 1) return 'autorisation GPS refusée dans les réglages de l’iPhone';
+  if (geoError?.code === 2) return 'position temporairement indisponible';
+  if (geoError?.code === 3) return 'délai de localisation dépassé';
+  return readableActionError(error, 'autorisation ou signal indisponible');
+}
+
 export function SecurityDashboardPage() {
   const { organization } = useOrganization();
   const { demoMode } = useAuth();
@@ -154,7 +172,7 @@ export function SecurityDashboardPage() {
           const accuracy = await captureClockPosition(shift);
           setSuccess(accuracy == null ? 'Prise de poste enregistrée.' : `Prise de poste enregistrée et position GPS transmise (précision env. ${accuracy} m).`);
         } catch (gpsError) {
-          const detail = gpsError instanceof Error ? gpsError.message : 'autorisation ou signal indisponible';
+          const detail = readableGpsError(gpsError);
           setSuccess('Prise de poste enregistrée.');
           setError(`La position GPS n’a pas été transmise : ${detail}. Ouvre GPS / PTI pour tester le suivi.`);
         }
@@ -163,7 +181,7 @@ export function SecurityDashboardPage() {
       }
       setRefreshNonce((value) => value + 1);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Action impossible.');
+      setError(`Action impossible : ${readableActionError(caught)}`);
     } finally { setShiftBusy(''); }
   }
 
