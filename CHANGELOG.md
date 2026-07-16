@@ -1,3 +1,9 @@
+# V2.6.1 — Correctif réservation Coiffure
+
+- Corrige le champ collaborateur utilisé par le déclencheur Push (`display_name`).
+- Empêche désormais une erreur de notification de bloquer la création ou la modification d’un rendez-vous.
+- Répare la réservation publique et la création interne de rendez-vous.
+
 # 2.6.0 — Notifications push globales NCR Suite
 
 - Centre de notifications commun à tous les domaines.
