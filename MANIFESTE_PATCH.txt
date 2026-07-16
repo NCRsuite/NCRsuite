@@ -1,5 +1,5 @@
-PATCH NCR SUITE V2.6.3
-Base requise : V2.6.2
+PATCH NCR SUITE V2.6.4
+Base requise : V2.6.3
 
 Fichiers modifiés ou ajoutés :
 - A_LIRE_INSTALLATION.txt
@@ -8,11 +8,8 @@ Fichiers modifiés ou ajoutés :
 - MANIFESTE_PATCH.txt
 - package.json
 - package-lock.json
-- docs/V2.6.3_INSTALLATION.md
+- docs/V2.6.4_INSTALLATION.md
 - public/sw.js
-- src/pages/SecurityDashboardPage.tsx
-- src/pages/SecurityPtiPage.tsx
-- src/styles.css
-- supabase/migrations/040_security_shift_end_gps_permissions_fix.sql
+- supabase/migrations/041_security_late_shift_end_fix.sql
 
 Aucune Edge Function à redéployer.
