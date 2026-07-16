@@ -129,4 +129,5 @@ export type IconName =
   | 'plus'
   | 'eye'
   | 'sun'
-  | 'clock';
+  | 'clock'
+  | 'bell';

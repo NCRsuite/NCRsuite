@@ -18,6 +18,7 @@ export interface BusinessPack {
   quickActions: { label: string; path: string; icon: IconName }[];
 }
 
+const notifications: NavigationItem = { label: 'Notifications', path: '/notifications', icon: 'bell' };
 const subscription: NavigationItem = { label: 'Mon abonnement', path: '/abonnement', icon: 'creditCard' };
 const settings: NavigationItem = { label: 'Paramètres', path: '/parametres', icon: 'settings' };
 
@@ -37,6 +38,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Prestations', path: '/prestations', icon: 'sparkles' },
       { label: 'Fidélité', path: '/fidelite', icon: 'chart' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
+      notifications,
       subscription,
       settings
     ],
@@ -66,6 +68,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Interventions', path: '/interventions', icon: 'clipboard' },
       { label: 'Rapports', path: '/rapports', icon: 'file' },
       { label: 'Anomalies', path: '/anomalies', icon: 'alert' },
+      notifications,
       subscription,
       settings
     ],
@@ -104,6 +107,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Supervision', path: '/supervision', icon: 'activity' },
       { label: 'Dossiers vacations', path: '/dossiers-vacations', icon: 'file' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
+      notifications,
       subscription,
       settings
     ],
@@ -133,6 +137,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Établissements', path: '/etablissements', icon: 'building' },
       { label: 'Accès équipe', path: '/acces-equipe', icon: 'users' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
+      notifications,
       subscription,
       settings
     ],
@@ -164,6 +169,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Menu QR', path: '/menu-qr', icon: 'file' },
       { label: 'Hygiène & températures', path: '/hygiene', icon: 'clipboard' },
       { label: 'Stocks & fournisseurs', path: '/stocks', icon: 'briefcase' },
+      notifications,
       subscription,
       settings
     ],

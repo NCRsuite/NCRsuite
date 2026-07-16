@@ -3,6 +3,7 @@ import { AdminCreateSpaceModal } from '../components/AdminCreateSpaceModal';
 import { BillingAdminPanel } from '../components/BillingAdminPanel';
 import { MetierAdminPanel } from '../components/MetierAdminPanel';
 import { OfferCatalogAdminPanel } from '../components/OfferCatalogAdminPanel';
+import { PushAdminPanel } from '../components/PushAdminPanel';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
@@ -114,7 +115,7 @@ function statusClass(value: string) {
 }
 
 export function PlatformAdminPage() {
-  const [activeSection, setActiveSection] = useState<'overview' | 'catalogue' | 'billing' | 'metier'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'catalogue' | 'billing' | 'metier' | 'push'>('overview');
   const { user, signOut } = useAuth();
   const { profile, canManage } = usePlatformAdmin();
   const [metrics, setMetrics] = useState<AdminMetrics>(emptyMetrics);
@@ -315,6 +316,10 @@ export function PlatformAdminPage() {
             <Icon name="tool" size={19} />
             <span><strong>Offres Métier</strong><small>Modules, sites et marque blanche</small></span>
           </button>
+          <button type="button" className={activeSection === 'push' ? 'active' : ''} onClick={() => setActiveSection('push')}>
+            <Icon name="bell" size={19} />
+            <span><strong>Notifications push</strong><small>Appareils et traitement central</small></span>
+          </button>
         </nav>
 
         {activeSection === 'overview' && (<>
@@ -487,6 +492,10 @@ export function PlatformAdminPage() {
         {activeSection === 'metier' && (
           <MetierAdminPanel canManage={canManage} />
         )}
+        {activeSection === 'push' && (
+          <PushAdminPanel canManage={canManage} />
+        )}
+
       </main>
 
       {showCreateSpace && (

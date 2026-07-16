@@ -46,6 +46,7 @@ import { SecurityPtiPage } from './pages/SecurityPtiPage';
 import { SecuritySupervisionPage } from './pages/SecuritySupervisionPage';
 import { SecurityShiftDossiersPage } from './pages/SecurityShiftDossiersPage';
 import { SecurityQuotesPage } from './pages/SecurityQuotesPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
 
@@ -178,6 +179,7 @@ export default function App() {
         <Route path="equipe" element={<ModuleAccessGuard moduleKey="staff"><StaffPage /></ModuleAccessGuard>} />
         <Route path="acces-equipe" element={<TeamAccessArea />} />
         <Route path="personnalisation" element={<BrandingArea />} />
+        <Route path="notifications" element={<NotificationsPage />} />
         <Route path="abonnement" element={<SubscriptionPage />} />
         <Route path="offre-metier" element={<MetierWorkspacePage />} />
         <Route path="parametres" element={<SettingsPage />} />

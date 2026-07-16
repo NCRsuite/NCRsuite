@@ -3,3 +3,9 @@ verify_jwt = false
 
 [functions.send-security-document]
 verify_jwt = true
+
+[functions.setup-push-notifications]
+verify_jwt = true
+
+[functions.process-push-notifications]
+verify_jwt = false

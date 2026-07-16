@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.5.9';
+const CACHE = 'ncr-suite-shell-v2.6.0';
 const SHELL = [
   '/',
   '/index.html',
@@ -51,5 +51,45 @@ self.addEventListener('fetch', (event) => {
       if (isNavigation) return (await caches.match('/index.html')) || Response.error();
       return Response.error();
     }
+  })());
+});
+
+self.addEventListener('push', (event) => {
+  let payload = {};
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch {
+    payload = { title: 'NCR Suite', body: event.data ? event.data.text() : 'Nouvelle notification' };
+  }
+
+  const title = payload.title || 'NCR Suite';
+  const options = {
+    body: payload.body || 'Une nouvelle information est disponible.',
+    icon: payload.icon || '/brand/ncr-suite-icon.png',
+    badge: payload.badge || '/icons/icon-192.png',
+    tag: payload.tag || 'ncr-suite-notification',
+    renotify: payload.urgency === 'critical' || payload.urgency === 'high',
+    requireInteraction: payload.urgency === 'critical',
+    data: {
+      url: payload.url || '/notifications',
+      ...(payload.data || {})
+    }
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || '/notifications', self.location.origin).href;
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const client of windows) {
+      if ('focus' in client) {
+        await client.focus();
+        if ('navigate' in client) await client.navigate(target);
+        return;
+      }
+    }
+    if (self.clients.openWindow) await self.clients.openWindow(target);
   })());
 });

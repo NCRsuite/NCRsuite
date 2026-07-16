@@ -1,9 +1,9 @@
-# NCR Suite — V2.5.9
+# NCR Suite — V2.6.0
 
-Base stable : V2.5.8 corrigée.
+Base stable : V2.5.9.
 
-Cette version finalise la partie commerciale du métier Sécurité : synthèses du planning, nettoyage des préfactures, devis prospects, conversion en client, coordonnées bancaires et envoi direct des devis et factures PDF par e-mail.
+Cette version installe un système central de notifications push PWA pour tous les domaines NCR Suite : centre de notifications, préférences par utilisateur, abonnements multi-appareils, rappels programmés et alertes métier.
 
-Installation : voir `A_LIRE_INSTALLATION.txt` et `docs/V2.5.9_INSTALLATION.md`.
+Installation : voir `A_LIRE_INSTALLATION.txt` et `docs/V2.6.0_INSTALLATION.md`.
 
-L’envoi des documents utilise la nouvelle Edge Function `send-security-document`, séparée de `process-email-queue`.
+Les notifications Web Push utilisent deux nouvelles Edge Functions séparées de `process-email-queue` et de `send-security-document`.

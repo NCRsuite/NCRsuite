@@ -6,6 +6,7 @@ import { filterNavigationForOrganization, securityPathIsLocked, securityRequired
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { Icon } from './Icon';
+import { supabase } from '../lib/supabase';
 
 
 export function AppShell() {
@@ -15,6 +16,7 @@ export function AppShell() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
+  const [notificationUnread, setNotificationUnread] = useState(0);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -41,6 +43,33 @@ export function AppShell() {
     };
   }, [mobileMenuOpen, mobileAccountOpen]);
 
+  useEffect(() => {
+    if (!organization || !user || !supabase) {
+      setNotificationUnread(0);
+      return;
+    }
+    const client = supabase;
+    const organizationId = organization.id;
+    let active = true;
+    async function loadUnread() {
+      const { count } = await client
+        .from('notification_events')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', organizationId)
+        .is('read_at', null)
+        .lte('scheduled_for', new Date().toISOString());
+      if (active) setNotificationUnread(count ?? 0);
+    }
+    void loadUnread();
+    const channel = client.channel(`notification-events-shell-${organizationId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notification_events', filter: `organization_id=eq.${organizationId}` }, () => void loadUnread())
+      .subscribe();
+    return () => {
+      active = false;
+      void client.removeChannel(channel);
+    };
+  }, [organization?.id, user?.id]);
+
   if (!organization) return null;
 
   const pack = businessPacks[organization.business_type];
@@ -57,16 +86,16 @@ export function AppShell() {
 
   if (restrictedRole && !hasCustomRole) {
     if (organization.business_type === 'securite' && organization.role === 'employee') {
-      navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti'].includes(item.path));
+      navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti', '/notifications'].includes(item.path));
     } else if (organization.business_type === 'formation' && organizationHasFeature(organization, 'team_access')) {
       navigation = baseNavigation.filter((item) => !['/acces-equipe', '/personnalisation', '/etablissements', '/parametres'].includes(item.path));
     } else {
-      navigation = baseNavigation.filter((item) => ['/', '/rendez-vous', '/planning'].includes(item.path));
+      navigation = baseNavigation.filter((item) => ['/', '/rendez-vous', '/planning', '/notifications'].includes(item.path));
     }
   }
 
   if (organization.business_type === 'securite' && organization.role === 'manager') {
-    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations'].includes(item.path));
+    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications'].includes(item.path));
   }
 
   navigation = filterNavigationForOrganization(organization, navigation);
@@ -144,7 +173,7 @@ export function AppShell() {
               <Icon name={item.icon} size={20} />
               <span>{item.label}</span>
               {locked && <Icon name="lock" size={14} />}
-              {locked && requiredPlan ? <b className="nav-badge premium">{requiredPlan}</b> : item.badge && <b className="nav-badge">{item.badge}</b>}
+              {locked && requiredPlan ? <b className="nav-badge premium">{requiredPlan}</b> : item.path === '/notifications' && notificationUnread > 0 ? <b className="nav-badge notification">{notificationUnread > 99 ? '99+' : notificationUnread}</b> : item.badge && <b className="nav-badge">{item.badge}</b>}
             </NavLink>;
           })}
         </nav>
@@ -278,7 +307,7 @@ export function AppShell() {
                   <span className="mobile-drawer-nav-icon"><Icon name={item.icon} size={20} /></span>
                   <span>{item.label}</span>
                   {locked && <Icon name="lock" size={14} />}
-                  {locked && requiredPlan ? <b className="nav-badge premium">{requiredPlan}</b> : item.badge && <b className="nav-badge">{item.badge}</b>}
+                  {locked && requiredPlan ? <b className="nav-badge premium">{requiredPlan}</b> : item.path === '/notifications' && notificationUnread > 0 ? <b className="nav-badge notification">{notificationUnread > 99 ? '99+' : notificationUnread}</b> : item.badge && <b className="nav-badge">{item.badge}</b>}
                   <Icon name="chevronRight" size={17} />
                 </NavLink>;
               })}

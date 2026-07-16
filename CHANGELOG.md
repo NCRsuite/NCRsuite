@@ -1,3 +1,18 @@
+# 2.6.0 — Notifications push globales NCR Suite
+
+- Centre de notifications commun à tous les domaines.
+- Notifications Web Push sur PWA installée, y compris téléphone verrouillé.
+- Préférences individuelles : planning, rendez-vous, documents, alertes terrain, facturation et système.
+- Abonnements multi-appareils et désactivation appareil par appareil.
+- Initialisation VAPID sécurisée depuis le compte super-administrateur.
+- Traitement automatique de la file chaque minute via Supabase Cron et Edge Function dédiée.
+- Coiffure : nouveaux rendez-vous, modifications, annulations et rappels.
+- Formation : sessions, rappels et documents publiés.
+- Sécurité : vacations, rappels, consignes critiques, PTI/SOS et facturation.
+- Badge de notifications non lues dans la navigation.
+- Aucun changement apporté à process-email-queue ou send-security-document.
+- Cache PWA passé en V2.6.0.
+
 # 2.5.9 — Planning, devis et facturation commerciale Sécurité
 
 - Totaux d’heures du planning par agent et par site, visibles à l’écran et dans les PDF.

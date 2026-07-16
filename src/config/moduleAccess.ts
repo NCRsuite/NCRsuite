@@ -42,7 +42,8 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/salle': 'restaurant_floor_plan',
   '/menu-qr': 'restaurant_qr_menu',
   '/hygiene': 'restaurant_food_safety',
-  '/stocks': 'restaurant_stock'
+  '/stocks': 'restaurant_stock',
+  '/notifications': 'notifications'
 };
 
 const FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
@@ -67,7 +68,7 @@ const SECURITY_UPSELL_PATHS = new Set([
 
 const SECURITY_CHEF_PATHS = new Set([
   '/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante',
-  '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations'
+  '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications'
 ]);
 
 export function normalizedModulePath(pathname: string) {
@@ -122,11 +123,13 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
 
   if (organization.business_type === 'securite') {
     if (organization.role === 'employee') {
-      const agentPaths = ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti'];
+      const agentPaths = ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti', '/notifications'];
       if (!agentPaths.includes(normalized)) return false;
     }
     if (organization.role === 'manager' && !SECURITY_CHEF_PATHS.has(normalized)) return false;
   }
+
+  if (normalized === '/notifications') return true;
 
   if (pathname === '/offre-metier') {
     return organization.plan === 'metier' && ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
