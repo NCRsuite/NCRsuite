@@ -4,6 +4,9 @@ verify_jwt = false
 [functions.send-security-document]
 verify_jwt = true
 
+[functions.send-security-document-v2]
+verify_jwt = true
+
 [functions.setup-push-notifications]
 verify_jwt = true
 

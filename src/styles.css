@@ -5792,3 +5792,75 @@ button { max-width: 100%; }
 .security-gps-permission-help .secondary-button {
   justify-self: start;
 }
+
+/* NCR Suite V2.6.5 — planning agent semaine/mois */
+.security-agent-period-tabs {
+  grid-template-columns: minmax(0,1fr) auto auto;
+}
+.security-view-switch {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--surface-subtle, #f2f2f7);
+  gap: 3px;
+}
+.security-view-switch button {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary, #6e6e73);
+  padding: 9px 14px;
+  border-radius: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.security-view-switch button.active {
+  background: #fff;
+  color: var(--text-primary, #1d1d1f);
+  box-shadow: 0 3px 12px rgba(0,0,0,.08);
+}
+.security-period-navigation { display: flex; gap: 7px; justify-content: flex-end; }
+.security-agent-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(150px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.security-agent-day-card { min-width: 150px; padding: 14px; }
+.security-agent-day-heading { display: flex; justify-content: space-between; gap: 8px; align-items: start; margin-bottom: 12px; }
+.security-agent-day-heading > div { display: grid; gap: 2px; }
+.security-agent-day-heading strong { text-transform: capitalize; }
+.security-agent-day-heading span,.security-agent-day-empty { color: var(--text-secondary, #6e6e73); font-size: 12px; }
+.security-agent-day-heading b { font-size: 12px; white-space: nowrap; }
+.security-agent-day-shift {
+  display: grid;
+  grid-template-columns: 4px minmax(0,1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid var(--border, #e5e5ea);
+}
+.security-agent-day-shift i { width: 4px; height: 34px; border-radius: 999px; background: var(--site-color, #2997ff); }
+.security-agent-day-shift > div { display: grid; gap: 2px; min-width: 0; }
+.security-agent-day-shift strong { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.security-agent-day-shift span,.security-agent-day-shift b { font-size: 11px; color: var(--text-secondary, #6e6e73); white-space: nowrap; }
+.security-agent-month-table { display: grid; }
+.security-agent-month-row {
+  display: grid;
+  grid-template-columns: minmax(120px,1fr) 100px 130px 130px;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 4px;
+  border-top: 1px solid var(--border, #e5e5ea);
+}
+.security-agent-month-row.heading { border-top: 0; color: var(--text-secondary, #6e6e73); font-size: 12px; font-weight: 800; }
+@media (max-width: 900px) {
+  .security-agent-period-tabs { grid-template-columns: 1fr; }
+  .security-view-switch { justify-self: start; }
+  .security-period-navigation { justify-content: flex-start; }
+}
+@media (max-width: 620px) {
+  .security-agent-month-row { grid-template-columns: minmax(95px,1fr) 62px 88px 88px; gap: 7px; font-size: 12px; }
+  .security-agent-week-grid { grid-template-columns: repeat(7, minmax(175px, 1fr)); }
+}

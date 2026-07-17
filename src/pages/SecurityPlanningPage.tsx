@@ -46,6 +46,7 @@ export function SecurityPlanningPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [deletingShiftId, setDeletingShiftId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -168,6 +169,43 @@ export function SecurityPlanningPage() {
     } catch (caught) { setError(`Mise à jour impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
   }
 
+
+  async function deletePlannedShift(row: SecurityShiftRecord) {
+    if (!organization || !canManage) return;
+    const agentName = row.security_agents ? securityPersonName(row.security_agents.first_name, row.security_agents.last_name) : 'cet agent';
+    const siteName = row.security_sites?.name || 'ce site';
+    const confirmed = window.confirm(
+      `Supprimer définitivement cette planification pour ${agentName} sur ${siteName} ?\n\nCette action retire la mission du planning. Elle est autorisée uniquement si la vacation est future et ne contient aucune donnée terrain.`
+    );
+    if (!confirmed) return;
+
+    setDeletingShiftId(row.id); setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        if (row.status !== 'planned' || new Date(row.starts_at) <= new Date()) {
+          throw new Error('Seule une mission future encore planifiée peut être supprimée.');
+        }
+        if (row.clocked_in_at || row.clocked_out_at || row.completed_at || row.final_invoice_id || row.actual_minutes != null) {
+          throw new Error('Cette mission contient déjà des données opérationnelles et ne peut plus être supprimée.');
+        }
+        const all = JSON.parse(localStorage.getItem(`ncr-suite-security-shifts-${organization.id}`) || '[]') as SecurityShiftRecord[];
+        localStorage.setItem(`ncr-suite-security-shifts-${organization.id}`, JSON.stringify(all.filter((item) => item.id !== row.id)));
+      } else {
+        const { error: deleteError } = await supabase.rpc('delete_security_planned_shift', {
+          p_organization_id: organization.id,
+          p_shift_id: row.id
+        });
+        if (deleteError) throw deleteError;
+      }
+      setRows((current) => current.filter((item) => item.id !== row.id));
+      setSuccess('La planification a été supprimée. Tu peux maintenant replanifier l’agent.');
+    } catch (caught) {
+      setError(`Suppression impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+    } finally {
+      setDeletingShiftId(null);
+    }
+  }
+
   async function exportPlanning(event: FormEvent) {
     event.preventDefault(); if (!organization || !exportState.agentId) return;
     const agent = agents.find((item) => item.id === exportState.agentId); if (!agent) return;
@@ -214,7 +252,7 @@ export function SecurityPlanningPage() {
     {canManage && (agentTotals.length > 0 || siteTotals.length > 0) && <section className="security-planning-totals-grid"><article className="panel security-hours-total-panel"><div className="panel-header"><div><p className="eyebrow">TOTAL PAR AGENT</p><h2>Charge hebdomadaire</h2></div></div><div className="security-hours-total-list">{agentTotals.map((item) => <div key={item.id}><span><strong>{item.name}</strong><small>{item.missions} mission{item.missions > 1 ? 's' : ''}</small></span><b>{formatSecurityDuration(item.minutes)}</b></div>)}</div></article><article className="panel security-hours-total-panel"><div className="panel-header"><div><p className="eyebrow">TOTAL PAR SITE</p><h2>Heures programmées</h2></div></div><div className="security-hours-total-list">{siteTotals.map((item) => <div key={item.id}><span><i style={{ background: item.color }}/><span><strong>{item.name}</strong><small>{item.missions} mission{item.missions > 1 ? 's' : ''}</small></span></span><b>{formatSecurityDuration(item.minutes)}</b></div>)}</div></article></section>}
     <section className="panel security-planning-panel"><div className="security-week-toolbar"><button className="secondary-button compact-button" onClick={() => moveWeek(-1)}>‹ Semaine précédente</button><div><p className="eyebrow">SEMAINE</p><h2>Du {formatSecurityDate(week)} au {formatSecurityDate(new Date(endOfWeek(week).getTime() - 86400000))}</h2></div><div className="security-week-actions"><button className="secondary-button compact-button" onClick={() => setWeek(startOfWeek(new Date()))}>Aujourd’hui</button><button className="secondary-button compact-button" onClick={() => moveWeek(1)}>Suivante ›</button></div></div>
       {loading ? <div className="security-empty">Chargement du planning…</div> : siteRows.length === 0 ? <div className="security-empty"><Icon name="calendar" size={30}/><strong>Aucune mission</strong><span>Cette semaine est encore vide.</span></div> : <div className="security-planning-scroll"><div className="security-site-grid" style={{ gridTemplateColumns: `210px repeat(${days.length}, minmax(145px, 1fr))` }}><div className="security-grid-corner">SITES</div>{days.map((day) => <div className={`security-grid-day ${localDateKey(day) === localDateKey(new Date()) ? 'today' : ''}`} key={localDateKey(day)}><strong>{day.getDate().toString().padStart(2, '0')}/{(day.getMonth()+1).toString().padStart(2,'0')}</strong><span>{new Intl.DateTimeFormat('fr-FR', { weekday: 'short' }).format(day)}</span></div>)}
-        {siteRows.map(({ site, cells }) => <div className="security-grid-row" style={{ display: 'contents' }} key={site.id}><div className="security-grid-site"><span style={{ background: site.color_hex || '#0A84FF' }}/><div><strong>{site.name}</strong><small>{site.security_clients?.company_name || site.city || 'Site client'}</small></div></div>{cells.map((cell, index) => <div className="security-grid-cell" key={`${site.id}-${index}`} onClick={() => openCell(site.id, days[index])}>{cell.filter((row) => row.status !== 'canceled').map((row) => <article key={row.id} className={`security-grid-mission ${row.status}`} style={{ '--site-color': site.color_hex || '#0A84FF' } as CSSProperties} onClick={(event) => event.stopPropagation()}><strong>{time(row.starts_at)}-{time(row.ends_at)}</strong><span>{row.security_agents ? securityPersonName(row.security_agents.first_name, row.security_agents.last_name) : 'Agent'}</span><small>{row.title || 'Mission de sécurité'}</small>{canManage && row.status === 'planned' && <div><button type="button" onClick={() => beginDuplicate(row)}>Dupliquer</button><button type="button" onClick={() => void changeStatus(row, 'completed')}>Réalisée</button><button type="button" className="danger" onClick={() => void changeStatus(row, 'canceled')}>×</button></div>}</article>)}{canManage && <button className="security-grid-add" type="button" onClick={() => openCell(site.id, days[index])}>+</button>}</div>)}</div>)}
+        {siteRows.map(({ site, cells }) => <div className="security-grid-row" style={{ display: 'contents' }} key={site.id}><div className="security-grid-site"><span style={{ background: site.color_hex || '#0A84FF' }}/><div><strong>{site.name}</strong><small>{site.security_clients?.company_name || site.city || 'Site client'}</small></div></div>{cells.map((cell, index) => <div className="security-grid-cell" key={`${site.id}-${index}`} onClick={() => openCell(site.id, days[index])}>{cell.filter((row) => row.status !== 'canceled').map((row) => <article key={row.id} className={`security-grid-mission ${row.status}`} style={{ '--site-color': site.color_hex || '#0A84FF' } as CSSProperties} onClick={(event) => event.stopPropagation()}><strong>{time(row.starts_at)}-{time(row.ends_at)}</strong><span>{row.security_agents ? securityPersonName(row.security_agents.first_name, row.security_agents.last_name) : 'Agent'}</span><small>{row.title || 'Mission de sécurité'}</small>{canManage && row.status === 'planned' && <div><button type="button" onClick={() => beginDuplicate(row)}>Dupliquer</button><button type="button" onClick={() => void changeStatus(row, 'completed')}>Réalisée</button>{new Date(row.starts_at) > new Date() ? <button type="button" className="danger" disabled={deletingShiftId === row.id} onClick={() => void deletePlannedShift(row)}>{deletingShiftId === row.id ? 'Suppression…' : 'Supprimer'}</button> : <button type="button" className="danger" onClick={() => void changeStatus(row, 'canceled')}>Annuler</button>}</div>}</article>)}{canManage && <button className="security-grid-add" type="button" onClick={() => openCell(site.id, days[index])}>+</button>}</div>)}</div>)}
       </div></div>}
     </section>
   </div>;

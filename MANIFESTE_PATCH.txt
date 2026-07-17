@@ -1,5 +1,5 @@
-PATCH NCR SUITE V2.6.4
-Base requise : V2.6.3
+PATCH NCR SUITE V2.6.5 FINAL
+Base requise : V2.6.4
 
 Fichiers modifiés ou ajoutés :
 - A_LIRE_INSTALLATION.txt
@@ -8,8 +8,17 @@ Fichiers modifiés ou ajoutés :
 - MANIFESTE_PATCH.txt
 - package.json
 - package-lock.json
-- docs/V2.6.4_INSTALLATION.md
+- docs/V2.6.5_INSTALLATION.md
 - public/sw.js
-- supabase/migrations/041_security_late_shift_end_fix.sql
+- src/features/security/documentEmail.ts
+- src/pages/SecurityAgentDetailPage.tsx
+- src/pages/SecurityPlanningPage.tsx
+- src/styles.css
+- supabase/config.toml
+- supabase/migrations/042_security_delete_planned_shift.sql
+- supabase/functions/send-security-document-v2/index.ts
 
-Aucune Edge Function à redéployer.
+SQL 042 obligatoire avant GitHub.
+Déploiement obligatoire de la nouvelle Edge Function send-security-document-v2.
+Ne pas modifier process-email-queue.
+Ce patch remplace entièrement le premier patch V2.6.5 non installé.

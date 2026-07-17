@@ -62,7 +62,7 @@ export async function sendSecurityDocumentEmail(input: {
   };
 
   async function invoke(accessToken: string) {
-    return supabase!.functions.invoke('send-security-document', {
+    return supabase!.functions.invoke('send-security-document-v2', {
       body,
       headers: { Authorization: `Bearer ${accessToken}` }
     });
@@ -78,7 +78,13 @@ export async function sendSecurityDocumentEmail(input: {
     accessToken = refreshed.data.session?.access_token;
     if (accessToken) response = await invoke(accessToken);
   }
-  if (response.error) throw new Error(await functionErrorMessage(response.error));
+  if (response.error) {
+    const detail = await functionErrorMessage(response.error);
+    if (/requested function was not found|function not found|404/i.test(detail)) {
+      throw new Error('Le service d’envoi send-security-document-v2 n’est pas déployé dans Supabase. Déploie la fonction fournie avec la V2.6.5 puis réessaie.');
+    }
+    throw new Error(detail);
+  }
   if (response.data?.error) throw new Error(String(response.data.error));
   if (!response.data?.success) throw new Error('Le serveur n’a pas confirmé l’envoi du document.');
   return response.data as { success: true; message_id?: string; sent_at?: string };
