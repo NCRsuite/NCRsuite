@@ -6869,3 +6869,28 @@ button { max-width: 100%; }
   .restaurant-floor-status-actions { grid-template-columns: 1fr; }
   .restaurant-floor-table-form { grid-template-columns: 1fr; }
 }
+
+/* V2.8.3 — disponibilité réelle des tables */
+.restaurant-availability-note {
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+.restaurant-availability-note.success { color: #28724a; }
+.restaurant-availability-note.warning { color: #9a5d19; }
+.restaurant-availability-note.error { color: #b33f3f; }
+.public-booking-availability {
+  grid-column: 1 / -1;
+  padding: 11px 13px;
+  border-radius: 13px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+.public-booking-availability.checking { background: #f4f1ee; color: #75675f; }
+.public-booking-availability.available { background: #edf8f1; color: #28724a; }
+.public-booking-availability.unavailable { background: #fff0ef; color: #ad3939; }

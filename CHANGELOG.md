@@ -1,5 +1,17 @@
 # NCR Suite — Journal des versions
 
+## V2.8.3 — Anti-surréservation des tables
+
+- Tables proposées selon la date, l’heure, la durée, la capacité et leur disponibilité réelle.
+- Retrait automatique d’une table du sélecteur lorsqu’un autre utilisateur la réserve.
+- Réservation interne sans table bloquée dès qu’un plan de salle est configuré.
+- Blocage serveur transactionnel des doubles réservations, même lors de créations simultanées.
+- Libération du créneau après annulation, absence ou fin de réservation.
+- Contrôle de disponibilité sur la page de réservation publique.
+- Attribution automatique de la plus petite table adaptée aux demandes en ligne.
+- Compatibilité conservée pour les restaurants sans plan de salle configuré.
+- Cache PWA : `ncr-suite-shell-v2.8.3-reservation-lock`.
+
 ## V2.8.2 — Plan de salle interactif
 
 - Éditeur visuel libre avec glisser-déposer tactile et souris.
