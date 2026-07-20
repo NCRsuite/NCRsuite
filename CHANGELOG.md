@@ -1,3 +1,18 @@
+# V2.7.1 — Protocoles, récurrences et rentabilité Nettoyage
+
+- Offre Découverte : protocoles de nettoyage structurés par site et planification récurrente hebdomadaire.
+- Génération sans doublon des interventions sur les huit prochaines semaines.
+- Sélection d’un protocole lors d’une planification manuelle.
+- Offre Essentielle : checklists terrain copiées automatiquement dans les interventions.
+- Blocage du départ tant que les tâches obligatoires ne sont pas terminées.
+- Preuve photo après obligatoire lorsqu’elle est demandée par le protocole.
+- Progression des tâches visible dans l’espace agent, le suivi des interventions et les rapports.
+- Rapports PDF enrichis avec le détail des tâches réalisées.
+- Offre Professionnelle : coût horaire confidentiel, consommables et marge estimée par chantier.
+- Accès financier limité au propriétaire et aux administrateurs.
+- RLS, fonctions Supabase et contrôles d’offre appliqués côté serveur.
+- Cache PWA passé en `V2.7.1-cleaning-protocols`.
+
 # V2.7.0 — Pack Nettoyage complet
 
 - Activation du domaine Nettoyage dans NCR Suite et dans l’administration des offres.

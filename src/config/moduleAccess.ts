@@ -16,6 +16,8 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/sites': 'sites',
   '/etablissements': 'sites',
   '/interventions': 'interventions',
+  '/protocoles': 'cleaning_protocols',
+  '/rentabilite': 'cleaning_profitability',
   '/rapports': 'reports',
   '/anomalies': 'anomalies',
   '/qualite': 'quality',
@@ -71,14 +73,16 @@ const CLEANING_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/anomalies': 'cleaning_anomalies',
   '/qualite': 'cleaning_quality_control',
   '/stocks': 'cleaning_stock',
-  '/acces-equipe': 'team_access'
+  '/acces-equipe': 'team_access',
+  '/protocoles': 'cleaning_protocols',
+  '/rentabilite': 'cleaning_profitability'
 };
 
 const SECURITY_UPSELL_PATHS = new Set(['/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision']);
-const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/rapports', '/anomalies', '/qualite', '/stocks', '/acces-equipe']);
+const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/rapports', '/anomalies', '/qualite', '/stocks', '/rentabilite', '/acces-equipe']);
 
 const SECURITY_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications']);
-const CLEANING_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications']);
+const CLEANING_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/protocoles', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications']);
 
 export function normalizedModulePath(pathname: string) {
   return pathname === '/' ? '/' : `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
@@ -95,7 +99,7 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
   }
   if (businessType === 'nettoyage') {
     const cleaningModules: Record<string, string> = {
-      '/terrain': 'cleaning_agent_portal', '/clients': 'cleaning_clients', '/sites': 'cleaning_sites', '/agents': 'cleaning_agents', '/planning': 'cleaning_planning', '/interventions': 'cleaning_interventions', '/rapports': 'cleaning_reports', '/anomalies': 'cleaning_anomalies', '/qualite': 'cleaning_quality', '/stocks': 'cleaning_stock', '/facturation': 'cleaning_billing', '/acces-equipe': 'team_access'
+      '/terrain': 'cleaning_agent_portal', '/clients': 'cleaning_clients', '/sites': 'cleaning_sites', '/agents': 'cleaning_agents', '/planning': 'cleaning_planning', '/interventions': 'cleaning_interventions', '/protocoles': 'cleaning_protocols', '/rentabilite': 'cleaning_profitability', '/rapports': 'cleaning_reports', '/anomalies': 'cleaning_anomalies', '/qualite': 'cleaning_quality', '/stocks': 'cleaning_stock', '/facturation': 'cleaning_billing', '/acces-equipe': 'team_access'
     };
     if (cleaningModules[normalized]) return cleaningModules[normalized];
   }
@@ -118,7 +122,7 @@ export function securityRequiredPlanForPath(pathname: string): 'Essentielle' | '
 
 export function cleaningRequiredPlanForPath(pathname: string): 'Essentielle' | 'Professionnelle' | null {
   const normalized = normalizedModulePath(pathname);
-  if (['/anomalies', '/qualite', '/stocks'].includes(normalized)) return 'Professionnelle';
+  if (['/anomalies', '/qualite', '/stocks', '/rentabilite'].includes(normalized)) return 'Professionnelle';
   if (['/terrain', '/rapports', '/acces-equipe'].includes(normalized)) return 'Essentielle';
   return null;
 }

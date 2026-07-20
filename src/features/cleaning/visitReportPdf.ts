@@ -43,6 +43,18 @@ export async function generateCleaningReportPdf(organization: Organization, inte
     page.drawText(cleanText(value), { x: margin + 135, y: y - 1, size: 9.5, font: regular, color: dark }); y -= 25;
   }
 
+  const tasks = [...(intervention.cleaning_intervention_tasks ?? [])].sort((a, b) => a.position - b.position);
+  if (tasks.length > 0) {
+    page.drawText('PROTOCOLE ET TACHES REALISEES', { x: margin, y, size: 9, font: bold, color: muted }); y -= 19;
+    for (const task of tasks.slice(0, 10)) {
+      page.drawText(task.completed ? '[OK]' : '[  ]', { x: margin, y, size: 8.5, font: bold, color: task.completed ? accent : muted });
+      page.drawText(cleanText(task.label).slice(0, 72), { x: margin + 34, y, size: 8.8, font: regular, color: dark });
+      y -= 14;
+    }
+    if (tasks.length > 10) { page.drawText(`+ ${tasks.length - 10} autre(s) tache(s) dans NCR Suite`, { x: margin + 34, y, size: 8, font: regular, color: muted }); y -= 14; }
+    y -= 8;
+  }
+
   y -= 8; page.drawRectangle({ x: margin, y: y - 142, width: width - margin * 2, height: 150, color: soft, borderColor: line, borderWidth: 1 });
   page.drawText('TRAVAUX REALISES ET OBSERVATIONS', { x: margin + 16, y: y - 18, size: 9, font: bold, color: accent });
   let textY = y - 42; for (const lineText of wrap(intervention.report_text || 'Passage termine sans observation particuliere.', regular, 10, width - margin * 2 - 32).slice(0, 8)) { page.drawText(lineText, { x: margin + 16, y: textY, size: 10, font: regular, color: dark }); textY -= 16; }

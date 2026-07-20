@@ -60,6 +60,10 @@ export type OfferFeatureKey =
   | 'cleaning_stock'
   | 'cleaning_statistics'
   | 'cleaning_agent_roles'
+  | 'cleaning_protocols'
+  | 'cleaning_recurring_planning'
+  | 'cleaning_task_checklists'
+  | 'cleaning_profitability'
   | 'restaurant_staff_planning'
   | 'restaurant_menu'
   | 'restaurant_allergens'
@@ -179,7 +183,9 @@ const securityProfessionnelle: OfferFeatureKey[] = [
 const cleaningDecouverte: OfferFeatureKey[] = [
   'cleaning_clients_sites',
   'cleaning_planning',
-  'cleaning_scheduled_billing'
+  'cleaning_scheduled_billing',
+  'cleaning_protocols',
+  'cleaning_recurring_planning'
 ];
 const cleaningEssentielle: OfferFeatureKey[] = [
   ...cleaningDecouverte,
@@ -188,7 +194,8 @@ const cleaningEssentielle: OfferFeatureKey[] = [
   'cleaning_time_clock',
   'cleaning_site_instructions',
   'cleaning_visit_reports',
-  'cleaning_before_after_photos'
+  'cleaning_before_after_photos',
+  'cleaning_task_checklists'
 ];
 const cleaningProfessionnelle: OfferFeatureKey[] = [
   ...cleaningEssentielle,
@@ -198,6 +205,7 @@ const cleaningProfessionnelle: OfferFeatureKey[] = [
   'multi_site',
   'cleaning_statistics',
   'cleaning_agent_roles',
+  'cleaning_profitability',
   'manager_role'
 ];
 
@@ -360,20 +368,20 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       decouverte: {
         label: 'Découverte', monthlyPriceCents: 2990, memberLimit: 1,
         detail: 'Le pilotage bureau : clients, sites, planning, affectations et facturation programmée.',
-        additions: ['Clients et sites', 'Planning des prestations', 'Affectation des agents', 'Facturation selon les prestations programmées'],
+        additions: ['Clients et sites', 'Planning des prestations', 'Protocoles par site', 'Planification récurrente', 'Facturation selon les prestations programmées'],
         features: cleaningDecouverte
       },
       essentielle: {
         label: 'Essentielle', monthlyPriceCents: 4990, memberLimit: 10,
         detail: 'Ajoute le suivi terrain pour une équipe de 10 agents.',
-        additions: ['Jusqu’à 10 agents connectés', 'Pointage arrivée et départ', 'Consignes par site', 'Fiche de passage et rapport PDF', 'Photos avant / après'],
+        additions: ['Jusqu’à 10 agents connectés', 'Pointage arrivée et départ', 'Checklists terrain issues des protocoles', 'Fiche de passage et rapport PDF', 'Photos avant / après'],
         features: cleaningEssentielle,
         recommended: true
       },
       professionnelle: {
         label: 'Professionnelle', monthlyPriceCents: 7990, memberLimit: 50,
         detail: 'Ajoute le contrôle qualité, le multi-site et le pilotage avancé de 50 agents.',
-        additions: ['Jusqu’à 50 agents connectés', 'Contrôle qualité', 'Anomalies et actions correctives', 'Stocks de produits', 'Multi-site et statistiques', 'Rôles Agent et Chef d’équipe'],
+        additions: ['Jusqu’à 50 agents connectés', 'Rentabilité par chantier', 'Contrôle qualité', 'Anomalies et actions correctives', 'Stocks de produits', 'Multi-site et statistiques', 'Rôles Agent et Chef d’équipe'],
         features: cleaningProfessionnelle
       },
       metier: {
@@ -482,6 +490,10 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   cleaning_stock: 'Stocks de produits et matériel',
   cleaning_statistics: 'Statistiques opérationnelles',
   cleaning_agent_roles: 'Rôles Agent et Chef d’équipe',
+  cleaning_protocols: 'Protocoles de nettoyage par site',
+  cleaning_recurring_planning: 'Planification récurrente',
+  cleaning_task_checklists: 'Checklists terrain',
+  cleaning_profitability: 'Rentabilité par chantier',
   restaurant_staff_planning: 'Employés et planning',
   restaurant_menu: 'Carte, menus et fiches plats',
   restaurant_allergens: 'Gestion structurée des allergènes',

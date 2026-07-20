@@ -101,7 +101,7 @@ export function AppShell() {
   }
 
   if (organization.business_type === 'nettoyage' && organization.role === 'manager') {
-    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications'].includes(item.path));
+    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/protocoles', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications'].includes(item.path));
   }
 
   navigation = filterNavigationForOrganization(organization, navigation);

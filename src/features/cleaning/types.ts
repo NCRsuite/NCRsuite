@@ -73,9 +73,96 @@ export interface CleaningInterventionRecord {
   agent_signature: string | null;
   client_signature: string | null;
   notes: string | null;
+  protocol_id?: string | null;
+  recurring_schedule_id?: string | null;
+  occurrence_date?: string | null;
+  consumable_cost_cents?: number;
   created_at: string;
   cleaning_sites?: { name: string; address: string | null; city: string | null; instructions: string | null; cleaning_clients?: { company_name: string } | null } | null;
   cleaning_agents?: { first_name: string; last_name: string } | null;
+  cleaning_intervention_tasks?: CleaningInterventionTaskRecord[];
+}
+
+
+export interface CleaningProtocolTaskRecord {
+  id: string;
+  organization_id: string;
+  protocol_id: string;
+  label: string;
+  position: number;
+  required: boolean;
+  requires_photo: boolean;
+  estimated_minutes: number;
+  created_at: string;
+}
+
+export interface CleaningProtocolRecord {
+  id: string;
+  organization_id: string;
+  site_id: string;
+  name: string;
+  description: string | null;
+  status: CleaningStatus;
+  created_at: string;
+  cleaning_sites?: { name: string; cleaning_clients?: { company_name: string } | null } | null;
+  cleaning_protocol_tasks?: CleaningProtocolTaskRecord[];
+}
+
+export interface CleaningRecurringScheduleRecord {
+  id: string;
+  organization_id: string;
+  site_id: string;
+  agent_id: string;
+  protocol_id: string | null;
+  title: string;
+  weekday: number;
+  start_time: string;
+  duration_minutes: number;
+  break_minutes: number;
+  interval_weeks: number;
+  starts_on: string;
+  ends_on: string | null;
+  status: CleaningStatus;
+  created_at: string;
+  cleaning_sites?: { name: string } | null;
+  cleaning_agents?: { first_name: string; last_name: string } | null;
+  cleaning_protocols?: { name: string } | null;
+}
+
+export interface CleaningInterventionTaskRecord {
+  id: string;
+  organization_id: string;
+  intervention_id: string;
+  label: string;
+  position: number;
+  required: boolean;
+  requires_photo: boolean;
+  estimated_minutes: number;
+  completed: boolean;
+  completed_at: string | null;
+  observation: string | null;
+}
+
+export interface CleaningAgentCostRecord {
+  id: string;
+  organization_id: string;
+  agent_id: string;
+  hourly_cost_cents: number;
+  updated_at: string;
+}
+
+export interface CleaningProfitabilityRow {
+  site_id: string;
+  site_name: string;
+  client_name: string;
+  intervention_count: number;
+  planned_revenue_cents: number;
+  labor_cost_cents: number;
+  consumable_cost_cents: number;
+  margin_cents: number;
+  margin_rate: number | null;
+  planned_minutes: number;
+  actual_minutes: number;
 }
 
 export interface CleaningAnomalyRecord {

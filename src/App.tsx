@@ -61,6 +61,8 @@ import { CleaningAnomaliesPage } from './pages/CleaningAnomaliesPage';
 import { CleaningQualityPage } from './pages/CleaningQualityPage';
 import { CleaningStockPage } from './pages/CleaningStockPage';
 import { CleaningBillingPage } from './pages/CleaningBillingPage';
+import { CleaningProtocolsPage } from './pages/CleaningProtocolsPage';
+import { CleaningProfitabilityPage } from './pages/CleaningProfitabilityPage';
 import { CleaningFeatureGate } from './components/CleaningFeatureGate';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
@@ -217,6 +219,8 @@ export default function App() {
         <Route path="dossiers-vacations" element={<ModuleAccessGuard moduleKey="security_planning"><SecurityShiftDossiersPage /></ModuleAccessGuard>} />
 
         <Route path="interventions" element={<CleaningOnlyArea><ModuleAccessGuard moduleKey="cleaning_interventions"><CleaningInterventionsPage /></ModuleAccessGuard></CleaningOnlyArea>} />
+        <Route path="protocoles" element={<CleaningOnlyArea><CleaningProtocolsPage /></CleaningOnlyArea>} />
+        <Route path="rentabilite" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_profitability" requiredPlan="Professionnelle" description="Calculez la marge de chaque chantier à partir du chiffre prévu, du coût horaire réel et des consommables utilisés."><CleaningProfitabilityPage /></CleaningFeatureGate></CleaningOnlyArea>} />
         <Route path="rapports" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_visit_reports" requiredPlan="Essentielle" description="Créez des fiches de passage horodatées, illustrées et exportables en PDF."><CleaningReportsPage /></CleaningFeatureGate></CleaningOnlyArea>} />
         <Route path="anomalies" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_anomalies" requiredPlan="Professionnelle" description="Suivez les écarts terrain et les actions correctives jusqu’à leur résolution."><CleaningAnomaliesPage /></CleaningFeatureGate></CleaningOnlyArea>} />
         <Route path="qualite" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_quality_control" requiredPlan="Professionnelle" description="Contrôlez la qualité des prestations avec une grille de notation et un historique."><CleaningQualityPage /></CleaningFeatureGate></CleaningOnlyArea>} />
