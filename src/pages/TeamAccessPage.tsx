@@ -88,6 +88,8 @@ export function TeamAccessPage() {
   const canView = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
   const isTraining = organization?.business_type === 'formation';
   const isSecurity = organization?.business_type === 'securite';
+  const isCleaning = organization?.business_type === 'nettoyage';
+  const isFieldBusiness = isSecurity || isCleaning;
   const hasTeamAccess = Boolean(organization && organizationHasFeature(organization, 'team_access'));
   const hasManagerRole = Boolean(organization && organizationHasFeature(organization, 'manager_role'));
 
@@ -101,9 +103,9 @@ export function TeamAccessPage() {
       setSummary({
         plan: organization.plan,
         member_limit: planDefinition.memberLimit,
-        active_members: isSecurity ? 0 : 1,
+        active_members: isFieldBusiness ? 0 : 1,
         pending_invitations: 0,
-        available_seats: hasTeamAccess ? Math.max(0, planDefinition.memberLimit - (isSecurity ? 0 : 1)) : 0,
+        available_seats: hasTeamAccess ? Math.max(0, planDefinition.memberLimit - (isFieldBusiness ? 0 : 1)) : 0,
         invitations_enabled: hasTeamAccess,
         manager_role_enabled: hasManagerRole
       });
@@ -115,26 +117,28 @@ export function TeamAccessPage() {
     }
 
     try {
-      const summaryRpc = isTraining ? 'training_team_plan_summary' : isSecurity ? 'security_team_plan_summary' : 'team_plan_summary';
+      const summaryRpc = isTraining ? 'training_team_plan_summary' : isSecurity ? 'security_team_plan_summary' : isCleaning ? 'cleaning_team_plan_summary' : 'team_plan_summary';
       const summaryResult = await supabase.rpc(summaryRpc, { p_organization_id: organization.id });
       if (summaryResult.error) throw summaryResult.error;
       setSummary((summaryResult.data?.[0] ?? null) as PlanSummary | null);
 
       if (canView) {
         const [membersResult, invitationsResult, staffResult] = await Promise.all([
-          supabase.rpc(isSecurity ? 'list_security_team_members' : 'list_team_members', { p_organization_id: organization.id }),
-          supabase.rpc(isSecurity ? 'list_security_team_invitations' : 'list_team_invitations', { p_organization_id: organization.id }),
+          supabase.rpc(isSecurity ? 'list_security_team_members' : isCleaning ? 'list_cleaning_team_members' : 'list_team_members', { p_organization_id: organization.id }),
+          supabase.rpc(isSecurity ? 'list_security_team_invitations' : isCleaning ? 'list_cleaning_team_invitations' : 'list_team_invitations', { p_organization_id: organization.id }),
           isTraining
             ? Promise.resolve({ data: [], error: null })
             : isSecurity
               ? supabase.from('security_agents').select('id,first_name,last_name,email,linked_user_id,status').eq('organization_id', organization.id).eq('status', 'active').order('last_name')
-              : supabase.from('staff').select('id,display_name,email,linked_user_id,active').eq('organization_id', organization.id).eq('active', true).order('display_name')
+              : isCleaning
+                ? supabase.from('cleaning_agents').select('id,first_name,last_name,email,linked_user_id,status').eq('organization_id', organization.id).eq('status', 'active').order('last_name')
+                : supabase.from('staff').select('id,display_name,email,linked_user_id,active').eq('organization_id', organization.id).eq('active', true).order('display_name')
         ]);
         const firstError = membersResult.error || invitationsResult.error || staffResult.error;
         if (firstError) throw firstError;
         setMembers((membersResult.data ?? []) as TeamMember[]);
         setInvitations((invitationsResult.data ?? []) as TeamInvitation[]);
-        setStaff(isSecurity
+        setStaff(isFieldBusiness
           ? ((staffResult.data ?? []) as Array<{ id: string; first_name: string; last_name: string; email: string | null; linked_user_id: string | null; status: string }>).map((item) => ({ id: item.id, display_name: `${item.first_name} ${item.last_name}`.trim(), email: item.email, linked_user_id: item.linked_user_id, active: item.status === 'active' }))
           : (staffResult.data ?? []) as StaffOption[]);
       }
@@ -143,14 +147,14 @@ export function TeamAccessPage() {
     } finally {
       setLoading(false);
     }
-  }, [organization, demoMode, user, canView, isTraining, isSecurity, hasTeamAccess, hasManagerRole]);
+  }, [organization, demoMode, user, canView, isTraining, isSecurity, isCleaning, isFieldBusiness, hasTeamAccess, hasManagerRole]);
 
   useEffect(() => { load(); }, [load]);
 
   const roleOptions = useMemo(() => {
-    if (isSecurity) {
+    if (isFieldBusiness) {
       const options: Array<{ value: AccessRole; label: string }> = [{ value: 'employee', label: 'Agent' }];
-      if (summary?.manager_role_enabled) options.push({ value: 'manager' as AccessRole, label: 'Chef de poste' });
+      if (summary?.manager_role_enabled) options.push({ value: 'manager' as AccessRole, label: isSecurity ? 'Chef de poste' : 'Chef d’équipe' });
       return options;
     }
     if (!summary) return [{ value: 'employee' as AccessRole, label: 'Collaborateur' }];
@@ -174,7 +178,7 @@ export function TeamAccessPage() {
       { value: 'admin' as AccessRole, label: 'Administrateur' },
       { value: 'viewer' as AccessRole, label: 'Consultation' }
     ];
-  }, [summary, isTraining, isSecurity]);
+  }, [summary, isTraining, isSecurity, isFieldBusiness]);
 
   const availableStaff = useMemo(() => {
     const pendingStaff = new Set(invitations.filter((item) => item.status === 'pending').map((item) => item.staff_id));
@@ -194,18 +198,20 @@ export function TeamAccessPage() {
   async function invite(event: FormEvent) {
     event.preventDefault();
     if (!organization || !supabase || !canAdminister) return;
-    if (!isTraining && (isSecurity || role === 'employee') && !staffId) {
-      setError(isSecurity ? 'Sélectionne l’agent qui recevra cet accès.' : 'Sélectionne le collaborateur qui recevra cet accès.');
+    if (!isTraining && (isFieldBusiness || role === 'employee') && !staffId) {
+      setError(isFieldBusiness ? 'Sélectionne l’agent qui recevra cet accès.' : 'Sélectionne le collaborateur qui recevra cet accès.');
       return;
     }
     setSaving(true);
     setError('');
     setSuccess('');
     try {
-      const invitationRpc = isTraining ? 'create_training_team_invitation' : isSecurity ? 'create_security_team_invitation' : 'create_team_invitation';
+      const invitationRpc = isTraining ? 'create_training_team_invitation' : isSecurity ? 'create_security_team_invitation' : isCleaning ? 'create_cleaning_team_invitation' : 'create_team_invitation';
       const invitationPayload = isSecurity
         ? { p_organization_id: organization.id, p_email: email, p_security_agent_id: staffId, p_role: role }
-        : { p_organization_id: organization.id, p_email: email, p_role: role, p_staff_id: staffId || null };
+        : isCleaning
+          ? { p_organization_id: organization.id, p_email: email, p_cleaning_agent_id: staffId, p_role: role }
+          : { p_organization_id: organization.id, p_email: email, p_role: role, p_staff_id: staffId || null };
       const { error: inviteError } = await supabase.rpc(invitationRpc, invitationPayload);
       if (inviteError) throw inviteError;
       setEmail('');
@@ -243,7 +249,7 @@ export function TeamAccessPage() {
     setBusyId(member.user_id);
     setError('');
     try {
-      const roleRpc = isSecurity ? 'set_security_team_member_role' : isTraining ? 'update_training_team_member_role' : 'update_team_member_role';
+      const roleRpc = isSecurity ? 'set_security_team_member_role' : isCleaning ? 'set_cleaning_team_member_role' : isTraining ? 'update_training_team_member_role' : 'update_team_member_role';
       const { error: roleError } = await supabase.rpc(roleRpc, {
         p_organization_id: organization.id,
         p_user_id: member.user_id,
@@ -266,7 +272,7 @@ export function TeamAccessPage() {
     setBusyId(member.user_id);
     setError('');
     try {
-      const { error: statusError } = await supabase.rpc(isSecurity ? 'set_security_team_member_status' : 'set_team_member_status', {
+      const { error: statusError } = await supabase.rpc(isSecurity ? 'set_security_team_member_status' : isCleaning ? 'set_cleaning_team_member_status' : 'set_team_member_status', {
         p_organization_id: organization.id,
         p_user_id: member.user_id,
         p_status: nextStatus
@@ -288,8 +294,8 @@ export function TeamAccessPage() {
       <header className="page-header">
         <div>
           <p className="eyebrow">COMPTES & PERMISSIONS</p>
-          <h1>{isSecurity ? 'Accès agents' : 'Accès équipe'}</h1>
-          <p>{isSecurity ? `Reliez jusqu’à ${summary?.member_limit ?? (organization.plan === 'professionnelle' ? 50 : 10)} agents à leur espace terrain personnel et attribuez le rôle Chef de poste avec l’offre Professionnelle.` : 'Invitez chaque personne avec son propre compte, sans partager le mot de passe du propriétaire.'}</p>
+          <h1>{isFieldBusiness ? 'Accès agents' : 'Accès équipe'}</h1>
+          <p>{isSecurity ? `Reliez jusqu’à ${summary?.member_limit ?? (organization.plan === 'professionnelle' ? 50 : 10)} agents à leur espace terrain personnel et attribuez le rôle Chef de poste avec l’offre Professionnelle.` : isCleaning ? `Reliez jusqu’à ${summary?.member_limit ?? (organization.plan === 'professionnelle' ? 50 : 10)} agents à leur espace terrain personnel et attribuez le rôle Chef d’équipe avec l’offre Professionnelle.` : 'Invitez chaque personne avec son propre compte, sans partager le mot de passe du propriétaire.'}</p>
         </div>
       </header>
 
@@ -303,7 +309,7 @@ export function TeamAccessPage() {
               <span>Formule actuelle</span><strong>{planLabels[summary.plan]}</strong><small>{summary.invitations_enabled ? 'Comptes d’équipe disponibles' : 'Compte propriétaire uniquement'}</small>
             </article>
             <article className="panel team-plan-card">
-              <span>{isSecurity ? 'Agents connectés' : 'Utilisateurs actifs'}</span><strong>{summary.active_members} / {summary.member_limit}</strong><small>{summary.available_seats} place{summary.available_seats > 1 ? 's' : ''} disponible{summary.available_seats > 1 ? 's' : ''}</small>
+              <span>{isFieldBusiness ? 'Agents connectés' : 'Utilisateurs actifs'}</span><strong>{summary.active_members} / {summary.member_limit}</strong><small>{summary.available_seats} place{summary.available_seats > 1 ? 's' : ''} disponible{summary.available_seats > 1 ? 's' : ''}</small>
             </article>
             <article className="panel team-plan-card">
               <span>Invitations en attente</span><strong>{summary.pending_invitations}</strong><small>décomptées de la limite</small>
@@ -316,9 +322,9 @@ export function TeamAccessPage() {
               <div>
                 <p className="eyebrow">{isTraining ? 'OFFRE PROFESSIONNELLE' : 'OFFRE ESSENTIELLE'}</p>
                 <h2>Donnez un accès personnel à vos collaborateurs</h2>
-                <p>{isTraining ? 'L’offre Professionnelle permet de créer des accès employés distincts et de choisir leur rôle dans l’espace Formation.' : isSecurity ? 'La formule Découverte reste réservée au gestionnaire. L’offre Essentielle permet de connecter jusqu’à 10 agents à leur planning, aux rondes, aux consignes et à la main courante.' : 'La formule Découverte reste limitée au compte propriétaire. À partir de l’offre Essentielle, vous pouvez inviter jusqu’à 2 collaborateurs supplémentaires, chacun avec son propre planning.'}</p>
+                <p>{isTraining ? 'L’offre Professionnelle permet de créer des accès employés distincts et de choisir leur rôle dans l’espace Formation.' : isSecurity ? 'La formule Découverte reste réservée au gestionnaire. L’offre Essentielle permet de connecter jusqu’à 10 agents à leur planning, aux rondes, aux consignes et à la main courante.' : isCleaning ? 'La formule Découverte reste réservée au gestionnaire. L’offre Essentielle permet de connecter jusqu’à 10 agents à leur planning, au pointage, aux consignes et aux rapports de passage.' : 'La formule Découverte reste limitée au compte propriétaire. À partir de l’offre Essentielle, vous pouvez inviter jusqu’à 2 collaborateurs supplémentaires, chacun avec son propre planning.'}</p>
               </div>
-              <span className="plan-lock-badge">{isTraining ? 'Professionnelle' : isSecurity ? 'Essentielle · 69,90 € HT / mois' : 'Disponible à partir de 19,90 € HT / mois'}</span>
+              <span className="plan-lock-badge">{isTraining ? 'Professionnelle' : isSecurity ? 'Essentielle · 69,90 € HT / mois' : isCleaning ? 'Essentielle · 49,90 € HT / mois' : 'Disponible à partir de 19,90 € HT / mois'}</span>
             </section>
           ) : !canView ? (
             <section className="panel upgrade-panel"><div><h2>Accès limité</h2><p>Votre compte ne permet pas de consulter ou modifier les accès de l’équipe.</p></div></section>
@@ -337,12 +343,12 @@ export function TeamAccessPage() {
                       </select>
                     </label>
                     {!isTraining && <label>
-                      {isSecurity ? 'Agent' : 'Profil collaborateur'} {(isSecurity || role === 'employee') && <span aria-hidden="true">*</span>}
-                      <select value={staffId} onChange={(event) => selectStaff(event.target.value)} required={isSecurity || role === 'employee'}>
-                        <option value="">{isSecurity ? 'Sélectionner un agent' : role === 'employee' ? 'Sélectionner un collaborateur' : 'Aucun profil associé'}</option>
+                      {isFieldBusiness ? 'Agent' : 'Profil collaborateur'} {(isFieldBusiness || role === 'employee') && <span aria-hidden="true">*</span>}
+                      <select value={staffId} onChange={(event) => selectStaff(event.target.value)} required={isFieldBusiness || role === 'employee'}>
+                        <option value="">{isFieldBusiness ? 'Sélectionner un agent' : role === 'employee' ? 'Sélectionner un collaborateur' : 'Aucun profil associé'}</option>
                         {availableStaff.map((item) => <option key={item.id} value={item.id}>{item.display_name}{item.email ? ` · ${item.email}` : ''}</option>)}
                       </select>
-                      <small>{isSecurity ? 'Les fiches agents se créent d’abord dans le menu Agents.' : 'Les profils se créent d’abord dans le menu Collaborateurs.'}</small>
+                      <small>{isFieldBusiness ? 'Les fiches agents se créent d’abord dans le menu Agents.' : 'Les profils se créent d’abord dans le menu Collaborateurs.'}</small>
                     </label>}
                     <label>
                       Adresse e-mail <span aria-hidden="true">*</span>
@@ -360,12 +366,12 @@ export function TeamAccessPage() {
                   {members.map((member) => (
                     <article key={member.user_id} className={`team-member-row${member.status === 'disabled' ? ' disabled' : ''}`}>
                       <div className="team-avatar">{member.full_name.slice(0, 1).toUpperCase()}</div>
-                      <div className="team-member-identity"><strong>{member.full_name}</strong><span>{member.email}</span><small>{isTraining ? roleLabels[member.role] : isSecurity ? (member.staff_name ? `${member.role === 'manager' ? 'Chef de poste' : 'Agent'} : ${member.staff_name}` : roleLabels[member.role]) : member.staff_name ? `Profil : ${member.staff_name}` : 'Aucun profil collaborateur associé'}</small></div>
+                      <div className="team-member-identity"><strong>{member.full_name}</strong><span>{member.email}</span><small>{isTraining ? roleLabels[member.role] : isFieldBusiness ? (member.staff_name ? `${member.role === 'manager' ? (isSecurity ? 'Chef de poste' : 'Chef d’équipe') : 'Agent'} : ${member.staff_name}` : roleLabels[member.role]) : member.staff_name ? `Profil : ${member.staff_name}` : 'Aucun profil collaborateur associé'}</small></div>
                       <span className={`status-chip ${member.status === 'active' ? 'active' : 'inactive'}`}>{member.status === 'active' ? 'Actif' : 'Suspendu'}</span>
                       <div className="team-member-actions">
                         {member.role === 'owner' ? <strong>Propriétaire</strong> : canAdminister ? (
                           <>
-                            {isSecurity ? <select value={member.role} disabled={busyId === member.user_id} onChange={(event) => changeMemberRole(member, event.target.value as AccessRole)} aria-label={`Rôle de ${member.full_name}`}>{roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <select value={member.role} disabled={busyId === member.user_id} onChange={(event) => changeMemberRole(member, event.target.value as AccessRole)} aria-label={`Rôle de ${member.full_name}`}>
+                            {isFieldBusiness ? <select value={member.role} disabled={busyId === member.user_id} onChange={(event) => changeMemberRole(member, event.target.value as AccessRole)} aria-label={`Rôle de ${member.full_name}`}>{roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <select value={member.role} disabled={busyId === member.user_id} onChange={(event) => changeMemberRole(member, event.target.value as AccessRole)} aria-label={`Rôle de ${member.full_name}`}>
                               {roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                             </select>}
                             <button type="button" className="secondary-button compact-button" disabled={busyId === member.user_id} onClick={() => toggleMember(member)}>{member.status === 'active' ? 'Suspendre' : 'Réactiver'}</button>
@@ -384,7 +390,7 @@ export function TeamAccessPage() {
                     {invitations.map((invitation) => (
                       <article key={invitation.invitation_id} className="team-member-row invitation-row">
                         <div className="team-avatar pending"><Icon name="users" size={20} /></div>
-                        <div className="team-member-identity"><strong>{invitation.email}</strong><span>{isSecurity ? (invitation.role === 'manager' ? 'Chef de poste' : 'Agent') : roleLabels[invitation.role]}</span><small>{invitation.staff_name ? `${isSecurity ? 'Agent' : 'Profil'} : ${invitation.staff_name}` : `Expire le ${formatDate(invitation.expires_at)}`}</small></div>
+                        <div className="team-member-identity"><strong>{invitation.email}</strong><span>{isFieldBusiness ? (invitation.role === 'manager' ? (isSecurity ? 'Chef de poste' : 'Chef d’équipe') : 'Agent') : roleLabels[invitation.role]}</span><small>{invitation.staff_name ? `${isFieldBusiness ? 'Agent' : 'Profil'} : ${invitation.staff_name}` : `Expire le ${formatDate(invitation.expires_at)}`}</small></div>
                         <span className={`status-chip ${invitation.status === 'pending' ? 'pending' : 'inactive'}`}>{invitation.status === 'pending' ? 'Envoyée' : 'Expirée'}</span>
                         {canAdminister && <div className="team-member-actions"><button type="button" className="secondary-button compact-button" disabled={busyId === invitation.invitation_id} onClick={() => runAction('resend', invitation.invitation_id)}>Renvoyer</button><button type="button" className="danger-text-button" disabled={busyId === invitation.invitation_id} onClick={() => runAction('revoke', invitation.invitation_id)}>Révoquer</button></div>}
                       </article>

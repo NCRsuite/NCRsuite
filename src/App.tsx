@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { ModuleAccessGuard } from './components/ModuleAccessGuard';
@@ -48,6 +49,19 @@ import { SecuritySupervisionPage } from './pages/SecuritySupervisionPage';
 import { SecurityShiftDossiersPage } from './pages/SecurityShiftDossiersPage';
 import { SecurityQuotesPage } from './pages/SecurityQuotesPage';
 import { NotificationsPage } from './pages/NotificationsPage';
+
+import { CleaningClientsPage } from './pages/CleaningClientsPage';
+import { CleaningSitesPage } from './pages/CleaningSitesPage';
+import { CleaningAgentsPage } from './pages/CleaningAgentsPage';
+import { CleaningPlanningPage } from './pages/CleaningPlanningPage';
+import { CleaningAgentPortalPage } from './pages/CleaningAgentPortalPage';
+import { CleaningInterventionsPage } from './pages/CleaningInterventionsPage';
+import { CleaningReportsPage } from './pages/CleaningReportsPage';
+import { CleaningAnomaliesPage } from './pages/CleaningAnomaliesPage';
+import { CleaningQualityPage } from './pages/CleaningQualityPage';
+import { CleaningStockPage } from './pages/CleaningStockPage';
+import { CleaningBillingPage } from './pages/CleaningBillingPage';
+import { CleaningFeatureGate } from './components/CleaningFeatureGate';
 import { organizationCanAccessPath } from './config/moduleAccess';
 
 
@@ -59,26 +73,26 @@ function DocumentsArea() {
 
 function ClientsArea() {
   const { organization } = useOrganization();
-  const moduleKey = organization?.business_type === 'securite' ? 'security_clients' : 'clients';
-  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityClientsPage /> : <ClientsPage />}</ModuleAccessGuard>;
+  const moduleKey = organization?.business_type === 'securite' ? 'security_clients' : organization?.business_type === 'nettoyage' ? 'cleaning_clients' : 'clients';
+  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityClientsPage /> : organization?.business_type === 'nettoyage' ? <CleaningClientsPage /> : <ClientsPage />}</ModuleAccessGuard>;
 }
 
 function PlanningArea() {
   const { organization } = useOrganization();
-  const moduleKey = organization?.business_type === 'securite' ? 'security_planning' : 'planning';
-  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityPlanningPage /> : <ModulePage />}</ModuleAccessGuard>;
+  const moduleKey = organization?.business_type === 'securite' ? 'security_planning' : organization?.business_type === 'nettoyage' ? 'cleaning_planning' : 'planning';
+  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityPlanningPage /> : organization?.business_type === 'nettoyage' ? <CleaningPlanningPage /> : <ModulePage />}</ModuleAccessGuard>;
 }
 
 function AgentsArea() {
   const { organization } = useOrganization();
-  const moduleKey = organization?.business_type === 'securite' ? 'security_agents' : 'agents';
-  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityAgentsPage /> : <ModulePage />}</ModuleAccessGuard>;
+  const moduleKey = organization?.business_type === 'securite' ? 'security_agents' : organization?.business_type === 'nettoyage' ? 'cleaning_agents' : 'agents';
+  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityAgentsPage /> : organization?.business_type === 'nettoyage' ? <CleaningAgentsPage /> : <ModulePage />}</ModuleAccessGuard>;
 }
 
 function SitesArea() {
   const { organization } = useOrganization();
-  const moduleKey = organization?.business_type === 'securite' ? 'security_sites' : 'sites';
-  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecuritySitesPage /> : <ModulePage />}</ModuleAccessGuard>;
+  const moduleKey = organization?.business_type === 'securite' ? 'security_sites' : organization?.business_type === 'nettoyage' ? 'cleaning_sites' : 'sites';
+  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecuritySitesPage /> : organization?.business_type === 'nettoyage' ? <CleaningSitesPage /> : <ModulePage />}</ModuleAccessGuard>;
 }
 
 
@@ -94,7 +108,33 @@ function TeamAccessArea() {
   if (organization?.business_type === 'securite') {
     return <SecurityFeatureGate feature="team_access" requiredPlan="Essentielle" description="Connectez les agents à leur planning, leurs rondes et leur main courante. L’offre Professionnelle ajoute le rôle Chef de poste."><TeamAccessPage /></SecurityFeatureGate>;
   }
+  if (organization?.business_type === 'nettoyage') {
+    return <CleaningFeatureGate feature="team_access" requiredPlan="Essentielle" description="Connectez les agents à leur planning, leur pointage, leurs consignes et leurs rapports. L’offre Professionnelle ajoute le rôle Chef d’équipe."><TeamAccessPage /></CleaningFeatureGate>;
+  }
   return <ModuleAccessGuard moduleKey="team_access"><TeamAccessPage /></ModuleAccessGuard>;
+}
+
+
+
+function CleaningOnlyArea({ children }: { children: ReactNode }) {
+  const { organization } = useOrganization();
+  if (organization?.business_type !== 'nettoyage') return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+
+function CleaningOrSecurityBilling() {
+  const { organization } = useOrganization();
+  if (organization?.business_type === 'nettoyage') return <ModuleAccessGuard moduleKey="cleaning_billing"><CleaningBillingPage /></ModuleAccessGuard>;
+  return <ModuleAccessGuard moduleKey="security_billing"><SecurityBillingPage /></ModuleAccessGuard>;
+}
+
+function CleaningOrSecurityTerrain() {
+  const { organization } = useOrganization();
+  if (organization?.business_type === 'nettoyage') {
+    return <CleaningFeatureGate feature="cleaning_agent_portal" requiredPlan="Essentielle" description="Donnez aux agents un espace terrain avec planning, consignes, pointage et preuves photo."><CleaningAgentPortalPage /></CleaningFeatureGate>;
+  }
+  return <ModuleAccessGuard moduleKey="security_agent_portal"><SecurityAgentPortalPage /></ModuleAccessGuard>;
 }
 
 function LoadingScreen() {
@@ -161,12 +201,12 @@ export default function App() {
         <Route path="emargements" element={<ModuleAccessGuard moduleKey="attendance"><TrainingAttendancePage /></ModuleAccessGuard>} />
         <Route path="evaluations" element={<ModuleAccessGuard moduleKey="evaluations"><TrainingEvaluationsPage /></ModuleAccessGuard>} />
         <Route path="etablissements" element={<ModuleAccessGuard moduleKey="sites"><TrainingSitesPage /></ModuleAccessGuard>} />
-        <Route path="terrain" element={<ModuleAccessGuard moduleKey="security_agent_portal"><SecurityAgentPortalPage /></ModuleAccessGuard>} />
+        <Route path="terrain" element={<CleaningOrSecurityTerrain />} />
         <Route path="planning" element={<PlanningArea />} />
         <Route path="agents" element={<AgentsArea />} />
         <Route path="agents/:agentId" element={<ModuleAccessGuard moduleKey="security_agents"><SecurityAgentDetailPage /></ModuleAccessGuard>} />
         <Route path="sites" element={<SitesArea />} />
-        <Route path="facturation" element={<ModuleAccessGuard moduleKey="security_billing"><SecurityBillingPage /></ModuleAccessGuard>} />
+        <Route path="facturation" element={<CleaningOrSecurityBilling />} />
         <Route path="devis" element={<ModuleAccessGuard moduleKey="security_quotes"><SecurityQuotesPage /></ModuleAccessGuard>} />
         <Route path="rondes" element={<SecurityFeatureGate feature="security_qr_patrols" requiredPlan="Essentielle" description="Créez les points de passage, imprimez leurs QR codes et contrôlez chaque ronde depuis l’espace agent."><SecurityPatrolsPage /></SecurityFeatureGate>} />
         <Route path="main-courante" element={<SecurityFeatureGate feature="security_smart_logbook" requiredPlan="Essentielle" description="Chaque vacation dispose de sa main courante structurée et de son PDF dédié."><SecurityLogbookPage /></SecurityFeatureGate>} />
@@ -175,6 +215,12 @@ export default function App() {
         <Route path="pti" element={<SecurityFeatureGate feature="security_pti_sos" requiredPlan="Professionnelle" description="Activez la protection du travailleur isolé, les confirmations périodiques et le bouton SOS."><SecurityPtiPage /></SecurityFeatureGate>} />
         <Route path="supervision" element={<SecurityFeatureGate feature="security_realtime_supervision" requiredPlan="Professionnelle" description="Regroupez vacations en cours, positions GPS, PTI et urgences sur un écran de supervision."><SecuritySupervisionPage /></SecurityFeatureGate>} />
         <Route path="dossiers-vacations" element={<ModuleAccessGuard moduleKey="security_planning"><SecurityShiftDossiersPage /></ModuleAccessGuard>} />
+
+        <Route path="interventions" element={<CleaningOnlyArea><ModuleAccessGuard moduleKey="cleaning_interventions"><CleaningInterventionsPage /></ModuleAccessGuard></CleaningOnlyArea>} />
+        <Route path="rapports" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_visit_reports" requiredPlan="Essentielle" description="Créez des fiches de passage horodatées, illustrées et exportables en PDF."><CleaningReportsPage /></CleaningFeatureGate></CleaningOnlyArea>} />
+        <Route path="anomalies" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_anomalies" requiredPlan="Professionnelle" description="Suivez les écarts terrain et les actions correctives jusqu’à leur résolution."><CleaningAnomaliesPage /></CleaningFeatureGate></CleaningOnlyArea>} />
+        <Route path="qualite" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_quality_control" requiredPlan="Professionnelle" description="Contrôlez la qualité des prestations avec une grille de notation et un historique."><CleaningQualityPage /></CleaningFeatureGate></CleaningOnlyArea>} />
+        <Route path="stocks" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_stock" requiredPlan="Professionnelle" description="Pilotez les produits, consommables, coûts et seuils de réapprovisionnement."><CleaningStockPage /></CleaningFeatureGate></CleaningOnlyArea>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ClientsArea />} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />

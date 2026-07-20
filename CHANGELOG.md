@@ -1,10 +1,14 @@
-# V2.6.6 — Centre opérationnel Sécurité
+# V2.7.0 — Pack Nettoyage complet
 
-- Ajout du cockpit QG en temps réel sur le tableau de bord Sécurité.
-- Suivi immédiat des agents en poste, prises de poste en retard et fins de poste oubliées.
-- Regroupement des alertes critiques et anomalies opérationnelles dans une file « À traiter ».
-- Accès direct aux dossiers de vacation depuis le cockpit.
-- Aucun changement de schéma Supabase requis.
+- Activation du domaine Nettoyage dans NCR Suite et dans l’administration des offres.
+- Offre Découverte : clients, sites, agents, planning, affectations et préfacturation programmée.
+- Offre Essentielle : jusqu’à 10 agents connectés, espace terrain, pointage arrivée/départ, consignes de site, photos avant/après, fiches de passage et PDF.
+- Offre Professionnelle : jusqu’à 50 agents, rôle Chef d’équipe, anomalies, actions correctives, contrôle qualité, stocks, seuils et statistiques opérationnelles.
+- Offre Métier : conservation du multi-site, des modules et rôles sur mesure, de la marque blanche et des limites contractuelles.
+- Nouveau tableau de bord Nettoyage avec activité du jour, retards de pointage, anomalies et alertes de stock.
+- RLS Supabase dédiée, isolation stricte par entreprise et contrôle serveur des droits selon la formule.
+- Invitations d’agents Nettoyage reliées à leur fiche terrain.
+- Cache PWA passé en `V2.7.0-cleaning`.
 
 # V2.6.5 FINAL — Envoi devis, planning agent et suppression sécurisée
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
 import { organizationHasFeature, planLabel } from '../config/planEntitlements';
-import { filterNavigationForOrganization, securityPathIsLocked, securityRequiredPlanForPath } from '../config/moduleAccess';
+import { cleaningPathIsLocked, cleaningRequiredPlanForPath, filterNavigationForOrganization, securityPathIsLocked, securityRequiredPlanForPath } from '../config/moduleAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { Icon } from './Icon';
@@ -80,13 +80,15 @@ export function AppShell() {
   const baseNavigation = pack.navigation.filter((item) => item.path !== '/abonnement');
   let navigation = baseNavigation;
 
-  if (organization.business_type === 'securite' && ['owner', 'admin'].includes(organization.role ?? 'viewer')) {
+  if (['securite', 'nettoyage'].includes(organization.business_type) && ['owner', 'admin'].includes(organization.role ?? 'viewer')) {
     navigation = navigation.filter((item) => item.path !== '/terrain');
   }
 
   if (restrictedRole && !hasCustomRole) {
     if (organization.business_type === 'securite' && organization.role === 'employee') {
       navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti', '/notifications'].includes(item.path));
+    } else if (organization.business_type === 'nettoyage' && organization.role === 'employee') {
+      navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/interventions', '/rapports', '/anomalies', '/notifications'].includes(item.path));
     } else if (organization.business_type === 'formation' && organizationHasFeature(organization, 'team_access')) {
       navigation = baseNavigation.filter((item) => !['/acces-equipe', '/personnalisation', '/etablissements', '/parametres'].includes(item.path));
     } else {
@@ -96,6 +98,10 @@ export function AppShell() {
 
   if (organization.business_type === 'securite' && organization.role === 'manager') {
     navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications'].includes(item.path));
+  }
+
+  if (organization.business_type === 'nettoyage' && organization.role === 'manager') {
+    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications'].includes(item.path));
   }
 
   navigation = filterNavigationForOrganization(organization, navigation);
@@ -167,8 +173,8 @@ export function AppShell() {
 
         <nav className="main-nav" aria-label="Navigation principale">
           {navigation.map((item) => {
-            const locked = securityPathIsLocked(organization, item.path);
-            const requiredPlan = securityRequiredPlanForPath(item.path);
+            const locked = securityPathIsLocked(organization, item.path) || cleaningPathIsLocked(organization, item.path);
+            const requiredPlan = organization.business_type === 'nettoyage' ? cleaningRequiredPlanForPath(item.path) : securityRequiredPlanForPath(item.path);
             return <NavLink key={item.path} to={item.path} end={item.path === '/'} className={({ isActive }) => `${isActive ? 'active' : ''}${locked ? ' premium-locked' : ''}`}>
               <Icon name={item.icon} size={20} />
               <span>{item.label}</span>
@@ -301,8 +307,8 @@ export function AppShell() {
             <div className="mobile-drawer-section-title">Navigation</div>
             <nav className="mobile-drawer-nav" aria-label="Toutes les rubriques">
               {navigation.map((item) => {
-                const locked = securityPathIsLocked(organization, item.path);
-                const requiredPlan = securityRequiredPlanForPath(item.path);
+                const locked = securityPathIsLocked(organization, item.path) || cleaningPathIsLocked(organization, item.path);
+                const requiredPlan = organization.business_type === 'nettoyage' ? cleaningRequiredPlanForPath(item.path) : securityRequiredPlanForPath(item.path);
                 return <NavLink key={item.path} to={item.path} end={item.path === '/'} onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => `${isActive ? 'active' : ''}${locked ? ' premium-locked' : ''}`}>
                   <span className="mobile-drawer-nav-icon"><Icon name={item.icon} size={20} /></span>
                   <span>{item.label}</span>

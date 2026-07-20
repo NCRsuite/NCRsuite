@@ -353,7 +353,7 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
     label: 'Nettoyage',
     description: 'Planning, pointage, interventions et contrôle qualité.',
     icon: 'sparkles',
-    launchStatus: 'planned',
+    launchStatus: 'available',
     accessUnitSingular: 'agent connecté',
     accessUnitPlural: 'agents connectés',
     plans: {
