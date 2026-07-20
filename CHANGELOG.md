@@ -1,3 +1,11 @@
+# V2.6.6 — Centre opérationnel Sécurité
+
+- Ajout du cockpit QG en temps réel sur le tableau de bord Sécurité.
+- Suivi immédiat des agents en poste, prises de poste en retard et fins de poste oubliées.
+- Regroupement des alertes critiques et anomalies opérationnelles dans une file « À traiter ».
+- Accès direct aux dossiers de vacation depuis le cockpit.
+- Aucun changement de schéma Supabase requis.
+
 # V2.6.5 FINAL — Envoi devis, planning agent et suppression sécurisée
 
 - Nouveau service Edge Function `send-security-document-v2` pour fiabiliser l’envoi des devis et factures.
