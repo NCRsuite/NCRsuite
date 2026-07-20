@@ -65,6 +65,19 @@ import { CleaningProtocolsPage } from './pages/CleaningProtocolsPage';
 import { CleaningProfitabilityPage } from './pages/CleaningProfitabilityPage';
 import { CleaningFeatureGate } from './components/CleaningFeatureGate';
 import { organizationCanAccessPath } from './config/moduleAccess';
+import { RestaurantEmployeesPage } from './pages/RestaurantEmployeesPage';
+import { RestaurantPlanningPage } from './pages/RestaurantPlanningPage';
+import { RestaurantEmployeePortalPage } from './pages/RestaurantEmployeePortalPage';
+import { RestaurantMenuPage } from './pages/RestaurantMenuPage';
+import { RestaurantReservationsPage } from './pages/RestaurantReservationsPage';
+import { RestaurantFloorPlanPage } from './pages/RestaurantFloorPlanPage';
+import { RestaurantQrMenuPage } from './pages/RestaurantQrMenuPage';
+import { RestaurantFoodSafetyPage } from './pages/RestaurantFoodSafetyPage';
+import { RestaurantStockPage } from './pages/RestaurantStockPage';
+import { PublicRestaurantMenuPage } from './pages/PublicRestaurantMenuPage';
+import { PublicRestaurantBookingPage } from './pages/PublicRestaurantBookingPage';
+import { RestaurantFeatureGate } from './components/RestaurantFeatureGate';
+
 
 
 function DocumentsArea() {
@@ -81,8 +94,8 @@ function ClientsArea() {
 
 function PlanningArea() {
   const { organization } = useOrganization();
-  const moduleKey = organization?.business_type === 'securite' ? 'security_planning' : organization?.business_type === 'nettoyage' ? 'cleaning_planning' : 'planning';
-  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityPlanningPage /> : organization?.business_type === 'nettoyage' ? <CleaningPlanningPage /> : <ModulePage />}</ModuleAccessGuard>;
+  const moduleKey = organization?.business_type === 'securite' ? 'security_planning' : organization?.business_type === 'nettoyage' ? 'cleaning_planning' : organization?.business_type === 'restauration' ? 'restaurant_staff_planning' : 'planning';
+  return <ModuleAccessGuard moduleKey={moduleKey}>{organization?.business_type === 'securite' ? <SecurityPlanningPage /> : organization?.business_type === 'nettoyage' ? <CleaningPlanningPage /> : organization?.business_type === 'restauration' ? <RestaurantPlanningPage /> : <ModulePage />}</ModuleAccessGuard>;
 }
 
 function AgentsArea() {
@@ -101,6 +114,7 @@ function SitesArea() {
 function BrandingArea() {
   const { organization } = useOrganization();
   const moduleKey = organization?.business_type === 'securite' ? 'security_document_branding' : 'commercial_branding';
+  if (organization?.business_type === 'restauration') return <RestaurantFeatureGate feature="commercial_branding" requiredPlan="Essentielle" description="Personnalisez le menu public, les documents et les communications du restaurant."><CommercialBrandingPage /></RestaurantFeatureGate>;
   return <ModuleAccessGuard moduleKey={moduleKey}><CommercialBrandingPage /></ModuleAccessGuard>;
 }
 
@@ -112,6 +126,9 @@ function TeamAccessArea() {
   }
   if (organization?.business_type === 'nettoyage') {
     return <CleaningFeatureGate feature="team_access" requiredPlan="Essentielle" description="Connectez les agents à leur planning, leur pointage, leurs consignes et leurs rapports. L’offre Professionnelle ajoute le rôle Chef d’équipe."><TeamAccessPage /></CleaningFeatureGate>;
+  }
+  if (organization?.business_type === 'restauration') {
+    return <RestaurantFeatureGate feature="team_access" requiredPlan="Essentielle" description="Connectez jusqu’à 10 employés à leur planning, aux réservations, à la carte et aux outils d’hygiène. L’offre Professionnelle ajoute le rôle Manager."><TeamAccessPage /></RestaurantFeatureGate>;
   }
   return <ModuleAccessGuard moduleKey="team_access"><TeamAccessPage /></ModuleAccessGuard>;
 }
@@ -125,18 +142,42 @@ function CleaningOnlyArea({ children }: { children: ReactNode }) {
 }
 
 
+function RestaurantOnlyArea({ children }: { children: ReactNode }) {
+  const { organization } = useOrganization();
+  if (organization?.business_type !== 'restauration') return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+
 function CleaningOrSecurityBilling() {
   const { organization } = useOrganization();
   if (organization?.business_type === 'nettoyage') return <ModuleAccessGuard moduleKey="cleaning_billing"><CleaningBillingPage /></ModuleAccessGuard>;
   return <ModuleAccessGuard moduleKey="security_billing"><SecurityBillingPage /></ModuleAccessGuard>;
 }
 
-function CleaningOrSecurityTerrain() {
+function FieldTerrainArea() {
   const { organization } = useOrganization();
   if (organization?.business_type === 'nettoyage') {
     return <CleaningFeatureGate feature="cleaning_agent_portal" requiredPlan="Essentielle" description="Donnez aux agents un espace terrain avec planning, consignes, pointage et preuves photo."><CleaningAgentPortalPage /></CleaningFeatureGate>;
   }
+  if (organization?.business_type === 'restauration') {
+    return <RestaurantFeatureGate feature="restaurant_employee_portal" requiredPlan="Essentielle" description="Donnez aux employés un espace personnel avec planning, réservations, carte et outils d’hygiène."><RestaurantEmployeePortalPage /></RestaurantFeatureGate>;
+  }
   return <ModuleAccessGuard moduleKey="security_agent_portal"><SecurityAgentPortalPage /></ModuleAccessGuard>;
+}
+
+
+function StaffArea() {
+  const { organization } = useOrganization();
+  if (organization?.business_type === 'restauration') return <ModuleAccessGuard moduleKey="restaurant_staff"><RestaurantEmployeesPage /></ModuleAccessGuard>;
+  return <ModuleAccessGuard moduleKey="staff"><StaffPage /></ModuleAccessGuard>;
+}
+
+function StockArea() {
+  const { organization } = useOrganization();
+  if (organization?.business_type === 'nettoyage') return <CleaningOnlyArea><CleaningFeatureGate feature="cleaning_stock" requiredPlan="Professionnelle" description="Pilotez les produits, consommables, coûts et seuils de réapprovisionnement."><CleaningStockPage /></CleaningFeatureGate></CleaningOnlyArea>;
+  if (organization?.business_type === 'restauration') return <ModuleAccessGuard moduleKey="restaurant_stock"><RestaurantStockPage /></ModuleAccessGuard>;
+  return <Navigate to="/" replace />;
 }
 
 function LoadingScreen() {
@@ -191,6 +232,8 @@ export default function App() {
       <Route path="/reservation/:token" element={<PublicBookingManagePage />} />
       <Route path="/invitation/:token" element={<InvitationPage />} />
       <Route path="/evaluation/:token" element={<PublicTrainingSatisfactionPage />} />
+      <Route path="/r/:slug/menu" element={<PublicRestaurantMenuPage />} />
+      <Route path="/r/:slug/reserver" element={<PublicRestaurantBookingPage />} />
       <Route path="/administration-ncr" element={<PlatformAdminArea />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
@@ -203,7 +246,7 @@ export default function App() {
         <Route path="emargements" element={<ModuleAccessGuard moduleKey="attendance"><TrainingAttendancePage /></ModuleAccessGuard>} />
         <Route path="evaluations" element={<ModuleAccessGuard moduleKey="evaluations"><TrainingEvaluationsPage /></ModuleAccessGuard>} />
         <Route path="etablissements" element={<ModuleAccessGuard moduleKey="sites"><TrainingSitesPage /></ModuleAccessGuard>} />
-        <Route path="terrain" element={<CleaningOrSecurityTerrain />} />
+        <Route path="terrain" element={<FieldTerrainArea />} />
         <Route path="planning" element={<PlanningArea />} />
         <Route path="agents" element={<AgentsArea />} />
         <Route path="agents/:agentId" element={<ModuleAccessGuard moduleKey="security_agents"><SecurityAgentDetailPage /></ModuleAccessGuard>} />
@@ -224,11 +267,17 @@ export default function App() {
         <Route path="rapports" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_visit_reports" requiredPlan="Essentielle" description="Créez des fiches de passage horodatées, illustrées et exportables en PDF."><CleaningReportsPage /></CleaningFeatureGate></CleaningOnlyArea>} />
         <Route path="anomalies" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_anomalies" requiredPlan="Professionnelle" description="Suivez les écarts terrain et les actions correctives jusqu’à leur résolution."><CleaningAnomaliesPage /></CleaningFeatureGate></CleaningOnlyArea>} />
         <Route path="qualite" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_quality_control" requiredPlan="Professionnelle" description="Contrôlez la qualité des prestations avec une grille de notation et un historique."><CleaningQualityPage /></CleaningFeatureGate></CleaningOnlyArea>} />
-        <Route path="stocks" element={<CleaningOnlyArea><CleaningFeatureGate feature="cleaning_stock" requiredPlan="Professionnelle" description="Pilotez les produits, consommables, coûts et seuils de réapprovisionnement."><CleaningStockPage /></CleaningFeatureGate></CleaningOnlyArea>} />
+        <Route path="stocks" element={<StockArea />} />
+
+        <Route path="carte" element={<RestaurantOnlyArea><ModuleAccessGuard moduleKey="restaurant_menu"><RestaurantMenuPage /></ModuleAccessGuard></RestaurantOnlyArea>} />
+        <Route path="reservations" element={<RestaurantOnlyArea><ModuleAccessGuard moduleKey="restaurant_reservations"><RestaurantReservationsPage /></ModuleAccessGuard></RestaurantOnlyArea>} />
+        <Route path="salle" element={<RestaurantOnlyArea><RestaurantFeatureGate feature="restaurant_floor_plan" requiredPlan="Essentielle" description="Créez les zones et tables utilisées pendant le service."><RestaurantFloorPlanPage /></RestaurantFeatureGate></RestaurantOnlyArea>} />
+        <Route path="menu-qr" element={<RestaurantOnlyArea><RestaurantFeatureGate feature="restaurant_multilingual_qr_menu" requiredPlan="Essentielle" description="Diffusez votre menu en français, anglais, espagnol et italien via QR code."><RestaurantQrMenuPage /></RestaurantFeatureGate></RestaurantOnlyArea>} />
+        <Route path="hygiene" element={<RestaurantOnlyArea><RestaurantFeatureGate feature="restaurant_temperatures" requiredPlan="Essentielle" description="Tracez les températures et les checklists HACCP du restaurant."><RestaurantFoodSafetyPage /></RestaurantFeatureGate></RestaurantOnlyArea>} />
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ClientsArea />} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />
-        <Route path="equipe" element={<ModuleAccessGuard moduleKey="staff"><StaffPage /></ModuleAccessGuard>} />
+        <Route path="equipe" element={<StaffArea />} />
         <Route path="acces-equipe" element={<TeamAccessArea />} />
         <Route path="personnalisation" element={<BrandingArea />} />
         <Route path="notifications" element={<NotificationsPage />} />

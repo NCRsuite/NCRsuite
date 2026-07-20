@@ -1,3 +1,16 @@
+# V2.8.0 — Pack Restauration
+
+- Activation du domaine Restauration dans NCR Suite et dans l’administration des offres.
+- Offre Découverte : employés, planning, carte, catégories, prix, allergènes, fournisseurs, stocks simples et réservations internes.
+- Offre Essentielle : jusqu’à 10 employés connectés, espace personnel, réservation publique, plan de salle, menu QR en français, anglais, espagnol et italien, températures et checklists.
+- Offre Professionnelle : jusqu’à 50 employés, rôle Manager, coûts matière confidentiels, marge théorique par plat, stocks avancés, pertes et statistiques opérationnelles.
+- Pages publiques dédiées au menu QR et à la demande de réservation.
+- Accès aux fonctions supérieures visibles avec cadenas et contrôlés côté Supabase.
+- Coûts matière lisibles uniquement par le propriétaire et les administrateurs.
+- Invitations d’employés reliées à leur fiche Restauration.
+- RLS dédiée et isolation stricte des données par entreprise.
+- Cache PWA passé en `V2.8.0-restaurant`.
+
 # V2.7.1 — Protocoles, récurrences et rentabilité Nettoyage
 
 - Offre Découverte : protocoles de nettoyage structurés par site et planification récurrente hebdomadaire.

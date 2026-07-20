@@ -398,7 +398,7 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
     label: 'Restauration',
     description: 'Équipe, réservations, menu, hygiène, stocks et rentabilité.',
     icon: 'utensils',
-    launchStatus: 'planned',
+    launchStatus: 'available',
     accessUnitSingular: 'employé connecté',
     accessUnitPlural: 'employés connectés',
     plans: {
@@ -411,7 +411,7 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       essentielle: {
         label: 'Essentielle', monthlyPriceCents: 4990, memberLimit: 10,
         detail: 'Ajoute les employés connectés, les réservations en ligne et le menu QR multilingue.',
-        additions: ['Jusqu’à 10 employés connectés', 'Rôles Serveur et Cuisine', 'Réservation en ligne et plan de salle', 'Menu QR en français, anglais, espagnol et italien', 'Traductions automatiques modifiables', 'Températures et checklists', 'Personnalisation des documents et e-mails'],
+        additions: ['Jusqu’à 10 employés connectés', 'Rôles Serveur et Cuisine', 'Réservation en ligne et plan de salle', 'Menu QR en français, anglais, espagnol et italien', 'Traductions multilingues modifiables', 'Températures et checklists', 'Personnalisation des documents et e-mails'],
         features: restaurantEssentielle,
         recommended: true
       },

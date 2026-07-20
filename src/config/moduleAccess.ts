@@ -67,6 +67,19 @@ const SECURITY_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/supervision': 'security_realtime_supervision'
 };
 
+const RESTAURANT_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
+  '/terrain': 'restaurant_employee_portal',
+  '/planning': 'restaurant_staff_planning',
+  '/carte': 'restaurant_menu',
+  '/reservations': 'restaurant_manual_reservations',
+  '/salle': 'restaurant_floor_plan',
+  '/menu-qr': 'restaurant_multilingual_qr_menu',
+  '/hygiene': 'restaurant_temperatures',
+  '/stocks': 'restaurant_basic_stock',
+  '/acces-equipe': 'team_access',
+  '/personnalisation': 'commercial_branding'
+};
+
 const CLEANING_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/terrain': 'cleaning_agent_portal',
   '/rapports': 'cleaning_visit_reports',
@@ -80,9 +93,11 @@ const CLEANING_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
 
 const SECURITY_UPSELL_PATHS = new Set(['/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision']);
 const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/rapports', '/anomalies', '/qualite', '/stocks', '/rentabilite', '/acces-equipe']);
+const RESTAURANT_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/personnalisation']);
 
 const SECURITY_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications']);
 const CLEANING_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/protocoles', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications']);
+const RESTAURANT_MANAGER_PATHS = new Set(['/', '/terrain', '/planning', '/equipe', '/carte', '/reservations', '/salle', '/menu-qr', '/hygiene', '/stocks', '/notifications']);
 
 export function normalizedModulePath(pathname: string) {
   return pathname === '/' ? '/' : `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
@@ -97,6 +112,12 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
     };
     if (securityModules[normalized]) return securityModules[normalized];
   }
+  if (businessType === 'restauration') {
+    const restaurantModules: Record<string, string> = {
+      '/terrain': 'restaurant_employee_portal', '/planning': 'restaurant_staff_planning', '/equipe': 'restaurant_staff', '/acces-equipe': 'team_access', '/carte': 'restaurant_menu', '/reservations': 'restaurant_reservations', '/salle': 'restaurant_floor_plan', '/menu-qr': 'restaurant_qr_menu', '/hygiene': 'restaurant_food_safety', '/stocks': 'restaurant_stock', '/personnalisation': 'commercial_branding'
+    };
+    if (restaurantModules[normalized]) return restaurantModules[normalized];
+  }
   if (businessType === 'nettoyage') {
     const cleaningModules: Record<string, string> = {
       '/terrain': 'cleaning_agent_portal', '/clients': 'cleaning_clients', '/sites': 'cleaning_sites', '/agents': 'cleaning_agents', '/planning': 'cleaning_planning', '/interventions': 'cleaning_interventions', '/protocoles': 'cleaning_protocols', '/rentabilite': 'cleaning_profitability', '/rapports': 'cleaning_reports', '/anomalies': 'cleaning_anomalies', '/qualite': 'cleaning_quality', '/stocks': 'cleaning_stock', '/facturation': 'cleaning_billing', '/acces-equipe': 'team_access'
@@ -110,6 +131,7 @@ export function featureKeyForPath(pathname: string, businessType?: Organization[
   const normalized = normalizedModulePath(pathname);
   if (businessType === 'securite') return SECURITY_FEATURE_BY_PATH[normalized] ?? GENERIC_FEATURE_BY_PATH[normalized];
   if (businessType === 'nettoyage') return CLEANING_FEATURE_BY_PATH[normalized] ?? GENERIC_FEATURE_BY_PATH[normalized];
+  if (businessType === 'restauration') return RESTAURANT_FEATURE_BY_PATH[normalized] ?? GENERIC_FEATURE_BY_PATH[normalized];
   return GENERIC_FEATURE_BY_PATH[normalized];
 }
 
@@ -127,9 +149,21 @@ export function cleaningRequiredPlanForPath(pathname: string): 'Essentielle' | '
   return null;
 }
 
+export function restaurantRequiredPlanForPath(pathname: string): 'Essentielle' | 'Professionnelle' | null {
+  const normalized = normalizedModulePath(pathname);
+  if (['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/personnalisation'].includes(normalized)) return 'Essentielle';
+  return null;
+}
+
 export function securityPathIsLocked(organization: Organization, pathname: string) {
   if (organization.business_type !== 'securite') return false;
   const feature = featureKeyForPath(pathname, 'securite');
+  return Boolean(feature && !organizationHasFeature(organization, feature));
+}
+
+export function restaurantPathIsLocked(organization: Organization, pathname: string) {
+  if (organization.business_type !== 'restauration') return false;
+  const feature = featureKeyForPath(pathname, 'restauration');
   return Boolean(feature && !organizationHasFeature(organization, feature));
 }
 
@@ -147,6 +181,11 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
     if (organization.role === 'manager' && !SECURITY_CHEF_PATHS.has(normalized)) return false;
   }
 
+  if (organization.business_type === 'restauration') {
+    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/carte', '/reservations', '/salle', '/hygiene', '/notifications'].includes(normalized)) return false;
+    if (organization.role === 'manager' && !RESTAURANT_MANAGER_PATHS.has(normalized)) return false;
+  }
+
   if (organization.business_type === 'nettoyage') {
     if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/interventions', '/rapports', '/anomalies', '/notifications'].includes(normalized)) return false;
     if (organization.role === 'manager' && !CLEANING_CHEF_PATHS.has(normalized)) return false;
@@ -162,6 +201,7 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
   if (requiredFeature && !organizationHasFeature(organization, requiredFeature)) {
     if (organization.business_type === 'securite' && ['owner', 'admin'].includes(organization.role ?? 'viewer') && SECURITY_UPSELL_PATHS.has(normalized)) return true;
     if (organization.business_type === 'nettoyage' && ['owner', 'admin'].includes(organization.role ?? 'viewer') && CLEANING_UPSELL_PATHS.has(normalized)) return true;
+    if (organization.business_type === 'restauration' && ['owner', 'admin'].includes(organization.role ?? 'viewer') && RESTAURANT_UPSELL_PATHS.has(normalized)) return true;
     return false;
   }
 
