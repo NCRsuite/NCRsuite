@@ -55,7 +55,7 @@ const statusLabels: Record<RestaurantReservationStatus, string> = {
 const blockingStatuses: RestaurantReservationStatus[] = ['pending', 'confirmed', 'seated'];
 
 export function RestaurantReservationsPage() {
-  const { organization } = useOrganization();
+  const { organization, updateBookingSettings } = useOrganization();
   const { user, demoMode } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [rows, setRows] = useState<RestaurantReservationRecord[]>([]);
@@ -64,6 +64,7 @@ export function RestaurantReservationsPage() {
   const [day, setDay] = useState(new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activatingPublicPage, setActivatingPublicPage] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [unavailableTableIds, setUnavailableTableIds] = useState<Set<string>>(new Set());
   const [availabilityError, setAvailabilityError] = useState('');
@@ -71,6 +72,31 @@ export function RestaurantReservationsPage() {
   const [success, setSuccess] = useState('');
   const formOpen = searchParams.get('new') === '1';
   const hasOnline = Boolean(organization && organizationHasFeature(organization, 'restaurant_online_reservations'));
+  const publicPageActive = Boolean(hasOnline && organization?.booking_enabled);
+  const canManagePublicPage = Boolean(organization && ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer'));
+
+  async function activatePublicPage() {
+    if (!organization || !hasOnline || !canManagePublicPage) return;
+    setActivatingPublicPage(true);
+    setError('');
+    setSuccess('');
+    try {
+      await updateBookingSettings({
+        enabled: true,
+        confirmationMode: organization.booking_confirmation_mode ?? 'manual',
+        slotInterval: organization.booking_slot_interval ?? 15,
+        minNoticeHours: organization.booking_min_notice_hours ?? 2,
+        maxDaysAhead: organization.booking_max_days_ahead ?? 180,
+        cancelNoticeHours: organization.booking_cancel_notice_hours ?? 12,
+        welcomeText: organization.booking_welcome_text ?? ''
+      });
+      setSuccess('La page publique de réservation est maintenant activée.');
+    } catch (caught) {
+      setError(errorMessage(caught, 'Activation de la page publique impossible.'));
+    } finally {
+      setActivatingPublicPage(false);
+    }
+  }
 
   async function load() {
     if (!organization) return;
@@ -294,10 +320,21 @@ export function RestaurantReservationsPage() {
         <p>Centralise les réservations internes et celles reçues depuis le lien public.</p>
       </div>
       <div className="header-actions">
-        {hasOnline && <a className="secondary-button" href={`/r/${organization.slug}/reserver`} target="_blank" rel="noreferrer"><Icon name="eye" size={18}/>Page publique</a>}
+        {publicPageActive && <a className="secondary-button" href={`/r/${organization.slug}/reserver`} target="_blank" rel="noreferrer"><Icon name="eye" size={18}/>Page publique</a>}
+        {hasOnline && !publicPageActive && canManagePublicPage && (
+          <button className="secondary-button" onClick={() => void activatePublicPage()} disabled={activatingPublicPage}>
+            <Icon name="eye" size={18}/>{activatingPublicPage ? 'Activation…' : 'Activer la page publique'}
+          </button>
+        )}
         <button className="primary-button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18}/>Nouvelle réservation</button>
       </div>
     </header>
+
+    {hasOnline && !publicPageActive && (
+      <div className="info-message page-message">
+        La réservation en ligne est incluse dans votre formule, mais la page publique est désactivée. Active-la ici ou depuis les paramètres de l’entreprise.
+      </div>
+    )}
 
     {formOpen && <section className="panel restaurant-form-panel">
       <div className="panel-header">

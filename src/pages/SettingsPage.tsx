@@ -77,7 +77,9 @@ export function SettingsPage() {
 
   const bookingUrl = useMemo(() => {
     if (!organization || typeof window === "undefined") return "";
-    return `${window.location.origin}/reserver/${organization.slug}`;
+    return organization.business_type === "restauration"
+      ? `${window.location.origin}/r/${organization.slug}/reserver`
+      : `${window.location.origin}/reserver/${organization.slug}`;
   }, [organization]);
 
   if (!organization) return null;
@@ -85,7 +87,10 @@ export function SettingsPage() {
   const canManage = ["owner", "admin", "manager"].includes(
     organization.role ?? "viewer",
   );
-  const isBookingBusiness = organization.business_type === "coiffure";
+  const isHairBusiness = organization.business_type === "coiffure";
+  const isRestaurantBusiness = organization.business_type === "restauration";
+  const isCleaningBusiness = organization.business_type === "nettoyage";
+  const isBookingBusiness = isHairBusiness || isRestaurantBusiness;
   const hasAutomaticReminders = planHasFeature(
     organization.plan,
     "automatic_reminders",
@@ -101,6 +106,22 @@ export function SettingsPage() {
   );
   const isTrainingBusiness = organization.business_type === "formation";
   const isSecurityBusiness = organization.business_type === "securite";
+  const hasRestaurantOnlineReservations = organizationHasFeature(
+    organization,
+    "restaurant_online_reservations",
+  );
+  const hasRestaurantQrMenu = organizationHasFeature(
+    organization,
+    "restaurant_multilingual_qr_menu",
+  );
+  const hasRestaurantFloorAdvanced = organizationHasFeature(
+    organization,
+    "restaurant_floor_advanced",
+  );
+  const hasRestaurantFoodCost = organizationHasFeature(
+    organization,
+    "restaurant_food_cost",
+  );
   const hasTrainingDigitalAttendance = organizationHasFeature(
     organization,
     "training_digital_attendance",
@@ -166,7 +187,11 @@ export function SettingsPage() {
     ? "Formation"
     : isSecurityBusiness
       ? "Sécurité privée"
-      : "Coiffure";
+      : isCleaningBusiness
+        ? "Nettoyage"
+        : isRestaurantBusiness
+          ? "Restauration"
+          : "Coiffure";
 
   async function submitBranding(event: FormEvent) {
     event.preventDefault();
@@ -189,6 +214,7 @@ export function SettingsPage() {
   async function submitBooking(event: FormEvent) {
     event.preventDefault();
     if (!canManage || !isBookingBusiness) return;
+    if (isRestaurantBusiness && !hasRestaurantOnlineReservations) return;
     setSavingBooking(true);
     setMessage("");
     setError("");
@@ -214,7 +240,7 @@ export function SettingsPage() {
 
   async function submitEmailNotifications(event: FormEvent) {
     event.preventDefault();
-    if (!canManage || !isBookingBusiness) return;
+    if (!canManage || !isHairBusiness) return;
     setSavingEmail(true);
     setMessage("");
     setError("");
@@ -237,7 +263,7 @@ export function SettingsPage() {
 
   async function submitClientExperience(event: FormEvent) {
     event.preventDefault();
-    if (!canManage || !isBookingBusiness) return;
+    if (!canManage || !isHairBusiness) return;
     setSavingClientExperience(true);
     setMessage("");
     setError("");
@@ -276,7 +302,11 @@ export function SettingsPage() {
               ? "Consultez les droits de votre formule et réglez l’identité générale de votre espace Formation."
               : isSecurityBusiness
                 ? "Consultez les droits de votre formule Sécurité privée et l’identité de votre espace opérationnel."
-                : "Personnalisez l’espace de votre entreprise et contrôlez la réservation publique."}
+                : isCleaningBusiness
+                  ? "Consultez les droits de votre formule Nettoyage et personnalisez l’identité de votre entreprise."
+                  : isRestaurantBusiness
+                    ? "Consultez les droits de votre formule Restauration et gérez votre page publique de réservation."
+                    : "Personnalisez l’espace de votre entreprise et contrôlez la réservation publique."}
           </p>
         </div>
       </header>
@@ -544,6 +574,69 @@ export function SettingsPage() {
                   </span>
                 </article>
               </>
+            ) : isRestaurantBusiness ? (
+              <>
+                <article className="enabled">
+                  <Icon name="check" size={18} />
+                  <span>
+                    <strong>Gestion du restaurant</strong>
+                    <small>Équipe, planning, carte, allergènes, fournisseurs et stocks</small>
+                  </span>
+                </article>
+                <article className={hasRestaurantOnlineReservations ? "enabled" : "locked"}>
+                  <Icon name={hasRestaurantOnlineReservations ? "check" : "lock"} size={18} />
+                  <span>
+                    <strong>Réservation publique</strong>
+                    <small>
+                      {hasRestaurantOnlineReservations
+                        ? "Page publique activable, disponibilités et attribution des tables"
+                        : "À partir de l’offre Essentielle"}
+                    </small>
+                  </span>
+                </article>
+                <article className={hasRestaurantQrMenu ? "enabled" : "locked"}>
+                  <Icon name={hasRestaurantQrMenu ? "check" : "lock"} size={18} />
+                  <span>
+                    <strong>Menu QR multilingue</strong>
+                    <small>
+                      {hasRestaurantQrMenu
+                        ? "Français, anglais, espagnol et italien"
+                        : "À partir de l’offre Essentielle"}
+                    </small>
+                  </span>
+                </article>
+                <article className={hasRestaurantFloorAdvanced ? "enabled" : "locked"}>
+                  <Icon name={hasRestaurantFloorAdvanced ? "check" : "lock"} size={18} />
+                  <span>
+                    <strong>Plusieurs salles et multi-site</strong>
+                    <small>
+                      {hasRestaurantFloorAdvanced
+                        ? "Salles multiples, supervision et organisation avancée"
+                        : "À partir de l’offre Professionnelle"}
+                    </small>
+                  </span>
+                </article>
+                <article className={hasRestaurantFoodCost ? "enabled" : "locked"}>
+                  <Icon name={hasRestaurantFoodCost ? "check" : "lock"} size={18} />
+                  <span>
+                    <strong>Coût matière et rentabilité</strong>
+                    <small>
+                      {hasRestaurantFoodCost
+                        ? "Marge par plat, inventaires, pertes et statistiques"
+                        : "À partir de l’offre Professionnelle"}
+                    </small>
+                  </span>
+                </article>
+              </>
+            ) : isCleaningBusiness ? (
+              <>
+                {currentPlan.additions.map((addition) => (
+                  <article className="enabled" key={addition}>
+                    <Icon name="check" size={18} />
+                    <span><strong>{addition}</strong><small>Inclus dans votre formule Nettoyage</small></span>
+                  </article>
+                ))}
+              </>
             ) : (
               <>
                 <article className="enabled">
@@ -656,7 +749,7 @@ export function SettingsPage() {
           </label>
           <div className="settings-summary">
             <span>Type d’activité</span>
-            <strong>{organization.business_type}</strong>
+            <strong>{domainPriceLabel}</strong>
             <span>Formule</span>
             <strong>{planLabel(organization.plan)}</strong>
             <span>Identifiant</span>
@@ -677,9 +770,11 @@ export function SettingsPage() {
             <div className="settings-section-heading">
               <div>
                 <p className="eyebrow">RÉSERVATION PUBLIQUE</p>
-                <h2>Prise de rendez-vous en ligne</h2>
+                <h2>{isRestaurantBusiness ? "Réservations en ligne" : "Prise de rendez-vous en ligne"}</h2>
                 <p className="muted">
-                  Le client ne voit que les créneaux réellement disponibles.
+                  {isRestaurantBusiness
+                    ? "Les clients réservent depuis votre page publique et seules les tables réellement disponibles sont proposées."
+                    : "Le client ne voit que les créneaux réellement disponibles."}
                 </p>
               </div>
               <label className="switch-field">
@@ -687,7 +782,7 @@ export function SettingsPage() {
                   type="checkbox"
                   checked={bookingEnabled}
                   onChange={(event) => setBookingEnabled(event.target.checked)}
-                  disabled={!canManage}
+                  disabled={!canManage || (isRestaurantBusiness && !hasRestaurantOnlineReservations)}
                 />
                 <span aria-hidden="true" />
                 <b>{bookingEnabled ? "Activée" : "Désactivée"}</b>
@@ -699,7 +794,7 @@ export function SettingsPage() {
                 <Icon name="calendar" size={22} />
               </div>
               <div>
-                <span>Lien public de réservation</span>
+                <span>{isRestaurantBusiness ? "Page publique du restaurant" : "Lien public de réservation"}</span>
                 <strong>{bookingUrl}</strong>
               </div>
               <button
@@ -719,6 +814,31 @@ export function SettingsPage() {
               </a>
             </div>
 
+            {isRestaurantBusiness ? (
+              <>
+                {!hasRestaurantOnlineReservations && (
+                  <div className="info-message booking-email-note">
+                    La réservation publique est disponible à partir de l’offre Essentielle. Votre formule actuelle ne permet pas de l’activer.
+                  </div>
+                )}
+                <div className="booking-settings-grid">
+                  <label className="full-field">
+                    Message d’accueil de la page publique
+                    <textarea
+                      rows={3}
+                      maxLength={500}
+                      value={welcomeText}
+                      onChange={(event) => setWelcomeText(event.target.value)}
+                      placeholder="Ex. Réservez votre table en quelques instants. Nous vous confirmerons votre demande rapidement."
+                      disabled={!canManage || !hasRestaurantOnlineReservations}
+                    />
+                  </label>
+                </div>
+                <div className="info-message booking-email-note">
+                  Les tables déjà réservées ou trop petites sont automatiquement retirées des disponibilités publiques.
+                </div>
+              </>
+            ) : (
             <div className="booking-settings-grid">
               <label>
                 Validation des demandes
@@ -820,18 +940,26 @@ export function SettingsPage() {
                 />
               </label>
             </div>
+            )}
 
             {canManage && (
-              <button className="primary-button" disabled={savingBooking}>
+              <button
+                className="primary-button"
+                disabled={savingBooking || (isRestaurantBusiness && !hasRestaurantOnlineReservations)}
+              >
                 {savingBooking
                   ? "Enregistrement…"
-                  : "Enregistrer la réservation publique"}
+                  : isRestaurantBusiness
+                    ? bookingEnabled
+                      ? "Enregistrer et maintenir la page publique active"
+                      : "Activer la page publique"
+                    : "Enregistrer la réservation publique"}
               </button>
             )}
           </form>
         )}
 
-        {isBookingBusiness && (
+        {isHairBusiness && (
           <form
             className="panel settings-form booking-settings-form email-settings-form"
             onSubmit={submitEmailNotifications}
@@ -930,7 +1058,7 @@ export function SettingsPage() {
           </form>
         )}
 
-        {isBookingBusiness && (
+        {isHairBusiness && (
           <form
             className="panel settings-form booking-settings-form client-experience-settings"
             onSubmit={submitClientExperience}

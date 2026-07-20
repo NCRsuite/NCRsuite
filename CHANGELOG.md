@@ -1,10 +1,20 @@
 # NCR Suite — Journal des versions
 
+## V2.8.4 — Paramètres Restauration et page publique
+
+- Correction du libellé « tarif Coiffure » dans les paramètres des entreprises Restauration et Nettoyage.
+- Présentation des fonctions réellement incluses dans chaque formule Restauration.
+- Ajout du réglage Restauration dédié pour activer ou désactiver la page publique de réservation.
+- Correction de l’adresse publique vers `/r/{slug}/reserver`.
+- Bouton d’activation directe depuis la rubrique Réservations.
+- Réparation du droit `restaurant_online_reservations` pour les offres Essentielle, Professionnelle et Métier.
+- Contrôle Supabase du métier, du rôle et de l’offre avant activation.
+- Cache PWA : `ncr-suite-shell-v2.8.4-restaurant-public-page`.
+
 ## V2.8.3 — Anti-surréservation des tables
 
 - Tables proposées selon la date, l’heure, la durée, la capacité et leur disponibilité réelle.
 - Retrait automatique d’une table du sélecteur lorsqu’un autre utilisateur la réserve.
-- Réservation interne sans table bloquée dès qu’un plan de salle est configuré.
 - Blocage serveur transactionnel des doubles réservations, même lors de créations simultanées.
 - Libération du créneau après annulation, absence ou fin de réservation.
 - Contrôle de disponibilité sur la page de réservation publique.

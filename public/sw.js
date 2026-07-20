@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.8.3-reservation-lock';
+const CACHE = 'ncr-suite-shell-v2.8.4-restaurant-public-page';
 const SHELL = [
   '/',
   '/index.html',
