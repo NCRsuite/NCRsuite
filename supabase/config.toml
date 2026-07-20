@@ -12,3 +12,6 @@ verify_jwt = true
 
 [functions.process-push-notifications]
 verify_jwt = false
+
+[functions.translate-restaurant-menu]
+verify_jwt = true

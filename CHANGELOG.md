@@ -1,3 +1,15 @@
+# V2.8.1 — Correctif et stabilisation Restauration
+
+- Remplacement des champs de traduction manuelle par une traduction automatique réelle des noms, descriptions et catégories en anglais, espagnol et italien.
+- Ajout de l’Edge Function sécurisée `translate-restaurant-menu`, avec DeepL lorsqu’une clé est configurée et un moteur de secours sans clé.
+- Traductions modifiables, retraduction des plats existants et menu QR réellement localisé, allergènes compris.
+- Réparation du catalogue Supabase des offres et des modules Restauration afin de rétablir les accès attendus selon Découverte, Essentielle, Professionnelle et Métier.
+- Séparation correcte des droits Températures et Checklists.
+- Création atomique des modèles de checklist pour éviter les procédures vides ou partiellement enregistrées.
+- Réservations créées manuellement directement confirmées.
+- Conservation des traductions lors de la modification d’un prix, d’un coût ou des allergènes.
+- Cache PWA passé en `V2.8.1-restaurant-stable`.
+
 # V2.8.0 — Pack Restauration
 
 - Activation du domaine Restauration dans NCR Suite et dans l’administration des offres.

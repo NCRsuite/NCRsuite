@@ -31,6 +31,11 @@ export interface RestaurantMenuCategoryRecord {
   id: string;
   organization_id: string;
   name: string;
+  name_en: string | null;
+  name_es: string | null;
+  name_it: string | null;
+  translation_provider?: string | null;
+  translated_at?: string | null;
   position: number;
   active: boolean;
 }
@@ -40,6 +45,9 @@ export interface RestaurantMenuItemRecord {
   organization_id: string;
   category_id: string;
   name: string;
+  name_en: string | null;
+  name_es: string | null;
+  name_it: string | null;
   description_fr: string | null;
   description_en: string | null;
   description_es: string | null;
@@ -52,7 +60,9 @@ export interface RestaurantMenuItemRecord {
   available: boolean;
   featured: boolean;
   image_url: string | null;
-  restaurant_menu_categories?: { name: string } | null;
+  translation_provider?: string | null;
+  translated_at?: string | null;
+  restaurant_menu_categories?: { name: string; name_en?: string | null; name_es?: string | null; name_it?: string | null } | null;
 }
 
 export interface RestaurantSupplierRecord {
