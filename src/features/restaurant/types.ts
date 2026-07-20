@@ -90,14 +90,53 @@ export interface RestaurantStockItemRecord {
   restaurant_suppliers?: { name: string } | null;
 }
 
+export type RestaurantTableShape = 'round' | 'square' | 'rectangle';
+export type RestaurantTableServiceStatus = 'available' | 'reserved' | 'occupied' | 'ordering' | 'payment' | 'cleaning' | 'unavailable';
+export type RestaurantFloorElementType = 'wall' | 'door' | 'window' | 'counter' | 'kitchen' | 'toilet' | 'stairs' | 'restricted' | 'label';
+
+export interface RestaurantFloorRoomRecord {
+  id: string;
+  organization_id: string;
+  name: string;
+  canvas_width: number;
+  canvas_height: number;
+  grid_enabled: boolean;
+  grid_size: number;
+  background_url: string | null;
+  position: number;
+  active: boolean;
+  created_at?: string;
+}
+
+export interface RestaurantFloorElementRecord {
+  id: string;
+  organization_id: string;
+  room_id: string;
+  element_type: RestaurantFloorElementType;
+  label: string | null;
+  position_x: number;
+  position_y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  active: boolean;
+}
+
 export interface RestaurantTableRecord {
   id: string;
   organization_id: string;
+  room_id: string | null;
   name: string;
   area: string;
   capacity: number;
   position_x: number;
   position_y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  shape: RestaurantTableShape;
+  service_status: RestaurantTableServiceStatus;
+  z_index: number;
   active: boolean;
 }
 

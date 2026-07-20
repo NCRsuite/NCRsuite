@@ -1,3 +1,19 @@
+# NCR Suite — Journal des versions
+
+## V2.8.2 — Plan de salle interactif
+
+- Éditeur visuel libre avec glisser-déposer tactile et souris.
+- Redimensionnement et rotation des tables.
+- Tables rondes, carrées et rectangulaires avec capacité et zone personnalisées.
+- Ajout de murs, portes, fenêtres, comptoirs, cuisine, toilettes, escaliers, zones interdites et libellés.
+- Grille magnétique réglable, zoom et défilement mobile.
+- Séparation entre mode édition sécurisé et mode service.
+- États opérationnels : libre, réservée, occupée, commande, encaissement, nettoyage et indisponible.
+- Réservations du jour visibles directement sur la table sélectionnée.
+- Salles multiples réservées aux offres Professionnelle et Métier.
+- Migration 047 sans suppression des tables ou réservations existantes.
+- Cache PWA : `ncr-suite-shell-v2.8.2-floor-plan`.
+
 # V2.8.1 — Correctif et stabilisation Restauration
 
 - Remplacement des champs de traduction manuelle par une traduction automatique réelle des noms, descriptions et catégories en anglais, espagnol et italien.

@@ -74,6 +74,8 @@ export type OfferFeatureKey =
   | 'restaurant_basic_roles'
   | 'restaurant_online_reservations'
   | 'restaurant_floor_plan'
+  | 'restaurant_floor_editor'
+  | 'restaurant_floor_advanced'
   | 'restaurant_multilingual_qr_menu'
   | 'restaurant_temperatures'
   | 'restaurant_checklists'
@@ -224,6 +226,7 @@ const restaurantEssentielle: OfferFeatureKey[] = [
   'restaurant_basic_roles',
   'restaurant_online_reservations',
   'restaurant_floor_plan',
+  'restaurant_floor_editor',
   'restaurant_multilingual_qr_menu',
   'restaurant_temperatures',
   'restaurant_checklists',
@@ -233,6 +236,7 @@ const restaurantEssentielle: OfferFeatureKey[] = [
 const restaurantProfessionnelle: OfferFeatureKey[] = [
   ...restaurantEssentielle,
   'restaurant_manager_role',
+  'restaurant_floor_advanced',
   'manager_role',
   'multi_site',
   'restaurant_realtime_supervision',
@@ -411,14 +415,14 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       essentielle: {
         label: 'Essentielle', monthlyPriceCents: 4990, memberLimit: 10,
         detail: 'Ajoute les employés connectés, les réservations en ligne et le menu QR multilingue.',
-        additions: ['Jusqu’à 10 employés connectés', 'Rôles Serveur et Cuisine', 'Réservation en ligne et plan de salle', 'Menu QR en français, anglais, espagnol et italien', 'Traductions multilingues modifiables', 'Températures et checklists', 'Personnalisation des documents et e-mails'],
+        additions: ['Jusqu’à 10 employés connectés', 'Rôles Serveur et Cuisine', 'Réservation en ligne et éditeur libre du plan de salle', 'Menu QR en français, anglais, espagnol et italien', 'Traductions multilingues modifiables', 'Températures et checklists', 'Personnalisation des documents et e-mails'],
         features: restaurantEssentielle,
         recommended: true
       },
       professionnelle: {
         label: 'Professionnelle', monthlyPriceCents: 7990, memberLimit: 50,
         detail: 'Ajoute le pilotage multi-site, les stocks avancés et la rentabilité.',
-        additions: ['Jusqu’à 50 employés connectés', 'Rôle Manager', 'Multi-site et supervision', 'Inventaires, pertes et gaspillage', 'Commandes fournisseurs', 'Coût matière et marge par plat', 'Statistiques et exports'],
+        additions: ['Jusqu’à 50 employés connectés', 'Rôle Manager', 'Multi-site, plusieurs salles et supervision', 'Inventaires, pertes et gaspillage', 'Commandes fournisseurs', 'Coût matière et marge par plat', 'Statistiques et exports'],
         features: restaurantProfessionnelle
       },
       metier: {
@@ -504,6 +508,8 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   restaurant_basic_roles: 'Rôles Serveur et Cuisine',
   restaurant_online_reservations: 'Réservation en ligne',
   restaurant_floor_plan: 'Plan de salle et tables',
+  restaurant_floor_editor: 'Éditeur visuel libre du plan de salle',
+  restaurant_floor_advanced: 'Salles multiples et plan avancé',
   restaurant_multilingual_qr_menu: 'Menu QR français, anglais, espagnol et italien',
   restaurant_temperatures: 'Relevés de températures',
   restaurant_checklists: 'Checklists ouverture, fermeture et nettoyage',
