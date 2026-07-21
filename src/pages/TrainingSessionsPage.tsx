@@ -74,6 +74,12 @@ function inclusiveSessionDays(session: TrainingSessionRecord) {
   return Math.max(1, Math.floor((endUtc - startUtc) / 86_400_000) + 1);
 }
 
+function startOfDay(date: Date) { const copy = new Date(date); copy.setHours(0, 0, 0, 0); return copy; }
+function addDays(date: Date, count: number) { const copy = new Date(date); copy.setDate(copy.getDate() + count); return copy; }
+function startOfWeek(date: Date) { const copy = startOfDay(date); copy.setDate(copy.getDate() - ((copy.getDay() + 6) % 7)); return copy; }
+function sameDay(value: string | Date, date: Date) { const source = new Date(value); return source.getFullYear() === date.getFullYear() && source.getMonth() === date.getMonth() && source.getDate() === date.getDate(); }
+function trainingStatusClass(session: TrainingSessionRecord) { return session.status === 'completed' ? 'completed' : session.status === 'in_progress' ? 'in_progress' : session.status === 'canceled' ? 'canceled' : session.status === 'draft' ? 'draft' : 'scheduled'; }
+
 export function TrainingSessionsPage() {
   const { organization, sites, activeSiteId } = useOrganization();
   const { user, demoMode } = useAuth();
@@ -92,6 +98,9 @@ export function TrainingSessionsPage() {
   const [success, setSuccess] = useState('');
   const initialRequestedView = searchParams.get('view');
   const [sessionView, setSessionView] = useState<SessionView>(['planned', 'current', 'closed', 'canceled'].includes(initialRequestedView ?? '') ? initialRequestedView as SessionView : 'current');
+  const [planningLayout, setPlanningLayout] = useState<'calendar' | 'list'>('calendar');
+  const [calendarDate, setCalendarDate] = useState(startOfDay(new Date()));
+  const [calendarSelectedDate, setCalendarSelectedDate] = useState(startOfDay(new Date()));
   const [dossierBusyId, setDossierBusyId] = useState('');
   const [closureBusyId, setClosureBusyId] = useState('');
   const [closureSession, setClosureSession] = useState<TrainingSessionRecord | null>(null);
@@ -215,6 +224,12 @@ export function TrainingSessionsPage() {
     }
     return map;
   }, [documents]);
+  const calendarMonthStart = useMemo(() => new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1), [calendarDate]);
+  const calendarGridStart = useMemo(() => startOfWeek(calendarMonthStart), [calendarMonthStart]);
+  const calendarDays = useMemo(() => Array.from({ length: 42 }, (_, index) => addDays(calendarGridStart, index)), [calendarGridStart]);
+  const calendarSessions = useMemo(() => sessions.filter((session) => session.status !== 'canceled'), [sessions]);
+  const selectedCalendarSessions = useMemo(() => calendarSessions.filter((session) => sameDay(session.starts_at, calendarSelectedDate)).sort((a, b) => a.starts_at.localeCompare(b.starts_at)), [calendarSessions, calendarSelectedDate]);
+  const upcomingSessions = useMemo(() => calendarSessions.filter((session) => new Date(session.ends_at) >= startOfDay(new Date())).sort((a, b) => a.starts_at.localeCompare(b.starts_at)).slice(0, 4), [calendarSessions]);
 
   function toggleTrainee(id: string) {
     setForm((current) => ({
@@ -459,8 +474,8 @@ export function TrainingSessionsPage() {
   if (!organization) return null;
 
   return (
-    <div className="page training-page">
-      <header className="page-header">
+    <div className="page training-page training-planning-premium">
+      <header className="page-header training-planning-hero">
         <div><p className="eyebrow">PACK FORMATION</p><h1>Sessions</h1><p>Planifiez vos sessions et inscrivez les stagiaires en une seule opération.</p></div>
         <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Créer une session</button>
       </header>
@@ -494,10 +509,20 @@ export function TrainingSessionsPage() {
       {success && <div className="success-message page-message" role="status">{success}</div>}
 
       <section className="panel training-list-panel training-session-workspace">
-        <div className="training-toolbar training-session-toolbar">
-          <div><p className="eyebrow">CYCLE DES SESSIONS</p><h2>{sessions.length} session{sessions.length > 1 ? 's' : ''}</h2><p>Planifie, suis l’émargement puis clôture la session lorsque le dossier est complet.</p></div>
+        <div className="training-toolbar training-session-toolbar training-premium-toolbar">
+          <div><p className="eyebrow">PLANNING PÉDAGOGIQUE</p><h2>{sessions.length} session{sessions.length > 1 ? 's' : ''}</h2><p>Sessions, formateurs, capacité et documents visibles dans un calendrier de pilotage.</p></div>
+          <div className="planning-toolbar-filters"><div className="segmented-control"><button type="button" className={planningLayout === 'calendar' ? 'active' : ''} onClick={() => setPlanningLayout('calendar')}>Calendrier</button><button type="button" className={planningLayout === 'list' ? 'active' : ''} onClick={() => setPlanningLayout('list')}>Liste</button></div></div>
         </div>
 
+        {planningLayout === 'calendar' && <div className="training-calendar-workspace">
+          <div className="training-calendar-main">
+            <div className="training-calendar-navigation"><button type="button" className="icon-nav-button" onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}>‹</button><button type="button" className="secondary-button compact-button" onClick={() => { const today = startOfDay(new Date()); setCalendarDate(today); setCalendarSelectedDate(today); }}>Aujourd’hui</button><button type="button" className="icon-nav-button" onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}>›</button><div><p className="eyebrow">MOIS</p><h3>{new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(calendarDate)}</h3></div></div>
+            <div className="planning-month-calendar training-month-calendar"><div className="planning-month-weekdays">{['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map((label) => <span key={label}>{label}</span>)}</div><div className="planning-month-grid">{calendarDays.map((day) => { const daySessions = calendarSessions.filter((session) => sameDay(session.starts_at, day)); return <button type="button" key={dateInputValue(day)} className={`${day.getMonth() !== calendarDate.getMonth() ? 'outside' : ''}${sameDay(day, new Date()) ? ' today' : ''}${sameDay(day, calendarSelectedDate) ? ' selected' : ''}`} onClick={() => setCalendarSelectedDate(day)}><span>{day.getDate()}</span><strong>{daySessions.length || ''}</strong><div className="training-calendar-dots">{daySessions.slice(0, 4).map((session) => <i key={session.id} className={trainingStatusClass(session)} />)}</div>{daySessions.slice(0, 2).map((session) => <small key={session.id}>{session.title}</small>)}</button>; })}</div></div>
+          </div>
+          <aside className="training-calendar-agenda"><div><p className="eyebrow">JOUR SÉLECTIONNÉ</p><h3>{new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' }).format(calendarSelectedDate)}</h3></div>{selectedCalendarSessions.length === 0 ? <div className="planning-empty-state compact"><Icon name="calendar" size={25}/><strong>Aucune session</strong><span>Cette journée est disponible.</span></div> : selectedCalendarSessions.map((session) => { const trainer = session.trainer_id ? trainerMap.get(session.trainer_id) : null; return <article key={session.id} className={`training-agenda-card ${trainingStatusClass(session)}`}><div><strong>{new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(session.starts_at))}</strong><span>{new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(session.ends_at))}</span></div><section><strong>{session.title}</strong><span>{trainer ? personName(trainer.first_name, trainer.last_name) : 'Formateur à définir'}</span><small>{enrollmentCount.get(session.id) ?? 0}/{session.capacity} stagiaires · {modalityLabels[session.modality]}</small></section><Link className="secondary-button compact-button" to={`/documents?session=${encodeURIComponent(session.id)}`}>Dossier</Link></article>; })}<div className="training-upcoming-strip"><p className="eyebrow">À VENIR</p>{upcomingSessions.map((session) => <button type="button" key={session.id} onClick={() => { const date = new Date(session.starts_at); setCalendarDate(date); setCalendarSelectedDate(date); }}><span>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short' }).format(new Date(session.starts_at))}</span><strong>{session.title}</strong></button>)}</div></aside>
+        </div>}
+
+        <div className={planningLayout === 'calendar' ? 'training-list-layout is-hidden' : 'training-list-layout'}>
         <div className="training-session-view-tabs" role="tablist" aria-label="Classement des sessions">
           {([
             ['planned', 'Planifiées', sessionGroups.planned.length, 'calendar'],
@@ -555,6 +580,7 @@ export function TrainingSessionsPage() {
             })}
           </div>
         )}
+        </div>
       </section>
 
       {closureSession && closureCheck && (

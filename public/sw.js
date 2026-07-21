@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.8.7-public-menu-i18n';
+const CACHE = 'ncr-suite-shell-v2.9.0-premium-planning';
 const SHELL = [
   '/',
   '/index.html',

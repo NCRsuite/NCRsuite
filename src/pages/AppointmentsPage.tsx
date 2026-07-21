@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
@@ -289,6 +289,7 @@ export function AppointmentsPage() {
 
   const weekStart = useMemo(() => startOfWeek(selectedDate), [selectedDate]);
   const weekDays = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
+  const visibleStaff = useMemo(() => staff.filter((member) => staffFilter === 'all' || member.id === staffFilter), [staff, staffFilter]);
   const selectedDayAppointments = useMemo(
     () => visibleAppointments.filter((row) => sameDay(new Date(row.starts_at), selectedDate)).sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
     [visibleAppointments, selectedDate]
@@ -496,7 +497,7 @@ export function AppointmentsPage() {
     const service = serviceById.get(appointment.service_id);
     const member = staffById.get(appointment.staff_id);
     return (
-      <article key={appointment.id} className={`appointment-card status-${appointment.status}`} style={{ '--staff-color': member?.color ?? '#0a84ff' } as React.CSSProperties}>
+      <article key={appointment.id} className={`appointment-card status-${appointment.status}`} style={{ '--staff-color': member?.color ?? '#0a84ff' } as CSSProperties}>
         <div className="appointment-time">
           <strong>{timeFormatter.format(new Date(appointment.starts_at))}</strong>
           <span>{timeFormatter.format(new Date(appointment.ends_at))}</span>
@@ -534,8 +535,8 @@ export function AppointmentsPage() {
   }
 
   return (
-    <div className="page appointments-page">
-      <header className="page-header">
+    <div className="page appointments-page appointments-planning-premium">
+      <header className="page-header appointment-planning-hero">
         <div>
           <p className="eyebrow">PLANNING</p>
           <h1>Rendez-vous</h1>
@@ -656,27 +657,46 @@ export function AppointmentsPage() {
           </div>
         </div>
 
+        <div className="planning-mobile-day-strip appointment-mobile-days" aria-label="Choisir un jour">
+          {weekDays.map((day) => {
+            const count = visibleAppointments.filter((row) => sameDay(new Date(row.starts_at), day)).length;
+            return <button key={day.toISOString()} type="button" className={`${sameDay(day, selectedDate) ? 'active' : ''}${sameDay(day, new Date()) ? ' today' : ''}`} onClick={() => { setSelectedDate(day); setViewMode('day'); }}><span>{day.toLocaleDateString('fr-FR', { weekday: 'short' })}</span><strong>{day.getDate()}</strong><small>{count}</small></button>;
+          })}
+        </div>
+
         {loading ? (
           <div className="list-state">Chargement du planning…</div>
         ) : viewMode === 'week' ? (
-          <div className="week-planner">
-            {weekDays.map((day) => {
-              const dayAppointments = visibleAppointments.filter((row) => sameDay(new Date(row.starts_at), day)).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
-              return (
-                <section key={day.toISOString()} className={`week-day-column${sameDay(day, new Date()) ? ' today' : ''}`}>
-                  <button type="button" className="week-day-header" onClick={() => { setSelectedDate(day); setViewMode('day'); }}>
-                    <span>{day.toLocaleDateString('fr-FR', { weekday: 'short' })}</span>
-                    <strong>{day.getDate()}</strong>
-                    <small>{dayAppointments.length} RDV</small>
-                  </button>
-                  <div className="week-day-events">
-                    {dayAppointments.length === 0 ? (
-                      canEditAppointments ? <button type="button" className="empty-day-button" onClick={() => openCreateForm(day, '09:00')}>+ Ajouter</button> : <span className="empty-day-label">Aucun rendez-vous</span>
-                    ) : dayAppointments.map((appointment) => appointmentCard(appointment))}
+          <div className="planning-grid-scroll appointment-team-scroll">
+            <div className="planning-team-grid appointment-team-grid" style={{ gridTemplateColumns: `190px repeat(7, minmax(155px, 1fr))` }}>
+              <div className="planning-grid-corner">COLLABORATEURS</div>
+              {weekDays.map((day) => {
+                const count = visibleAppointments.filter((row) => sameDay(new Date(row.starts_at), day)).length;
+                return <button key={day.toISOString()} type="button" className={`planning-grid-date${sameDay(day, new Date()) ? ' today' : ''}`} onClick={() => { setSelectedDate(day); setViewMode('day'); }}><span>{day.toLocaleDateString('fr-FR', { weekday: 'short' })}</span><strong>{day.getDate()}</strong><small>{count} rendez-vous</small></button>;
+              })}
+              {visibleStaff.map((member) => (
+                <div className="planning-grid-row" style={{ display: 'contents' }} key={member.id}>
+                  <div className="planning-person-cell appointment-staff-cell">
+                    <span className="planning-avatar appointment-avatar" style={{ background: member.color || undefined }}>{member.display_name.split(' ').slice(0, 2).map((part) => part.slice(0, 1)).join('')}</span>
+                    <div><strong>{member.display_name}</strong><small>{weekAppointments.filter((row) => row.staff_id === member.id).length} rendez-vous · {currencyFormatter.format(weekAppointments.filter((row) => row.staff_id === member.id).reduce((sum, row) => sum + (row.amount_cents ?? 0), 0) / 100)}</small></div>
                   </div>
-                </section>
-              );
-            })}
+                  {weekDays.map((day) => {
+                    const cellRows = visibleAppointments.filter((row) => row.staff_id === member.id && sameDay(new Date(row.starts_at), day)).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+                    return <div key={`${member.id}-${day.toISOString()}`} className="planning-grid-cell appointment-team-cell" onClick={() => openCreateForm(day, '09:00')}>
+                      {cellRows.map((appointment) => {
+                        const client = clientById.get(appointment.client_id); const service = serviceById.get(appointment.service_id);
+                        return <button type="button" key={appointment.id} className={`appointment-grid-event ${appointment.status}`} style={{ '--appointment-color': member.color || '#8b5cf6' } as CSSProperties} onClick={(event) => { event.stopPropagation(); openEditForm(appointment); }}>
+                          <strong>{timeFormatter.format(new Date(appointment.starts_at))} · {fullClientName(client)}</strong>
+                          <span>{service?.name || 'Prestation'}</span>
+                          <small>{service?.duration_minutes || Math.round((new Date(appointment.ends_at).getTime() - new Date(appointment.starts_at).getTime()) / 60000)} min · {statusLabels[appointment.status]}</small>
+                        </button>;
+                      })}
+                      {canEditAppointments && <button type="button" className="planning-cell-add" onClick={(event) => { event.stopPropagation(); openCreateForm(day, '09:00'); }}>+</button>}
+                    </div>;
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
         ) : (
           <div className="day-planner">
@@ -694,6 +714,7 @@ export function AppointmentsPage() {
             ) : <div className="day-appointment-list">{selectedDayAppointments.map(appointmentCard)}</div>}
           </div>
         )}
+        <div className="planning-mobile-agenda appointment-mobile-agenda"><div className="planning-mobile-agenda-heading"><p className="eyebrow">AGENDA DU JOUR</p><strong>{fullDateFormatter.format(selectedDate)}</strong></div>{selectedDayAppointments.length === 0 ? <div className="planning-empty-state compact"><Icon name="calendar" size={26}/><strong>Aucun rendez-vous</strong><span>La journée est libre pour les filtres choisis.</span></div> : <div className="day-appointment-list">{selectedDayAppointments.map(appointmentCard)}</div>}</div>
       </section>
     </div>
   );

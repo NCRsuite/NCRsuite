@@ -1,3 +1,38 @@
+# NCR Suite — Journal des versions
+
+## V2.9.0 — Plannings métiers premium
+
+### Coiffure
+- Nouvelle grille hebdomadaire par collaborateur et par jour.
+- Rendez-vous compacts avec heure, client, prestation, durée et statut.
+- Lecture immédiate du chiffre prévisionnel par collaborateur.
+- Vue mobile centrée sur une journée avec sélecteur hebdomadaire.
+
+### Formation
+- Nouveau calendrier pédagogique mensuel.
+- Sessions visibles par statut avec formateur, capacité et modalité.
+- Agenda détaillé du jour sélectionné et accès direct au dossier.
+- La vue cycle/listes existante reste disponible.
+
+### Nettoyage
+- Nouvelle grille d’exploitation hebdomadaire par agent.
+- Sites différenciés visuellement et états prévu/en cours/terminé visibles.
+- Vue mensuelle synthétique et vue mobile quotidienne.
+- Contrôle local des chevauchements lors d’une nouvelle affectation.
+
+### Restauration
+- Nouvelle grille hebdomadaire par employé et poste.
+- Distinction visuelle Salle, Cuisine, Bar/Accueil, Plonge et Manager.
+- Résumé équipe, heures, services du jour et services du soir.
+- Vue mobile quotidienne adaptée au service.
+
+### Sécurité
+- Le planning Sécurité existant est volontairement conservé : grille par site, vacations, couleurs, duplication, totaux et logique QG restent inchangés.
+
+### Technique
+- Aucun SQL Supabase requis.
+- Cache PWA : `ncr-suite-shell-v2.9.0-premium-planning`.
+
 # V2.8.7 — Traduction complète du menu public
 
 - Traduction de tous les textes fixes du menu public en français, anglais, espagnol et italien.
