@@ -82,7 +82,7 @@ function activityLabel(action: string) {
     'support.ticket_created': 'Demande de support créée',
     'platform.support_ticket_updated': 'Ticket de support mis à jour'
   };
-  return labels[action] ?? action.replaceAll('.', ' · ');
+  return labels[action] ?? action.split('.').join(' · ');
 }
 
 export function AdminSaasCockpit({ onOpenOrganizations, onOpenSupport, onOpenActivity }: { onOpenOrganizations: () => void; onOpenSupport: () => void; onOpenActivity: () => void }) {

@@ -27,7 +27,7 @@ function actionLabel(action: string) {
     'restaurant.order_item_served': 'Article servi',
     'security.shift.closed': 'Vacation clôturée'
   };
-  return map[action] ?? action.replaceAll('.', ' · ');
+  return map[action] ?? action.split('.').join(' · ');
 }
 
 export function AdminActivityPanel() {
