@@ -106,7 +106,7 @@ export function RestaurantRecipesPage() {
 
   const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
   const canViewCosts = Boolean(organization && organizationHasFeature(organization, 'restaurant_food_cost') && ['owner', 'admin'].includes(organization.role ?? 'viewer'));
-  const autoStock = Boolean(organization && organizationHasFeature(organization, 'restaurant_auto_stock_consumption'));
+  const autoStock = Boolean(organization && (organizationHasFeature(organization, 'restaurant_auto_stock_consumption') || ['professionnelle', 'metier'].includes(organization.plan)));
 
   async function load() {
     if (!organization) return;

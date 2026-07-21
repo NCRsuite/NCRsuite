@@ -29,6 +29,7 @@ export function RestaurantKitchenPage() {
   const [station, setStation] = useState<RestaurantOrderStation | 'all'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const isAdvanced = Boolean(organization && organizationHasFeature(organization, 'restaurant_advanced_ordering'));
 
   async function load() {
@@ -65,12 +66,35 @@ export function RestaurantKitchenPage() {
 
   async function changeStatus(item: RestaurantOrderItemRecord, status: 'in_progress' | 'ready' | 'served') {
     if (!organization) return;
+    setError('');
+    setSuccess('');
     try {
       if (demoMode || !supabase) {
         const all = safeRestaurantStorageArray<RestaurantOrderItemRecord>(`ncr-restaurant-order-items-${organization.id}`);
         const next = all.map((row) => row.id === item.id ? { ...row, status } : row);
         localStorage.setItem(`ncr-restaurant-order-items-${organization.id}`, JSON.stringify(next));
         setItems(next.filter((row) => ['sent','in_progress','ready'].includes(row.status)));
+        if (status === 'served') setSuccess('Article marqué servi. Le stock de démonstration n’est pas modifié.');
+      } else if (status === 'served') {
+        const { data, error: rpcError } = await supabase.rpc('serve_restaurant_order_item_with_stock', { p_item_id: item.id });
+        if (rpcError) throw rpcError;
+        const result = (data ?? {}) as Record<string, unknown>;
+        const activeMovements = Number(result.active_movements ?? 0);
+        const resultCode = String(result.result ?? '');
+        if (activeMovements > 0) {
+          setSuccess(`Article servi · ${activeMovements} ingrédient${activeMovements > 1 ? 's' : ''} déduit${activeMovements > 1 ? 's' : ''} du stock.`);
+        } else if (resultCode === 'no_recipe') {
+          setError('Article servi, mais aucun stock n’a été déduit : aucune fiche recette active n’est reliée à ce plat.');
+        } else if (resultCode === 'no_deductible_ingredients') {
+          setError('Article servi, mais la fiche recette ne contient aucun ingrédient configuré pour être déduit du stock.');
+        } else if (resultCode === 'feature_locked') {
+          setError('Article servi, mais le déstockage automatique n’est pas actif pour cette formule.');
+        } else if (resultCode === 'no_menu_item') {
+          setError('Article servi, mais il ne correspond plus à un plat de la carte. Aucun stock n’a été déduit.');
+        } else {
+          setError('Article servi, mais aucun mouvement de stock n’a été créé. Vérifie la fiche recette et les ingrédients actifs.');
+        }
+        await load();
       } else {
         const { error: rpcError } = await supabase.rpc('set_restaurant_order_item_status', { p_item_id: item.id, p_status: status });
         if (rpcError) throw rpcError;
@@ -82,6 +106,7 @@ export function RestaurantKitchenPage() {
   return <div className="page restaurant-page restaurant-kitchen-page restaurant-premium-workspace">
     <header className="page-header restaurant-kitchen-header"><div><p className="eyebrow">RESTAURATION · CUISINE</p><h1>Écran de préparation</h1><p>Des tickets clairs, les remarques visibles et un suivi immédiat de chaque assiette jusqu’au service.</p></div><button type="button" className="secondary-button restaurant-kitchen-refresh" onClick={() => void load()}><Icon name="activity" size={17}/>Actualiser</button></header>
     {error && <div className="error-banner">{error}</div>}
+    {success && <div className="success-message page-message">{success}</div>}
 
     <section className="restaurant-kitchen-summary">
       <article><span className="restaurant-kitchen-summary-icon waiting">⏱️</span><div><small>À préparer</small><strong>{kitchenStats.sent}</strong></div></article>

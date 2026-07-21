@@ -1,3 +1,13 @@
+# V2.10.1 — Correctif déstockage automatique Restauration
+
+- Réparation du déclenchement du déstockage lors du passage d’un article à l’état « Servi ».
+- Nouvelle RPC transactionnelle qui confirme explicitement le nombre d’ingrédients déduits.
+- Suppression des échecs silencieux : l’écran Cuisine indique désormais si la recette est absente, vide ou non éligible.
+- Réconciliation manuelle des plats servis des 7 derniers jours depuis Stocks & fournisseurs.
+- Réparation des droits Professionnelle et Métier dans le catalogue Supabase.
+- Conservation de l’idempotence : un même article servi ne peut jamais être déduit deux fois.
+- Cache PWA passé en `V2.10.1-stock-consumption-fix`.
+
 # V2.10.0 — Fiches recettes, déstockage automatique et rentabilité Restauration
 
 - Nouvelle rubrique **Fiches recettes** reliée directement aux plats de la carte.
