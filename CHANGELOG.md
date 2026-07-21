@@ -1,3 +1,12 @@
+# V2.8.7 — Traduction complète du menu public
+
+- Traduction de tous les textes fixes du menu public en français, anglais, espagnol et italien.
+- Le bandeau d’accueil, les compteurs, les titres de section, le badge du chef et les messages d’état suivent maintenant la langue choisie.
+- Détection automatique de la langue du navigateur à la première ouverture, avec changement manuel toujours disponible.
+- Amélioration d’accessibilité du sélecteur de langue.
+- Aucun SQL ni changement des données Restauration.
+- Cache PWA : `ncr-suite-shell-v2.8.7-public-menu-i18n`.
+
 # V2.8.6 — Expérience Restauration Premium
 
 - Refonte visuelle complète de la prise de commande tactile.

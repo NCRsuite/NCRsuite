@@ -36,12 +36,111 @@ interface PublicMenuPayload {
 }
 
 const languageLabels: Record<Language, string> = { fr: 'FR', en: 'EN', es: 'ES', it: 'IT' };
-const ui: Record<Language, { menu: string; vegetarian: string; vegan: string; powered: string }> = {
-  fr: { menu: 'MENU', vegetarian: 'Végétarien', vegan: 'Végan', powered: 'Menu numérique propulsé par NCR Suite' },
-  en: { menu: 'MENU', vegetarian: 'Vegetarian', vegan: 'Vegan', powered: 'Digital menu powered by NCR Suite' },
-  es: { menu: 'MENÚ', vegetarian: 'Vegetariano', vegan: 'Vegano', powered: 'Menú digital creado con NCR Suite' },
-  it: { menu: 'MENÙ', vegetarian: 'Vegetariano', vegan: 'Vegano', powered: 'Menù digitale creato con NCR Suite' },
+
+interface PublicMenuUiCopy {
+  menu: string;
+  vegetarian: string;
+  vegan: string;
+  powered: string;
+  loading: string;
+  unavailableTitle: string;
+  unavailableMessage: string;
+  languageNav: string;
+  categorySingular: string;
+  categoryPlural: string;
+  dishSingular: string;
+  dishPlural: string;
+  heroEyebrow: string;
+  heroTitle: string;
+  heroDescription: string;
+  selection: string;
+  featured: string;
+}
+
+const ui: Record<Language, PublicMenuUiCopy> = {
+  fr: {
+    menu: 'MENU',
+    vegetarian: 'Végétarien',
+    vegan: 'Végan',
+    powered: 'Menu numérique propulsé par NCR Suite',
+    loading: 'Chargement du menu…',
+    unavailableTitle: 'Menu indisponible',
+    unavailableMessage: 'Ce restaurant n’a pas activé son menu public.',
+    languageNav: 'Choisir la langue',
+    categorySingular: 'catégorie',
+    categoryPlural: 'catégories',
+    dishSingular: 'proposition',
+    dishPlural: 'propositions',
+    heroEyebrow: 'La carte du moment',
+    heroTitle: 'Bienvenue à table',
+    heroDescription: 'Découvrez les plats, leurs descriptions et les allergènes dans la langue de votre choix.',
+    selection: 'NOTRE SÉLECTION',
+    featured: 'Suggestion du chef',
+  },
+  en: {
+    menu: 'MENU',
+    vegetarian: 'Vegetarian',
+    vegan: 'Vegan',
+    powered: 'Digital menu powered by NCR Suite',
+    loading: 'Loading menu…',
+    unavailableTitle: 'Menu unavailable',
+    unavailableMessage: 'This restaurant has not enabled its public menu.',
+    languageNav: 'Choose language',
+    categorySingular: 'category',
+    categoryPlural: 'categories',
+    dishSingular: 'dish',
+    dishPlural: 'dishes',
+    heroEyebrow: "Today's menu",
+    heroTitle: 'Welcome to our table',
+    heroDescription: 'Discover our dishes, descriptions and allergens in your preferred language.',
+    selection: 'OUR SELECTION',
+    featured: "Chef's recommendation",
+  },
+  es: {
+    menu: 'MENÚ',
+    vegetarian: 'Vegetariano',
+    vegan: 'Vegano',
+    powered: 'Menú digital creado con NCR Suite',
+    loading: 'Cargando el menú…',
+    unavailableTitle: 'Menú no disponible',
+    unavailableMessage: 'Este restaurante no ha activado su menú público.',
+    languageNav: 'Elegir idioma',
+    categorySingular: 'categoría',
+    categoryPlural: 'categorías',
+    dishSingular: 'plato',
+    dishPlural: 'platos',
+    heroEyebrow: 'La carta del momento',
+    heroTitle: 'Bienvenido a nuestra mesa',
+    heroDescription: 'Descubre los platos, sus descripciones y los alérgenos en el idioma que prefieras.',
+    selection: 'NUESTRA SELECCIÓN',
+    featured: 'Sugerencia del chef',
+  },
+  it: {
+    menu: 'MENÙ',
+    vegetarian: 'Vegetariano',
+    vegan: 'Vegano',
+    powered: 'Menù digitale creato con NCR Suite',
+    loading: 'Caricamento del menù…',
+    unavailableTitle: 'Menù non disponibile',
+    unavailableMessage: 'Questo ristorante non ha attivato il menù pubblico.',
+    languageNav: 'Scegli la lingua',
+    categorySingular: 'categoria',
+    categoryPlural: 'categorie',
+    dishSingular: 'piatto',
+    dishPlural: 'piatti',
+    heroEyebrow: 'Il menù del momento',
+    heroTitle: 'Benvenuti a tavola',
+    heroDescription: 'Scopri i piatti, le descrizioni e gli allergeni nella lingua che preferisci.',
+    selection: 'LA NOSTRA SELEZIONE',
+    featured: 'Consiglio dello chef',
+  },
 };
+
+function detectInitialLanguage(): Language {
+  if (typeof navigator === 'undefined') return 'fr';
+  const browserLanguage = navigator.language.toLowerCase().slice(0, 2);
+  return browserLanguage === 'en' || browserLanguage === 'es' || browserLanguage === 'it' ? browserLanguage : 'fr';
+}
 
 const allergenTranslations: Record<string, Record<Language, string>> = {
   Gluten: { fr: 'Gluten', en: 'Gluten', es: 'Gluten', it: 'Glutine' },
@@ -93,7 +192,7 @@ function publicMenuVisual(categoryName = '') {
 export function PublicRestaurantMenuPage() {
   const { slug = '' } = useParams();
   const [payload, setPayload] = useState<PublicMenuPayload | null>(null);
-  const [language, setLanguage] = useState<Language>('fr');
+  const [language, setLanguage] = useState<Language>(detectInitialLanguage);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -118,16 +217,20 @@ export function PublicRestaurantMenuPage() {
     return [...map.entries()];
   }, [payload, language]);
 
-  if (loading) return <div className="public-restaurant-page"><div className="public-restaurant-loading">Chargement du menu…</div></div>;
-  if (error || !payload?.menu_enabled) return <div className="public-restaurant-page"><div className="public-restaurant-error"><h1>Menu indisponible</h1><p>{error || 'Ce restaurant n’a pas activé son menu public.'}</p></div></div>;
+  const copy = ui[language];
+  const categoryLabel = groups.length === 1 ? copy.categorySingular : copy.categoryPlural;
+  const dishLabel = (payload?.items.length ?? 0) === 1 ? copy.dishSingular : copy.dishPlural;
 
-  return <div className="public-restaurant-page public-restaurant-premium-menu" style={{ '--restaurant-brand': payload.primary_color } as React.CSSProperties}>
+  if (loading) return <div className="public-restaurant-page" lang={language}><div className="public-restaurant-loading">{copy.loading}</div></div>;
+  if (error || !payload?.menu_enabled) return <div className="public-restaurant-page" lang={language}><div className="public-restaurant-error"><h1>{copy.unavailableTitle}</h1><p>{error || copy.unavailableMessage}</p></div></div>;
+
+  return <div className="public-restaurant-page public-restaurant-premium-menu" lang={language} style={{ '--restaurant-brand': payload.primary_color } as React.CSSProperties}>
     <header className="public-restaurant-header">
-      <div className="public-restaurant-brand-block">{payload.logo_url ? <img src={payload.logo_url} alt=""/> : <span className="public-restaurant-logo-fallback">🍽️</span>}<div><span>{ui[language].menu}</span><h1>{payload.public_name || payload.organization_name}</h1><p>{groups.length} catégorie{groups.length > 1 ? 's' : ''} · {payload.items.length} proposition{payload.items.length > 1 ? 's' : ''}</p></div></div>
-      <nav aria-label="Choisir la langue">{(Object.keys(languageLabels) as Language[]).map((value) => <button key={value} className={language === value ? 'active' : ''} onClick={() => setLanguage(value)}>{languageLabels[value]}</button>)}</nav>
+      <div className="public-restaurant-brand-block">{payload.logo_url ? <img src={payload.logo_url} alt=""/> : <span className="public-restaurant-logo-fallback">🍽️</span>}<div><span>{copy.menu}</span><h1>{payload.public_name || payload.organization_name}</h1><p>{groups.length} {categoryLabel} · {payload.items.length} {dishLabel}</p></div></div>
+      <nav aria-label={copy.languageNav}>{(Object.keys(languageLabels) as Language[]).map((value) => <button key={value} className={language === value ? 'active' : ''} onClick={() => setLanguage(value)} aria-pressed={language === value}>{languageLabels[value]}</button>)}</nav>
     </header>
-    <div className="public-restaurant-hero"><span>La carte du moment</span><strong>Bienvenue à table</strong><p>Découvrez les plats, leurs descriptions et les allergènes dans la langue de votre choix.</p></div>
-    <main className="public-restaurant-menu">{groups.map(([category, items]) => <section key={category}><header className="public-menu-category-header"><span>{publicMenuVisual(category)}</span><div><small>NOTRE SÉLECTION</small><h2>{category}</h2></div><i>{items.length}</i></header><div>{items.map((item) => <article key={item.id} className={item.featured ? 'featured' : ''}><span className="public-menu-dish-visual">{publicMenuVisual(category)}</span><div className="public-menu-dish-copy">{item.featured && <small className="public-menu-featured-badge">Suggestion du chef</small>}<h3>{localizedName(item, language)}</h3>{localizedDescription(item, language) && <p>{localizedDescription(item, language)}</p>}<div className="public-menu-tags">{item.vegetarian && <span>🌿 {ui[language].vegetarian}</span>}{item.vegan && <span>🌱 {ui[language].vegan}</span>}{item.allergens.map((allergen) => <span key={allergen} className="allergen">{allergenTranslations[allergen]?.[language] || allergen}</span>)}</div></div><strong className="public-menu-dish-price">{formatRestaurantMoney(item.price_cents)}</strong></article>)}</div></section>)}</main>
-    <footer className="public-restaurant-footer"><span>🍴</span>{ui[language].powered}</footer>
+    <div className="public-restaurant-hero"><span>{copy.heroEyebrow}</span><strong>{copy.heroTitle}</strong><p>{copy.heroDescription}</p></div>
+    <main className="public-restaurant-menu">{groups.map(([category, items]) => <section key={category}><header className="public-menu-category-header"><span>{publicMenuVisual(category)}</span><div><small>{copy.selection}</small><h2>{category}</h2></div><i>{items.length}</i></header><div>{items.map((item) => <article key={item.id} className={item.featured ? 'featured' : ''}><span className="public-menu-dish-visual">{publicMenuVisual(category)}</span><div className="public-menu-dish-copy">{item.featured && <small className="public-menu-featured-badge">{copy.featured}</small>}<h3>{localizedName(item, language)}</h3>{localizedDescription(item, language) && <p>{localizedDescription(item, language)}</p>}<div className="public-menu-tags">{item.vegetarian && <span>🌿 {copy.vegetarian}</span>}{item.vegan && <span>🌱 {copy.vegan}</span>}{item.allergens.map((allergen) => <span key={allergen} className="allergen">{allergenTranslations[allergen]?.[language] || allergen}</span>)}</div></div><strong className="public-menu-dish-price">{formatRestaurantMoney(item.price_cents)}</strong></article>)}</div></section>)}</main>
+    <footer className="public-restaurant-footer"><span>🍴</span>{copy.powered}</footer>
   </div>;
 }
