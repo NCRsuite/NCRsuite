@@ -142,4 +142,7 @@ export type IconName =
   | 'eye'
   | 'sun'
   | 'clock'
-  | 'bell';
+  | 'bell'
+  | 'message'
+  | 'headset'
+  | 'monitor';

@@ -313,7 +313,7 @@ set search_path = public
 as $$
 declare
   v_result jsonb;
-  v_search text := lower(trim(coalesce(p_search, ''));
+  v_search text := lower(trim(coalesce(p_search, '')));
 begin
   if not public.is_platform_admin() then raise exception 'Accès administrateur NCR requis.'; end if;
 

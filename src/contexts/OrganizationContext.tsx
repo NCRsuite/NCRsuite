@@ -1,8 +1,20 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
+import { usePlatformAdmin } from './PlatformAdminContext';
 import { supabase } from '../lib/supabase';
 import type { BusinessType, Organization, OrganizationSite, Plan } from '../types';
 import { organizationHasFeature } from '../config/planEntitlements';
+
+
+export interface SupportSession {
+  id: string;
+  ticket_id: string;
+  organization_id: string;
+  reason: string;
+  duration_minutes: number;
+  started_at: string;
+  expires_at: string;
+}
 
 interface CreateOrganizationInput {
   name: string;
@@ -62,10 +74,12 @@ interface OrganizationContextValue {
   activeSiteId: string | null;
   loading: boolean;
   sitesLoading: boolean;
+  supportSession: SupportSession | null;
   selectOrganization: (id: string) => void;
   selectSite: (id: string | null) => void;
   refreshOrganizations: () => void;
   refreshSites: () => void;
+  endSupportSession: () => Promise<void>;
   createOrganization: (input: CreateOrganizationInput) => Promise<string>;
   updateBranding: (updates: { name?: string; primaryColor?: string }) => Promise<void>;
   updateBookingSettings: (updates: BookingSettingsInput) => Promise<void>;
@@ -113,6 +127,7 @@ function slugify(value: string) {
 
 export function OrganizationProvider({ children }: { children: React.ReactNode }) {
   const { user, demoMode } = useAuth();
+  const { isAdmin, loading: adminLoading } = usePlatformAdmin();
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(() => localStorage.getItem('ncr-suite-org-id'));
   const [loading, setLoading] = useState(true);
@@ -121,6 +136,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   const [activeSiteId, setActiveSiteId] = useState<string | null>(null);
   const [sitesLoading, setSitesLoading] = useState(false);
   const [sitesReloadVersion, setSitesReloadVersion] = useState(0);
+  const [supportSession, setSupportSession] = useState<SupportSession | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -129,10 +145,43 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       if (!user) {
         if (active) {
           setOrganizations([]);
+          setSupportSession(null);
           setLoading(false);
         }
         return;
       }
+
+      if (adminLoading) return;
+
+      if (isAdmin && supabase) {
+        const { data, error } = await supabase.rpc('get_my_active_support_session');
+        if (error) {
+          console.error('Impossible de charger la session d’assistance NCR.', error);
+          if (active) {
+            setSupportSession(null);
+            setOrganizations([]);
+            setLoading(false);
+          }
+          return;
+        }
+        const payload = data as ({ organization?: Organization } & SupportSession) | null;
+        if (active) {
+          if (payload?.organization?.id) {
+            const { organization: supportOrganization, ...session } = payload;
+            setSupportSession(session as SupportSession);
+            setOrganizations([supportOrganization as Organization]);
+            setSelectedId(supportOrganization.id);
+          } else {
+            setSupportSession(null);
+            setOrganizations([]);
+            setSelectedId(null);
+          }
+          setLoading(false);
+        }
+        return;
+      }
+
+      setSupportSession(null);
 
       if (demoMode || !supabase) {
         const stored = localStorage.getItem('ncr-suite-demo-org');
@@ -211,7 +260,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     setLoading(true);
     load();
     return () => { active = false; };
-  }, [user, demoMode, reloadVersion]);
+  }, [user, demoMode, reloadVersion, isAdmin, adminLoading]);
 
   const organization = organizations.find((org) => org.id === selectedId) ?? organizations[0] ?? null;
 
@@ -285,6 +334,22 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     return () => { active = false; };
   }, [organization?.id, organization?.plan, demoMode, sitesReloadVersion]);
 
+  useEffect(() => {
+    if (!supportSession) return;
+    const delay = new Date(supportSession.expires_at).getTime() - Date.now();
+    if (delay <= 0) {
+      setSupportSession(null);
+      setOrganizations([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setSupportSession(null);
+      setOrganizations([]);
+      window.location.assign('/administration-ncr');
+    }, Math.min(delay + 500, 2147483000));
+    return () => window.clearTimeout(timer);
+  }, [supportSession?.id, supportSession?.expires_at]);
+
   const activeSite = sites.find((site) => site.id === activeSiteId) ?? null;
 
   const value = useMemo<OrganizationContextValue>(() => ({
@@ -295,6 +360,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     activeSiteId,
     loading,
     sitesLoading,
+    supportSession,
     selectOrganization(id) {
       setSelectedId(id);
     },
@@ -308,6 +374,16 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     },
     refreshSites() {
       setSitesReloadVersion((current) => current + 1);
+    },
+    async endSupportSession() {
+      if (supabase && supportSession) {
+        const { error } = await supabase.rpc('end_my_support_access_session');
+        if (error) throw error;
+      }
+      setSupportSession(null);
+      setOrganizations([]);
+      setSelectedId(null);
+      localStorage.removeItem('ncr-suite-org-id');
     },
     async createOrganization({ name, businessType, primaryColor, requestedPlan, contactName, companyEmail, companyPhone, companyAddress, companyPostalCode, companyCity, companySiret, objective }) {
       const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -523,7 +599,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
       setOrganizations((current) => current.map((org) => org.id === next.id ? next : org));
     }
-  }), [organizations, organization, sites, activeSite, activeSiteId, loading, sitesLoading, selectedId, demoMode]);
+  }), [organizations, organization, sites, activeSite, activeSiteId, loading, sitesLoading, selectedId, demoMode, supportSession]);
 
   return <OrganizationContext.Provider value={value}>{children}</OrganizationContext.Provider>;
 }

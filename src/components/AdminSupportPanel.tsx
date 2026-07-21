@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { businessPacks } from '../config/businessPacks';
 import { Icon } from './Icon';
 import { supabase } from '../lib/supabase';
+import { SupportConversation } from './SupportConversation';
 import type { BusinessType, Plan } from '../types';
 
 interface SupportTicket {
@@ -136,6 +137,7 @@ export function AdminSupportPanel() {
           {!selected ? <div className="admin-editor-empty"><span><Icon name="alert" size={28} /></span><h2>Sélectionne une demande</h2><p>Le détail, l’entreprise et les actions de traitement apparaîtront ici.</p></div> : <>
             <header className="admin-support-editor-head"><div><span className={`admin-priority-pill ${selected.priority}`}>{priorityLabels[selected.priority]}</span><p className="eyebrow">TICKET SUPPORT</p><h2>{selected.subject}</h2><small>{selected.organization_name} · {selected.owner_email || selected.created_by_email}</small></div><span className="admin-ticket-number">#{selected.id.slice(0, 8).toUpperCase()}</span></header>
             <div className="admin-support-description"><p>{selected.description}</p><dl><div><dt>Créé le</dt><dd>{fullDate(selected.created_at)}</dd></div><div><dt>Catégorie</dt><dd>{categoryLabels[selected.category]}</dd></div><div><dt>Formule</dt><dd>{selected.plan}</dd></div><div><dt>Assigné à</dt><dd>{selected.assigned_to_email || 'Personne'}</dd></div></dl></div>
+            <SupportConversation ticketId={selected.id} ticketStatus={selected.status} viewer="admin" />
             <div className="admin-support-form-grid">
               <label>Statut<select value={editStatus} onChange={(event) => setEditStatus(event.target.value as SupportTicket['status'])}>{Object.entries(statusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
               <label>Priorité<select value={editPriority} onChange={(event) => setEditPriority(event.target.value as SupportTicket['priority'])}>{Object.entries(priorityLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>

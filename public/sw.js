@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.11.0-saas-admin';
+const CACHE = 'ncr-suite-shell-v2.11.1-secure-support';
 const SHELL = [
   '/',
   '/index.html',

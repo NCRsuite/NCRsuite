@@ -11,12 +11,13 @@ import { supabase } from '../lib/supabase';
 
 export function AppShell() {
   const { signOut, user } = useAuth();
-  const { organization, organizations, selectOrganization, sites, activeSite, activeSiteId, selectSite, sitesLoading } = useOrganization();
+  const { organization, organizations, selectOrganization, sites, activeSite, activeSiteId, selectSite, sitesLoading, supportSession, endSupportSession } = useOrganization();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
   const [notificationUnread, setNotificationUnread] = useState(0);
+  const [endingSupport, setEndingSupport] = useState(false);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -112,12 +113,16 @@ export function AppShell() {
 
   navigation = filterNavigationForOrganization(organization, navigation);
 
+  if (supportSession) {
+    navigation = navigation.filter((item) => !['/acces-equipe','/personnalisation','/parametres','/offre-metier','/abonnement'].includes(item.path));
+  }
+
   if (organization.plan === 'metier' && canManageOrganization) {
     navigation = [...navigation, { label: 'Configuration Métier', path: '/offre-metier', icon: 'tool' }];
   }
 
   const hasCommercialBrandingModule = navigation.some((item) => item.path === '/personnalisation');
-  const canManageSubscription = !restrictedRole && !(organization.business_type === 'securite' && organization.role === 'manager');
+  const canManageSubscription = !supportSession && !restrictedRole && !(organization.business_type === 'securite' && organization.role === 'manager');
 
   const primaryMobileItem = navigation.find((item) => ['securite', 'restauration'].includes(organization.business_type) && restrictedRole ? item.path === '/terrain' : ['/rendez-vous', '/planning'].includes(item.path))
     ?? navigation.find((item) => item.path !== '/')
@@ -150,6 +155,17 @@ export function AppShell() {
     await signOut();
   }
 
+  async function handleEndSupportSession() {
+    setEndingSupport(true);
+    try {
+      await endSupportSession();
+      window.location.assign('/administration-ncr');
+    } catch (error) {
+      console.error(error);
+      setEndingSupport(false);
+    }
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -158,13 +174,16 @@ export function AppShell() {
           <span>Plateforme métier</span>
         </div>
 
-        <div className="organization-switcher">
+        {supportSession ? <div className="support-sidebar-identity">
+          <span><Icon name="headset" size={18} /></span>
+          <div><small>ASSISTANCE NCR</small><strong>{organization.name}</strong><em>{pack.label} · session temporaire</em></div>
+        </div> : <div className="organization-switcher">
           <label htmlFor="organization">Entreprise</label>
           <select id="organization" value={organization.id} onChange={(event) => changeOrganization(event.target.value)}>
             {organizations.map((org) => <option key={org.id} value={org.id}>{org.name}</option>)}
           </select>
           <small>{pack.label} · {planLabel(organization.plan)} · {organization.custom_role_label || organization.role || 'viewer'}</small>
-        </div>
+        </div>}
 
         {hasMultiSite && sites.length > 0 && (
           <div className="site-switcher">
@@ -211,6 +230,11 @@ export function AppShell() {
       </aside>
 
       <main className="main-content">
+        {supportSession && <div className="support-session-banner" role="status">
+          <span className="support-session-banner-icon"><Icon name="eye" size={20} /></span>
+          <div><strong>Assistance NCR active dans {organization.name}</strong><small>{supportSession.reason} · fin prévue à {new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(supportSession.expires_at))}</small></div>
+          <button type="button" onClick={() => void handleEndSupportSession()} disabled={endingSupport}><Icon name="logout" size={16} /> {endingSupport ? 'Fermeture…' : 'Quitter l’entreprise'}</button>
+        </div>}
         <header className="mobile-header">
           <button
             className="mobile-menu-trigger"

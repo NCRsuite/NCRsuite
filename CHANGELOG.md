@@ -240,3 +240,15 @@
 - Blocage automatique si la vacation a commencé ou contient des données terrain, GPS, PTI, ronde, main courante ou facturation.
 - Annulation des rappels Push encore en attente pour la mission supprimée.
 - Cache PWA passé en `V2.6.5-final`.
+
+## V2.11.1 — Assistance NCR sécurisée
+
+- Conversation directe entre l'entreprise et l'équipe NCR tant que le ticket reste ouvert.
+- Demande d'autorisation de prise en main liée au ticket.
+- Approbation ou refus par le propriétaire ou un administrateur de l'entreprise.
+- Sessions temporaires de 15, 30 ou 60 minutes.
+- Bandeau permanent pendant l'intervention et sortie immédiate vers l'administration NCR.
+- Révocation possible par l'entreprise à tout moment.
+- Journalisation complète des demandes, autorisations, démarrages et fins de session.
+- Fermeture automatique des accès lorsque le ticket est résolu ou fermé.
+- Pages sensibles masquées pendant l'assistance.

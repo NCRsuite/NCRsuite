@@ -190,17 +190,18 @@ function LoadingScreen() {
 
 function ProtectedArea() {
   const { user, loading: authLoading } = useAuth();
-  const { organization, loading: organizationLoading } = useOrganization();
+  const { organization, loading: organizationLoading, supportSession } = useOrganization();
   const { isAdmin, loading: adminLoading } = usePlatformAdmin();
   const location = useLocation();
 
   if (authLoading || adminLoading || organizationLoading) return <LoadingScreen />;
   if (!user) return <Navigate to="/connexion" replace />;
 
-  // Un compte plateforme ne pénètre jamais dans un espace entreprise.
-  if (isAdmin) return <Navigate to="/administration-ncr" replace />;
+  // Un compte plateforme ne pénètre dans un espace entreprise que pendant une session d’assistance autorisée.
+  if (isAdmin && !supportSession) return <Navigate to="/administration-ncr" replace />;
 
-  if (!organization) return <Navigate to="/configuration" replace />;
+  if (!organization) return <Navigate to={isAdmin ? '/administration-ncr' : '/configuration'} replace />;
+  if (supportSession && ['/abonnement','/acces-equipe','/parametres','/offre-metier','/personnalisation'].includes(location.pathname)) return <Navigate to="/" replace />;
   if (organization.status === 'closed') return <OrganizationAccessPage />;
   if (organization.status === 'suspended' && location.pathname !== '/abonnement') return <OrganizationAccessPage />;
   if (!organizationCanAccessPath(organization, location.pathname)) return <Navigate to="/" replace />;
