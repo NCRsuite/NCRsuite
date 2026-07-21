@@ -41,6 +41,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/attestations': 'certificates',
   '/devis': 'quotes',
   '/carte': 'restaurant_menu',
+  '/recettes': 'restaurant_recipes',
   '/reservations': 'restaurant_reservations',
   '/commandes': 'restaurant_ordering',
   '/cuisine': 'restaurant_kitchen',
@@ -73,6 +74,7 @@ const RESTAURANT_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/terrain': 'restaurant_employee_portal',
   '/planning': 'restaurant_staff_planning',
   '/carte': 'restaurant_menu',
+  '/recettes': 'restaurant_recipe_cards',
   '/reservations': 'restaurant_manual_reservations',
   '/commandes': 'restaurant_ordering',
   '/cuisine': 'restaurant_kitchen_display',
@@ -101,7 +103,7 @@ const RESTAURANT_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/salle', 
 
 const SECURITY_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications']);
 const CLEANING_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/protocoles', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications']);
-const RESTAURANT_MANAGER_PATHS = new Set(['/', '/terrain', '/planning', '/equipe', '/carte', '/reservations', '/commandes', '/cuisine', '/salle', '/menu-qr', '/hygiene', '/stocks', '/notifications']);
+const RESTAURANT_MANAGER_PATHS = new Set(['/', '/terrain', '/planning', '/equipe', '/carte', '/recettes', '/reservations', '/commandes', '/cuisine', '/salle', '/menu-qr', '/hygiene', '/stocks', '/notifications']);
 
 export function normalizedModulePath(pathname: string) {
   return pathname === '/' ? '/' : `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
@@ -118,7 +120,7 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
   }
   if (businessType === 'restauration') {
     const restaurantModules: Record<string, string> = {
-      '/terrain': 'restaurant_employee_portal', '/planning': 'restaurant_staff_planning', '/equipe': 'restaurant_staff', '/acces-equipe': 'team_access', '/carte': 'restaurant_menu', '/reservations': 'restaurant_reservations', '/commandes': 'restaurant_ordering', '/cuisine': 'restaurant_kitchen', '/salle': 'restaurant_floor_plan', '/menu-qr': 'restaurant_qr_menu', '/hygiene': 'restaurant_food_safety', '/stocks': 'restaurant_stock', '/personnalisation': 'commercial_branding'
+      '/terrain': 'restaurant_employee_portal', '/planning': 'restaurant_staff_planning', '/equipe': 'restaurant_staff', '/acces-equipe': 'team_access', '/carte': 'restaurant_menu', '/recettes': 'restaurant_recipes', '/reservations': 'restaurant_reservations', '/commandes': 'restaurant_ordering', '/cuisine': 'restaurant_kitchen', '/salle': 'restaurant_floor_plan', '/menu-qr': 'restaurant_qr_menu', '/hygiene': 'restaurant_food_safety', '/stocks': 'restaurant_stock', '/personnalisation': 'commercial_branding'
     };
     if (restaurantModules[normalized]) return restaurantModules[normalized];
   }
@@ -186,7 +188,7 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
   }
 
   if (organization.business_type === 'restauration') {
-    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/carte', '/reservations', '/commandes', '/cuisine', '/salle', '/hygiene', '/notifications'].includes(normalized)) return false;
+    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/carte', '/recettes', '/reservations', '/commandes', '/cuisine', '/salle', '/hygiene', '/notifications'].includes(normalized)) return false;
     if (organization.role === 'manager' && !RESTAURANT_MANAGER_PATHS.has(normalized)) return false;
   }
 

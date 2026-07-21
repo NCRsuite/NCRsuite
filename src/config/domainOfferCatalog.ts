@@ -90,7 +90,11 @@ export type OfferFeatureKey =
   | 'restaurant_statistics'
   | 'restaurant_ordering'
   | 'restaurant_kitchen_display'
-  | 'restaurant_advanced_ordering';
+  | 'restaurant_advanced_ordering'
+  | 'restaurant_recipe_cards'
+  | 'restaurant_recipe_kitchen'
+  | 'restaurant_auto_stock_consumption'
+  | 'restaurant_stock_traceability';
 
 export interface DomainOfferPlan {
   label: string;
@@ -222,7 +226,8 @@ const restaurantDecouverte: OfferFeatureKey[] = [
   'restaurant_suppliers',
   'restaurant_basic_stock',
   'restaurant_manual_reservations',
-  'restaurant_ordering'
+  'restaurant_ordering',
+  'restaurant_recipe_cards'
 ];
 const restaurantEssentielle: OfferFeatureKey[] = [
   ...restaurantDecouverte,
@@ -237,7 +242,8 @@ const restaurantEssentielle: OfferFeatureKey[] = [
   'restaurant_checklists',
   'restaurant_document_email_branding',
   'commercial_branding',
-  'restaurant_kitchen_display'
+  'restaurant_kitchen_display',
+  'restaurant_recipe_kitchen'
 ];
 const restaurantProfessionnelle: OfferFeatureKey[] = [
   ...restaurantEssentielle,
@@ -252,7 +258,9 @@ const restaurantProfessionnelle: OfferFeatureKey[] = [
   'restaurant_supplier_orders',
   'restaurant_food_cost',
   'restaurant_statistics',
-  'restaurant_advanced_ordering'
+  'restaurant_advanced_ordering',
+  'restaurant_auto_stock_consumption',
+  'restaurant_stock_traceability'
 ];
 
 export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> = {
@@ -416,20 +424,20 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       decouverte: {
         label: 'Découverte', monthlyPriceCents: 2990, memberLimit: 1,
         detail: 'Le socle de gestion du restaurant sans accès employé.',
-        additions: ['Employés et planning', 'Carte, plats et allergènes', 'Fournisseurs et stocks simples', 'Réservations saisies par le responsable', 'Prise de commande tactile et note provisoire'],
+        additions: ['Employés et planning', 'Carte, plats et allergènes', 'Fournisseurs et stocks simples', 'Réservations saisies par le responsable', 'Prise de commande tactile et note provisoire', 'Fiches recettes et méthodes de préparation'],
         features: restaurantDecouverte
       },
       essentielle: {
         label: 'Essentielle', monthlyPriceCents: 4990, memberLimit: 10,
         detail: 'Ajoute les employés connectés, les réservations en ligne et le menu QR multilingue.',
-        additions: ['Jusqu’à 10 employés connectés', 'Rôles Serveur et Cuisine', 'Réservation en ligne et éditeur libre du plan de salle', 'Menu QR en français, anglais, espagnol et italien', 'Traductions multilingues modifiables', 'Températures et checklists', 'Envoi des commandes vers l’écran Cuisine', 'Personnalisation des documents et e-mails'],
+        additions: ['Jusqu’à 10 employés connectés', 'Rôles Serveur et Cuisine', 'Réservation en ligne et éditeur libre du plan de salle', 'Menu QR en français, anglais, espagnol et italien', 'Traductions multilingues modifiables', 'Températures et checklists', 'Envoi des commandes vers l’écran Cuisine', 'Fiches recettes accessibles à l’équipe Cuisine', 'Personnalisation des documents et e-mails'],
         features: restaurantEssentielle,
         recommended: true
       },
       professionnelle: {
         label: 'Professionnelle', monthlyPriceCents: 7990, memberLimit: 50,
         detail: 'Ajoute le pilotage multi-site, les stocks avancés et la rentabilité.',
-        additions: ['Jusqu’à 50 employés connectés', 'Rôle Manager', 'Multi-site, plusieurs salles et supervision', 'Inventaires, pertes et gaspillage', 'Commandes fournisseurs', 'Coût matière et marge par plat', 'Postes cuisine et suivi avancé des commandes', 'Statistiques et exports'],
+        additions: ['Jusqu’à 50 employés connectés', 'Rôle Manager', 'Multi-site, plusieurs salles et supervision', 'Inventaires, pertes et gaspillage', 'Commandes fournisseurs', 'Coût matière et marge par plat', 'Postes cuisine et suivi avancé des commandes', 'Déstockage automatique des plats servis', 'Traçabilité des mouvements de stock', 'Statistiques et exports'],
         features: restaurantProfessionnelle
       },
       metier: {
@@ -531,7 +539,11 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   restaurant_statistics: 'Statistiques et exports',
   restaurant_ordering: 'Prise de commande tactile et note provisoire',
   restaurant_kitchen_display: 'Écran Cuisine et suivi des préparations',
-  restaurant_advanced_ordering: 'Postes cuisine et suivi avancé des commandes'
+  restaurant_advanced_ordering: 'Postes cuisine et suivi avancé des commandes',
+  restaurant_recipe_cards: 'Fiches recettes et méthodes de préparation',
+  restaurant_recipe_kitchen: 'Fiches recettes accessibles en Cuisine',
+  restaurant_auto_stock_consumption: 'Déstockage automatique des plats servis',
+  restaurant_stock_traceability: 'Historique et traçabilité des mouvements de stock'
 };
 
 export function getDomainOffer(businessType: BusinessType) {

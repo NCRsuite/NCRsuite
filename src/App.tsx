@@ -69,6 +69,7 @@ import { RestaurantEmployeesPage } from './pages/RestaurantEmployeesPage';
 import { RestaurantPlanningPage } from './pages/RestaurantPlanningPage';
 import { RestaurantEmployeePortalPage } from './pages/RestaurantEmployeePortalPage';
 import { RestaurantMenuPage } from './pages/RestaurantMenuPage';
+import { RestaurantRecipesPage } from './pages/RestaurantRecipesPage';
 import { RestaurantReservationsPage } from './pages/RestaurantReservationsPage';
 import { RestaurantOrdersPage } from './pages/RestaurantOrdersPage';
 import { RestaurantKitchenPage } from './pages/RestaurantKitchenPage';
@@ -272,6 +273,7 @@ export default function App() {
         <Route path="stocks" element={<StockArea />} />
 
         <Route path="carte" element={<RestaurantOnlyArea><ModuleAccessGuard moduleKey="restaurant_menu"><RestaurantMenuPage /></ModuleAccessGuard></RestaurantOnlyArea>} />
+        <Route path="recettes" element={<RestaurantOnlyArea><ModuleAccessGuard moduleKey="restaurant_recipes"><RestaurantRecipesPage /></ModuleAccessGuard></RestaurantOnlyArea>} />
         <Route path="reservations" element={<RestaurantOnlyArea><ModuleAccessGuard moduleKey="restaurant_reservations"><RestaurantReservationsPage /></ModuleAccessGuard></RestaurantOnlyArea>} />
         <Route path="commandes" element={<RestaurantOnlyArea><ModuleAccessGuard moduleKey="restaurant_ordering"><RestaurantOrdersPage /></ModuleAccessGuard></RestaurantOnlyArea>} />
         <Route path="cuisine" element={<RestaurantOnlyArea><RestaurantFeatureGate feature="restaurant_kitchen_display" requiredPlan="Essentielle" description="Envoyez les commandes vers un écran Cuisine et suivez leur préparation en temps réel."><RestaurantKitchenPage /></RestaurantFeatureGate></RestaurantOnlyArea>} />

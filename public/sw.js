@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.9.2-restaurant-stable';
+const CACHE = 'ncr-suite-shell-v2.10.0-restaurant-recipes';
 const SHELL = [
   '/',
   '/index.html',

@@ -86,8 +86,70 @@ export interface RestaurantStockItemRecord {
   quantity: number;
   minimum_quantity: number;
   unit_cost_cents: number;
+  allergens: string[];
   status: 'active' | 'inactive' | 'archived';
   restaurant_suppliers?: { name: string } | null;
+}
+
+
+export interface RestaurantRecipeCardRecord {
+  id: string;
+  organization_id: string;
+  menu_item_id: string;
+  portions: number;
+  prep_time_minutes: number;
+  cooking_time_minutes: number;
+  instructions: string | null;
+  plating_notes: string | null;
+  kitchen_notes: string | null;
+  derived_allergens: string[];
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+  restaurant_recipe_ingredients?: RestaurantRecipeIngredientRecord[];
+}
+
+export interface RestaurantRecipeIngredientRecord {
+  id: string;
+  organization_id: string;
+  recipe_id: string;
+  stock_item_id: string;
+  quantity: number;
+  unit: string;
+  position: number;
+  deduct_from_stock: boolean;
+  notes: string | null;
+  restaurant_stock_items?: Pick<RestaurantStockItemRecord, 'id' | 'name' | 'unit' | 'unit_cost_cents' | 'allergens' | 'quantity'> | null;
+}
+
+export type RestaurantStockMovementType =
+  | 'manual_adjustment'
+  | 'restock'
+  | 'inventory'
+  | 'waste'
+  | 'recipe_consumption'
+  | 'recipe_reversal';
+
+export interface RestaurantStockMovementRecord {
+  id: string;
+  organization_id: string;
+  stock_item_id: string;
+  recipe_id: string | null;
+  recipe_ingredient_id: string | null;
+  order_id: string | null;
+  order_item_id: string | null;
+  waste_record_id: string | null;
+  movement_type: RestaurantStockMovementType;
+  quantity_delta: number;
+  unit: string;
+  unit_cost_cents: number;
+  balance_before: number;
+  balance_after: number;
+  notes: string | null;
+  reversal_of: string | null;
+  reversed_at: string | null;
+  created_at: string;
+  restaurant_stock_items?: { name: string } | null;
 }
 
 export type RestaurantTableShape = 'round' | 'square' | 'rectangle';

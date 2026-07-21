@@ -1,3 +1,24 @@
+# V2.10.0 — Fiches recettes, déstockage automatique et rentabilité Restauration
+
+- Nouvelle rubrique **Fiches recettes** reliée directement aux plats de la carte.
+- Gestion du rendement, des temps de préparation et cuisson, de la méthode, du dressage et des consignes Cuisine.
+- Association des ingrédients aux références de stock avec quantités et unités compatibles (g/kg, ml/cl/l et unités).
+- Enregistrement atomique des fiches recettes : la fiche et tous ses ingrédients sont validés dans une seule transaction.
+- Détection des allergènes à partir des ingrédients et synchronisation volontaire vers la carte publique.
+- Accès rapide à la fiche recette depuis la carte et depuis chaque ticket de l’écran Cuisine.
+- Calcul automatique du coût matière par portion, de la marge brute et du taux de marge pour les comptes financiers autorisés.
+- Déstockage automatique et idempotent lors du passage d’un article à l’état **Servi** en offre Professionnelle.
+- Rétablissement automatique du stock lorsqu’un article servi est ensuite corrigé ou annulé.
+- Recalcul sécurisé du déstockage si la quantité ou le plat d’un article déjà servi est corrigé.
+- Déduction des pertes et du gaspillage du stock lorsqu’un produit est associé à la déclaration.
+- Historique financier des mouvements de stock : réapprovisionnements, corrections, recettes, pertes et rétablissements.
+- Le stock théorique peut devenir négatif afin de signaler un écart réel au lieu de masquer une rupture.
+- Ajout des allergènes sur les ingrédients du stock.
+- Tableau de bord enrichi avec les fiches recettes restant à compléter.
+- Répartition par offre : fiches recettes en Découverte, consultation Cuisine en Essentielle, coûts/déstockage/traçabilité en Professionnelle.
+- Aucun encaissement ni moyen de paiement n’est ajouté ou modifié.
+- Cache PWA : `ncr-suite-shell-v2.10.0-restaurant-recipes`.
+
 # V2.9.2 — Stabilisation complète Restauration
 
 - Les réglages de réservation publique Restauration enregistrent désormais réellement le mode de confirmation, l’intervalle des créneaux, le délai minimum et la période maximale.
