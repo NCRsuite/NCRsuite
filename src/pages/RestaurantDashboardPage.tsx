@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { StatCard } from '../components/StatCard';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { toRestaurantLocalDateKey, restaurantErrorMessage } from '../features/restaurant/runtime';
 import { formatRestaurantDateTime, type RestaurantReservationRecord, type RestaurantShiftRecord, type RestaurantStockItemRecord, type RestaurantTemperatureRecord } from '../features/restaurant/types';
 import { supabase } from '../lib/supabase';
 
@@ -23,33 +24,44 @@ export function RestaurantDashboardPage() {
     let active = true;
     async function load() {
       setLoading(true); setError('');
-      const [reservationResult, shiftResult] = await Promise.all([
-        supabase!.from('restaurant_reservations').select('*,restaurant_tables(name,area)').eq('organization_id', organization!.id).gte('reservation_at', start.toISOString()).lt('reservation_at', end.toISOString()).order('reservation_at'),
-        supabase!.from('restaurant_shifts').select('*,restaurant_employees(first_name,last_name,role_code)').eq('organization_id', organization!.id).gte('starts_at', start.toISOString()).lt('starts_at', end.toISOString()).neq('status', 'canceled').order('starts_at')
-      ]);
-      if (!active) return;
-      const firstError = reservationResult.error || shiftResult.error;
-      if (firstError) setError(firstError.message);
-      setReservations((reservationResult.data ?? []) as RestaurantReservationRecord[]);
-      setShifts((shiftResult.data ?? []) as RestaurantShiftRecord[]);
-      if (organizationHasFeature(organization!, 'restaurant_basic_stock')) {
-        const { data } = await supabase!.from('restaurant_stock_items').select('*').eq('organization_id', organization!.id).eq('status', 'active').order('quantity').limit(30);
-        if (active) setStock((data ?? []) as RestaurantStockItemRecord[]);
+      try {
+        const requests = [
+          supabase!.from('restaurant_reservations').select('*,restaurant_tables(name,area)').eq('organization_id', organization!.id).gte('reservation_at', start.toISOString()).lt('reservation_at', end.toISOString()).order('reservation_at'),
+          supabase!.from('restaurant_shifts').select('*,restaurant_employees(first_name,last_name,role_code)').eq('organization_id', organization!.id).gte('starts_at', start.toISOString()).lt('starts_at', end.toISOString()).neq('status', 'canceled').order('starts_at')
+        ] as const;
+        const [reservationResult, shiftResult] = await Promise.all(requests);
+        if (!active) return;
+        const errors = [reservationResult.error, shiftResult.error].filter(Boolean);
+        setReservations((reservationResult.data ?? []) as RestaurantReservationRecord[]);
+        setShifts((shiftResult.data ?? []) as RestaurantShiftRecord[]);
+
+        if (organizationHasFeature(organization!, 'restaurant_basic_stock')) {
+          const stockResult = await supabase!.from('restaurant_stock_items').select('*').eq('organization_id', organization!.id).eq('status', 'active').order('quantity').limit(30);
+          if (stockResult.error) errors.push(stockResult.error);
+          if (active) setStock((stockResult.data ?? []) as RestaurantStockItemRecord[]);
+        } else if (active) setStock([]);
+
+        if (organizationHasFeature(organization!, 'restaurant_temperatures')) {
+          const temperatureResult = await supabase!.from('restaurant_temperature_logs').select('*').eq('organization_id', organization!.id).gte('logged_at', start.toISOString()).order('logged_at', { ascending: false });
+          if (temperatureResult.error) errors.push(temperatureResult.error);
+          if (active) setTemperatures((temperatureResult.data ?? []) as RestaurantTemperatureRecord[]);
+        } else if (active) setTemperatures([]);
+
+        if (active && errors.length) setError(restaurantErrorMessage(errors[0], 'Certaines données du tableau de bord n’ont pas pu être chargées.'));
+      } catch (caught) {
+        if (active) setError(restaurantErrorMessage(caught, 'Chargement du tableau de bord impossible.'));
+      } finally {
+        if (active) setLoading(false);
       }
-      if (organizationHasFeature(organization!, 'restaurant_temperatures')) {
-        const { data } = await supabase!.from('restaurant_temperature_logs').select('*').eq('organization_id', organization!.id).gte('logged_at', start.toISOString()).order('logged_at', { ascending: false });
-        if (active) setTemperatures((data ?? []) as RestaurantTemperatureRecord[]);
-      }
-      if (active) setLoading(false);
     }
     void load(); return () => { active = false; };
   }, [organization?.id, organization?.plan]);
 
   if (!organization) return null;
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const todayReservations = reservations.filter((row) => row.reservation_at.slice(0, 10) === todayKey && !['canceled', 'no_show'].includes(row.status));
+  const todayKey = toRestaurantLocalDateKey();
+  const todayReservations = reservations.filter((row) => toRestaurantLocalDateKey(row.reservation_at) === todayKey && !['canceled', 'no_show'].includes(row.status));
   const covers = todayReservations.reduce((total, row) => total + row.party_size, 0);
-  const todayShifts = shifts.filter((row) => row.starts_at.slice(0, 10) === todayKey);
+  const todayShifts = shifts.filter((row) => toRestaurantLocalDateKey(row.starts_at) === todayKey);
   const lowStock = stock.filter((row) => Number(row.quantity) <= Number(row.minimum_quantity));
   const nonCompliant = temperatures.filter((row) => !row.compliant);
   const nextReservations = useMemo(() => todayReservations.filter((row) => new Date(row.reservation_at).getTime() >= Date.now()).slice(0, 6), [todayReservations]);

@@ -1,3 +1,16 @@
+# V2.9.2 — Stabilisation complète Restauration
+
+- Les réglages de réservation publique Restauration enregistrent désormais réellement le mode de confirmation, l’intervalle des créneaux, le délai minimum et la période maximale.
+- La page publique respecte ces paramètres dans l’interface et côté Supabase.
+- Les réservations automatiques sont directement confirmées ; le mode manuel conserve le statut en attente.
+- Ajout d’une limitation anti-spam sur les demandes publiques répétées avec les mêmes coordonnées.
+- Le bouton de validation reste bloqué tant que la disponibilité du créneau n’a pas été confirmée.
+- Correction des décalages de date liés à l’UTC sur le tableau de bord, les réservations et le plan de salle.
+- Centralisation des changements de statut des réservations avec audit et synchronisation du statut de la table.
+- Messages plus explicites en cas de perte de connexion, session expirée ou créneau pris simultanément.
+- Lecture plus robuste des données locales de démonstration et remontée des erreurs auparavant silencieuses sur les stocks, l’hygiène, les commandes et la cuisine.
+- Cache PWA : `ncr-suite-shell-v2.9.2-restaurant-stable`.
+
 # NCR Suite — Journal des versions
 
 ## V2.9.1 — Réservations Restauration Premium

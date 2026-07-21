@@ -8596,3 +8596,36 @@ button { max-width: 100%; }
   .restaurant-reservation-service-tabs { display: grid; grid-template-columns: repeat(2, 1fr); }
   .restaurant-reservation-service-tabs button { width: 100%; }
 }
+
+/* V2.9.2 — Stabilisation Restauration */
+.public-booking-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 18px;
+}
+
+.public-booking-rules span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--restaurant-brand, #8b5a2b) 22%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--restaurant-brand, #8b5a2b) 8%, white);
+  color: var(--text-secondary, #5f5b55);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .public-booking-rules {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .public-booking-rules span {
+    justify-content: center;
+    text-align: center;
+  }
+}

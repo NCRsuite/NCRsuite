@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { restaurantErrorMessage, safeRestaurantStorageArray, toRestaurantLocalDateKey } from '../features/restaurant/runtime';
 import { nullableRestaurantText, type RestaurantReservationRecord, type RestaurantReservationStatus, type RestaurantTableRecord } from '../features/restaurant/types';
 import { supabase } from '../lib/supabase';
 
@@ -28,11 +29,6 @@ function reservationDateForDay(day: string) {
   return toLocalInput(target);
 }
 
-function errorMessage(caught: unknown, fallback: string) {
-  if (caught instanceof Error) return caught.message;
-  if (caught && typeof caught === 'object' && 'message' in caught && typeof caught.message === 'string') return caught.message;
-  return fallback;
-}
 
 function intervalsOverlap(startA: string, durationA: number, startB: string, durationB: number) {
   const aStart = new Date(startA).getTime();
@@ -93,7 +89,7 @@ export function RestaurantReservationsPage() {
   const [rows, setRows] = useState<RestaurantReservationRecord[]>([]);
   const [tables, setTables] = useState<RestaurantTableRecord[]>([]);
   const [form, setForm] = useState(emptyForm);
-  const [day, setDay] = useState(new Date().toISOString().slice(0, 10));
+  const [day, setDay] = useState(toRestaurantLocalDateKey());
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [serviceFilter, setServiceFilter] = useState<ServiceFilter>('all');
   const [search, setSearch] = useState('');
@@ -146,7 +142,7 @@ export function RestaurantReservationsPage() {
       });
       setSuccess('La page publique de réservation est maintenant activée.');
     } catch (caught) {
-      setError(errorMessage(caught, 'Activation de la page publique impossible.'));
+      setError(restaurantErrorMessage(caught, 'Activation de la page publique impossible.'));
     } finally {
       setActivatingPublicPage(false);
     }
@@ -160,32 +156,37 @@ export function RestaurantReservationsPage() {
     const end = new Date(start);
     end.setDate(end.getDate() + 7);
 
-    if (demoMode || !supabase) {
-      setRows(JSON.parse(localStorage.getItem(`ncr-restaurant-reservations-${organization.id}`) || '[]'));
-      setTables(JSON.parse(localStorage.getItem(`ncr-restaurant-tables-${organization.id}`) || '[]'));
-    } else {
-      const [reservationResult, tableResult] = await Promise.all([
-        supabase
-          .from('restaurant_reservations')
-          .select('*,restaurant_tables(name,area)')
-          .eq('organization_id', organization.id)
-          .gte('reservation_at', start.toISOString())
-          .lt('reservation_at', end.toISOString())
-          .order('reservation_at'),
-        supabase
-          .from('restaurant_tables')
-          .select('*')
-          .eq('organization_id', organization.id)
-          .eq('active', true)
-          .order('area')
-          .order('name')
-      ]);
-      const firstError = reservationResult.error || tableResult.error;
-      if (firstError) setError(firstError.message);
-      setRows((reservationResult.data ?? []) as RestaurantReservationRecord[]);
-      setTables((tableResult.data ?? []) as RestaurantTableRecord[]);
+    try {
+      if (demoMode || !supabase) {
+        setRows(safeRestaurantStorageArray<RestaurantReservationRecord>(`ncr-restaurant-reservations-${organization.id}`));
+        setTables(safeRestaurantStorageArray<RestaurantTableRecord>(`ncr-restaurant-tables-${organization.id}`));
+      } else {
+        const [reservationResult, tableResult] = await Promise.all([
+          supabase
+            .from('restaurant_reservations')
+            .select('*,restaurant_tables(name,area)')
+            .eq('organization_id', organization.id)
+            .gte('reservation_at', start.toISOString())
+            .lt('reservation_at', end.toISOString())
+            .order('reservation_at'),
+          supabase
+            .from('restaurant_tables')
+            .select('*')
+            .eq('organization_id', organization.id)
+            .eq('active', true)
+            .order('area')
+            .order('name')
+        ]);
+        const firstError = reservationResult.error || tableResult.error;
+        if (firstError) throw firstError;
+        setRows((reservationResult.data ?? []) as RestaurantReservationRecord[]);
+        setTables((tableResult.data ?? []) as RestaurantTableRecord[]);
+      }
+    } catch (caught) {
+      setError(restaurantErrorMessage(caught, 'Chargement des réservations impossible.'));
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   useEffect(() => {
@@ -212,7 +213,7 @@ export function RestaurantReservationsPage() {
       try {
         let ids: string[] = [];
         if (demoMode || !supabase) {
-          const reservations = JSON.parse(localStorage.getItem(`ncr-restaurant-reservations-${organization.id}`) || '[]') as RestaurantReservationRecord[];
+          const reservations = safeRestaurantStorageArray<RestaurantReservationRecord>(`ncr-restaurant-reservations-${organization.id}`);
           ids = tables
             .filter((table) => {
               if (table.capacity < requestedPartySize || table.service_status === 'unavailable') return true;
@@ -241,7 +242,7 @@ export function RestaurantReservationsPage() {
           setForm((current) => current.tableId && nextUnavailable.has(current.tableId) ? { ...current, tableId: '' } : current);
         }
       } catch (caught) {
-        if (!canceled) setAvailabilityError(errorMessage(caught, 'Impossible de vérifier les tables disponibles.'));
+        if (!canceled) setAvailabilityError(restaurantErrorMessage(caught, 'Impossible de vérifier les tables disponibles.'));
       } finally {
         if (!canceled) setCheckingAvailability(false);
       }
@@ -299,7 +300,7 @@ export function RestaurantReservationsPage() {
 
       let created: RestaurantReservationRecord;
       if (demoMode || !supabase) {
-        const allReservations = JSON.parse(localStorage.getItem(`ncr-restaurant-reservations-${organization.id}`) || '[]') as RestaurantReservationRecord[];
+        const allReservations = safeRestaurantStorageArray<RestaurantReservationRecord>(`ncr-restaurant-reservations-${organization.id}`);
         if (form.tableId && allReservations.some((reservation) =>
           reservation.table_id === form.tableId
           && blockingStatuses.includes(reservation.status)
@@ -332,7 +333,7 @@ export function RestaurantReservationsPage() {
       setSearchParams({});
       setSuccess('La réservation a été créée et le créneau de la table est bloqué.');
     } catch (caught) {
-      setError(errorMessage(caught, 'Création impossible.'));
+      setError(restaurantErrorMessage(caught, 'Création impossible.'));
     } finally {
       setSaving(false);
     }
@@ -342,27 +343,26 @@ export function RestaurantReservationsPage() {
     if (!organization) return;
     try {
       if (demoMode || !supabase) {
-        const allRows = JSON.parse(localStorage.getItem(`ncr-restaurant-reservations-${organization.id}`) || '[]') as RestaurantReservationRecord[];
+        const allRows = safeRestaurantStorageArray<RestaurantReservationRecord>(`ncr-restaurant-reservations-${organization.id}`);
         const stored = allRows.map((item) => item.id === row.id ? { ...item, status } : item);
         localStorage.setItem(`ncr-restaurant-reservations-${organization.id}`, JSON.stringify(stored));
         setRows((current) => current.map((item) => item.id === row.id ? { ...item, status } : item));
       } else {
-        const { error: updateError } = await supabase
-          .from('restaurant_reservations')
-          .update({ status })
-          .eq('organization_id', organization.id)
-          .eq('id', row.id);
+        const { error: updateError } = await supabase.rpc('set_restaurant_reservation_status', {
+          p_reservation_id: row.id,
+          p_status: status
+        });
         if (updateError) throw updateError;
         setRows((current) => current.map((item) => item.id === row.id ? { ...item, status } : item));
       }
     } catch (caught) {
-      setError(errorMessage(caught, 'Mise à jour impossible.'));
+      setError(restaurantErrorMessage(caught, 'Mise à jour impossible.'));
     }
   }
 
   const activeRows = useMemo(
     () => rows
-      .filter((row) => row.reservation_at.slice(0, 10) === day)
+      .filter((row) => toRestaurantLocalDateKey(row.reservation_at) === day)
       .sort((a, b) => a.reservation_at.localeCompare(b.reservation_at)),
     [rows, day]
   );
@@ -385,7 +385,7 @@ export function RestaurantReservationsPage() {
   const pendingCount = activeRows.filter((row) => row.status === 'pending').length;
   const seatedCount = activeRows.filter((row) => row.status === 'seated').length;
   const completedCount = activeRows.filter((row) => row.status === 'completed').length;
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = toRestaurantLocalDateKey();
   const selectedDayTitle = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).format(selectedDate);
 
   if (!organization) return null;
@@ -448,7 +448,7 @@ export function RestaurantReservationsPage() {
       <div className="restaurant-week-strip">
         {weekDays.map((date) => {
           const dateIso = isoDay(date);
-          const count = rows.filter((row) => row.reservation_at.slice(0, 10) === dateIso && !['canceled', 'no_show'].includes(row.status)).length;
+          const count = rows.filter((row) => toRestaurantLocalDateKey(row.reservation_at) === dateIso && !['canceled', 'no_show'].includes(row.status)).length;
           return <button
             type="button"
             key={dateIso}
@@ -470,7 +470,7 @@ export function RestaurantReservationsPage() {
           <h2>Préparer l’arrivée du client</h2>
           <p>Choisis le créneau, le nombre de couverts et une table réellement disponible.</p>
         </div>
-        <button className="secondary-button compact-button" onClick={() => setSearchParams({})}><Icon name="close" size={16}/>Fermer</button>
+        <button type="button" className="secondary-button compact-button" onClick={() => setSearchParams({})}><Icon name="close" size={16}/>Fermer</button>
       </div>
       <form className="restaurant-booking-form" onSubmit={createReservation}>
         <div className="restaurant-booking-form-main">
@@ -493,7 +493,7 @@ export function RestaurantReservationsPage() {
           <section className="restaurant-booking-form-section">
             <div className="restaurant-booking-section-title"><span>2</span><div><strong>Créneau du service</strong><small>La disponibilité des tables se met à jour automatiquement.</small></div></div>
             <div className="restaurant-booking-fields two-columns">
-              <label>Date et heure *<input type="datetime-local" required value={form.reservationAt} onChange={(e) => setForm({ ...form, reservationAt: e.target.value })}/></label>
+              <label>Date et heure *<input type="datetime-local" min={toLocalInput(new Date())} required value={form.reservationAt} onChange={(e) => setForm({ ...form, reservationAt: e.target.value })}/></label>
               <label>Durée estimée<select value={form.durationMinutes} onChange={(e) => setForm({ ...form, durationMinutes: e.target.value })}><option value="60">1 heure</option><option value="90">1 h 30</option><option value="120">2 heures</option><option value="150">2 h 30</option><option value="180">3 heures</option></select></label>
             </div>
             <div className="restaurant-booking-duration-row">

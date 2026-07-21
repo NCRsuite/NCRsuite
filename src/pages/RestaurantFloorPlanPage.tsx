@@ -11,6 +11,7 @@ import { Icon } from '../components/Icon';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { restaurantErrorMessage, safeRestaurantStorageArray, toRestaurantLocalDateKey } from '../features/restaurant/runtime';
 import type {
   RestaurantFloorElementRecord,
   RestaurantFloorElementType,
@@ -160,7 +161,7 @@ export function RestaurantFloorPlanPage() {
   const [fitToScreen, setFitToScreen] = useState(true);
   const [tableForm, setTableForm] = useState(emptyTableForm);
   const [roomName, setRoomName] = useState('');
-  const [day, setDay] = useState(new Date().toISOString().slice(0, 10));
+  const [day, setDay] = useState(toRestaurantLocalDateKey());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -216,12 +217,12 @@ export function RestaurantFloorPlanPage() {
     setError('');
     try {
       if (demoMode || !supabase) {
-        let demoRooms = JSON.parse(localStorage.getItem(roomStorageKey()) || '[]') as RestaurantFloorRoomRecord[];
+        let demoRooms = safeRestaurantStorageArray<RestaurantFloorRoomRecord>(roomStorageKey());
         if (demoRooms.length === 0) {
           demoRooms = [demoRoom(organization.id)];
           localStorage.setItem(roomStorageKey(), JSON.stringify(demoRooms));
         }
-        const demoTables = (JSON.parse(localStorage.getItem(tableStorageKey()) || '[]') as RestaurantTableRecord[]).map((row) => normalizeTable({
+        const demoTables = safeRestaurantStorageArray<RestaurantTableRecord>(tableStorageKey()).map((row) => normalizeTable({
           ...row,
           room_id: row.room_id || demoRooms[0].id,
           width: row.width ?? 10,
@@ -231,12 +232,12 @@ export function RestaurantFloorPlanPage() {
           service_status: row.service_status ?? 'available',
           z_index: row.z_index ?? 10
         }));
-        const demoElements = (JSON.parse(localStorage.getItem(elementStorageKey()) || '[]') as RestaurantFloorElementRecord[]).map(normalizeElement);
-        const demoReservations = JSON.parse(localStorage.getItem(reservationStorageKey()) || '[]') as RestaurantReservationRecord[];
+        const demoElements = safeRestaurantStorageArray<RestaurantFloorElementRecord>(elementStorageKey()).map(normalizeElement);
+        const demoReservations = safeRestaurantStorageArray<RestaurantReservationRecord>(reservationStorageKey());
         setRooms(demoRooms.map(normalizeRoom));
         setTables(demoTables);
         setElements(demoElements);
-        setReservations(demoReservations.filter((row) => row.reservation_at.slice(0, 10) === day));
+        setReservations(demoReservations.filter((row) => toRestaurantLocalDateKey(row.reservation_at) === day));
         setSelectedRoomId((current) => current && demoRooms.some((room) => room.id === current) ? current : demoRooms[0].id);
       } else {
         const start = new Date(`${day}T00:00:00`);
@@ -259,7 +260,7 @@ export function RestaurantFloorPlanPage() {
         setSelectedRoomId((current) => current && loadedRooms.some((room) => room.id === current) ? current : loadedRooms[0]?.id ?? '');
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Chargement du plan impossible.');
+      setError(restaurantErrorMessage(caught, 'Chargement du plan impossible.'));
     } finally {
       setLoading(false);
     }

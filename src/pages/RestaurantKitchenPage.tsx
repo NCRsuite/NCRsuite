@@ -3,6 +3,7 @@ import { Icon } from '../components/Icon';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { restaurantErrorMessage, safeRestaurantStorageArray } from '../features/restaurant/runtime';
 import type { RestaurantOrderItemRecord, RestaurantOrderRecord, RestaurantOrderStation } from '../features/restaurant/types';
 import { supabase } from '../lib/supabase';
 
@@ -34,8 +35,8 @@ export function RestaurantKitchenPage() {
     setError('');
     try {
       if (demoMode || !supabase) {
-        const demoOrders = JSON.parse(localStorage.getItem(`ncr-restaurant-orders-${organization.id}`) || '[]') as RestaurantOrderRecord[];
-        const demoItems = JSON.parse(localStorage.getItem(`ncr-restaurant-order-items-${organization.id}`) || '[]') as RestaurantOrderItemRecord[];
+        const demoOrders = safeRestaurantStorageArray<RestaurantOrderRecord>(`ncr-restaurant-orders-${organization.id}`);
+        const demoItems = safeRestaurantStorageArray<RestaurantOrderItemRecord>(`ncr-restaurant-order-items-${organization.id}`);
         setOrders(demoOrders.filter((row) => !['closed','canceled'].includes(row.status)));
         setItems(demoItems.filter((row) => ['sent','in_progress','ready'].includes(row.status)));
       } else {
@@ -47,7 +48,7 @@ export function RestaurantKitchenPage() {
         if (itemResult.error) throw itemResult.error;
         setOrders(loaded); setItems((itemResult.data ?? []) as RestaurantOrderItemRecord[]);
       }
-    } catch (caught) { setError(caught instanceof Error ? caught.message : 'Chargement cuisine impossible.'); }
+    } catch (caught) { setError(restaurantErrorMessage(caught, 'Chargement cuisine impossible.')); }
     finally { setLoading(false); }
   }
 
@@ -65,7 +66,7 @@ export function RestaurantKitchenPage() {
     if (!organization) return;
     try {
       if (demoMode || !supabase) {
-        const all = JSON.parse(localStorage.getItem(`ncr-restaurant-order-items-${organization.id}`) || '[]') as RestaurantOrderItemRecord[];
+        const all = safeRestaurantStorageArray<RestaurantOrderItemRecord>(`ncr-restaurant-order-items-${organization.id}`);
         const next = all.map((row) => row.id === item.id ? { ...row, status } : row);
         localStorage.setItem(`ncr-restaurant-order-items-${organization.id}`, JSON.stringify(next));
         setItems(next.filter((row) => ['sent','in_progress','ready'].includes(row.status)));
@@ -74,7 +75,7 @@ export function RestaurantKitchenPage() {
         if (rpcError) throw rpcError;
         await load();
       }
-    } catch (caught) { setError(caught instanceof Error ? caught.message : 'Mise à jour impossible.'); }
+    } catch (caught) { setError(restaurantErrorMessage(caught, 'Mise à jour impossible.')); }
   }
 
   return <div className="page restaurant-page restaurant-kitchen-page restaurant-premium-workspace">

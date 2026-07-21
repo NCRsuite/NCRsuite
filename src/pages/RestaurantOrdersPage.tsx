@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { restaurantErrorMessage, safeRestaurantStorageArray } from '../features/restaurant/runtime';
 import {
   formatRestaurantMoney,
   type RestaurantMenuCategoryRecord,
@@ -89,11 +90,11 @@ export function RestaurantOrdersPage() {
     setError('');
     try {
       if (demoMode || !supabase) {
-        const demoCategories = JSON.parse(localStorage.getItem(`ncr-restaurant-categories-${organization.id}`) || '[]');
-        const demoMenu = JSON.parse(localStorage.getItem(`ncr-restaurant-menu-${organization.id}`) || '[]');
-        const demoTables = JSON.parse(localStorage.getItem(`ncr-restaurant-tables-${organization.id}`) || '[]');
-        const demoOrders = JSON.parse(localStorage.getItem(storageKey) || '[]') as RestaurantOrderRecord[];
-        const demoItems = JSON.parse(localStorage.getItem(itemStorageKey) || '[]') as RestaurantOrderItemRecord[];
+        const demoCategories = safeRestaurantStorageArray<RestaurantMenuCategoryRecord>(`ncr-restaurant-categories-${organization.id}`);
+        const demoMenu = safeRestaurantStorageArray<RestaurantMenuItemRecord>(`ncr-restaurant-menu-${organization.id}`);
+        const demoTables = safeRestaurantStorageArray<RestaurantTableRecord>(`ncr-restaurant-tables-${organization.id}`);
+        const demoOrders = safeRestaurantStorageArray<RestaurantOrderRecord>(storageKey);
+        const demoItems = safeRestaurantStorageArray<RestaurantOrderItemRecord>(itemStorageKey);
         setCategories(demoCategories);
         setMenuItems(demoMenu);
         setTables(demoTables);
@@ -125,7 +126,7 @@ export function RestaurantOrdersPage() {
         setSelectedOrderId(next);
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Chargement des commandes impossible.');
+      setError(restaurantErrorMessage(caught, 'Chargement des commandes impossible.'));
     } finally {
       setLoading(false);
     }
@@ -218,7 +219,7 @@ export function RestaurantOrdersPage() {
         if (insertError) throw insertError;
         await load(selectedOrder.id);
       }
-    } catch (caught) { setError(caught instanceof Error ? caught.message : 'Ajout impossible.'); }
+    } catch (caught) { setError(restaurantErrorMessage(caught, 'Ajout impossible.')); }
     finally { setSaving(false); }
   }
 
@@ -266,7 +267,7 @@ export function RestaurantOrdersPage() {
         await load(selectedOrder.id);
       }
       setSuccess(hasKitchen ? 'Les nouveaux articles ont été envoyés en cuisine.' : 'La commande a été validée sur la note.');
-    } catch (caught) { setError(caught instanceof Error ? caught.message : 'Envoi impossible.'); }
+    } catch (caught) { setError(restaurantErrorMessage(caught, 'Envoi impossible.')); }
     finally { setSaving(false); }
   }
 
@@ -283,7 +284,7 @@ export function RestaurantOrdersPage() {
         await load(selectedOrder.id);
       }
       setSuccess('La note provisoire est prête. Le règlement reste à faire sur la caisse ou le terminal habituel.');
-    } catch (caught) { setError(caught instanceof Error ? caught.message : 'Note impossible.'); }
+    } catch (caught) { setError(restaurantErrorMessage(caught, 'Note impossible.')); }
     finally { setSaving(false); }
   }
 
@@ -300,7 +301,7 @@ export function RestaurantOrdersPage() {
         setSelectedOrderId(''); await load();
       }
       setSuccess('Note clôturée sans enregistrer le paiement. La table passe à nettoyer.');
-    } catch (caught) { setError(caught instanceof Error ? caught.message : 'Clôture impossible.'); }
+    } catch (caught) { setError(restaurantErrorMessage(caught, 'Clôture impossible.')); }
     finally { setSaving(false); }
   }
 

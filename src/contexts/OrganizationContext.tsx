@@ -379,6 +379,11 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           ? await supabase.rpc('update_restaurant_public_booking_settings', {
               p_organization_id: organization.id,
               p_enabled: enabled,
+              p_confirmation_mode: confirmationMode,
+              p_slot_interval: slotInterval,
+              p_min_notice_hours: minNoticeHours,
+              p_max_days_ahead: maxDaysAhead,
+              p_cancel_notice_hours: cancelNoticeHours,
               p_welcome_text: welcomeText.trim() || null
             })
           : await supabase.rpc('update_public_booking_settings', {
