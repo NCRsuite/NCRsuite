@@ -70,6 +70,8 @@ import { RestaurantPlanningPage } from './pages/RestaurantPlanningPage';
 import { RestaurantEmployeePortalPage } from './pages/RestaurantEmployeePortalPage';
 import { RestaurantMenuPage } from './pages/RestaurantMenuPage';
 import { RestaurantReservationsPage } from './pages/RestaurantReservationsPage';
+import { RestaurantOrdersPage } from './pages/RestaurantOrdersPage';
+import { RestaurantKitchenPage } from './pages/RestaurantKitchenPage';
 import { RestaurantFloorPlanPage } from './pages/RestaurantFloorPlanPage';
 import { RestaurantQrMenuPage } from './pages/RestaurantQrMenuPage';
 import { RestaurantFoodSafetyPage } from './pages/RestaurantFoodSafetyPage';
@@ -271,6 +273,8 @@ export default function App() {
 
         <Route path="carte" element={<RestaurantOnlyArea><ModuleAccessGuard moduleKey="restaurant_menu"><RestaurantMenuPage /></ModuleAccessGuard></RestaurantOnlyArea>} />
         <Route path="reservations" element={<RestaurantOnlyArea><ModuleAccessGuard moduleKey="restaurant_reservations"><RestaurantReservationsPage /></ModuleAccessGuard></RestaurantOnlyArea>} />
+        <Route path="commandes" element={<RestaurantOnlyArea><ModuleAccessGuard moduleKey="restaurant_ordering"><RestaurantOrdersPage /></ModuleAccessGuard></RestaurantOnlyArea>} />
+        <Route path="cuisine" element={<RestaurantOnlyArea><RestaurantFeatureGate feature="restaurant_kitchen_display" requiredPlan="Essentielle" description="Envoyez les commandes vers un écran Cuisine et suivez leur préparation en temps réel."><RestaurantKitchenPage /></RestaurantFeatureGate></RestaurantOnlyArea>} />
         <Route path="salle" element={<RestaurantOnlyArea><RestaurantFeatureGate feature="restaurant_floor_plan" requiredPlan="Essentielle" description="Créez les zones et tables utilisées pendant le service."><RestaurantFloorPlanPage /></RestaurantFeatureGate></RestaurantOnlyArea>} />
         <Route path="menu-qr" element={<RestaurantOnlyArea><RestaurantFeatureGate feature="restaurant_multilingual_qr_menu" requiredPlan="Essentielle" description="Diffusez votre menu en français, anglais, espagnol et italien via QR code."><RestaurantQrMenuPage /></RestaurantFeatureGate></RestaurantOnlyArea>} />
         <Route path="hygiene" element={<RestaurantOnlyArea><RestaurantFeatureGate feature="restaurant_temperatures" requiredPlan="Essentielle" description="Tracez les températures et les checklists HACCP du restaurant."><RestaurantFoodSafetyPage /></RestaurantFeatureGate></RestaurantOnlyArea>} />

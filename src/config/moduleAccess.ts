@@ -42,6 +42,8 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/devis': 'quotes',
   '/carte': 'restaurant_menu',
   '/reservations': 'restaurant_reservations',
+  '/commandes': 'restaurant_ordering',
+  '/cuisine': 'restaurant_kitchen',
   '/salle': 'restaurant_floor_plan',
   '/menu-qr': 'restaurant_qr_menu',
   '/hygiene': 'restaurant_food_safety',
@@ -72,6 +74,8 @@ const RESTAURANT_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/planning': 'restaurant_staff_planning',
   '/carte': 'restaurant_menu',
   '/reservations': 'restaurant_manual_reservations',
+  '/commandes': 'restaurant_ordering',
+  '/cuisine': 'restaurant_kitchen_display',
   '/salle': 'restaurant_floor_plan',
   '/menu-qr': 'restaurant_multilingual_qr_menu',
   '/hygiene': 'restaurant_temperatures',
@@ -93,11 +97,11 @@ const CLEANING_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
 
 const SECURITY_UPSELL_PATHS = new Set(['/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision']);
 const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/rapports', '/anomalies', '/qualite', '/stocks', '/rentabilite', '/acces-equipe']);
-const RESTAURANT_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/personnalisation']);
+const RESTAURANT_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/cuisine', '/personnalisation']);
 
 const SECURITY_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications']);
 const CLEANING_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/protocoles', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications']);
-const RESTAURANT_MANAGER_PATHS = new Set(['/', '/terrain', '/planning', '/equipe', '/carte', '/reservations', '/salle', '/menu-qr', '/hygiene', '/stocks', '/notifications']);
+const RESTAURANT_MANAGER_PATHS = new Set(['/', '/terrain', '/planning', '/equipe', '/carte', '/reservations', '/commandes', '/cuisine', '/salle', '/menu-qr', '/hygiene', '/stocks', '/notifications']);
 
 export function normalizedModulePath(pathname: string) {
   return pathname === '/' ? '/' : `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
@@ -114,7 +118,7 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
   }
   if (businessType === 'restauration') {
     const restaurantModules: Record<string, string> = {
-      '/terrain': 'restaurant_employee_portal', '/planning': 'restaurant_staff_planning', '/equipe': 'restaurant_staff', '/acces-equipe': 'team_access', '/carte': 'restaurant_menu', '/reservations': 'restaurant_reservations', '/salle': 'restaurant_floor_plan', '/menu-qr': 'restaurant_qr_menu', '/hygiene': 'restaurant_food_safety', '/stocks': 'restaurant_stock', '/personnalisation': 'commercial_branding'
+      '/terrain': 'restaurant_employee_portal', '/planning': 'restaurant_staff_planning', '/equipe': 'restaurant_staff', '/acces-equipe': 'team_access', '/carte': 'restaurant_menu', '/reservations': 'restaurant_reservations', '/commandes': 'restaurant_ordering', '/cuisine': 'restaurant_kitchen', '/salle': 'restaurant_floor_plan', '/menu-qr': 'restaurant_qr_menu', '/hygiene': 'restaurant_food_safety', '/stocks': 'restaurant_stock', '/personnalisation': 'commercial_branding'
     };
     if (restaurantModules[normalized]) return restaurantModules[normalized];
   }
@@ -151,7 +155,7 @@ export function cleaningRequiredPlanForPath(pathname: string): 'Essentielle' | '
 
 export function restaurantRequiredPlanForPath(pathname: string): 'Essentielle' | 'Professionnelle' | null {
   const normalized = normalizedModulePath(pathname);
-  if (['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/personnalisation'].includes(normalized)) return 'Essentielle';
+  if (['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/cuisine', '/personnalisation'].includes(normalized)) return 'Essentielle';
   return null;
 }
 
@@ -182,7 +186,7 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
   }
 
   if (organization.business_type === 'restauration') {
-    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/carte', '/reservations', '/salle', '/hygiene', '/notifications'].includes(normalized)) return false;
+    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/carte', '/reservations', '/commandes', '/cuisine', '/salle', '/hygiene', '/notifications'].includes(normalized)) return false;
     if (organization.role === 'manager' && !RESTAURANT_MANAGER_PATHS.has(normalized)) return false;
   }
 

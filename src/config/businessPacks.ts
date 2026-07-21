@@ -175,6 +175,8 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Accès équipe', path: '/acces-equipe', icon: 'users' },
       { label: 'Carte & menus', path: '/carte', icon: 'utensils' },
       { label: 'Réservations', path: '/reservations', icon: 'calendar' },
+      { label: 'Commandes', path: '/commandes', icon: 'clipboard' },
+      { label: 'Écran cuisine', path: '/cuisine', icon: 'utensils' },
       { label: 'Plan de salle', path: '/salle', icon: 'map' },
       { label: 'Menu QR', path: '/menu-qr', icon: 'file' },
       { label: 'Hygiène & températures', path: '/hygiene', icon: 'clipboard' },
@@ -192,6 +194,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
     ],
     quickActions: [
       { label: 'Ajouter un plat', path: '/carte', icon: 'utensils' },
+      { label: 'Prendre une commande', path: '/commandes', icon: 'clipboard' },
       { label: 'Créer une réservation', path: '/reservations', icon: 'calendar' },
       { label: 'Faire un relevé', path: '/hygiene', icon: 'clipboard' }
     ]

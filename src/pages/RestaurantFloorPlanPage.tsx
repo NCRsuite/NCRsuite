@@ -6,6 +6,7 @@ import {
   useRef,
   useState
 } from 'react';
+import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
@@ -156,6 +157,7 @@ export function RestaurantFloorPlanPage() {
   const [selected, setSelected] = useState<SelectedEntity>(null);
   const [mode, setMode] = useState<'service' | 'edit'>('service');
   const [zoom, setZoom] = useState(1);
+  const [fitToScreen, setFitToScreen] = useState(true);
   const [tableForm, setTableForm] = useState(emptyTableForm);
   const [roomName, setRoomName] = useState('');
   const [day, setDay] = useState(new Date().toISOString().slice(0, 10));
@@ -682,10 +684,16 @@ export function RestaurantFloorPlanPage() {
         </div>
         <div className="restaurant-floor-view-controls">
           <label>Date du service<input type="date" value={day} onChange={(event) => setDay(event.target.value)}/></label>
-          <button type="button" className="secondary-button compact-button" onClick={() => setZoom((current) => clamp(Number((current - .1).toFixed(1)), .6, 1.8))}>−</button>
-          <span>{Math.round(zoom * 100)} %</span>
-          <button type="button" className="secondary-button compact-button" onClick={() => setZoom((current) => clamp(Number((current + .1).toFixed(1)), .6, 1.8))}>+</button>
-          <button type="button" className="secondary-button compact-button" onClick={() => setZoom(1)}>100 %</button>
+          <div className="restaurant-floor-display-switch" aria-label="Affichage du plan">
+            <button type="button" className={fitToScreen ? 'primary-button compact-button' : 'secondary-button compact-button'} onClick={() => setFitToScreen(true)}>Adapter</button>
+            <button type="button" className={!fitToScreen ? 'primary-button compact-button' : 'secondary-button compact-button'} onClick={() => setFitToScreen(false)}>Précision</button>
+          </div>
+          {!fitToScreen && <>
+            <button type="button" className="secondary-button compact-button" onClick={() => setZoom((current) => clamp(Number((current - .1).toFixed(1)), .6, 1.8))}>−</button>
+            <span>{Math.round(zoom * 100)} %</span>
+            <button type="button" className="secondary-button compact-button" onClick={() => setZoom((current) => clamp(Number((current + .1).toFixed(1)), .6, 1.8))}>+</button>
+            <button type="button" className="secondary-button compact-button" onClick={() => setZoom(1)}>100 %</button>
+          </>}
         </div>
       </section>
 
@@ -719,13 +727,13 @@ export function RestaurantFloorPlanPage() {
             </div>
           </div>
 
-          <div className="restaurant-floor-viewport">
+          <div className={`restaurant-floor-viewport ${fitToScreen ? 'fit-to-screen' : 'precision-mode'}`}>
             {loading ? <div className="restaurant-empty">Chargement du plan…</div> : !activeRoom ? <div className="restaurant-empty"><Icon name="map" size={30}/><strong>Aucune salle</strong></div> : (
               <div
                 ref={canvasRef}
-                className={`restaurant-floor-editor-canvas ${activeRoom.grid_enabled && mode === 'edit' ? 'grid-visible' : ''}`}
+                className={`restaurant-floor-editor-canvas ${fitToScreen ? 'fit-to-screen' : 'precision-mode'} ${activeRoom.grid_enabled && mode === 'edit' ? 'grid-visible' : ''}`}
                 style={{
-                  width: `${zoom * 100}%`,
+                  width: fitToScreen ? '100%' : `${zoom * 100}%`,
                   aspectRatio: `${activeRoom.canvas_width} / ${activeRoom.canvas_height}`,
                   ['--restaurant-floor-grid' as string]: `${Math.max(8, activeRoom.grid_size * zoom)}px`
                 }}
@@ -781,7 +789,7 @@ export function RestaurantFloorPlanPage() {
               </div>
             )}
           </div>
-          <p className="restaurant-floor-help">{mode === 'edit' ? 'Glisse les éléments. Utilise les poignées pour redimensionner et faire pivoter. Sur mobile, zoome puis fais défiler la salle.' : 'Sélectionne une table pour consulter ses réservations et modifier son état de service.'}</p>
+          <p className="restaurant-floor-help">{mode === 'edit' ? (fitToScreen ? 'Le plan est adapté à l’écran. Passe en mode Précision pour déplacer et redimensionner les éléments plus facilement.' : 'Glisse les éléments, utilise les poignées puis fais défiler la salle avec le doigt.') : 'Le plan complet s’adapte au téléphone. Sélectionne une table pour ouvrir sa commande ou consulter son service.'}</p>
         </article>
 
         <aside className="restaurant-floor-sidebar">
@@ -815,6 +823,7 @@ export function RestaurantFloorPlanPage() {
                 </div>
               ) : (
                 <div className="restaurant-floor-service-panel">
+                  <Link className="primary-button restaurant-floor-order-button" to={`/commandes?table=${selectedTable.id}`}><Icon name="clipboard" size={17}/>Prendre ou ouvrir la commande</Link>
                   <div className="restaurant-floor-status-actions">
                     {(Object.keys(statusLabels) as RestaurantTableServiceStatus[]).map((status) => <button type="button" key={status} className={`status-${status} ${selectedTable.service_status === status ? 'active' : ''}`} onClick={() => void setTableStatus(selectedTable, status)}><i/>{statusLabels[status]}</button>)}
                   </div>

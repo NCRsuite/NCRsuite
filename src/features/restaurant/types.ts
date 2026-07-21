@@ -229,3 +229,45 @@ export const RESTAURANT_ALLERGENS = ['Gluten', 'Crustacés', 'Œufs', 'Poissons'
 export const RESTAURANT_ROLE_LABELS: Record<RestaurantEmployeeRole, string> = {
   manager: 'Manager', server: 'Serveur', cook: 'Cuisine', host: 'Accueil', dishwasher: 'Plonge', other: 'Autre'
 };
+
+export type RestaurantOrderStatus = 'draft' | 'sent' | 'in_progress' | 'ready' | 'served' | 'bill_requested' | 'closed' | 'canceled';
+export type RestaurantOrderItemStatus = 'draft' | 'sent' | 'in_progress' | 'ready' | 'served' | 'canceled';
+export type RestaurantOrderCourse = 'drink' | 'starter' | 'main' | 'dessert' | 'other';
+export type RestaurantOrderStation = 'kitchen' | 'bar' | 'cold' | 'hot' | 'dessert';
+
+export interface RestaurantOrderRecord {
+  id: string;
+  organization_id: string;
+  table_id: string | null;
+  reservation_id: string | null;
+  order_number: number;
+  status: RestaurantOrderStatus;
+  guest_count: number;
+  notes: string | null;
+  subtotal_cents: number;
+  total_cents: number;
+  opened_at: string;
+  bill_requested_at: string | null;
+  closed_at: string | null;
+  restaurant_tables?: { name: string; area: string } | null;
+  restaurant_reservations?: { guest_name: string; party_size: number } | null;
+}
+
+export interface RestaurantOrderItemRecord {
+  id: string;
+  organization_id: string;
+  order_id: string;
+  menu_item_id: string | null;
+  item_name: string;
+  unit_price_cents: number;
+  quantity: number;
+  course: RestaurantOrderCourse;
+  station: RestaurantOrderStation;
+  notes: string | null;
+  status: RestaurantOrderItemStatus;
+  sent_at: string | null;
+  started_at: string | null;
+  ready_at: string | null;
+  served_at: string | null;
+  created_at: string;
+}

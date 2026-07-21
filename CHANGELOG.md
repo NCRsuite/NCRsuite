@@ -1,5 +1,21 @@
 # NCR Suite — Journal des versions
 
+## V2.8.5 — Commande tactile, cuisine, note provisoire et plan mobile
+
+- Prise de commande tactile depuis une table ou une note libre.
+- Ajout immédiat d’un plat à la note par simple appui.
+- Quantités, remarques de cuisson, allergies et demandes particulières.
+- Envoi des nouveaux articles vers l’écran Cuisine.
+- Suivi article par article : à préparer, en préparation, prêt et servi.
+- Note provisoire calculée automatiquement, sans stockage d’un moyen de paiement.
+- Clôture après règlement sur la caisse ou le terminal externe du restaurant.
+- Synchronisation automatique de l’état de la table : commande, à encaisser puis à nettoyer.
+- Accès par offre : commande en Découverte, écran Cuisine en Essentielle, postes avancés en Professionnelle.
+- Plan de salle adapté automatiquement à la largeur du téléphone.
+- Bascule Adapter / Précision pour consulter tout le plan ou travailler avec zoom et défilement.
+- Commandes tactiles, cuisine et note provisoire conservées.
+- Cache PWA : `ncr-suite-shell-v2.8.5-restaurant-orders-mobile`.
+
 ## V2.8.4 — Paramètres Restauration et page publique
 
 - Correction du libellé « tarif Coiffure » dans les paramètres des entreprises Restauration et Nettoyage.

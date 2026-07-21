@@ -87,7 +87,10 @@ export type OfferFeatureKey =
   | 'restaurant_waste'
   | 'restaurant_supplier_orders'
   | 'restaurant_food_cost'
-  | 'restaurant_statistics';
+  | 'restaurant_statistics'
+  | 'restaurant_ordering'
+  | 'restaurant_kitchen_display'
+  | 'restaurant_advanced_ordering';
 
 export interface DomainOfferPlan {
   label: string;
@@ -124,7 +127,8 @@ const coiffureEssentielle: OfferFeatureKey[] = [
 const coiffureProfessionnelle: OfferFeatureKey[] = [
   ...coiffureEssentielle,
   'manager_role',
-  'commercial_branding'
+  'commercial_branding',
+  'restaurant_kitchen_display'
 ];
 
 const formationBase: OfferFeatureKey[] = [
@@ -217,7 +221,8 @@ const restaurantDecouverte: OfferFeatureKey[] = [
   'restaurant_allergens',
   'restaurant_suppliers',
   'restaurant_basic_stock',
-  'restaurant_manual_reservations'
+  'restaurant_manual_reservations',
+  'restaurant_ordering'
 ];
 const restaurantEssentielle: OfferFeatureKey[] = [
   ...restaurantDecouverte,
@@ -231,7 +236,8 @@ const restaurantEssentielle: OfferFeatureKey[] = [
   'restaurant_temperatures',
   'restaurant_checklists',
   'restaurant_document_email_branding',
-  'commercial_branding'
+  'commercial_branding',
+  'restaurant_kitchen_display'
 ];
 const restaurantProfessionnelle: OfferFeatureKey[] = [
   ...restaurantEssentielle,
@@ -245,7 +251,8 @@ const restaurantProfessionnelle: OfferFeatureKey[] = [
   'restaurant_waste',
   'restaurant_supplier_orders',
   'restaurant_food_cost',
-  'restaurant_statistics'
+  'restaurant_statistics',
+  'restaurant_advanced_ordering'
 ];
 
 export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> = {
@@ -409,20 +416,20 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       decouverte: {
         label: 'Découverte', monthlyPriceCents: 2990, memberLimit: 1,
         detail: 'Le socle de gestion du restaurant sans accès employé.',
-        additions: ['Employés et planning', 'Carte, plats et allergènes', 'Fournisseurs et stocks simples', 'Réservations saisies par le responsable'],
+        additions: ['Employés et planning', 'Carte, plats et allergènes', 'Fournisseurs et stocks simples', 'Réservations saisies par le responsable', 'Prise de commande tactile et note provisoire'],
         features: restaurantDecouverte
       },
       essentielle: {
         label: 'Essentielle', monthlyPriceCents: 4990, memberLimit: 10,
         detail: 'Ajoute les employés connectés, les réservations en ligne et le menu QR multilingue.',
-        additions: ['Jusqu’à 10 employés connectés', 'Rôles Serveur et Cuisine', 'Réservation en ligne et éditeur libre du plan de salle', 'Menu QR en français, anglais, espagnol et italien', 'Traductions multilingues modifiables', 'Températures et checklists', 'Personnalisation des documents et e-mails'],
+        additions: ['Jusqu’à 10 employés connectés', 'Rôles Serveur et Cuisine', 'Réservation en ligne et éditeur libre du plan de salle', 'Menu QR en français, anglais, espagnol et italien', 'Traductions multilingues modifiables', 'Températures et checklists', 'Envoi des commandes vers l’écran Cuisine', 'Personnalisation des documents et e-mails'],
         features: restaurantEssentielle,
         recommended: true
       },
       professionnelle: {
         label: 'Professionnelle', monthlyPriceCents: 7990, memberLimit: 50,
         detail: 'Ajoute le pilotage multi-site, les stocks avancés et la rentabilité.',
-        additions: ['Jusqu’à 50 employés connectés', 'Rôle Manager', 'Multi-site, plusieurs salles et supervision', 'Inventaires, pertes et gaspillage', 'Commandes fournisseurs', 'Coût matière et marge par plat', 'Statistiques et exports'],
+        additions: ['Jusqu’à 50 employés connectés', 'Rôle Manager', 'Multi-site, plusieurs salles et supervision', 'Inventaires, pertes et gaspillage', 'Commandes fournisseurs', 'Coût matière et marge par plat', 'Postes cuisine et suivi avancé des commandes', 'Statistiques et exports'],
         features: restaurantProfessionnelle
       },
       metier: {
@@ -521,7 +528,10 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   restaurant_waste: 'Pertes et gaspillage',
   restaurant_supplier_orders: 'Commandes fournisseurs',
   restaurant_food_cost: 'Coût matière et marge par plat',
-  restaurant_statistics: 'Statistiques et exports'
+  restaurant_statistics: 'Statistiques et exports',
+  restaurant_ordering: 'Prise de commande tactile et note provisoire',
+  restaurant_kitchen_display: 'Écran Cuisine et suivi des préparations',
+  restaurant_advanced_ordering: 'Postes cuisine et suivi avancé des commandes'
 };
 
 export function getDomainOffer(businessType: BusinessType) {
