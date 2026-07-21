@@ -1,3 +1,14 @@
+# V2.8.6 — Expérience Restauration Premium
+
+- Refonte visuelle complète de la prise de commande tactile.
+- Cartes produits plus lisibles avec catégories, descriptions, allergènes, prix et ajout immédiat.
+- Sélection des tables modernisée et note provisoire présentée comme un véritable ticket de service.
+- Tableau de cuisine enrichi avec indicateurs, temps d’attente, tickets hiérarchisés et remarques mises en évidence.
+- Carte interne modernisée avec aperçu visuel, statut de disponibilité et indicateurs de traduction.
+- Menu QR public repensé dans un style restaurant premium et entièrement responsive.
+- Optimisations spécifiques iPhone et petits écrans, sans modification des fonctions métier ni de la base Supabase.
+- Cache PWA : `ncr-suite-shell-v2.8.6-restaurant-premium`.
+
 # NCR Suite — Journal des versions
 
 ## V2.8.5 — Commande tactile, cuisine, note provisoire et plan mobile

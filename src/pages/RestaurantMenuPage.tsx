@@ -58,6 +58,15 @@ function centsFromInput(value: string) {
   return Number.isFinite(amount) && amount >= 0 ? Math.round(amount * 100) : null;
 }
 
+function menuVisual(categoryName = '') {
+  const value = categoryName.toLowerCase();
+  if (value.includes('boisson') || value.includes('vin') || value.includes('cocktail')) return '🥂';
+  if (value.includes('entrée') || value.includes('entree') || value.includes('salade')) return '🥗';
+  if (value.includes('dessert') || value.includes('glace')) return '🍰';
+  if (value.includes('menu')) return '📖';
+  return '🍽️';
+}
+
 function mergeTranslatedForm(form: MenuForm, payload: TranslationPayload): MenuForm {
   const { translations } = payload;
   return {
@@ -422,13 +431,23 @@ export function RestaurantMenuPage() {
       ? items.filter((row) => `${row.name} ${row.name_en ?? ''} ${row.restaurant_menu_categories?.name ?? ''} ${row.allergens.join(' ')}`.toLowerCase().includes(needle))
       : items;
   }, [items, query]);
+  const availableCount = items.filter((row) => row.available).length;
+  const featuredCount = items.filter((row) => row.featured && row.available).length;
+  const translatedCount = items.filter((row) => row.name_en && row.name_es && row.name_it).length;
 
   if (!organization) return null;
-  return <div className="page restaurant-page">
-    <header className="page-header"><div><p className="eyebrow">RESTAURATION</p><h1>Carte & menus</h1><p>Saisis le plat en français : NCR Suite génère l’anglais, l’espagnol et l’italien, puis te laisse tout relire et modifier.</p></div>{hasQr && <a className="secondary-button" href={`/r/${organization.slug}/menu`} target="_blank" rel="noreferrer"><Icon name="eye" size={18}/>Voir le menu public</a>}</header>
+  return <div className="page restaurant-page restaurant-menu-admin-page restaurant-premium-workspace">
+    <header className="page-header restaurant-menu-admin-header"><div><p className="eyebrow">RESTAURATION · CARTE</p><h1>Carte & menus</h1><p>Construis une carte élégante, claire et directement exploitable pour la commande tactile et le menu QR multilingue.</p></div><div className="restaurant-menu-header-actions"><span className="restaurant-menu-header-visual">🍽️</span>{hasQr && <a className="secondary-button" href={`/r/${organization.slug}/menu`} target="_blank" rel="noreferrer"><Icon name="eye" size={18}/>Voir le menu public</a>}</div></header>
     {error && <div className="error-message page-message">{error}</div>}
     {warning && <div className="info-message page-message">{warning}</div>}
     {success && <div className="success-message page-message">{success}</div>}
+
+    <section className="restaurant-menu-overview">
+      <article><span>🍽️</span><div><small>Plats disponibles</small><strong>{availableCount}</strong></div></article>
+      <article><span>⭐</span><div><small>Suggestions du chef</small><strong>{featuredCount}</strong></div></article>
+      <article><span>🌍</span><div><small>Traductions prêtes</small><strong>{translatedCount}/{items.length}</strong></div></article>
+      <article><span>📚</span><div><small>Catégories</small><strong>{categories.length}</strong></div></article>
+    </section>
 
     <section className="restaurant-menu-layout">
       <article className="panel restaurant-form-panel">
@@ -463,12 +482,13 @@ export function RestaurantMenuPage() {
       </article>
     </section>
 
-    <section className="panel restaurant-list-panel">
+    <section className="panel restaurant-list-panel restaurant-menu-catalog-panel">
       <div className="panel-header"><div><p className="eyebrow">CARTE ACTIVE</p><h2>{items.length} plat{items.length > 1 ? 's' : ''}</h2></div><div className="restaurant-search"><Icon name="search" size={18}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher…"/></div></div>
       <div className="restaurant-menu-list">{filtered.map((row) => {
         const margin = row.price_cents > 0 && row.cost_cents > 0 ? Math.round(((row.price_cents - row.cost_cents) / row.price_cents) * 100) : null;
         const translated = Boolean(row.name_en && row.name_es && row.name_it && (!row.description_fr || (row.description_en && row.description_es && row.description_it)));
-        return <article key={row.id} className={!row.available ? 'is-muted' : ''}><div className="restaurant-menu-copy"><div><span>{row.restaurant_menu_categories?.name || 'Sans catégorie'}</span>{row.featured && <small>À la une</small>}{hasQr && <small className={translated ? 'translation-ok' : 'translation-missing'}>{translated ? '3 langues prêtes' : 'Traduction à compléter'}</small>}</div><h3>{row.name}</h3><p>{row.description_fr || 'Aucune description'}</p><div className="restaurant-menu-tags">{row.vegetarian && <span>Végétarien</span>}{row.vegan && <span>Végan</span>}{row.allergens.map((allergen) => <span key={allergen}>{allergen}</span>)}</div></div><div className="restaurant-menu-price"><strong>{formatRestaurantMoney(row.price_cents)}</strong>{canViewCosts && <><span>Coût {formatRestaurantMoney(row.cost_cents)}</span>{margin !== null && <small>{margin}% de marge brute théorique</small>}</>}</div><div className="restaurant-item-actions"><button className="secondary-button compact-button" type="button" onClick={() => startEditing(row)}>Modifier</button>{hasQr && <button className="secondary-button compact-button" type="button" disabled={translating} onClick={() => void translateExisting(row)}>{translated ? 'Retraduire' : 'Traduire'}</button>}<button className="secondary-button compact-button" type="button" onClick={() => void toggleAvailability(row)}>{row.available ? 'Rendre indisponible' : 'Remettre en vente'}</button><button className="text-button danger-text" type="button" onClick={() => void removeItem(row)}>Supprimer</button></div></article>;
+        const categoryName = row.restaurant_menu_categories?.name || 'Sans catégorie';
+        return <article key={row.id} className={`restaurant-dish-admin-card ${!row.available ? 'is-muted' : ''} ${row.featured ? 'is-featured' : ''}`}><div className="restaurant-dish-admin-visual"><span>{menuVisual(categoryName)}</span>{row.featured && <small>Suggestion</small>}</div><div className="restaurant-menu-copy"><div><span>{categoryName}</span>{hasQr && <small className={translated ? 'translation-ok' : 'translation-missing'}>{translated ? '3 langues prêtes' : 'Traduction à compléter'}</small>}</div><h3>{row.name}</h3><p>{row.description_fr || 'Ajoute une description pour mieux présenter ce plat sur le menu public.'}</p><div className="restaurant-menu-tags">{row.vegetarian && <span>🌿 Végétarien</span>}{row.vegan && <span>🌱 Végan</span>}{row.allergens.map((allergen) => <span key={allergen} className="warning">{allergen}</span>)}</div></div><div className="restaurant-menu-price"><strong>{formatRestaurantMoney(row.price_cents)}</strong><span className={row.available ? 'available' : 'unavailable'}>{row.available ? 'Disponible' : 'Indisponible'}</span>{canViewCosts && <div className="restaurant-menu-margin"><span>Coût {formatRestaurantMoney(row.cost_cents)}</span>{margin !== null && <small>{margin}% de marge brute</small>}</div>}</div><div className="restaurant-item-actions"><button className="secondary-button compact-button" type="button" onClick={() => startEditing(row)}>Modifier</button>{hasQr && <button className="secondary-button compact-button" type="button" disabled={translating} onClick={() => void translateExisting(row)}>{translated ? 'Retraduire' : 'Traduire'}</button>}<button className="secondary-button compact-button" type="button" onClick={() => void toggleAvailability(row)}>{row.available ? 'Masquer' : 'Remettre en vente'}</button><button className="text-button danger-text" type="button" onClick={() => void removeItem(row)}>Supprimer</button></div></article>;
       })}{filtered.length === 0 && <div className="restaurant-empty"><Icon name="utensils" size={30}/><strong>Aucun plat dans cette sélection.</strong></div>}</div>
     </section>
   </div>;

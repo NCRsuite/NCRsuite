@@ -81,6 +81,15 @@ function localizedDescription(item: PublicMenuItem, language: Language) {
   return item.description_fr;
 }
 
+function publicMenuVisual(categoryName = '') {
+  const value = categoryName.toLowerCase();
+  if (value.includes('boisson') || value.includes('drink') || value.includes('bebida') || value.includes('vino') || value.includes('cocktail')) return '🥂';
+  if (value.includes('entrée') || value.includes('starter') || value.includes('entrada') || value.includes('antipast')) return '🥗';
+  if (value.includes('dessert') || value.includes('postre') || value.includes('dolc')) return '🍰';
+  if (value.includes('menu') || value.includes('menú') || value.includes('menù')) return '📖';
+  return '🍽️';
+}
+
 export function PublicRestaurantMenuPage() {
   const { slug = '' } = useParams();
   const [payload, setPayload] = useState<PublicMenuPayload | null>(null);
@@ -112,13 +121,13 @@ export function PublicRestaurantMenuPage() {
   if (loading) return <div className="public-restaurant-page"><div className="public-restaurant-loading">Chargement du menu…</div></div>;
   if (error || !payload?.menu_enabled) return <div className="public-restaurant-page"><div className="public-restaurant-error"><h1>Menu indisponible</h1><p>{error || 'Ce restaurant n’a pas activé son menu public.'}</p></div></div>;
 
-  return <div className="public-restaurant-page" style={{ '--restaurant-brand': payload.primary_color } as React.CSSProperties}>
+  return <div className="public-restaurant-page public-restaurant-premium-menu" style={{ '--restaurant-brand': payload.primary_color } as React.CSSProperties}>
     <header className="public-restaurant-header">
-      {payload.logo_url && <img src={payload.logo_url} alt=""/>}
-      <div><span>{ui[language].menu}</span><h1>{payload.public_name || payload.organization_name}</h1></div>
-      <nav>{(Object.keys(languageLabels) as Language[]).map((value) => <button key={value} className={language === value ? 'active' : ''} onClick={() => setLanguage(value)}>{languageLabels[value]}</button>)}</nav>
+      <div className="public-restaurant-brand-block">{payload.logo_url ? <img src={payload.logo_url} alt=""/> : <span className="public-restaurant-logo-fallback">🍽️</span>}<div><span>{ui[language].menu}</span><h1>{payload.public_name || payload.organization_name}</h1><p>{groups.length} catégorie{groups.length > 1 ? 's' : ''} · {payload.items.length} proposition{payload.items.length > 1 ? 's' : ''}</p></div></div>
+      <nav aria-label="Choisir la langue">{(Object.keys(languageLabels) as Language[]).map((value) => <button key={value} className={language === value ? 'active' : ''} onClick={() => setLanguage(value)}>{languageLabels[value]}</button>)}</nav>
     </header>
-    <main className="public-restaurant-menu">{groups.map(([category, items]) => <section key={category}><h2>{category}</h2><div>{items.map((item) => <article key={item.id} className={item.featured ? 'featured' : ''}><div><h3>{localizedName(item, language)}</h3>{localizedDescription(item, language) && <p>{localizedDescription(item, language)}</p>}<div className="public-menu-tags">{item.vegetarian && <span>{ui[language].vegetarian}</span>}{item.vegan && <span>{ui[language].vegan}</span>}{item.allergens.map((allergen) => <span key={allergen} className="allergen">{allergenTranslations[allergen]?.[language] || allergen}</span>)}</div></div><strong>{formatRestaurantMoney(item.price_cents)}</strong></article>)}</div></section>)}</main>
-    <footer className="public-restaurant-footer">{ui[language].powered}</footer>
+    <div className="public-restaurant-hero"><span>La carte du moment</span><strong>Bienvenue à table</strong><p>Découvrez les plats, leurs descriptions et les allergènes dans la langue de votre choix.</p></div>
+    <main className="public-restaurant-menu">{groups.map(([category, items]) => <section key={category}><header className="public-menu-category-header"><span>{publicMenuVisual(category)}</span><div><small>NOTRE SÉLECTION</small><h2>{category}</h2></div><i>{items.length}</i></header><div>{items.map((item) => <article key={item.id} className={item.featured ? 'featured' : ''}><span className="public-menu-dish-visual">{publicMenuVisual(category)}</span><div className="public-menu-dish-copy">{item.featured && <small className="public-menu-featured-badge">Suggestion du chef</small>}<h3>{localizedName(item, language)}</h3>{localizedDescription(item, language) && <p>{localizedDescription(item, language)}</p>}<div className="public-menu-tags">{item.vegetarian && <span>🌿 {ui[language].vegetarian}</span>}{item.vegan && <span>🌱 {ui[language].vegan}</span>}{item.allergens.map((allergen) => <span key={allergen} className="allergen">{allergenTranslations[allergen]?.[language] || allergen}</span>)}</div></div><strong className="public-menu-dish-price">{formatRestaurantMoney(item.price_cents)}</strong></article>)}</div></section>)}</main>
+    <footer className="public-restaurant-footer"><span>🍴</span>{ui[language].powered}</footer>
   </div>;
 }

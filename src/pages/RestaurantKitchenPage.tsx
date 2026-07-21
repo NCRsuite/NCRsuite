@@ -8,6 +8,17 @@ import { supabase } from '../lib/supabase';
 
 const stationLabels: Record<RestaurantOrderStation | 'all', string> = { all: 'Tous', kitchen: 'Cuisine', bar: 'Bar', cold: 'Froid', hot: 'Chaud', dessert: 'Desserts' };
 
+const stationIcons: Record<RestaurantOrderStation | 'all', string> = { all: '🍽️', kitchen: '🔥', bar: '🥂', cold: '🥗', hot: '♨️', dessert: '🍰' };
+
+function elapsedLabel(dateValue: string | null) {
+  if (!dateValue) return 'À l’instant';
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(dateValue).getTime()) / 60000));
+  if (minutes < 1) return 'À l’instant';
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  return `${hours} h ${minutes % 60} min`;
+}
+
 export function RestaurantKitchenPage() {
   const { organization } = useOrganization();
   const { demoMode } = useAuth();
@@ -44,6 +55,11 @@ export function RestaurantKitchenPage() {
 
   const visible = useMemo(() => items.filter((item) => station === 'all' || item.station === station), [items, station]);
   const grouped = useMemo(() => orders.map((order) => ({ order, items: visible.filter((item) => item.order_id === order.id) })).filter((group) => group.items.length), [orders, visible]);
+  const kitchenStats = useMemo(() => ({
+    sent: visible.filter((item) => item.status === 'sent').length,
+    inProgress: visible.filter((item) => item.status === 'in_progress').length,
+    ready: visible.filter((item) => item.status === 'ready').length,
+  }), [visible]);
 
   async function changeStatus(item: RestaurantOrderItemRecord, status: 'in_progress' | 'ready' | 'served') {
     if (!organization) return;
@@ -61,10 +77,25 @@ export function RestaurantKitchenPage() {
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Mise à jour impossible.'); }
   }
 
-  return <div className="page restaurant-page restaurant-kitchen-page">
-    <header className="page-header"><div><p className="eyebrow">RESTAURATION · CUISINE</p><h1>Écran de préparation</h1><p>Les commandes envoyées par les serveurs apparaissent ici automatiquement.</p></div><button type="button" className="secondary-button" onClick={() => void load()}><Icon name="activity" size={17}/>Actualiser</button></header>
+  return <div className="page restaurant-page restaurant-kitchen-page restaurant-premium-workspace">
+    <header className="page-header restaurant-kitchen-header"><div><p className="eyebrow">RESTAURATION · CUISINE</p><h1>Écran de préparation</h1><p>Des tickets clairs, les remarques visibles et un suivi immédiat de chaque assiette jusqu’au service.</p></div><button type="button" className="secondary-button restaurant-kitchen-refresh" onClick={() => void load()}><Icon name="activity" size={17}/>Actualiser</button></header>
     {error && <div className="error-banner">{error}</div>}
-    <div className="restaurant-kitchen-filters">{(Object.keys(stationLabels) as Array<RestaurantOrderStation | 'all'>).map((value) => <button type="button" key={value} disabled={!isAdvanced && !['all','kitchen','bar'].includes(value)} className={station === value ? 'active' : ''} onClick={() => setStation(value)}>{stationLabels[value]}{!isAdvanced && ['cold','hot','dessert'].includes(value) && <Icon name="lock" size={13}/>}</button>)}</div>
-    {loading ? <div className="panel restaurant-empty">Chargement…</div> : grouped.length === 0 ? <div className="panel restaurant-empty"><Icon name="check" size={34}/><strong>Aucune préparation en attente</strong></div> : <section className="restaurant-kitchen-grid">{grouped.map(({ order, items: orderItems }) => <article className="panel restaurant-kitchen-ticket" key={order.id}><header><div><p className="eyebrow">COMMANDE N°{order.order_number}</p><h2>{order.restaurant_tables?.name || 'Commande libre'}</h2></div><span>{new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(order.opened_at))}</span></header><div className="restaurant-kitchen-items">{orderItems.map((item) => <div key={item.id} className={`restaurant-kitchen-item ${item.status}`}><div><strong>{item.quantity} × {item.item_name}</strong>{item.notes && <p>{item.notes}</p>}<small>{stationLabels[item.station]} · {item.status === 'sent' ? 'À préparer' : item.status === 'in_progress' ? 'En préparation' : 'Prêt'}</small></div><div>{item.status === 'sent' && <button type="button" className="secondary-button compact-button" onClick={() => void changeStatus(item, 'in_progress')}>Commencer</button>}{item.status === 'in_progress' && <button type="button" className="primary-button compact-button" onClick={() => void changeStatus(item, 'ready')}>Prêt</button>}{item.status === 'ready' && <button type="button" className="primary-button compact-button" onClick={() => void changeStatus(item, 'served')}>Servi</button>}</div></div>)}</div></article>)}</section>}
+
+    <section className="restaurant-kitchen-summary">
+      <article><span className="restaurant-kitchen-summary-icon waiting">⏱️</span><div><small>À préparer</small><strong>{kitchenStats.sent}</strong></div></article>
+      <article><span className="restaurant-kitchen-summary-icon cooking">🔥</span><div><small>En préparation</small><strong>{kitchenStats.inProgress}</strong></div></article>
+      <article><span className="restaurant-kitchen-summary-icon ready">✓</span><div><small>Prêts à servir</small><strong>{kitchenStats.ready}</strong></div></article>
+      <article><span className="restaurant-kitchen-summary-icon tickets">🎫</span><div><small>Tickets actifs</small><strong>{grouped.length}</strong></div></article>
+    </section>
+
+    <div className="restaurant-kitchen-toolbar"><div className="restaurant-kitchen-filters">{(Object.keys(stationLabels) as Array<RestaurantOrderStation | 'all'>).map((value) => <button type="button" key={value} disabled={!isAdvanced && !['all','kitchen','bar'].includes(value)} className={station === value ? 'active' : ''} onClick={() => setStation(value)}><span>{stationIcons[value]}</span>{stationLabels[value]}{!isAdvanced && ['cold','hot','dessert'].includes(value) && <Icon name="lock" size={13}/>}</button>)}</div><span className="restaurant-kitchen-auto-refresh">Actualisation automatique toutes les 15 secondes</span></div>
+
+    {loading ? <div className="panel restaurant-empty">Chargement…</div> : grouped.length === 0 ? <div className="panel restaurant-empty restaurant-kitchen-empty"><span className="restaurant-empty-illustration">👨‍🍳</span><strong>Aucune préparation en attente</strong><span>La cuisine est à jour.</span></div> : <section className="restaurant-kitchen-grid">{grouped.map(({ order, items: orderItems }) => {
+      const oldestSentAt = orderItems.map((item) => item.sent_at || item.created_at).sort()[0] || order.opened_at;
+      const hasReady = orderItems.some((item) => item.status === 'ready');
+      const allInProgress = orderItems.every((item) => item.status === 'in_progress');
+      const ticketStatus = hasReady ? 'ready' : allInProgress ? 'in_progress' : 'sent';
+      return <article className={`panel restaurant-kitchen-ticket ${ticketStatus}`} key={order.id}><header><div className="restaurant-kitchen-ticket-identity"><span className="restaurant-kitchen-ticket-number">#{order.order_number}</span><div><p className="eyebrow">COMMANDE</p><h2>{order.restaurant_tables?.name || 'Commande libre'}</h2></div></div><div className="restaurant-kitchen-ticket-time"><strong>{elapsedLabel(oldestSentAt)}</strong><span>{new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(order.opened_at))}</span></div></header><div className="restaurant-kitchen-ticket-progress"><span className={ticketStatus}/></div><div className="restaurant-kitchen-items">{orderItems.map((item) => <div key={item.id} className={`restaurant-kitchen-item ${item.status}`}><div className="restaurant-kitchen-item-copy"><div className="restaurant-kitchen-item-title"><span className="restaurant-kitchen-quantity">{item.quantity}×</span><strong>{item.item_name}</strong></div>{item.notes && <p><span>!</span>{item.notes}</p>}<small><span>{stationIcons[item.station]}</span>{stationLabels[item.station]} · {item.status === 'sent' ? 'À préparer' : item.status === 'in_progress' ? 'En préparation' : 'Prêt à servir'}</small></div><div className="restaurant-kitchen-item-action">{item.status === 'sent' && <button type="button" className="restaurant-kitchen-action start" onClick={() => void changeStatus(item, 'in_progress')}>Commencer</button>}{item.status === 'in_progress' && <button type="button" className="restaurant-kitchen-action ready" onClick={() => void changeStatus(item, 'ready')}>Marquer prêt</button>}{item.status === 'ready' && <button type="button" className="restaurant-kitchen-action serve" onClick={() => void changeStatus(item, 'served')}>Servi ✓</button>}</div></div>)}</div></article>;
+    })}</section>}
   </div>;
 }
