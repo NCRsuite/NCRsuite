@@ -1,5 +1,17 @@
 # NCR Suite — Journal des versions
 
+## V2.9.1 — Réservations Restauration Premium
+
+- Refonte complète de l’écran Réservations Restauration.
+- Tableau d’accueil avec réservations, couverts, demandes en attente et tables installées.
+- Navigation hebdomadaire compacte et vue immédiate du nombre de réservations par jour.
+- Filtres Matin, Midi, Soir, statuts et recherche client/table/téléphone.
+- Tickets de réservation lisibles avec horaires, durée, table, source, contacts, notes et action suivante.
+- Nouveau formulaire guidé avec boutons de couverts, durées rapides et cartes de tables réellement disponibles.
+- Conservation intégrale du verrouillage anti-surréservation et de la page publique.
+- Aucun SQL Supabase requis.
+- Cache PWA : `ncr-suite-shell-v2.9.1-restaurant-bookings`.
+
 ## V2.9.0 — Plannings métiers premium
 
 ### Coiffure
