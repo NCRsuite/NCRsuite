@@ -101,9 +101,9 @@ const SECURITY_UPSELL_PATHS = new Set(['/acces-equipe', '/rondes', '/main-couran
 const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/rapports', '/anomalies', '/qualite', '/stocks', '/rentabilite', '/acces-equipe']);
 const RESTAURANT_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/cuisine', '/personnalisation']);
 
-const SECURITY_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications']);
-const CLEANING_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/protocoles', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications']);
-const RESTAURANT_MANAGER_PATHS = new Set(['/', '/terrain', '/planning', '/equipe', '/carte', '/recettes', '/reservations', '/commandes', '/cuisine', '/salle', '/menu-qr', '/hygiene', '/stocks', '/notifications']);
+const SECURITY_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications', '/assistance']);
+const CLEANING_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/protocoles', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications', '/assistance']);
+const RESTAURANT_MANAGER_PATHS = new Set(['/', '/terrain', '/planning', '/equipe', '/carte', '/recettes', '/reservations', '/commandes', '/cuisine', '/salle', '/menu-qr', '/hygiene', '/stocks', '/notifications', '/assistance']);
 
 export function normalizedModulePath(pathname: string) {
   return pathname === '/' ? '/' : `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
@@ -183,21 +183,21 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
   const normalized = normalizedModulePath(pathname);
 
   if (organization.business_type === 'securite') {
-    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti', '/notifications'].includes(normalized)) return false;
+    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti', '/notifications', '/assistance'].includes(normalized)) return false;
     if (organization.role === 'manager' && !SECURITY_CHEF_PATHS.has(normalized)) return false;
   }
 
   if (organization.business_type === 'restauration') {
-    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/carte', '/recettes', '/reservations', '/commandes', '/cuisine', '/salle', '/hygiene', '/notifications'].includes(normalized)) return false;
+    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/carte', '/recettes', '/reservations', '/commandes', '/cuisine', '/salle', '/hygiene', '/notifications', '/assistance'].includes(normalized)) return false;
     if (organization.role === 'manager' && !RESTAURANT_MANAGER_PATHS.has(normalized)) return false;
   }
 
   if (organization.business_type === 'nettoyage') {
-    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/interventions', '/rapports', '/anomalies', '/notifications'].includes(normalized)) return false;
+    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/interventions', '/rapports', '/anomalies', '/notifications', '/assistance'].includes(normalized)) return false;
     if (organization.role === 'manager' && !CLEANING_CHEF_PATHS.has(normalized)) return false;
   }
 
-  if (normalized === '/notifications') return true;
+  if (normalized === '/notifications' || normalized === '/assistance') return true;
   if (pathname === '/offre-metier') return organization.plan === 'metier' && ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
 
   const requiredFeature = normalized === '/personnalisation'

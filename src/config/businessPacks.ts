@@ -19,6 +19,7 @@ export interface BusinessPack {
 }
 
 const notifications: NavigationItem = { label: 'Notifications', path: '/notifications', icon: 'bell' };
+const support: NavigationItem = { label: 'Assistance NCR', path: '/assistance', icon: 'sparkles' };
 const subscription: NavigationItem = { label: 'Mon abonnement', path: '/abonnement', icon: 'creditCard' };
 const settings: NavigationItem = { label: 'Paramètres', path: '/parametres', icon: 'settings' };
 
@@ -39,6 +40,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Fidélité', path: '/fidelite', icon: 'chart' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
       notifications,
+      support,
       subscription,
       settings
     ],
@@ -77,6 +79,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Facturation', path: '/facturation', icon: 'creditCard' },
       { label: 'Accès agents', path: '/acces-equipe', icon: 'users' },
       notifications,
+      support,
       subscription,
       settings
     ],
@@ -116,6 +119,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Dossiers vacations', path: '/dossiers-vacations', icon: 'file' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
       notifications,
+      support,
       subscription,
       settings
     ],
@@ -146,6 +150,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Accès équipe', path: '/acces-equipe', icon: 'users' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
       notifications,
+      support,
       subscription,
       settings
     ],
@@ -184,6 +189,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Stocks & fournisseurs', path: '/stocks', icon: 'briefcase' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
       notifications,
+      support,
       subscription,
       settings
     ],

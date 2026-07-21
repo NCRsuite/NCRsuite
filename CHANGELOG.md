@@ -1,3 +1,16 @@
+## V2.11.0 — Administration NCR & Exploitation SaaS
+
+- Nouveau cockpit SaaS avec entreprises actives, MRR estimé, utilisateurs, paiements en retard, onboarding incomplets et demandes urgentes.
+- Vue du portefeuille par métier et centre d’attention centralisé.
+- Administration des entreprises enrichie avec indicateur de santé, tickets ouverts, volume documentaire recensé, onboarding et dernière activité.
+- Nouvelle file Support NCR avec filtres, priorités, assignation, notes internes et historique audité.
+- Nouveau journal d’activité central multi-entreprises.
+- Centre d’assistance intégré dans chaque espace métier pour créer et suivre les demandes.
+- Onboarding entièrement refondu en quatre étapes : métier, identité de l’entreprise, formule souhaitée et identité visuelle.
+- Coordonnées génériques de l’entreprise et état d’onboarding enregistrés dans Supabase.
+- Interface responsive et moderne pour ordinateur, tablette et mobile.
+- Aucun métier existant ni NCR Academy n’est modifié.
+
 # V2.10.1 — Correctif déstockage automatique Restauration
 
 - Réparation du déclenchement du déstockage lors du passage d’un article à l’état « Servi ».

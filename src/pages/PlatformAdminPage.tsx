@@ -4,6 +4,9 @@ import { BillingAdminPanel } from '../components/BillingAdminPanel';
 import { MetierAdminPanel } from '../components/MetierAdminPanel';
 import { OfferCatalogAdminPanel } from '../components/OfferCatalogAdminPanel';
 import { PushAdminPanel } from '../components/PushAdminPanel';
+import { AdminSaasCockpit } from '../components/AdminSaasCockpit';
+import { AdminSupportPanel } from '../components/AdminSupportPanel';
+import { AdminActivityPanel } from '../components/AdminActivityPanel';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
@@ -40,6 +43,13 @@ interface AdminOrganization {
   active_members: number;
   clients_count: number;
   appointments_count: number;
+  documents_bytes: number;
+  open_tickets: number;
+  onboarding_status: 'not_started' | 'in_progress' | 'completed';
+  onboarding_requested_plan: Plan | null;
+  company_phone: string | null;
+  company_city: string | null;
+  health: 'healthy' | 'attention' | 'critical';
   last_activity_at: string | null;
   created_at: string;
 }
@@ -94,6 +104,13 @@ function money(cents: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((cents || 0) / 100);
 }
 
+function bytesLabel(value: number) {
+  if (!value) return '0 Mo';
+  const megabytes = value / (1024 * 1024);
+  if (megabytes < 1024) return `${megabytes.toFixed(megabytes < 10 ? 1 : 0)} Mo`;
+  return `${(megabytes / 1024).toFixed(1)} Go`;
+}
+
 function dateLabel(value: string | null) {
   if (!value) return '—';
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(value));
@@ -115,7 +132,7 @@ function statusClass(value: string) {
 }
 
 export function PlatformAdminPage() {
-  const [activeSection, setActiveSection] = useState<'overview' | 'catalogue' | 'billing' | 'metier' | 'push'>('overview');
+  const [activeSection, setActiveSection] = useState<'cockpit' | 'overview' | 'support' | 'activity' | 'catalogue' | 'billing' | 'metier' | 'push'>('cockpit');
   const { user, signOut } = useAuth();
   const { profile, canManage } = usePlatformAdmin();
   const [metrics, setMetrics] = useState<AdminMetrics>(emptyMetrics);
@@ -299,10 +316,22 @@ export function PlatformAdminPage() {
         {error && <div className="error-message page-message" role="alert">{error}</div>}
         {message && <div className="success-message page-message" role="status">{message}</div>}
 
-        <nav className="platform-admin-tabs" aria-label="Sections de l’administration NCR">
+        <nav className="platform-admin-tabs admin-saas-tabs" aria-label="Sections de l’administration NCR">
+          <button type="button" className={activeSection === 'cockpit' ? 'active' : ''} onClick={() => setActiveSection('cockpit')}>
+            <Icon name="home" size={19} />
+            <span><strong>Cockpit</strong><small>Vue globale de la plateforme</small></span>
+          </button>
           <button type="button" className={activeSection === 'overview' ? 'active' : ''} onClick={() => setActiveSection('overview')}>
             <Icon name="building" size={19} />
-            <span><strong>Entreprises</strong><small>Comptes, accès et formules</small></span>
+            <span><strong>Entreprises</strong><small>Comptes, santé et formules</small></span>
+          </button>
+          <button type="button" className={activeSection === 'support' ? 'active' : ''} onClick={() => setActiveSection('support')}>
+            <Icon name="alert" size={19} />
+            <span><strong>Support</strong><small>Demandes et incidents clients</small></span>
+          </button>
+          <button type="button" className={activeSection === 'activity' ? 'active' : ''} onClick={() => setActiveSection('activity')}>
+            <Icon name="activity" size={19} />
+            <span><strong>Journal</strong><small>Événements et traçabilité</small></span>
           </button>
           <button type="button" className={activeSection === 'catalogue' ? 'active' : ''} onClick={() => setActiveSection('catalogue')}>
             <Icon name="clipboard" size={19} />
@@ -321,6 +350,17 @@ export function PlatformAdminPage() {
             <span><strong>Notifications push</strong><small>Appareils et traitement central</small></span>
           </button>
         </nav>
+
+        {activeSection === 'cockpit' && (
+          <AdminSaasCockpit
+            onOpenOrganizations={() => setActiveSection('overview')}
+            onOpenSupport={() => setActiveSection('support')}
+            onOpenActivity={() => setActiveSection('activity')}
+          />
+        )}
+
+        {activeSection === 'support' && <AdminSupportPanel />}
+        {activeSection === 'activity' && <AdminActivityPanel />}
 
         {activeSection === 'overview' && (<>
         <section className="platform-admin-metrics">
@@ -379,9 +419,9 @@ export function PlatformAdminPage() {
                       <button key={org.id} type="button" className={`admin-organization-row${selected?.id === org.id ? ' selected' : ''}`} onClick={() => populateEditor(org)}>
                         <span className="admin-company-avatar">{org.name.slice(0, 1).toUpperCase()}</span>
                         <span className="admin-company-main"><strong>{org.name}</strong><small>{org.owner_email || org.slug}</small></span>
-                        <span className="admin-company-stats"><small>{org.active_members} utilisateur(s)</small><small>{org.clients_count} client(s)</small></span>
+                        <span className="admin-company-stats"><small>{org.active_members} utilisateur(s)</small><small>{org.open_tickets} ticket(s)</small></span>
                         <span className="admin-company-plan">{planLabels[org.plan]}<small>{money(org.monthly_price_cents)}/mois</small></span>
-                        <span className={`admin-status-pill ${statusClass(org.organization_status)}`}>{organizationStatusLabels[org.organization_status]}</span>
+                        <span className={`admin-health-pill ${org.health}`}><i />{org.health === 'healthy' ? 'Saine' : org.health === 'attention' ? 'À surveiller' : 'Critique'}</span>
                         <Icon name="chevronRight" size={18} />
                       </button>
                     ))}
@@ -405,10 +445,22 @@ export function PlatformAdminPage() {
                   <div><p className="eyebrow">ABONNEMENT</p><h2>{selected.name}</h2><small>{selected.owner_email || 'Propriétaire non identifié'}</small></div>
                 </div>
 
-                <div className="admin-detail-strip">
-                  <div><span>Créée</span><strong>{dateLabel(selected.created_at)}</strong></div>
-                  <div><span>Rendez-vous</span><strong>{selected.appointments_count}</strong></div>
+                <div className="admin-company-health-head">
+                  <span className={`admin-health-pill ${selected.health}`}><i />{selected.health === 'healthy' ? 'Entreprise saine' : selected.health === 'attention' ? 'Attention requise' : 'Action prioritaire'}</span>
+                  <span>{selected.onboarding_status === 'completed' ? 'Onboarding terminé' : 'Onboarding incomplet'}</span>
+                </div>
+
+                <div className="admin-detail-strip admin-detail-strip-rich">
+                  <div><span>Utilisateurs</span><strong>{selected.active_members}</strong></div>
+                  <div><span>Tickets ouverts</span><strong>{selected.open_tickets}</strong></div>
+                  <div><span>Documents</span><strong>{bytesLabel(selected.documents_bytes)}</strong></div>
                   <div><span>Dernière activité</span><strong>{dateLabel(selected.last_activity_at)}</strong></div>
+                </div>
+
+                <div className="admin-company-contact-card">
+                  <span><Icon name="building" size={18} /></span>
+                  <div><strong>{selected.company_city || 'Localisation non renseignée'}</strong><small>{selected.company_phone || selected.owner_email || selected.slug}</small></div>
+                  <em>Créée {dateLabel(selected.created_at)}</em>
                 </div>
 
                 {!canManage && <div className="info-message">Ton rôle Support permet la consultation, mais pas la modification des formules.</div>}

@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.10.1-stock-consumption-fix';
+const CACHE = 'ncr-suite-shell-v2.11.0-saas-admin';
 const SHELL = [
   '/',
   '/index.html',

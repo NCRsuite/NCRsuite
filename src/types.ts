@@ -70,6 +70,18 @@ export interface Organization {
   training_satisfaction_enabled?: boolean;
   training_satisfaction_delay_hours?: number;
   training_satisfaction_intro?: string | null;
+  company_contact_name?: string | null;
+  company_email?: string | null;
+  company_phone?: string | null;
+  company_address?: string | null;
+  company_postal_code?: string | null;
+  company_city?: string | null;
+  company_siret?: string | null;
+  onboarding_status?: 'not_started' | 'in_progress' | 'completed';
+  onboarding_requested_plan?: Plan | null;
+  onboarding_objective?: string | null;
+  onboarding_checklist?: Record<string, boolean>;
+  onboarding_completed_at?: string | null;
   security_billing_address?: string | null;
   security_billing_postal_code?: string | null;
   security_billing_city?: string | null;

@@ -8,6 +8,15 @@ interface CreateOrganizationInput {
   name: string;
   businessType: BusinessType;
   primaryColor: string;
+  requestedPlan: Plan;
+  contactName: string;
+  companyEmail: string;
+  companyPhone: string;
+  companyAddress: string;
+  companyPostalCode: string;
+  companyCity: string;
+  companySiret: string;
+  objective: string;
 }
 
 interface BookingSettingsInput {
@@ -57,7 +66,7 @@ interface OrganizationContextValue {
   selectSite: (id: string | null) => void;
   refreshOrganizations: () => void;
   refreshSites: () => void;
-  createOrganization: (input: CreateOrganizationInput) => Promise<void>;
+  createOrganization: (input: CreateOrganizationInput) => Promise<string>;
   updateBranding: (updates: { name?: string; primaryColor?: string }) => Promise<void>;
   updateBookingSettings: (updates: BookingSettingsInput) => Promise<void>;
   updateEmailNotificationSettings: (updates: EmailNotificationSettingsInput) => Promise<void>;
@@ -87,7 +96,9 @@ const ORGANIZATION_FIELDS = [
   'security_default_vat_rate','security_payment_terms_days','security_late_penalty_text','security_tax_exemption_text','security_bank_account_holder','security_bank_name','security_bank_iban','security_bank_bic','security_quote_validity_days','metier_setup_fee_cents','metier_member_limit',
   'metier_site_limit','metier_storage_limit_mb','metier_contract_reference','metier_modules_configured','white_label_enabled',
   'custom_domain','custom_domain_status','custom_domain_verified_at','training_satisfaction_enabled',
-  'training_satisfaction_delay_hours','training_satisfaction_intro'
+  'training_satisfaction_delay_hours','training_satisfaction_intro','company_contact_name','company_email','company_phone',
+  'company_address','company_postal_code','company_city','company_siret','onboarding_status','onboarding_requested_plan',
+  'onboarding_objective','onboarding_checklist','onboarding_completed_at'
 ].join(',');
 
 function slugify(value: string) {
@@ -298,7 +309,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     refreshSites() {
       setSitesReloadVersion((current) => current + 1);
     },
-    async createOrganization({ name, businessType, primaryColor }) {
+    async createOrganization({ name, businessType, primaryColor, requestedPlan, contactName, companyEmail, companyPhone, companyAddress, companyPostalCode, companyCity, companySiret, objective }) {
       const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 7)}`;
       const plan: Plan = 'decouverte';
 
@@ -311,12 +322,24 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           plan,
           status: 'active',
           primary_color: primaryColor,
+          company_contact_name: contactName,
+          company_email: companyEmail,
+          company_phone: companyPhone,
+          company_address: companyAddress,
+          company_postal_code: companyPostalCode,
+          company_city: companyCity,
+          company_siret: companySiret,
+          onboarding_requested_plan: requestedPlan,
+          onboarding_objective: objective,
+          onboarding_status: 'completed',
+          onboarding_completed_at: new Date().toISOString(),
+          onboarding_checklist: { identity: true, business: true, offer: true, branding: true },
           role: 'owner'
         };
         localStorage.setItem('ncr-suite-demo-org', JSON.stringify(org));
         setOrganizations([org]);
         setSelectedId(org.id);
-        return;
+        return org.id;
       }
 
       const { data, error } = await supabase.rpc('create_organization', {
@@ -327,16 +350,32 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       });
       if (error) throw error;
 
+      const organizationId = String(data);
+      const { error: onboardingError } = await supabase.rpc('complete_organization_onboarding', {
+        p_organization_id: organizationId,
+        p_contact_name: contactName,
+        p_company_email: companyEmail,
+        p_company_phone: companyPhone || null,
+        p_company_address: companyAddress || null,
+        p_company_postal_code: companyPostalCode || null,
+        p_company_city: companyCity || null,
+        p_company_siret: companySiret || null,
+        p_requested_plan: requestedPlan,
+        p_objective: objective || null
+      });
+      if (onboardingError) throw onboardingError;
+
       const { data: created, error: createdError } = await supabase
         .from('organizations')
         .select(ORGANIZATION_FIELDS)
-        .eq('id', data)
+        .eq('id', organizationId)
         .single();
       if (createdError) throw createdError;
 
       const org: Organization = { ...(created as unknown as Organization), role: 'owner' };
       setOrganizations((current) => [...current, org]);
       setSelectedId(org.id);
+      return org.id;
     },
     async updateBranding({ name, primaryColor }) {
       if (!organization) return;
