@@ -1,3 +1,15 @@
+# V2.11.2 — Finalisation Phase 2 : démarrage, imports et diagnostic SaaS
+
+- Nouveau centre de démarrage commun à tous les métiers, avec checklist adaptée à Coiffure, Formation, Sécurité, Nettoyage et Restauration.
+- Progression calculée à partir des données réelles : identité, équipe, catalogue, clients, planning, pages publiques et test de mise en service.
+- Imports guidés par fichiers CSV exportés depuis Excel, avec modèles téléchargeables, aperçu avant validation et limite de 1 000 lignes.
+- Détection des doublons, rapport ligne par ligne, historique des imports et journal d’audit.
+- Import des données principales selon le métier : clients, équipes, prestations, programmes, stagiaires, agents, sites, fournisseurs, stocks et carte du restaurant.
+- Nouvelle rubrique Diagnostic dans l’Administration NCR.
+- Contrôle central des abonnements, propriétaires, quotas utilisateurs, onboarding, files e-mails, notifications push, support, activité et stockage documentaire.
+- Export JSON d’un instantané technique dépourvu de secrets bancaires et d’identifiants privés de prestataires.
+- Cache PWA : `ncr-suite-shell-v2.11.2-phase2-complete`.
+
 ## V2.11.0 — Administration NCR & Exploitation SaaS
 
 - Nouveau cockpit SaaS avec entreprises actives, MRR estimé, utilisateurs, paiements en retard, onboarding incomplets et demandes urgentes.

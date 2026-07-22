@@ -114,7 +114,11 @@ export function AppShell() {
   navigation = filterNavigationForOrganization(organization, navigation);
 
   if (supportSession) {
-    navigation = navigation.filter((item) => !['/acces-equipe','/personnalisation','/parametres','/offre-metier','/abonnement'].includes(item.path));
+    navigation = navigation.filter((item) => !['/acces-equipe','/personnalisation','/parametres','/offre-metier','/abonnement','/demarrage'].includes(item.path));
+  }
+
+  if (!supportSession && canManageOrganization && !navigation.some((item) => item.path === '/demarrage')) {
+    navigation = [...navigation, { label: 'Démarrage', path: '/demarrage', icon: 'sparkles' }];
   }
 
   if (organization.plan === 'metier' && canManageOrganization) {

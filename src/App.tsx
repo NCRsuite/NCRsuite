@@ -50,6 +50,7 @@ import { SecurityShiftDossiersPage } from './pages/SecurityShiftDossiersPage';
 import { SecurityQuotesPage } from './pages/SecurityQuotesPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { SupportPage } from './pages/SupportPage';
+import { SaasLaunchCenterPage } from './pages/SaasLaunchCenterPage';
 
 import { CleaningClientsPage } from './pages/CleaningClientsPage';
 import { CleaningSitesPage } from './pages/CleaningSitesPage';
@@ -208,6 +209,13 @@ function ProtectedArea() {
   return <AppShell />;
 }
 
+
+function SaasLaunchCenterArea() {
+  const { organization } = useOrganization();
+  if (!organization || !['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer')) return <Navigate to="/" replace />;
+  return <SaasLaunchCenterPage />;
+}
+
 function OnboardingArea() {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = usePlatformAdmin();
@@ -290,6 +298,7 @@ export default function App() {
         <Route path="personnalisation" element={<BrandingArea />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="assistance" element={<SupportPage />} />
+        <Route path="demarrage" element={<SaasLaunchCenterArea />} />
         <Route path="abonnement" element={<SubscriptionPage />} />
         <Route path="offre-metier" element={<MetierWorkspacePage />} />
         <Route path="parametres" element={<SettingsPage />} />
