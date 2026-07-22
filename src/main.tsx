@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { ConnectivityStatus } from './components/ConnectivityStatus';
+import { RuntimeMonitor } from './components/RuntimeMonitor';
 import { AuthProvider } from './contexts/AuthContext';
 import { OrganizationProvider } from './contexts/OrganizationContext';
 import { PlatformAdminProvider } from './contexts/PlatformAdminContext';
@@ -40,17 +41,18 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AppErrorBoundary>
-      <BrowserRouter>
-        <AuthProvider>
-          <PlatformAdminProvider>
-            <OrganizationProvider>
-              <ConnectivityStatus />
+    <BrowserRouter>
+      <AuthProvider>
+        <PlatformAdminProvider>
+          <OrganizationProvider>
+            <RuntimeMonitor />
+            <ConnectivityStatus />
+            <AppErrorBoundary>
               <App />
-            </OrganizationProvider>
-          </PlatformAdminProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </AppErrorBoundary>
+            </AppErrorBoundary>
+          </OrganizationProvider>
+        </PlatformAdminProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </React.StrictMode>
 );

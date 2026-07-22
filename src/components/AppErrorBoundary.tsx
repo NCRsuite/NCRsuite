@@ -15,8 +15,12 @@ export class AppErrorBoundary extends Component<Props, State> {
     window.dispatchEvent(new CustomEvent('ncr:runtime-error', {
       detail: {
         message: error.message,
+        stack: error.stack ?? '',
+        componentStack: info.componentStack ?? '',
         pathname: window.location.pathname,
-        occurredAt: new Date().toISOString()
+        occurredAt: new Date().toISOString(),
+        source: 'react',
+        severity: 'critical'
       }
     }));
   }

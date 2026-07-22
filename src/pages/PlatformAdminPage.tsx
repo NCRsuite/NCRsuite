@@ -8,6 +8,7 @@ import { AdminSaasCockpit } from '../components/AdminSaasCockpit';
 import { AdminSupportPanel } from '../components/AdminSupportPanel';
 import { AdminActivityPanel } from '../components/AdminActivityPanel';
 import { AdminDiagnosticsPanel } from '../components/AdminDiagnosticsPanel';
+import { AdminMonitoringPanel } from '../components/AdminMonitoringPanel';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
@@ -133,7 +134,7 @@ function statusClass(value: string) {
 }
 
 export function PlatformAdminPage() {
-  const [activeSection, setActiveSection] = useState<'cockpit' | 'overview' | 'support' | 'activity' | 'diagnostics' | 'catalogue' | 'billing' | 'metier' | 'push'>('cockpit');
+  const [activeSection, setActiveSection] = useState<'cockpit' | 'overview' | 'support' | 'activity' | 'diagnostics' | 'monitoring' | 'catalogue' | 'billing' | 'metier' | 'push'>('cockpit');
   const { user, signOut } = useAuth();
   const { profile, canManage } = usePlatformAdmin();
   const [metrics, setMetrics] = useState<AdminMetrics>(emptyMetrics);
@@ -338,6 +339,10 @@ export function PlatformAdminPage() {
             <Icon name="monitor" size={19} />
             <span><strong>Diagnostic</strong><small>Files, quotas et mise en service</small></span>
           </button>
+          <button type="button" className={activeSection === 'monitoring' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}>
+            <Icon name="shield" size={19} />
+            <span><strong>Surveillance</strong><small>Versions, erreurs et santé globale</small></span>
+          </button>
           <button type="button" className={activeSection === 'catalogue' ? 'active' : ''} onClick={() => setActiveSection('catalogue')}>
             <Icon name="clipboard" size={19} />
             <span><strong>Catalogue des offres</strong><small>Domaines, tarifs et options</small></span>
@@ -367,6 +372,7 @@ export function PlatformAdminPage() {
         {activeSection === 'support' && <AdminSupportPanel />}
         {activeSection === 'activity' && <AdminActivityPanel />}
         {activeSection === 'diagnostics' && <AdminDiagnosticsPanel onOpenSupport={() => setActiveSection('support')} />}
+        {activeSection === 'monitoring' && <AdminMonitoringPanel />}
 
         {activeSection === 'overview' && (<>
         <section className="platform-admin-metrics">

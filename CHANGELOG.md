@@ -1,3 +1,17 @@
+# V2.11.6 — Phase 1 · Tests critiques et surveillance globale
+
+- Nouveau centre **Surveillance** dans l’Administration NCR pour suivre les versions, erreurs d’interface, files e-mails, notifications Push et tickets urgents.
+- Journal central des erreurs frontend avec regroupement des occurrences identiques, entreprise concernée, page, version et résolution tracée.
+- Heartbeat des sessions actives afin d’identifier les anciennes versions encore ouvertes et les incohérences entre frontend, base Supabase et cache PWA.
+- Bandeau de mise à jour lorsque la version ouverte ne correspond plus à la release attendue.
+- Contrôle des objets métier indispensables afin de détecter une migration majeure absente.
+- Nouveau script de validation des parcours critiques exécuté avant chaque build Cloudflare.
+- Vérification automatisée des routes publiques, de la matrice d’accès, des migrations 054 à 059 et de l’alignement version/cache.
+- Remontée des erreurs React, JavaScript et promesses non gérées vers la surveillance centrale, sans exposer de données métier complètes.
+- Migration 059 : tables d’observabilité, fonctions sécurisées de heartbeat, remontée d’erreur, résolution et rapport global.
+- Cache PWA : `ncr-suite-shell-v2.11.6-phase1-complete`.
+- Cette version clôture la phase 1 — Audit et fiabilité globale.
+
 # V2.11.5 — Phase 1 · Matrice d’accès, RLS et pages publiques
 
 - Nouvelle matrice centrale Métier × Rôle × Route utilisée par la navigation et par les accès directs.
