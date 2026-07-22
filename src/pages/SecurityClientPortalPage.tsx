@@ -17,6 +17,7 @@ type PortalDocument = { id: string; title: string; category: string; storage_pat
 type PortalMessage = { id: string; author_type: 'security' | 'client'; author_name: string | null; body: string; created_at: string; read_by_client_at: string | null; read_by_security_at: string | null };
 type DashboardData = { account: { id: string; role: string; display_name: string | null; permissions: PortalPermissions }; organization: PortalOrganization; client: PortalClient; summary: PortalSummary; sites: PortalSite[]; shifts: PortalShift[]; logbook: PortalLogEntry[]; patrols: PortalPatrol[]; documents: PortalDocument[]; messages: PortalMessage[] };
 type PortalTab = 'overview' | 'missions' | 'logbook' | 'patrols' | 'documents' | 'messages';
+type PortalTabItem = { id: PortalTab; label: string; icon: 'home' | 'calendar' | 'clipboard' | 'shield' | 'file' | 'message'; enabled: boolean; count?: number };
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' });
 const dateTimeFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
@@ -126,14 +127,15 @@ export function SecurityClientPortalPage() {
 
   const accent = dashboard?.organization.primary_color || selectedAccount?.organization_primary_color || '#1d4ed8';
   const permissions = dashboard?.account.permissions ?? selectedAccount?.permissions;
-  const tabs: Array<{ id: PortalTab; label: string; icon: 'home'|'calendar'|'clipboard'|'shield'|'file'|'message'; enabled: boolean; count?: number }> = [
+  const availableTabs: PortalTabItem[] = [
     { id: 'overview', label: 'Vue d’ensemble', icon: 'home', enabled: true },
     { id: 'missions', label: 'Missions', icon: 'calendar', enabled: Boolean(permissions?.planning), count: dashboard?.shifts.length },
     { id: 'logbook', label: 'Main courante', icon: 'clipboard', enabled: Boolean(permissions?.logbook), count: dashboard?.logbook.length },
     { id: 'patrols', label: 'Rondes', icon: 'shield', enabled: Boolean(permissions?.patrols), count: dashboard?.patrols.length },
     { id: 'documents', label: 'Documents', icon: 'file', enabled: Boolean(permissions?.documents), count: dashboard?.documents.length },
     { id: 'messages', label: 'Messages', icon: 'message', enabled: Boolean(permissions?.messages), count: selectedAccount?.unread_messages }
-  ].filter((item) => item.enabled);
+  ];
+  const tabs = availableTabs.filter((item) => item.enabled);
 
   return <div className="security-client-portal" style={{ '--portal-accent': accent } as React.CSSProperties}>
     <header className="security-client-topbar">
