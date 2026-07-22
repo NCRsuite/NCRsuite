@@ -1,3 +1,17 @@
+# V2.11.5 — Phase 1 · Matrice d’accès, RLS et pages publiques
+
+- Nouvelle matrice centrale Métier × Rôle × Route utilisée par la navigation et par les accès directs.
+- Blocage des pages d’un autre métier même lorsque leur URL est saisie manuellement.
+- Protection des rubriques sensibles : abonnement, accès équipe, personnalisation et configuration Métier réservés au propriétaire et aux administrateurs.
+- Alignement des droits des employés et managers entre la navigation mobile, le menu latéral et les routes React.
+- Espace Agent Sécurité désormais protégé par le droit d’offre ou le module à la carte correspondant.
+- Facturation limitée strictement aux métiers Sécurité et Nettoyage.
+- Suppression d’un droit Restauration introduit par erreur dans l’offre Coiffure Professionnelle.
+- Migration 058 : activation RLS confirmée sur les tables Nettoyage et Restauration, durcissement des fonctions publiques et contrôles supplémentaires des pages Coiffure et Formation.
+- Nouveau rapport Administration NCR sur les tables sans RLS, tables sans politiques, fonctions SECURITY DEFINER mal configurées et fonctions accessibles anonymement.
+- Audit Cloudflare renforcé : cohérence des routes métier, séparation des catalogues d’offres, RLS et liste blanche des fonctions publiques.
+- Cache PWA : `ncr-suite-shell-v2.11.5-access-matrix`.
+
 # V2.11.4 — Phase 1 · Robustesse globale et performance
 
 - Chargement différé de 72 pages afin de réduire le JavaScript initial et accélérer l’ouverture de NCR Suite.

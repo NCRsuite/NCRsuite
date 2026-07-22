@@ -22,6 +22,21 @@ type DiagnosticCheck = {
   detail: string;
 };
 
+
+type AccessSecurityReport = {
+  generated_at: string;
+  summary: {
+    rls_disabled: number;
+    policyless: number;
+    insecure_security_definer: number;
+    unexpected_anon_functions: number;
+  };
+  rls_disabled_tables: string[];
+  policyless_tables: string[];
+  insecure_security_definer_functions: string[];
+  unexpected_anon_functions: string[];
+};
+
 type DiagnosticPayload = {
   organization: {
     id: string;
@@ -79,11 +94,18 @@ export function AdminDiagnosticsPanel({ onOpenSupport }: { onOpenSupport: () => 
   const [organizations, setOrganizations] = useState<AdminOrganizationOption[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [diagnostic, setDiagnostic] = useState<DiagnosticPayload | null>(null);
+  const [accessAudit, setAccessAudit] = useState<AccessSecurityReport | null>(null);
   const [search, setSearch] = useState('');
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDiagnostic, setLoadingDiagnostic] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
+
+  async function loadAccessAudit() {
+    if (!supabase) return;
+    const { data } = await supabase.rpc('platform_access_security_report');
+    if (data) setAccessAudit(data as AccessSecurityReport);
+  }
 
   async function loadOrganizations() {
     if (!supabase) return;
@@ -113,7 +135,7 @@ export function AdminDiagnosticsPanel({ onOpenSupport }: { onOpenSupport: () => 
     setLoadingDiagnostic(false);
   }
 
-  useEffect(() => { void loadOrganizations(); }, []);
+  useEffect(() => { void loadOrganizations(); void loadAccessAudit(); }, []);
   useEffect(() => { if (selectedId) void loadDiagnostic(selectedId); }, [selectedId]);
 
   const visibleOrganizations = useMemo(() => {
@@ -204,6 +226,14 @@ export function AdminDiagnosticsPanel({ onOpenSupport }: { onOpenSupport: () => 
               <article className="admin-diagnostic-mini-card">
                 <span><Icon name="shield" size={20} /></span>
                 <div><small>Instantané support</small><strong>Export sans secrets sensibles</strong><p>Le fichier JSON exclut les identifiants bancaires et les références privées des prestataires.</p></div>
+              </article>
+              <article className={`admin-diagnostic-mini-card access-audit ${accessAudit && Object.values(accessAudit.summary).some((value) => value > 0) ? 'warning' : 'ok'}`}>
+                <span><Icon name={accessAudit && Object.values(accessAudit.summary).some((value) => value > 0) ? 'alert' : 'shield'} size={20} /></span>
+                <div>
+                  <small>Sécurité des accès</small>
+                  <strong>{!accessAudit ? 'Analyse indisponible' : Object.values(accessAudit.summary).every((value) => value === 0) ? 'RLS et fonctions publiques conformes' : 'Anomalies techniques détectées'}</strong>
+                  <p>{!accessAudit ? 'Exécute la migration 058 pour activer le rapport.' : `${accessAudit.summary.rls_disabled} table(s) sans RLS · ${accessAudit.summary.policyless} sans politique · ${accessAudit.summary.unexpected_anon_functions} fonction(s) anon inattendue(s).`}</p>
+                </div>
               </article>
             </div>
           </>

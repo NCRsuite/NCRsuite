@@ -158,7 +158,8 @@ function RestaurantOnlyArea({ children }: { children: ReactNode }) {
 function CleaningOrSecurityBilling() {
   const { organization } = useOrganization();
   if (organization?.business_type === 'nettoyage') return <ModuleAccessGuard moduleKey="cleaning_billing"><CleaningBillingPage /></ModuleAccessGuard>;
-  return <ModuleAccessGuard moduleKey="security_billing"><SecurityBillingPage /></ModuleAccessGuard>;
+  if (organization?.business_type === 'securite') return <ModuleAccessGuard moduleKey="security_billing"><SecurityBillingPage /></ModuleAccessGuard>;
+  return <Navigate to="/" replace />;
 }
 
 function FieldTerrainArea() {
@@ -169,7 +170,10 @@ function FieldTerrainArea() {
   if (organization?.business_type === 'restauration') {
     return <RestaurantFeatureGate feature="restaurant_employee_portal" requiredPlan="Essentielle" description="Donnez aux employés un espace personnel avec planning, réservations, carte et outils d’hygiène."><RestaurantEmployeePortalPage /></RestaurantFeatureGate>;
   }
-  return <ModuleAccessGuard moduleKey="security_agent_portal"><SecurityAgentPortalPage /></ModuleAccessGuard>;
+  if (organization?.business_type === 'securite') {
+    return <SecurityFeatureGate feature="security_agent_portal" requiredPlan="Essentielle" description="Donnez aux agents un accès sécurisé à leur planning, leurs missions et leurs outils terrain. Ce module peut aussi être activé à la carte."><SecurityAgentPortalPage /></SecurityFeatureGate>;
+  }
+  return <Navigate to="/" replace />;
 }
 
 

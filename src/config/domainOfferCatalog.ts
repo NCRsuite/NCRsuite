@@ -131,8 +131,7 @@ const coiffureEssentielle: OfferFeatureKey[] = [
 const coiffureProfessionnelle: OfferFeatureKey[] = [
   ...coiffureEssentielle,
   'manager_role',
-  'commercial_branding',
-  'restaurant_kitchen_display'
+  'commercial_branding'
 ];
 
 const formationBase: OfferFeatureKey[] = [

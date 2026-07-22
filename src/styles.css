@@ -10303,3 +10303,9 @@ button { max-width: 100%; }
   .connectivity-banner.offline span { grid-column: 2; }
   .app-crash-actions { display: grid; }
 }
+
+/* V2.11.5 — audit des accès */
+.admin-diagnostic-mini-card.access-audit { grid-column: 1 / -1; border: 1px solid rgba(20,24,32,.08); }
+.admin-diagnostic-mini-card.access-audit.ok > span { color: #187748; background: #e5f7ec; }
+.admin-diagnostic-mini-card.access-audit.warning { border-color: rgba(225,161,19,.28); background: linear-gradient(145deg, #fff9e8, #fff); }
+.admin-diagnostic-mini-card.access-audit.warning > span { color: #8e6500; background: #fff0bf; }

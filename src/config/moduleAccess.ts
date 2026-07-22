@@ -1,5 +1,6 @@
 import type { NavigationItem, Organization } from '../types';
 import { organizationHasFeature, type PlanFeature } from './planEntitlements';
+import { normalizeRoutePath, routeAccessDenial } from './accessMatrix';
 
 export const MODULE_BY_PATH: Record<string, string> = {
   '/': 'dashboard',
@@ -97,16 +98,13 @@ const CLEANING_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/rentabilite': 'cleaning_profitability'
 };
 
-const SECURITY_UPSELL_PATHS = new Set(['/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision']);
+const SECURITY_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision']);
 const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/rapports', '/anomalies', '/qualite', '/stocks', '/rentabilite', '/acces-equipe']);
 const RESTAURANT_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/cuisine', '/personnalisation']);
 
-const SECURITY_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications', '/assistance']);
-const CLEANING_CHEF_PATHS = new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/protocoles', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications', '/assistance']);
-const RESTAURANT_MANAGER_PATHS = new Set(['/', '/terrain', '/planning', '/equipe', '/carte', '/recettes', '/reservations', '/commandes', '/cuisine', '/salle', '/menu-qr', '/hygiene', '/stocks', '/notifications', '/assistance']);
 
 export function normalizedModulePath(pathname: string) {
-  return pathname === '/' ? '/' : `/${pathname.split('/').filter(Boolean)[0] ?? ''}`;
+  return normalizeRoutePath(pathname);
 }
 
 export function moduleKeyForPath(pathname: string, businessType?: Organization['business_type']) {
@@ -182,23 +180,7 @@ export function cleaningPathIsLocked(organization: Organization, pathname: strin
 export function organizationCanAccessPath(organization: Organization, pathname: string) {
   const normalized = normalizedModulePath(pathname);
 
-  if (organization.business_type === 'securite') {
-    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti', '/notifications', '/assistance'].includes(normalized)) return false;
-    if (organization.role === 'manager' && !SECURITY_CHEF_PATHS.has(normalized)) return false;
-  }
-
-  if (organization.business_type === 'restauration') {
-    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/carte', '/recettes', '/reservations', '/commandes', '/cuisine', '/salle', '/hygiene', '/notifications', '/assistance'].includes(normalized)) return false;
-    if (organization.role === 'manager' && !RESTAURANT_MANAGER_PATHS.has(normalized)) return false;
-  }
-
-  if (organization.business_type === 'nettoyage') {
-    if (organization.role === 'employee' && !['/', '/terrain', '/planning', '/interventions', '/rapports', '/anomalies', '/notifications', '/assistance'].includes(normalized)) return false;
-    if (organization.role === 'manager' && !CLEANING_CHEF_PATHS.has(normalized)) return false;
-  }
-
-  if (normalized === '/notifications' || normalized === '/assistance') return true;
-  if (pathname === '/offre-metier') return organization.plan === 'metier' && ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
+  if (routeAccessDenial(organization, pathname)) return false;
 
   const requiredFeature = normalized === '/personnalisation'
     ? (organization.business_type === 'securite' ? 'security_document_branding' : 'commercial_branding')

@@ -75,40 +75,15 @@ export function AppShell() {
 
   const pack = businessPacks[organization.business_type];
   const restrictedRole = ['employee', 'viewer'].includes(organization.role ?? 'viewer');
-  const hasCustomRole = organization.plan === 'metier' && Boolean(organization.custom_role_id);
   const canManageOrganization = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
   const hasMultiSite = organizationHasFeature(organization, 'multi_site');
   const baseNavigation = pack.navigation.filter((item) => item.path !== '/abonnement');
   let navigation = baseNavigation;
 
+  // Les propriétaires n'ont pas besoin de l'espace terrain dans leur navigation courante.
+  // L'accès direct reste contrôlé par la matrice et les droits de l'offre.
   if (['securite', 'nettoyage', 'restauration'].includes(organization.business_type) && ['owner', 'admin'].includes(organization.role ?? 'viewer')) {
     navigation = navigation.filter((item) => item.path !== '/terrain');
-  }
-
-  if (restrictedRole && !hasCustomRole) {
-    if (organization.business_type === 'securite' && organization.role === 'employee') {
-      navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti', '/notifications'].includes(item.path));
-    } else if (organization.business_type === 'nettoyage' && organization.role === 'employee') {
-      navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/interventions', '/rapports', '/anomalies', '/notifications'].includes(item.path));
-    } else if (organization.business_type === 'restauration' && organization.role === 'employee') {
-      navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/carte', '/reservations', '/salle', '/hygiene', '/notifications'].includes(item.path));
-    } else if (organization.business_type === 'formation' && organizationHasFeature(organization, 'team_access')) {
-      navigation = baseNavigation.filter((item) => !['/acces-equipe', '/personnalisation', '/etablissements', '/parametres'].includes(item.path));
-    } else {
-      navigation = baseNavigation.filter((item) => ['/', '/rendez-vous', '/planning', '/notifications'].includes(item.path));
-    }
-  }
-
-  if (organization.business_type === 'securite' && organization.role === 'manager') {
-    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications'].includes(item.path));
-  }
-
-  if (organization.business_type === 'nettoyage' && organization.role === 'manager') {
-    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/protocoles', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications'].includes(item.path));
-  }
-
-  if (organization.business_type === 'restauration' && organization.role === 'manager') {
-    navigation = baseNavigation.filter((item) => ['/', '/terrain', '/planning', '/equipe', '/carte', '/reservations', '/salle', '/menu-qr', '/hygiene', '/stocks', '/notifications'].includes(item.path));
   }
 
   navigation = filterNavigationForOrganization(organization, navigation);
@@ -121,12 +96,12 @@ export function AppShell() {
     navigation = [...navigation, { label: 'Démarrage', path: '/demarrage', icon: 'sparkles' }];
   }
 
-  if (organization.plan === 'metier' && canManageOrganization) {
+  if (organization.plan === 'metier' && ['owner', 'admin'].includes(organization.role ?? 'viewer')) {
     navigation = [...navigation, { label: 'Configuration Métier', path: '/offre-metier', icon: 'tool' }];
   }
 
   const hasCommercialBrandingModule = navigation.some((item) => item.path === '/personnalisation');
-  const canManageSubscription = !supportSession && !restrictedRole && !(organization.business_type === 'securite' && organization.role === 'manager');
+  const canManageSubscription = !supportSession && ['owner', 'admin'].includes(organization.role ?? 'viewer');
 
   const primaryMobileItem = navigation.find((item) => ['securite', 'restauration'].includes(organization.business_type) && restrictedRole ? item.path === '/terrain' : ['/rendez-vous', '/planning'].includes(item.path))
     ?? navigation.find((item) => item.path !== '/')

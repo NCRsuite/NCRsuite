@@ -1,9 +1,8 @@
-NCR SUITE V2.11.4 — PHASE 1 / LOT 1
+NCR Suite V2.11.5
 
-1. Aucun SQL Supabase à exécuter.
-2. Déposer le contenu du patch à la racine du dépôt GitHub.
-3. Conserver exactement les dossiers src/, public/, scripts/ et docs/.
-4. Vérifier le déploiement Cloudflare.
-5. Fermer complètement la PWA puis la rouvrir.
+1. Supabase : exécuter supabase/migrations/058_access_matrix_rls_public_hardening.sql
+2. GitHub : remplacer/ajouter les autres fichiers du patch.
+3. Cloudflare : vérifier que le build termine en vert.
+4. Fermer puis rouvrir la PWA.
 
-Cache : ncr-suite-shell-v2.11.4-global-reliability
+Aucune donnée métier n'est supprimée.
