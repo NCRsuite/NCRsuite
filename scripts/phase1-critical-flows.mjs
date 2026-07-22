@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-security-client-portal`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-secure-organization-deletion`;
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version frontend ne correspond pas à package.json.');
 if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime ne correspond pas à la release attendue.');
 if (!sw.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker ne correspond pas à la release attendue.');
@@ -92,7 +92,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -124,8 +124,28 @@ requireText('supabase/migrations/060_security_client_portal.sql', [
   "bucket_id='security-client-documents'",
   'Trop de messages envoyés',
   "'2.12.0'",
-  expectedCache,
+  'ncr-suite-shell-v2.12.0-security-client-portal',
   'set search_path = public'
+]);
+
+
+requireText('supabase/functions/admin-delete-organization/index.ts', [
+  "eq('role', 'super_admin')",
+  "from('organizations')",
+  "removeOrganizationStorage",
+  "platform_deleted_organizations",
+  "platform.organization_deleted"
+]);
+requireText('supabase/migrations/062_platform_organization_secure_deletion.sql', [
+  'create table if not exists public.platform_deleted_organizations',
+  'enable row level security',
+  "'2.12.1'",
+  expectedCache
+]);
+requireText('src/pages/PlatformAdminPage.tsx', [
+  "supabase.functions.invoke('admin-delete-organization'",
+  'Supprimer définitivement cette entreprise',
+  'deleteOrganizationName'
 ]);
 
 requireText('supabase/functions/process-email-queue/index.ts', [

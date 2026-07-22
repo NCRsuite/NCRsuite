@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.12.0-security-client-portal';
+const CACHE = 'ncr-suite-shell-v2.12.1-secure-organization-deletion';
 const SHELL = [
   '/',
   '/index.html',

@@ -1,3 +1,13 @@
+# V2.12.1 — Suppression sécurisée des entreprises
+
+- Ajout d’une zone de suppression définitive dans Administration NCR, réservée au super-administrateur.
+- Suppression possible même lorsque l’entreprise est active.
+- Confirmation obligatoire par saisie exacte du nom de l’entreprise.
+- Nettoyage des données métier, abonnements, accès et fichiers Storage associés.
+- Conservation d’une trace d’audit indépendante après suppression.
+- Les comptes de connexion Auth ne sont pas supprimés automatiquement afin de préserver les utilisateurs rattachés à plusieurs entreprises.
+- Cache PWA : `ncr-suite-shell-v2.12.1-secure-organization-deletion`.
+
 # V2.12.0 — Phase 3 · Portail client Sécurité
 
 - Nouveau portail externe sécurisé pour les donneurs d’ordre des entreprises de sécurité.

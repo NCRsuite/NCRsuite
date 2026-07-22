@@ -151,6 +151,9 @@ export function PlatformAdminPage() {
   const [showCreateSpace, setShowCreateSpace] = useState(false);
   const [loginEmail, setLoginEmail] = useState(user?.email ?? '');
   const [changingLoginEmail, setChangingLoginEmail] = useState(false);
+  const [showDeleteOrganization, setShowDeleteOrganization] = useState(false);
+  const [deleteOrganizationName, setDeleteOrganizationName] = useState('');
+  const [deletingOrganization, setDeletingOrganization] = useState(false);
 
   const [editPlan, setEditPlan] = useState<Plan>('decouverte');
   const [editOrganizationStatus, setEditOrganizationStatus] = useState<OrganizationStatus>('active');
@@ -173,6 +176,8 @@ export function PlatformAdminPage() {
     setEditNotes(org.internal_notes ?? '');
     setMessage('');
     setError('');
+    setShowDeleteOrganization(false);
+    setDeleteOrganizationName('');
   }
 
   async function loadDashboard() {
@@ -327,6 +332,51 @@ export function PlatformAdminPage() {
       await loadAll(true);
     }
     setSaving(false);
+  }
+
+
+  async function deleteSelectedOrganization() {
+    if (!selected || !supabase || profile?.role !== 'super_admin') return;
+    if (deleteOrganizationName.trim().toLocaleLowerCase('fr-FR') !== selected.name.trim().toLocaleLowerCase('fr-FR')) {
+      setError('Saisis exactement le nom de l’entreprise pour confirmer la suppression.');
+      return;
+    }
+
+    setDeletingOrganization(true);
+    setError('');
+    setMessage('');
+
+    const { data, error: requestError } = await supabase.functions.invoke('admin-delete-organization', {
+      body: {
+        organizationId: selected.id,
+        confirmationName: deleteOrganizationName.trim()
+      }
+    });
+
+    if (requestError) {
+      setError(requestError.message || 'Suppression impossible.');
+      setDeletingOrganization(false);
+      return;
+    }
+
+    if (data?.error) {
+      setError(String(data.error));
+      setDeletingOrganization(false);
+      return;
+    }
+
+    const deletedName = selected.name;
+    const storageWarningCount = Array.isArray(data?.storage_warnings) ? data.storage_warnings.length : 0;
+    setSelected(null);
+    setShowDeleteOrganization(false);
+    setDeleteOrganizationName('');
+    setMessage(
+      storageWarningCount > 0
+        ? `L’entreprise ${deletedName} a été supprimée. Certains fichiers devront être vérifiés dans Supabase Storage.`
+        : `L’entreprise ${deletedName} et toutes ses données ont été supprimées définitivement.`
+    );
+    await loadAll(false);
+    setDeletingOrganization(false);
   }
 
   return (
@@ -610,6 +660,63 @@ export function PlatformAdminPage() {
                 </div>
 
                 {canManage && <button className="primary-button full" type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer la formule et l’accès'}</button>}
+
+                {profile?.role === 'super_admin' && (
+                  <section className="admin-organization-danger-zone">
+                    <div className="admin-organization-danger-head">
+                      <span><Icon name="alert" size={20} /></span>
+                      <div>
+                        <strong>Supprimer définitivement cette entreprise</strong>
+                        <small>Cette action supprime l’espace, l’abonnement, les données métier, les documents et les accès associés. Elle fonctionne même si l’entreprise est active.</small>
+                      </div>
+                    </div>
+
+                    {!showDeleteOrganization ? (
+                      <button
+                        type="button"
+                        className="secondary-button danger-button full"
+                        onClick={() => { setShowDeleteOrganization(true); setDeleteOrganizationName(''); setError(''); }}
+                      >
+                        Supprimer l’entreprise
+                      </button>
+                    ) : (
+                      <div className="admin-organization-delete-confirmation">
+                        <div className="warning-message">
+                          <strong>Suppression irréversible</strong>
+                          <span>Les comptes de connexion ne seront pas supprimés, car un utilisateur peut appartenir à plusieurs entreprises. L’entreprise et toutes ses données seront en revanche définitivement effacées.</span>
+                        </div>
+                        <label>
+                          Pour confirmer, saisis exactement : <strong>{selected.name}</strong>
+                          <input
+                            value={deleteOrganizationName}
+                            onChange={(event) => setDeleteOrganizationName(event.target.value)}
+                            autoComplete="off"
+                            placeholder={selected.name}
+                            disabled={deletingOrganization}
+                          />
+                        </label>
+                        <div className="admin-delete-actions">
+                          <button
+                            type="button"
+                            className="secondary-button"
+                            onClick={() => { setShowDeleteOrganization(false); setDeleteOrganizationName(''); }}
+                            disabled={deletingOrganization}
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            type="button"
+                            className="secondary-button danger-button"
+                            onClick={() => void deleteSelectedOrganization()}
+                            disabled={deletingOrganization || deleteOrganizationName.trim().toLocaleLowerCase('fr-FR') !== selected.name.trim().toLocaleLowerCase('fr-FR')}
+                          >
+                            {deletingOrganization ? 'Suppression en cours…' : 'Supprimer définitivement'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                )}
               </form>
             )}
           </aside>
