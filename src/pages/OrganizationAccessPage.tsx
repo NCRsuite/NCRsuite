@@ -41,7 +41,7 @@ export function OrganizationAccessPage() {
 
         <div className="organization-access-actions">
           {!closed && <button className="primary-button" type="button" onClick={() => navigate('/abonnement')}>Gérer mon abonnement</button>}
-          <a className={closed ? 'primary-button' : 'secondary-button'} href="mailto:ncr-solutions@outlook.fr">Contacter NCR Suite</a>
+          <a className={closed ? 'primary-button' : 'secondary-button'} href="mailto:contact@ncr-suite.fr">Contacter NCR Suite</a>
           <button className="secondary-button" type="button" onClick={() => signOut()}>Se déconnecter</button>
         </div>
       </div>
