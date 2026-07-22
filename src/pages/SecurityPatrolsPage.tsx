@@ -13,6 +13,7 @@ import {
   type SecuritySiteRecord
 } from '../features/security/types';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage } from '../lib/safeStorage';
 
 type PointForm = { siteId: string; label: string; sequence: string; instructions: string };
 type BarcodeDetectorLike = { detect: (source: CanvasImageSource) => Promise<Array<{ rawValue?: string }>> };
@@ -84,10 +85,10 @@ export function SecurityPatrolsPage() {
     setLoading(true);
     setError('');
     if (demoMode || !supabase) {
-      setSites(JSON.parse(localStorage.getItem(`ncr-suite-security-sites-${organization.id}`) || '[]'));
-      setAgents(JSON.parse(localStorage.getItem(`ncr-suite-security-agents-${organization.id}`) || '[]'));
-      setPoints(JSON.parse(localStorage.getItem(`ncr-suite-security-points-${organization.id}`) || '[]'));
-      const stored = JSON.parse(localStorage.getItem(`ncr-suite-security-patrols-${organization.id}`) || '[]') as SecurityPatrolRecord[];
+      setSites(readJsonStorage(`ncr-suite-security-sites-${organization.id}`, []));
+      setAgents(readJsonStorage(`ncr-suite-security-agents-${organization.id}`, []));
+      setPoints(readJsonStorage(`ncr-suite-security-points-${organization.id}`, []));
+      const stored = readJsonStorage<SecurityPatrolRecord[]>(`ncr-suite-security-patrols-${organization.id}`, []);
       setPatrols(stored);
       setCurrent(stored.find((patrol) => patrol.status === 'in_progress') || null);
       setLoading(false);

@@ -12,6 +12,7 @@ import {
   type RestaurantMenuItemRecord,
 } from '../features/restaurant/types';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage, writeJsonStorage } from '../lib/safeStorage';
 
 type MenuForm = {
   categoryId: string;
@@ -104,8 +105,8 @@ export function RestaurantMenuPage() {
     if (!organization) return;
     setError('');
     if (demoMode || !supabase) {
-      setCategories(JSON.parse(localStorage.getItem(`ncr-restaurant-categories-${organization.id}`) || '[]'));
-      setItems((JSON.parse(localStorage.getItem(`ncr-restaurant-menu-${organization.id}`) || '[]') as RestaurantMenuItemRecord[])
+      setCategories(readJsonStorage(`ncr-restaurant-categories-${organization.id}`, []));
+      setItems(readJsonStorage<RestaurantMenuItemRecord[]>(`ncr-restaurant-menu-${organization.id}`, [])
         .map((row) => ({ ...row, cost_cents: Number(row.cost_cents ?? 0) })));
       return;
     }
@@ -185,7 +186,7 @@ export function RestaurantMenuPage() {
       let created: RestaurantMenuCategoryRecord;
       if (demoMode || !supabase) {
         created = { id: crypto.randomUUID(), ...payload, active: true };
-        localStorage.setItem(`ncr-restaurant-categories-${organization.id}`, JSON.stringify([...categories, created]));
+        writeJsonStorage(`ncr-restaurant-categories-${organization.id}`, [...categories, created]);
       } else {
         const { data, error: insertError } = await supabase.from('restaurant_menu_categories').insert(payload).select('*').single();
         if (insertError) throw insertError;
@@ -267,7 +268,7 @@ export function RestaurantMenuPage() {
         };
         saved = { id: editingId || crypto.randomUUID(), ...base };
         const next = editingId ? items.map((row) => row.id === editingId ? saved : row) : [...items, saved];
-        localStorage.setItem(`ncr-restaurant-menu-${organization.id}`, JSON.stringify(next));
+        writeJsonStorage(`ncr-restaurant-menu-${organization.id}`, next);
       } else if (editingId) {
         const { created_by: _createdBy, ...updatePayload } = payload;
         const { data, error: updateError } = await supabase.from('restaurant_menu_items')
@@ -393,7 +394,7 @@ export function RestaurantMenuPage() {
     try {
       if (demoMode || !supabase) {
         const next = items.map((item) => item.id === row.id ? { ...item, available } : item);
-        localStorage.setItem(`ncr-restaurant-menu-${organization.id}`, JSON.stringify(next));
+        writeJsonStorage(`ncr-restaurant-menu-${organization.id}`, next);
         setItems(next);
       } else {
         const { error: updateError } = await supabase.from('restaurant_menu_items').update({ available })
@@ -411,7 +412,7 @@ export function RestaurantMenuPage() {
     try {
       if (demoMode || !supabase) {
         const next = items.filter((item) => item.id !== row.id);
-        localStorage.setItem(`ncr-restaurant-menu-${organization.id}`, JSON.stringify(next));
+        writeJsonStorage(`ncr-restaurant-menu-${organization.id}`, next);
         setItems(next);
       } else {
         const { error: deleteError } = await supabase.from('restaurant_menu_items').delete()

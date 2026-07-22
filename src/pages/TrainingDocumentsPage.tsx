@@ -18,6 +18,7 @@ import {
 } from '../features/training/types';
 import { closeFileWindow, navigateFileWindow, prepareFileWindow } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
+import { parseStoredJson, writeJsonStorage } from '../lib/safeStorage';
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const ACCEPTED_TYPES = [
@@ -89,11 +90,11 @@ export function TrainingDocumentsPage() {
 
     if (demoMode || !supabase) {
       const raw = localStorage.getItem(`ncr-suite-training-documents-${organization.id}`);
-      setDocuments(raw ? JSON.parse(raw) as TrainingDocumentRecord[] : []);
+      setDocuments(parseStoredJson<TrainingDocumentRecord[]>(raw, []));
       const sessionsRaw = localStorage.getItem(`ncr-suite-training-sessions-${organization.id}`);
       const traineesRaw = localStorage.getItem(`ncr-suite-training-trainees-${organization.id}`);
-      setSessions(sessionsRaw ? JSON.parse(sessionsRaw) as TrainingSessionRecord[] : []);
-      setTrainees(traineesRaw ? JSON.parse(traineesRaw) as TrainingTraineeRecord[] : []);
+      setSessions(parseStoredJson<TrainingSessionRecord[]>(sessionsRaw, []));
+      setTrainees(parseStoredJson<TrainingTraineeRecord[]>(traineesRaw, []));
       setLoading(false);
       return;
     }
@@ -242,7 +243,7 @@ export function TrainingDocumentsPage() {
     setSaving(true);
     if (demoMode || !supabase) {
       const next = [record, ...documents];
-      localStorage.setItem(`ncr-suite-training-documents-${organization.id}`, JSON.stringify(next));
+      writeJsonStorage(`ncr-suite-training-documents-${organization.id}`, next);
       setDocuments(next);
       setSuccess('Document enregistré en mode démonstration.');
       resetForm(); setSearchParams({}); setSaving(false); return;
@@ -343,7 +344,7 @@ export function TrainingDocumentsPage() {
     const nextStatus: TrainingDocumentStatus = document.status === 'archived' ? 'published' : 'archived';
     if (demoMode || !supabase) {
       const next = documents.map((row) => row.id === document.id ? { ...row, status: nextStatus } : row);
-      localStorage.setItem(`ncr-suite-training-documents-${organization.id}`, JSON.stringify(next));
+      writeJsonStorage(`ncr-suite-training-documents-${organization.id}`, next);
       setDocuments(next); return;
     }
     const { error: updateError } = await supabase.from('training_documents').update({ status: nextStatus }).eq('organization_id', organization.id).eq('id', document.id);

@@ -1,3 +1,14 @@
+# V2.11.4 — Phase 1 · Robustesse globale et performance
+
+- Chargement différé de 72 pages afin de réduire le JavaScript initial et accélérer l’ouverture de NCR Suite.
+- Écran de récupération global en cas d’erreur React, avec réessai, rechargement et réinitialisation contrôlée du cache.
+- Bandeau réseau hors connexion et notification lorsqu’une nouvelle version PWA est disponible.
+- Service Worker renforcé : délai réseau maximal, protection contre les réponses HTML à la place des modules JS/CSS et mise à jour explicite.
+- Lecture résiliente du stockage navigateur sur les écrans critiques Sécurité, Nettoyage, Formation, Coiffure et Restauration.
+- Ajout d’un audit statique exécuté automatiquement avant chaque build Cloudflare.
+- Contrôle des imports dynamiques, de la compatibilité ES2020, des fonctions SQL SECURITY DEFINER et de la version du cache PWA.
+- Aucun changement des offres, rôles, données métier ou règles Supabase.
+
 # NCR Suite — Changelog
 
 ## V2.11.3 — Modules Sécurité à la carte

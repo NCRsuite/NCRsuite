@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { formatCleaningDateTime, type CleaningInterventionRecord } from '../features/cleaning/types';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage } from '../lib/safeStorage';
 
 async function uploadCleaningPhoto(organizationId: string, interventionId: string, kind: 'before' | 'after', file: File) {
   if (!supabase) return null;
@@ -20,7 +21,7 @@ export function CleaningAgentPortalPage() {
 
   async function load() {
     if (!organization) return; setLoading(true); setError('');
-    if (demoMode || !supabase) { setRows(JSON.parse(localStorage.getItem(`ncr-cleaning-interventions-${organization.id}`) || '[]') as CleaningInterventionRecord[]); setLoading(false); return; }
+    if (demoMode || !supabase) { setRows(readJsonStorage<CleaningInterventionRecord[]>(`ncr-cleaning-interventions-${organization.id}`, [])); setLoading(false); return; }
     const from = new Date(); from.setDate(from.getDate() - 2); const to = new Date(); to.setDate(to.getDate() + 8);
     const { data, error: loadError } = await supabase.from('cleaning_interventions').select('*,cleaning_sites(name,address,city,instructions,cleaning_clients(company_name)),cleaning_agents(first_name,last_name),cleaning_intervention_tasks(*)').eq('organization_id', organization.id).gte('starts_at', from.toISOString()).lte('starts_at', to.toISOString()).order('starts_at');
     if (loadError) setError(loadError.message); else setRows((data ?? []) as CleaningInterventionRecord[]); setLoading(false);

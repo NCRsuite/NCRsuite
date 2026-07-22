@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { ModuleAccessGuard } from './components/ModuleAccessGuard';
@@ -6,84 +6,85 @@ import { SecurityFeatureGate } from './components/SecurityFeatureGate';
 import { useAuth } from './contexts/AuthContext';
 import { useOrganization } from './contexts/OrganizationContext';
 import { usePlatformAdmin } from './contexts/PlatformAdminContext';
-import { DashboardPage } from './pages/DashboardPage';
-import { ClientsPage } from './pages/ClientsPage';
-import { LoginPage } from './pages/LoginPage';
-import { ModulePage } from './pages/ModulePage';
-import { OnboardingPage } from './pages/OnboardingPage';
-import { SettingsPage } from './pages/SettingsPage';
-import { ServicesPage } from './pages/ServicesPage';
-import { StaffPage } from './pages/StaffPage';
-import { AppointmentsPage } from './pages/AppointmentsPage';
-import { PublicBookingPage } from './pages/PublicBookingPage';
-import { PublicBookingManagePage } from './pages/PublicBookingManagePage';
-import { TeamAccessPage } from './pages/TeamAccessPage';
-import { InvitationPage } from './pages/InvitationPage';
-import { CommercialBrandingPage } from './pages/CommercialBrandingPage';
-import { PlatformAdminPage } from './pages/PlatformAdminPage';
-import { OrganizationAccessPage } from './pages/OrganizationAccessPage';
-import { SubscriptionPage } from './pages/SubscriptionPage';
-import { MetierWorkspacePage } from './pages/MetierWorkspacePage';
-import { TrainingProgramsPage } from './pages/TrainingProgramsPage';
-import { TrainingTraineesPage } from './pages/TrainingTraineesPage';
-import { TrainingTrainersPage } from './pages/TrainingTrainersPage';
-import { TrainingSessionsPage } from './pages/TrainingSessionsPage';
-import { TrainingDocumentsPage } from './pages/TrainingDocumentsPage';
-import { TrainingAttendancePage } from './pages/TrainingAttendancePage';
-import { TrainingEvaluationsPage } from './pages/TrainingEvaluationsPage';
-import { TrainingSitesPage } from './pages/TrainingSitesPage';
-import { PublicTrainingSatisfactionPage } from './pages/PublicTrainingSatisfactionPage';
-import { SecurityClientsPage } from './pages/SecurityClientsPage';
-import { SecurityAgentsPage } from './pages/SecurityAgentsPage';
-import { SecurityAgentDetailPage } from './pages/SecurityAgentDetailPage';
-import { SecuritySitesPage } from './pages/SecuritySitesPage';
-import { SecurityPlanningPage } from './pages/SecurityPlanningPage';
-import { SecurityBillingPage } from './pages/SecurityBillingPage';
-import { SecurityPatrolsPage } from './pages/SecurityPatrolsPage';
-import { SecurityLogbookPage } from './pages/SecurityLogbookPage';
-import { SecurityInstructionsPage } from './pages/SecurityInstructionsPage';
-import { SecurityAgentPortalPage } from './pages/SecurityAgentPortalPage';
-import { SecurityGeolocationPage } from './pages/SecurityGeolocationPage';
-import { SecurityPtiPage } from './pages/SecurityPtiPage';
-import { SecuritySupervisionPage } from './pages/SecuritySupervisionPage';
-import { SecurityShiftDossiersPage } from './pages/SecurityShiftDossiersPage';
-import { SecurityQuotesPage } from './pages/SecurityQuotesPage';
-import { NotificationsPage } from './pages/NotificationsPage';
-import { SupportPage } from './pages/SupportPage';
-import { SaasLaunchCenterPage } from './pages/SaasLaunchCenterPage';
 
-import { CleaningClientsPage } from './pages/CleaningClientsPage';
-import { CleaningSitesPage } from './pages/CleaningSitesPage';
-import { CleaningAgentsPage } from './pages/CleaningAgentsPage';
-import { CleaningPlanningPage } from './pages/CleaningPlanningPage';
-import { CleaningAgentPortalPage } from './pages/CleaningAgentPortalPage';
-import { CleaningInterventionsPage } from './pages/CleaningInterventionsPage';
-import { CleaningReportsPage } from './pages/CleaningReportsPage';
-import { CleaningAnomaliesPage } from './pages/CleaningAnomaliesPage';
-import { CleaningQualityPage } from './pages/CleaningQualityPage';
-import { CleaningStockPage } from './pages/CleaningStockPage';
-import { CleaningBillingPage } from './pages/CleaningBillingPage';
-import { CleaningProtocolsPage } from './pages/CleaningProtocolsPage';
-import { CleaningProfitabilityPage } from './pages/CleaningProfitabilityPage';
 import { CleaningFeatureGate } from './components/CleaningFeatureGate';
 import { organizationCanAccessPath } from './config/moduleAccess';
-import { RestaurantEmployeesPage } from './pages/RestaurantEmployeesPage';
-import { RestaurantPlanningPage } from './pages/RestaurantPlanningPage';
-import { RestaurantEmployeePortalPage } from './pages/RestaurantEmployeePortalPage';
-import { RestaurantMenuPage } from './pages/RestaurantMenuPage';
-import { RestaurantRecipesPage } from './pages/RestaurantRecipesPage';
-import { RestaurantReservationsPage } from './pages/RestaurantReservationsPage';
-import { RestaurantOrdersPage } from './pages/RestaurantOrdersPage';
-import { RestaurantKitchenPage } from './pages/RestaurantKitchenPage';
-import { RestaurantFloorPlanPage } from './pages/RestaurantFloorPlanPage';
-import { RestaurantQrMenuPage } from './pages/RestaurantQrMenuPage';
-import { RestaurantFoodSafetyPage } from './pages/RestaurantFoodSafetyPage';
-import { RestaurantStockPage } from './pages/RestaurantStockPage';
-import { PublicRestaurantMenuPage } from './pages/PublicRestaurantMenuPage';
-import { PublicRestaurantBookingPage } from './pages/PublicRestaurantBookingPage';
 import { RestaurantFeatureGate } from './components/RestaurantFeatureGate';
 
 
+
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const ClientsPage = lazy(() => import('./pages/ClientsPage').then((module) => ({ default: module.ClientsPage })));
+const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
+const ModulePage = lazy(() => import('./pages/ModulePage').then((module) => ({ default: module.ModulePage })));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then((module) => ({ default: module.OnboardingPage })));
+const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
+const ServicesPage = lazy(() => import('./pages/ServicesPage').then((module) => ({ default: module.ServicesPage })));
+const StaffPage = lazy(() => import('./pages/StaffPage').then((module) => ({ default: module.StaffPage })));
+const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage').then((module) => ({ default: module.AppointmentsPage })));
+const PublicBookingPage = lazy(() => import('./pages/PublicBookingPage').then((module) => ({ default: module.PublicBookingPage })));
+const PublicBookingManagePage = lazy(() => import('./pages/PublicBookingManagePage').then((module) => ({ default: module.PublicBookingManagePage })));
+const TeamAccessPage = lazy(() => import('./pages/TeamAccessPage').then((module) => ({ default: module.TeamAccessPage })));
+const InvitationPage = lazy(() => import('./pages/InvitationPage').then((module) => ({ default: module.InvitationPage })));
+const CommercialBrandingPage = lazy(() => import('./pages/CommercialBrandingPage').then((module) => ({ default: module.CommercialBrandingPage })));
+const PlatformAdminPage = lazy(() => import('./pages/PlatformAdminPage').then((module) => ({ default: module.PlatformAdminPage })));
+const OrganizationAccessPage = lazy(() => import('./pages/OrganizationAccessPage').then((module) => ({ default: module.OrganizationAccessPage })));
+const SubscriptionPage = lazy(() => import('./pages/SubscriptionPage').then((module) => ({ default: module.SubscriptionPage })));
+const MetierWorkspacePage = lazy(() => import('./pages/MetierWorkspacePage').then((module) => ({ default: module.MetierWorkspacePage })));
+const TrainingProgramsPage = lazy(() => import('./pages/TrainingProgramsPage').then((module) => ({ default: module.TrainingProgramsPage })));
+const TrainingTraineesPage = lazy(() => import('./pages/TrainingTraineesPage').then((module) => ({ default: module.TrainingTraineesPage })));
+const TrainingTrainersPage = lazy(() => import('./pages/TrainingTrainersPage').then((module) => ({ default: module.TrainingTrainersPage })));
+const TrainingSessionsPage = lazy(() => import('./pages/TrainingSessionsPage').then((module) => ({ default: module.TrainingSessionsPage })));
+const TrainingDocumentsPage = lazy(() => import('./pages/TrainingDocumentsPage').then((module) => ({ default: module.TrainingDocumentsPage })));
+const TrainingAttendancePage = lazy(() => import('./pages/TrainingAttendancePage').then((module) => ({ default: module.TrainingAttendancePage })));
+const TrainingEvaluationsPage = lazy(() => import('./pages/TrainingEvaluationsPage').then((module) => ({ default: module.TrainingEvaluationsPage })));
+const TrainingSitesPage = lazy(() => import('./pages/TrainingSitesPage').then((module) => ({ default: module.TrainingSitesPage })));
+const PublicTrainingSatisfactionPage = lazy(() => import('./pages/PublicTrainingSatisfactionPage').then((module) => ({ default: module.PublicTrainingSatisfactionPage })));
+const SecurityClientsPage = lazy(() => import('./pages/SecurityClientsPage').then((module) => ({ default: module.SecurityClientsPage })));
+const SecurityAgentsPage = lazy(() => import('./pages/SecurityAgentsPage').then((module) => ({ default: module.SecurityAgentsPage })));
+const SecurityAgentDetailPage = lazy(() => import('./pages/SecurityAgentDetailPage').then((module) => ({ default: module.SecurityAgentDetailPage })));
+const SecuritySitesPage = lazy(() => import('./pages/SecuritySitesPage').then((module) => ({ default: module.SecuritySitesPage })));
+const SecurityPlanningPage = lazy(() => import('./pages/SecurityPlanningPage').then((module) => ({ default: module.SecurityPlanningPage })));
+const SecurityBillingPage = lazy(() => import('./pages/SecurityBillingPage').then((module) => ({ default: module.SecurityBillingPage })));
+const SecurityPatrolsPage = lazy(() => import('./pages/SecurityPatrolsPage').then((module) => ({ default: module.SecurityPatrolsPage })));
+const SecurityLogbookPage = lazy(() => import('./pages/SecurityLogbookPage').then((module) => ({ default: module.SecurityLogbookPage })));
+const SecurityInstructionsPage = lazy(() => import('./pages/SecurityInstructionsPage').then((module) => ({ default: module.SecurityInstructionsPage })));
+const SecurityAgentPortalPage = lazy(() => import('./pages/SecurityAgentPortalPage').then((module) => ({ default: module.SecurityAgentPortalPage })));
+const SecurityGeolocationPage = lazy(() => import('./pages/SecurityGeolocationPage').then((module) => ({ default: module.SecurityGeolocationPage })));
+const SecurityPtiPage = lazy(() => import('./pages/SecurityPtiPage').then((module) => ({ default: module.SecurityPtiPage })));
+const SecuritySupervisionPage = lazy(() => import('./pages/SecuritySupervisionPage').then((module) => ({ default: module.SecuritySupervisionPage })));
+const SecurityShiftDossiersPage = lazy(() => import('./pages/SecurityShiftDossiersPage').then((module) => ({ default: module.SecurityShiftDossiersPage })));
+const SecurityQuotesPage = lazy(() => import('./pages/SecurityQuotesPage').then((module) => ({ default: module.SecurityQuotesPage })));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage').then((module) => ({ default: module.NotificationsPage })));
+const SupportPage = lazy(() => import('./pages/SupportPage').then((module) => ({ default: module.SupportPage })));
+const SaasLaunchCenterPage = lazy(() => import('./pages/SaasLaunchCenterPage').then((module) => ({ default: module.SaasLaunchCenterPage })));
+const CleaningClientsPage = lazy(() => import('./pages/CleaningClientsPage').then((module) => ({ default: module.CleaningClientsPage })));
+const CleaningSitesPage = lazy(() => import('./pages/CleaningSitesPage').then((module) => ({ default: module.CleaningSitesPage })));
+const CleaningAgentsPage = lazy(() => import('./pages/CleaningAgentsPage').then((module) => ({ default: module.CleaningAgentsPage })));
+const CleaningPlanningPage = lazy(() => import('./pages/CleaningPlanningPage').then((module) => ({ default: module.CleaningPlanningPage })));
+const CleaningAgentPortalPage = lazy(() => import('./pages/CleaningAgentPortalPage').then((module) => ({ default: module.CleaningAgentPortalPage })));
+const CleaningInterventionsPage = lazy(() => import('./pages/CleaningInterventionsPage').then((module) => ({ default: module.CleaningInterventionsPage })));
+const CleaningReportsPage = lazy(() => import('./pages/CleaningReportsPage').then((module) => ({ default: module.CleaningReportsPage })));
+const CleaningAnomaliesPage = lazy(() => import('./pages/CleaningAnomaliesPage').then((module) => ({ default: module.CleaningAnomaliesPage })));
+const CleaningQualityPage = lazy(() => import('./pages/CleaningQualityPage').then((module) => ({ default: module.CleaningQualityPage })));
+const CleaningStockPage = lazy(() => import('./pages/CleaningStockPage').then((module) => ({ default: module.CleaningStockPage })));
+const CleaningBillingPage = lazy(() => import('./pages/CleaningBillingPage').then((module) => ({ default: module.CleaningBillingPage })));
+const CleaningProtocolsPage = lazy(() => import('./pages/CleaningProtocolsPage').then((module) => ({ default: module.CleaningProtocolsPage })));
+const CleaningProfitabilityPage = lazy(() => import('./pages/CleaningProfitabilityPage').then((module) => ({ default: module.CleaningProfitabilityPage })));
+const RestaurantEmployeesPage = lazy(() => import('./pages/RestaurantEmployeesPage').then((module) => ({ default: module.RestaurantEmployeesPage })));
+const RestaurantPlanningPage = lazy(() => import('./pages/RestaurantPlanningPage').then((module) => ({ default: module.RestaurantPlanningPage })));
+const RestaurantEmployeePortalPage = lazy(() => import('./pages/RestaurantEmployeePortalPage').then((module) => ({ default: module.RestaurantEmployeePortalPage })));
+const RestaurantMenuPage = lazy(() => import('./pages/RestaurantMenuPage').then((module) => ({ default: module.RestaurantMenuPage })));
+const RestaurantRecipesPage = lazy(() => import('./pages/RestaurantRecipesPage').then((module) => ({ default: module.RestaurantRecipesPage })));
+const RestaurantReservationsPage = lazy(() => import('./pages/RestaurantReservationsPage').then((module) => ({ default: module.RestaurantReservationsPage })));
+const RestaurantOrdersPage = lazy(() => import('./pages/RestaurantOrdersPage').then((module) => ({ default: module.RestaurantOrdersPage })));
+const RestaurantKitchenPage = lazy(() => import('./pages/RestaurantKitchenPage').then((module) => ({ default: module.RestaurantKitchenPage })));
+const RestaurantFloorPlanPage = lazy(() => import('./pages/RestaurantFloorPlanPage').then((module) => ({ default: module.RestaurantFloorPlanPage })));
+const RestaurantQrMenuPage = lazy(() => import('./pages/RestaurantQrMenuPage').then((module) => ({ default: module.RestaurantQrMenuPage })));
+const RestaurantFoodSafetyPage = lazy(() => import('./pages/RestaurantFoodSafetyPage').then((module) => ({ default: module.RestaurantFoodSafetyPage })));
+const RestaurantStockPage = lazy(() => import('./pages/RestaurantStockPage').then((module) => ({ default: module.RestaurantStockPage })));
+const PublicRestaurantMenuPage = lazy(() => import('./pages/PublicRestaurantMenuPage').then((module) => ({ default: module.PublicRestaurantMenuPage })));
+const PublicRestaurantBookingPage = lazy(() => import('./pages/PublicRestaurantBookingPage').then((module) => ({ default: module.PublicRestaurantBookingPage })));
 
 function DocumentsArea() {
   const { organization } = useOrganization();
@@ -238,7 +239,8 @@ function PlatformAdminArea() {
 
 export default function App() {
   return (
-    <Routes>
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
       <Route path="/connexion" element={<LoginPage />} />
       <Route path="/configuration" element={<OnboardingArea />} />
       <Route path="/reserver/:slug" element={<PublicBookingPage />} />
@@ -304,6 +306,7 @@ export default function App() {
         <Route path="parametres" element={<SettingsPage />} />
         <Route path="*" element={<ModulePage />} />
       </Route>
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }

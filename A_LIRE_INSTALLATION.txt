@@ -1,22 +1,9 @@
-NCR SUITE V2.4.9 — ORDRE OBLIGATOIRE
+NCR SUITE V2.11.4 — PHASE 1 / LOT 1
 
-1) SUPABASE D'ABORD
-Exécuter : supabase/migrations/024_training_plan_entitlements.sql
+1. Aucun SQL Supabase à exécuter.
+2. Déposer le contenu du patch à la racine du dépôt GitHub.
+3. Conserver exactement les dossiers src/, public/, scripts/ et docs/.
+4. Vérifier le déploiement Cloudflare.
+5. Fermer complètement la PWA puis la rouvrir.
 
-2) GITHUB ENSUITE
-Envoyer tout le contenu de ce patch à la racine du dépôt V2.4.8 en conservant les dossiers.
-
-3) CLOUDFLARE
-Attendre le statut Success.
-
-4) CACHE PWA
-Fermer complètement NCR Suite puis rouvrir l'application.
-
-5) TESTS
-Découverte : feuille vierge uniquement.
-Essentielle : signatures + PDF + personnalisation.
-Professionnelle : évaluations + dossier complet + multi-site + accès employés.
-Métier : configuration sur mesure conservée.
-
-AUCUNE MODIFICATION DE process-email-queue.
-AUCUNE MODIFICATION DE NCR ACADEMY.
+Cache : ncr-suite-shell-v2.11.4-global-reliability

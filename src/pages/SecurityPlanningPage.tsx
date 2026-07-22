@@ -9,6 +9,7 @@ import {
 } from '../features/security/types';
 import { closeFileWindow, prepareFileWindow, showBlobDownload } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage, writeJsonStorage } from '../lib/safeStorage';
 
 function startOfWeek(reference: Date) {
   const date = new Date(reference); const day = date.getDay() || 7; date.setDate(date.getDate() - day + 1); date.setHours(0, 0, 0, 0); return date;
@@ -56,9 +57,9 @@ export function SecurityPlanningPage() {
     setLoading(true); setError('');
     const weekEnd = endOfWeek(week);
     if (demoMode || !supabase) {
-      const storedRows = JSON.parse(localStorage.getItem(`ncr-suite-security-shifts-${organizationId}`) || '[]') as SecurityShiftRecord[];
-      const storedAgents = JSON.parse(localStorage.getItem(`ncr-suite-security-agents-${organizationId}`) || '[]') as SecurityAgentRecord[];
-      const storedSites = JSON.parse(localStorage.getItem(`ncr-suite-security-sites-${organizationId}`) || '[]') as SecuritySiteRecord[];
+      const storedRows = readJsonStorage<SecurityShiftRecord[]>(`ncr-suite-security-shifts-${organizationId}`, []);
+      const storedAgents = readJsonStorage<SecurityAgentRecord[]>(`ncr-suite-security-agents-${organizationId}`, []);
+      const storedSites = readJsonStorage<SecuritySiteRecord[]>(`ncr-suite-security-sites-${organizationId}`, []);
       setAgents(storedAgents.filter((item) => item.status === 'active')); setSites(storedSites.filter((item) => item.status === 'active'));
       setRows(storedRows.filter((item) => new Date(item.starts_at) >= week && new Date(item.starts_at) < weekEnd)); setLoading(false); return;
     }
@@ -114,11 +115,11 @@ export function SecurityPlanningPage() {
       let created: SecurityShiftRecord;
       const agent = agents.find((item) => item.id === form.agentId); const site = sites.find((item) => item.id === form.siteId);
       if (demoMode || !supabase) {
-        const all = JSON.parse(localStorage.getItem(`ncr-suite-security-shifts-${organization.id}`) || '[]') as SecurityShiftRecord[];
+        const all = readJsonStorage<SecurityShiftRecord[]>(`ncr-suite-security-shifts-${organization.id}`, []);
         const overlap = all.some((item) => item.agent_id === payload.agent_id && item.status !== 'canceled' && new Date(item.starts_at) < ends && new Date(item.ends_at) > starts);
         if (overlap) throw new Error('Cet agent possède déjà une mission sur ce créneau.');
         created = { id: crypto.randomUUID(), ...payload, status: 'planned', created_at: new Date().toISOString(), security_agents: agent ? { first_name: agent.first_name, last_name: agent.last_name } : null, security_sites: site ? { name: site.name, hourly_rate_cents: site.hourly_rate_cents, color_hex: site.color_hex, city: site.city, security_clients: site.security_clients } : null };
-        localStorage.setItem(`ncr-suite-security-shifts-${organization.id}`, JSON.stringify([...all, created]));
+        writeJsonStorage(`ncr-suite-security-shifts-${organization.id}`, [...all, created]);
       } else {
         const { data, error: insertError } = await supabase.from('security_shifts').insert(payload).select('id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,recurrence_group_id,duplicated_from_id,created_at,security_sites(name,hourly_rate_cents,color_hex,city,security_clients(company_name)),security_agents(first_name,last_name)').single();
         if (insertError) throw insertError; created = data as unknown as SecurityShiftRecord;
@@ -139,14 +140,14 @@ export function SecurityPlanningPage() {
     setSaving(true); setError('');
     try {
       if (demoMode || !supabase) {
-        const all = JSON.parse(localStorage.getItem(`ncr-suite-security-shifts-${organization.id}`) || '[]') as SecurityShiftRecord[];
+        const all = readJsonStorage<SecurityShiftRecord[]>(`ncr-suite-security-shifts-${organization.id}`, []);
         const sourceStart = new Date(duplicateRow.starts_at); const sourceEnd = new Date(duplicateRow.ends_at); const group = duplicateRow.recurrence_group_id || crypto.randomUUID();
         const created = duplicateDays.map((date) => {
           const start = new Date(`${date}T${String(sourceStart.getHours()).padStart(2, '0')}:${String(sourceStart.getMinutes()).padStart(2, '0')}:00`);
           const end = new Date(start.getTime() + (sourceEnd.getTime() - sourceStart.getTime()));
           return { ...duplicateRow, id: crypto.randomUUID(), starts_at: start.toISOString(), ends_at: end.toISOString(), recurrence_group_id: group, duplicated_from_id: duplicateRow.id, created_at: new Date().toISOString() };
         });
-        localStorage.setItem(`ncr-suite-security-shifts-${organization.id}`, JSON.stringify([...all, ...created]));
+        writeJsonStorage(`ncr-suite-security-shifts-${organization.id}`, [...all, ...created]);
       } else {
         const { error: duplicateError } = await supabase.rpc('duplicate_security_shift', { p_organization_id: organization.id, p_shift_id: duplicateRow.id, p_target_dates: duplicateDays });
         if (duplicateError) throw duplicateError;
@@ -160,8 +161,8 @@ export function SecurityPlanningPage() {
     if (!organization || !canManage) return;
     try {
       if (demoMode || !supabase) {
-        const all = JSON.parse(localStorage.getItem(`ncr-suite-security-shifts-${organization.id}`) || '[]') as SecurityShiftRecord[];
-        localStorage.setItem(`ncr-suite-security-shifts-${organization.id}`, JSON.stringify(all.map((item) => item.id === row.id ? { ...item, status } : item)));
+        const all = readJsonStorage<SecurityShiftRecord[]>(`ncr-suite-security-shifts-${organization.id}`, []);
+        writeJsonStorage(`ncr-suite-security-shifts-${organization.id}`, all.map((item) => item.id === row.id ? { ...item, status } : item));
       } else {
         const { error: updateError } = await supabase.from('security_shifts').update({ status }).eq('organization_id', organization.id).eq('id', row.id); if (updateError) throw updateError;
       }
@@ -188,8 +189,8 @@ export function SecurityPlanningPage() {
         if (row.clocked_in_at || row.clocked_out_at || row.completed_at || row.final_invoice_id || row.actual_minutes != null) {
           throw new Error('Cette mission contient déjà des données opérationnelles et ne peut plus être supprimée.');
         }
-        const all = JSON.parse(localStorage.getItem(`ncr-suite-security-shifts-${organization.id}`) || '[]') as SecurityShiftRecord[];
-        localStorage.setItem(`ncr-suite-security-shifts-${organization.id}`, JSON.stringify(all.filter((item) => item.id !== row.id)));
+        const all = readJsonStorage<SecurityShiftRecord[]>(`ncr-suite-security-shifts-${organization.id}`, []);
+        writeJsonStorage(`ncr-suite-security-shifts-${organization.id}`, all.filter((item) => item.id !== row.id));
       } else {
         const { error: deleteError } = await supabase.rpc('delete_security_planned_shift', {
           p_organization_id: organization.id,
@@ -216,7 +217,7 @@ export function SecurityPlanningPage() {
     try {
       let exportRows: SecurityShiftRecord[];
       if (demoMode || !supabase) {
-        exportRows = (JSON.parse(localStorage.getItem(`ncr-suite-security-shifts-${organization.id}`) || '[]') as SecurityShiftRecord[]).filter((row) => row.agent_id === agent.id && new Date(row.starts_at) >= from && new Date(row.starts_at) <= to);
+        exportRows = (readJsonStorage<SecurityShiftRecord[]>(`ncr-suite-security-shifts-${organization.id}`, [])).filter((row) => row.agent_id === agent.id && new Date(row.starts_at) >= from && new Date(row.starts_at) <= to);
       } else {
         const { data, error: loadError } = await supabase.from('security_shifts').select('id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,recurrence_group_id,duplicated_from_id,created_at,security_sites(name,hourly_rate_cents,color_hex,city,security_clients(company_name)),security_agents(first_name,last_name)').eq('organization_id', organization.id).eq('agent_id', agent.id).gte('starts_at', from.toISOString()).lte('starts_at', to.toISOString()).order('starts_at');
         if (loadError) throw loadError; exportRows = (data ?? []) as unknown as SecurityShiftRecord[];

@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { formatSecurityDate, nullableSecurityText, securityPersonName, type SecurityAgentRecord, type SecurityAlertRecord, type SecurityInstructionRecord, type SecuritySiteRecord } from '../features/security/types';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage } from '../lib/safeStorage';
 
 type InstructionForm = { siteId: string; title: string; content: string; priority: SecurityInstructionRecord['priority'] };
 type AlertForm = { siteId: string; agentId: string; title: string; message: string; severity: SecurityAlertRecord['severity'] };
@@ -20,7 +21,7 @@ export function SecurityInstructionsPage() {
 
   async function load() {
     if (!organization) return; setLoading(true); setError('');
-    if (demoMode || !supabase) { setSites(JSON.parse(localStorage.getItem(`ncr-suite-security-sites-${organization.id}`) || '[]')); setAgents(JSON.parse(localStorage.getItem(`ncr-suite-security-agents-${organization.id}`) || '[]')); setInstructions(JSON.parse(localStorage.getItem(`ncr-suite-security-instructions-${organization.id}`) || '[]')); setAlerts(JSON.parse(localStorage.getItem(`ncr-suite-security-alerts-${organization.id}`) || '[]')); setLoading(false); return; }
+    if (demoMode || !supabase) { setSites(readJsonStorage(`ncr-suite-security-sites-${organization.id}`, [])); setAgents(readJsonStorage(`ncr-suite-security-agents-${organization.id}`, [])); setInstructions(readJsonStorage(`ncr-suite-security-instructions-${organization.id}`, [])); setAlerts(readJsonStorage(`ncr-suite-security-alerts-${organization.id}`, [])); setLoading(false); return; }
     const [siteResult, agentResult, instructionResult, alertResult, ackResult] = await Promise.all([
       supabase.from('security_sites').select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,timezone,notes,status,created_at,security_clients(company_name)').eq('organization_id', organization.id).eq('status','active').order('name'),
       supabase.from('security_agents').select('id,organization_id,first_name,last_name,employee_number,email,phone,contract_type,weekly_hours,notes,status,linked_user_id,created_at').eq('organization_id', organization.id).eq('status','active').order('last_name'),

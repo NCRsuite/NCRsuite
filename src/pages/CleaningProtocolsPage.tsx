@@ -11,6 +11,7 @@ import {
   type CleaningSiteRecord
 } from '../features/cleaning/types';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage } from '../lib/safeStorage';
 
 const weekdays = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 const today = () => new Date().toISOString().slice(0, 10);
@@ -40,10 +41,10 @@ export function CleaningProtocolsPage() {
     if (!organization) return;
     setLoading(true); setError('');
     if (demoMode || !supabase) {
-      setSites(JSON.parse(localStorage.getItem(`ncr-cleaning-sites-${organization.id}`) || '[]') as CleaningSiteRecord[]);
-      setAgents(JSON.parse(localStorage.getItem(`ncr-cleaning-agents-${organization.id}`) || '[]') as CleaningAgentRecord[]);
-      setProtocols(JSON.parse(localStorage.getItem(`ncr-cleaning-protocols-${organization.id}`) || '[]') as CleaningProtocolRecord[]);
-      setSchedules(JSON.parse(localStorage.getItem(`ncr-cleaning-recurring-${organization.id}`) || '[]') as CleaningRecurringScheduleRecord[]);
+      setSites(readJsonStorage<CleaningSiteRecord[]>(`ncr-cleaning-sites-${organization.id}`, []));
+      setAgents(readJsonStorage<CleaningAgentRecord[]>(`ncr-cleaning-agents-${organization.id}`, []));
+      setProtocols(readJsonStorage<CleaningProtocolRecord[]>(`ncr-cleaning-protocols-${organization.id}`, []));
+      setSchedules(readJsonStorage<CleaningRecurringScheduleRecord[]>(`ncr-cleaning-recurring-${organization.id}`, []));
       setLoading(false); return;
     }
     const [protocolResult, scheduleResult, siteResult, agentResult] = await Promise.all([

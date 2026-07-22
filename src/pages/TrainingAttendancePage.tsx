@@ -20,6 +20,7 @@ import {
 } from '../features/training/types';
 import { closeFileWindow, navigateFileWindow, prepareFileWindow, showBlobDownload } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage, writeJsonStorage } from '../lib/safeStorage';
 
 function isoDate(date: Date) {
   const year = date.getFullYear();
@@ -271,10 +272,7 @@ export function TrainingAttendancePage() {
     if (!organization) return;
     setLoading(true); setError('');
     if (demoMode || !supabase) {
-      const get = <T,>(key: string): T => {
-        const value = localStorage.getItem(key);
-        return value ? JSON.parse(value) as T : [] as T;
-      };
+      const get = <T,>(key: string): T => readJsonStorage<T>(key, [] as T);
       const loadedSessions = get<TrainingSessionRecord[]>(`ncr-suite-training-sessions-${organization.id}`).filter((item) => item.status !== 'canceled');
       setSessions(loadedSessions);
       setPrograms(get<TrainingProgramRecord[]>(`ncr-suite-training-programs-${organization.id}`));
@@ -436,7 +434,7 @@ export function TrainingAttendancePage() {
           created_at: existing?.created_at ?? new Date().toISOString(), updated_at: new Date().toISOString()
         };
         const updated = [...records.filter((item) => !(item.session_id === sessionId && item.trainee_id === trainee.id && item.attendance_date === date && item.period === period)), next];
-        localStorage.setItem(`ncr-suite-training-attendance-${organization.id}`, JSON.stringify(updated));
+        writeJsonStorage(`ncr-suite-training-attendance-${organization.id}`, updated);
         setRecords(updated);
       } else {
         const { error: rpcError } = await supabase.rpc('save_training_attendance', {
@@ -478,7 +476,7 @@ export function TrainingAttendancePage() {
           created_at: existing?.created_at ?? new Date().toISOString(), updated_at: new Date().toISOString()
         };
         const updated = [...records.filter((item) => !(item.session_id === sessionId && item.trainee_id === trainee.id && item.attendance_date === date && item.period === period)), next];
-        localStorage.setItem(`ncr-suite-training-attendance-${organization.id}`, JSON.stringify(updated));
+        writeJsonStorage(`ncr-suite-training-attendance-${organization.id}`, updated);
         setRecords(updated);
       } else {
         newPath = `${organization.id}/${selectedSession.id}/${date}/${period}/${trainee.id}-${crypto.randomUUID()}.png`;

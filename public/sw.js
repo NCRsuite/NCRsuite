@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.11.3-security-addons';
+const CACHE = 'ncr-suite-shell-v2.11.4-global-reliability';
 const SHELL = [
   '/',
   '/index.html',
@@ -21,6 +21,10 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
@@ -33,16 +37,26 @@ self.addEventListener('fetch', (event) => {
       || ['script', 'style', 'worker', 'font'].includes(event.request.destination)
     );
 
+    const networkRequest = async () => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), isNavigation ? 9000 : 15000);
+      try {
+        return await fetch(event.request, { signal: controller.signal });
+      } finally {
+        clearTimeout(timeout);
+      }
+    };
+
     try {
-      const response = await fetch(event.request);
+      const response = await networkRequest();
       const contentType = response.headers.get('content-type') || '';
 
       // Ne jamais mettre une page HTML en cache sous l’URL d’un module JS/CSS.
       if (isCodeAsset && contentType.includes('text/html')) return Response.error();
 
-      if (response.ok && sameOrigin) {
+      if (response.ok && sameOrigin && response.type === 'basic') {
         const clone = response.clone();
-        void caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+        void caches.open(CACHE).then((cache) => cache.put(event.request, clone)).catch(() => undefined);
       }
       return response;
     } catch {

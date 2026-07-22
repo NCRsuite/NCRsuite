@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
+import { parseStoredJson, writeJsonStorage } from '../lib/safeStorage';
 
 interface StaffRecord {
   id: string;
@@ -152,11 +153,11 @@ export function StaffPage() {
         const storedHours = localStorage.getItem(`ncr-suite-demo-staff-hours-${organizationId}`);
         const storedBreaks = localStorage.getItem(`ncr-suite-demo-staff-breaks-${organizationId}`);
         const storedServices = localStorage.getItem(`ncr-suite-demo-services-${organizationId}`);
-        setStaff(storedStaff ? JSON.parse(storedStaff) as StaffRecord[] : []);
-        setStaffServices(storedAssignments ? JSON.parse(storedAssignments) as StaffServiceRecord[] : []);
-        setWorkingHours(storedHours ? JSON.parse(storedHours) as WorkingHourRecord[] : []);
-        setBreaks(storedBreaks ? JSON.parse(storedBreaks) as BreakRecord[] : []);
-        const demoServices = storedServices ? JSON.parse(storedServices) as ServiceOption[] : [];
+        setStaff(parseStoredJson<StaffRecord[]>(storedStaff, []));
+        setStaffServices(parseStoredJson<StaffServiceRecord[]>(storedAssignments, []));
+        setWorkingHours(parseStoredJson<WorkingHourRecord[]>(storedHours, []));
+        setBreaks(parseStoredJson<BreakRecord[]>(storedBreaks, []));
+        const demoServices = parseStoredJson<ServiceOption[]>(storedServices, []);
         setServices(demoServices.filter((service) => service.active));
         return;
       }
@@ -412,10 +413,10 @@ export function StaffPage() {
           ...breaks.filter((row) => row.staff_id !== staffId),
           ...breaksPayload.map((row) => ({ staff_id: staffId, ...row }))
         ];
-        localStorage.setItem(`ncr-suite-demo-staff-${organization.id}`, JSON.stringify(nextStaff));
-        localStorage.setItem(`ncr-suite-demo-staff-services-${organization.id}`, JSON.stringify(nextAssignments));
-        localStorage.setItem(`ncr-suite-demo-staff-hours-${organization.id}`, JSON.stringify(nextHours));
-        localStorage.setItem(`ncr-suite-demo-staff-breaks-${organization.id}`, JSON.stringify(nextBreaks));
+        writeJsonStorage(`ncr-suite-demo-staff-${organization.id}`, nextStaff);
+        writeJsonStorage(`ncr-suite-demo-staff-services-${organization.id}`, nextAssignments);
+        writeJsonStorage(`ncr-suite-demo-staff-hours-${organization.id}`, nextHours);
+        writeJsonStorage(`ncr-suite-demo-staff-breaks-${organization.id}`, nextBreaks);
         setStaff(nextStaff);
         setStaffServices(nextAssignments);
         setWorkingHours(nextHours);
@@ -462,7 +463,7 @@ export function StaffPage() {
     try {
       if (demoMode || !supabase) {
         const next = staff.map((row) => row.id === member.id ? { ...row, active: nextActive } : row);
-        localStorage.setItem(`ncr-suite-demo-staff-${organization.id}`, JSON.stringify(next));
+        writeJsonStorage(`ncr-suite-demo-staff-${organization.id}`, next);
       } else {
         const { error: updateError } = await supabase
           .from('staff')

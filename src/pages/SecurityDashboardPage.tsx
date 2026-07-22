@@ -20,6 +20,7 @@ import {
   type SecuritySiteRecord
 } from '../features/security/types';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage } from '../lib/safeStorage';
 
 
 function readableActionError(error: unknown, fallback = 'Action impossible.') {
@@ -77,16 +78,16 @@ export function SecurityDashboardPage() {
       todayStart.setHours(0, 0, 0, 0);
 
       if (demoMode || !supabase) {
-        const agentRows = JSON.parse(localStorage.getItem(`ncr-suite-security-agents-${organizationId}`) || '[]') as SecurityAgentRecord[];
-        const siteRows = JSON.parse(localStorage.getItem(`ncr-suite-security-sites-${organizationId}`) || '[]') as SecuritySiteRecord[];
-        const shiftRows = JSON.parse(localStorage.getItem(`ncr-suite-security-shifts-${organizationId}`) || '[]') as SecurityShiftRecord[];
+        const agentRows = readJsonStorage<SecurityAgentRecord[]>(`ncr-suite-security-agents-${organizationId}`, []);
+        const siteRows = readJsonStorage<SecuritySiteRecord[]>(`ncr-suite-security-sites-${organizationId}`, []);
+        const shiftRows = readJsonStorage<SecurityShiftRecord[]>(`ncr-suite-security-shifts-${organizationId}`, []);
         if (active) {
           setAgents(agentRows.filter((row) => row.status === 'active'));
           setSites(siteRows.filter((row) => row.status === 'active'));
           setShifts(shiftRows.filter((row) => row.starts_at >= monthStart && row.starts_at <= monthEnd));
-          setAlerts(JSON.parse(localStorage.getItem(`ncr-suite-security-alerts-${organizationId}`) || '[]'));
-          setPatrols(JSON.parse(localStorage.getItem(`ncr-suite-security-patrols-${organizationId}`) || '[]'));
-          setEntries(JSON.parse(localStorage.getItem(`ncr-suite-security-logbook-${organizationId}`) || '[]'));
+          setAlerts(readJsonStorage(`ncr-suite-security-alerts-${organizationId}`, []));
+          setPatrols(readJsonStorage(`ncr-suite-security-patrols-${organizationId}`, []));
+          setEntries(readJsonStorage(`ncr-suite-security-logbook-${organizationId}`, []));
           setLoading(false);
         }
         return;

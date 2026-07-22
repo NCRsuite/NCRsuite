@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { formatCleaningMoney, nullableCleaningText, type CleaningAgentRecord, type CleaningInterventionRecord, type CleaningProtocolRecord, type CleaningSiteRecord } from '../features/cleaning/types';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage } from '../lib/safeStorage';
 
 type PlanningView = 'week' | 'month' | 'day';
 
@@ -44,10 +45,10 @@ export function CleaningPlanningPage() {
     if (!organization) return;
     setLoading(true); setError('');
     if (demoMode || !supabase) {
-      setRows(JSON.parse(localStorage.getItem(`ncr-cleaning-interventions-${organization.id}`) || '[]') as CleaningInterventionRecord[]);
-      setSites(JSON.parse(localStorage.getItem(`ncr-cleaning-sites-${organization.id}`) || '[]') as CleaningSiteRecord[]);
-      setAgents(JSON.parse(localStorage.getItem(`ncr-cleaning-agents-${organization.id}`) || '[]') as CleaningAgentRecord[]);
-      setProtocols(JSON.parse(localStorage.getItem(`ncr-cleaning-protocols-${organization.id}`) || '[]') as CleaningProtocolRecord[]);
+      setRows(readJsonStorage<CleaningInterventionRecord[]>(`ncr-cleaning-interventions-${organization.id}`, []));
+      setSites(readJsonStorage<CleaningSiteRecord[]>(`ncr-cleaning-sites-${organization.id}`, []));
+      setAgents(readJsonStorage<CleaningAgentRecord[]>(`ncr-cleaning-agents-${organization.id}`, []));
+      setProtocols(readJsonStorage<CleaningProtocolRecord[]>(`ncr-cleaning-protocols-${organization.id}`, []));
       setLoading(false); return;
     }
     const now = new Date(); const from = new Date(now); from.setDate(from.getDate() - 70); const to = new Date(now); to.setDate(to.getDate() + 150);

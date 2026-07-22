@@ -22,6 +22,7 @@ import { generateSecurityInvoicePdf } from '../features/security/invoicePdf';
 import { sendSecurityDocumentEmail } from '../features/security/documentEmail';
 import { prepareFileWindow, showBlobDownload, closeFileWindow } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage } from '../lib/safeStorage';
 
 type BillingMode = 'proforma' | 'invoice';
 type PreviewLine = { siteId: string; siteName: string; minutes: number; hourlyRateCents: number; lineTotalCents: number; shiftCount?: number };
@@ -98,10 +99,10 @@ export function SecurityBillingPage() {
       setLoading(true); setError('');
       try {
         if (demoMode || !supabase) {
-          const clientRows = JSON.parse(localStorage.getItem(`ncr-suite-security-clients-${organizationId}`) || '[]') as SecurityClientRecord[];
-          const siteRows = JSON.parse(localStorage.getItem(`ncr-suite-security-sites-${organizationId}`) || '[]') as SecuritySiteRecord[];
-          const shiftRows = JSON.parse(localStorage.getItem(`ncr-suite-security-shifts-${organizationId}`) || '[]') as SecurityShiftRecord[];
-          const invoiceRows = JSON.parse(localStorage.getItem(`ncr-suite-security-invoices-${organizationId}`) || '[]') as SecurityInvoiceRecord[];
+          const clientRows = readJsonStorage<SecurityClientRecord[]>(`ncr-suite-security-clients-${organizationId}`, []);
+          const siteRows = readJsonStorage<SecuritySiteRecord[]>(`ncr-suite-security-sites-${organizationId}`, []);
+          const shiftRows = readJsonStorage<SecurityShiftRecord[]>(`ncr-suite-security-shifts-${organizationId}`, []);
+          const invoiceRows = readJsonStorage<SecurityInvoiceRecord[]>(`ncr-suite-security-invoices-${organizationId}`, []);
           if (active) {
             const activeClients = clientRows.filter((row) => row.status === 'active');
             setClients(activeClients); setDemoSites(siteRows.filter((row) => row.status === 'active')); setDemoShifts(shiftRows); setInvoices(invoiceRows);

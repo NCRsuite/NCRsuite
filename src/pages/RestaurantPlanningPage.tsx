@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { nullableRestaurantText, RESTAURANT_ROLE_LABELS, type RestaurantEmployeeRecord, type RestaurantShiftRecord } from '../features/restaurant/types';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage } from '../lib/safeStorage';
 
 type PlanningView = 'week' | 'day';
 
@@ -47,8 +48,8 @@ export function RestaurantPlanningPage() {
     const start = new Date(); start.setDate(start.getDate() - 70);
     const end = new Date(); end.setDate(end.getDate() + 150);
     if (demoMode || !supabase) {
-      setEmployees(JSON.parse(localStorage.getItem(`ncr-restaurant-employees-${organization.id}`) || '[]') as RestaurantEmployeeRecord[]);
-      setRows(JSON.parse(localStorage.getItem(`ncr-restaurant-shifts-${organization.id}`) || '[]') as RestaurantShiftRecord[]);
+      setEmployees(readJsonStorage<RestaurantEmployeeRecord[]>(`ncr-restaurant-employees-${organization.id}`, []));
+      setRows(readJsonStorage<RestaurantShiftRecord[]>(`ncr-restaurant-shifts-${organization.id}`, []));
     } else {
       const [employeeResult, shiftResult] = await Promise.all([
         supabase.from('restaurant_employees').select('*').eq('organization_id', organization.id).eq('status', 'active').order('last_name'),

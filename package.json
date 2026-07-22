@@ -1,12 +1,13 @@
 {
   "name": "ncr-suite",
   "private": true,
-  "version": "2.11.3",
+  "version": "2.11.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "node scripts/phase1-static-audit.mjs && tsc -b && vite build",
+    "preview": "vite preview",
+    "audit:phase1": "node scripts/phase1-static-audit.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.110.2",

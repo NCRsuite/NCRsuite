@@ -14,6 +14,7 @@ import {
 } from '../features/security/types';
 import { closeFileWindow, prepareFileWindow, showBlobDownload } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage } from '../lib/safeStorage';
 
 const categories = [
   ['prise_poste', 'Prise de poste'],
@@ -106,8 +107,8 @@ export function SecurityLogbookPage() {
     setError('');
 
     if (demoMode || !supabase) {
-      const demoShifts = JSON.parse(localStorage.getItem(`ncr-suite-security-shifts-${organization.id}`) || '[]') as SecurityShiftRecord[];
-      const demoEntries = JSON.parse(localStorage.getItem(`ncr-suite-security-logbook-${organization.id}`) || '[]') as SecurityLogbookEntryRecord[];
+      const demoShifts = readJsonStorage<SecurityShiftRecord[]>(`ncr-suite-security-shifts-${organization.id}`, []);
+      const demoEntries = readJsonStorage<SecurityLogbookEntryRecord[]>(`ncr-suite-security-logbook-${organization.id}`, []);
       setShifts(demoShifts.filter((shift) => shift.status !== 'canceled'));
       setEntries(demoEntries);
       setLoading(false);

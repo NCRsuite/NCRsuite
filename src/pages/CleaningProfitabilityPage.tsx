@@ -12,6 +12,7 @@ import {
   type CleaningProfitabilityRow
 } from '../features/cleaning/types';
 import { supabase } from '../lib/supabase';
+import { readJsonStorage } from '../lib/safeStorage';
 
 function monthBounds() {
   const now = new Date();
@@ -43,8 +44,8 @@ export function CleaningProfitabilityPage() {
     setLoading(true); setError('');
     if (demoMode || !supabase) {
       setRows([]);
-      setAgents(JSON.parse(localStorage.getItem(`ncr-cleaning-agents-${organization.id}`) || '[]') as CleaningAgentRecord[]);
-      setInterventions(JSON.parse(localStorage.getItem(`ncr-cleaning-interventions-${organization.id}`) || '[]') as CleaningInterventionRecord[]);
+      setAgents(readJsonStorage<CleaningAgentRecord[]>(`ncr-cleaning-agents-${organization.id}`, []));
+      setInterventions(readJsonStorage<CleaningInterventionRecord[]>(`ncr-cleaning-interventions-${organization.id}`, []));
       setLoading(false); return;
     }
     const from = new Date(`${periodStart}T00:00:00`).toISOString();
