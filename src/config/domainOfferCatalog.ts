@@ -11,6 +11,8 @@ export type OfferFeatureKey =
   | 'team_access'
   | 'manager_role'
   | 'commercial_branding'
+  | 'coiffure_loyalty'
+  | 'coiffure_client_portal'
   | 'white_label'
   | 'multi_site'
   | 'custom_modules'
@@ -122,7 +124,7 @@ export interface DomainOfferDefinition {
 
 const customFeatures: OfferFeatureKey[] = ['white_label', 'multi_site', 'custom_modules', 'custom_roles', 'custom_domain'];
 
-const coiffureDecouverte: OfferFeatureKey[] = ['public_booking', 'confirmation_emails'];
+const coiffureDecouverte: OfferFeatureKey[] = ['public_booking', 'confirmation_emails', 'coiffure_loyalty', 'coiffure_client_portal'];
 const coiffureEssentielle: OfferFeatureKey[] = [
   ...coiffureDecouverte,
   'automatic_reminders',
@@ -278,7 +280,7 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       decouverte: {
         label: 'Découverte', monthlyPriceCents: 990, memberLimit: 1,
         detail: 'Le socle pour gérer seul les clients, prestations, rendez-vous et confirmations.',
-        additions: ['Clients, prestations et rendez-vous', 'Réservation publique', 'Confirmations par e-mail'],
+        additions: ['Clients, prestations et rendez-vous', 'Réservation publique', 'Confirmations par e-mail', 'Fidélité configurable et espace client'],
         features: coiffureDecouverte
       },
       essentielle: {
@@ -462,6 +464,8 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   team_access: 'Comptes collaborateurs',
   manager_role: 'Rôle Responsable',
   commercial_branding: 'Personnalisation complète',
+  coiffure_loyalty: 'Fidélité configurable',
+  coiffure_client_portal: 'Espace client Coiffure',
   white_label: 'Marque blanche',
   multi_site: 'Plusieurs établissements',
   custom_modules: 'Modules à la carte',

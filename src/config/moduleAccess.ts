@@ -62,6 +62,10 @@ const GENERIC_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/attestations': 'training_automatic_certificates'
 };
 
+const COIFFURE_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
+  '/fidelite': 'coiffure_loyalty'
+};
+
 const SECURITY_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/terrain': 'security_agent_portal',
   '/rondes': 'security_qr_patrols',
@@ -136,6 +140,7 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
 
 export function featureKeyForPath(pathname: string, businessType?: Organization['business_type']) {
   const normalized = normalizedModulePath(pathname);
+  if (businessType === 'coiffure') return COIFFURE_FEATURE_BY_PATH[normalized] ?? GENERIC_FEATURE_BY_PATH[normalized];
   if (businessType === 'securite') return SECURITY_FEATURE_BY_PATH[normalized] ?? GENERIC_FEATURE_BY_PATH[normalized];
   if (businessType === 'nettoyage') return CLEANING_FEATURE_BY_PATH[normalized] ?? GENERIC_FEATURE_BY_PATH[normalized];
   if (businessType === 'restauration') return RESTAURANT_FEATURE_BY_PATH[normalized] ?? GENERIC_FEATURE_BY_PATH[normalized];
@@ -200,7 +205,12 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
 
   const moduleKey = moduleKeyForPath(pathname, organization.business_type);
   if (!moduleKey) return true;
-  if (organization.plan === 'metier' && organization.metier_modules_configured && !(organization.enabled_modules ?? []).includes(moduleKey)) return false;
+
+  // La fidélité Coiffure est un socle configurable par le salon : le programme peut
+  // rester désactivé, mais la rubrique ne doit pas disparaître à cause d'une ancienne
+  // sélection de modules Métier. Les restrictions des rôles personnalisés restent actives.
+  const isCoiffureLoyaltyBase = organization.business_type === 'coiffure' && normalized === '/fidelite';
+  if (!isCoiffureLoyaltyBase && organization.plan === 'metier' && organization.metier_modules_configured && !(organization.enabled_modules ?? []).includes(moduleKey)) return false;
   if (organization.plan === 'metier' && organization.custom_role_id && moduleKey !== 'dashboard' && !(organization.custom_module_keys ?? []).includes(moduleKey)) return false;
   return true;
 }

@@ -77,6 +77,9 @@ const CleaningProfitabilityPage = lazy(() => import('./pages/CleaningProfitabili
 const CleaningClientPortalAdminPage = lazy(() => import('./pages/CleaningClientPortalAdminPage').then((module) => ({ default: module.CleaningClientPortalAdminPage })));
 const CleaningClientPortalInvitationPage = lazy(() => import('./pages/CleaningClientPortalInvitationPage').then((module) => ({ default: module.CleaningClientPortalInvitationPage })));
 const CleaningClientPortalPage = lazy(() => import('./pages/CleaningClientPortalPage').then((module) => ({ default: module.CleaningClientPortalPage })));
+const LoyaltyPage = lazy(() => import('./pages/LoyaltyPage').then((module) => ({ default: module.LoyaltyPage })));
+const CoiffureClientPortalInvitationPage = lazy(() => import('./pages/CoiffureClientPortalInvitationPage').then((module) => ({ default: module.CoiffureClientPortalInvitationPage })));
+const CoiffureClientPortalPage = lazy(() => import('./pages/CoiffureClientPortalPage').then((module) => ({ default: module.CoiffureClientPortalPage })));
 const RestaurantEmployeesPage = lazy(() => import('./pages/RestaurantEmployeesPage').then((module) => ({ default: module.RestaurantEmployeesPage })));
 const RestaurantPlanningPage = lazy(() => import('./pages/RestaurantPlanningPage').then((module) => ({ default: module.RestaurantPlanningPage })));
 const RestaurantEmployeePortalPage = lazy(() => import('./pages/RestaurantEmployeePortalPage').then((module) => ({ default: module.RestaurantEmployeePortalPage })));
@@ -275,6 +278,8 @@ export default function App() {
       <Route path="/espace-client-securite" element={<SecurityClientPortalPage />} />
       <Route path="/client-nettoyage/invitation/:token" element={<CleaningClientPortalInvitationPage />} />
       <Route path="/espace-client-nettoyage" element={<CleaningClientPortalPage />} />
+      <Route path="/client-coiffure/invitation/:token" element={<CoiffureClientPortalInvitationPage />} />
+      <Route path="/espace-client-coiffure" element={<CoiffureClientPortalPage />} />
       <Route path="/administration-ncr" element={<PlatformAdminArea />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
@@ -322,6 +327,7 @@ export default function App() {
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ClientsArea />} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />
+        <Route path="fidelite" element={<LoyaltyPage />} />
         <Route path="equipe" element={<StaffArea />} />
         <Route path="acces-equipe" element={<TeamAccessArea />} />
         <Route path="personnalisation" element={<BrandingArea />} />

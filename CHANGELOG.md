@@ -1,16 +1,24 @@
-# V2.12.2 — Phase 3 · Portail client Nettoyage
+# V2.12.3 — Espace client Coiffure et fidélité configurable
 
-- Nouveau portail externe sécurisé pour les clients des entreprises de nettoyage.
-- Invitations nominatives par e-mail avec jeton temporaire, création de compte ou connexion à un compte existant.
-- Gestion des comptes clients depuis NCR Suite : responsable client ou consultation, suspension, réactivation et permissions détaillées.
-- Consultation des sites, interventions planifiées et terminées, rapports d’intervention, anomalies et contrôles qualité.
-- Tableau de bord client avec indicateurs synthétiques : interventions à venir, interventions réalisées, anomalies ouvertes et note qualité moyenne.
-- Messagerie privée bidirectionnelle entre le client et l’entreprise de nettoyage, avec suivi des messages non lus et protection anti-abus.
-- Espace documentaire privé avec rattachement facultatif à un site ou à une intervention.
-- Isolation des données par entreprise et client via fonctions sécurisées, RLS et stockage privé.
-- Portail rattaché à l’offre Nettoyage Métier, conformément au catalogue existant de la V2.12.1.
-- Nouveau modèle d’e-mail transactionnel `cleaning_client_portal_invitation` dans la file Brevo existante.
-- Suppression sécurisée étendue au bucket documentaire du portail Nettoyage.
+- Transformation de la rubrique **Fidélité** en véritable centre de configuration pour les salons.
+- Activation indépendante des points, de la carte de passages, de l’avantage anniversaire et du bonus de bienvenue.
+- Récompenses configurables : remise en pourcentage, remise fixe, prestation offerte, cadeau ou avantage libre.
+- Crédit automatique lors du passage d’un rendez-vous au statut terminé, avec régularisation si le rendez-vous est annulé ou modifié.
+- Ajustement manuel des points et passages, attribution libre d’avantages et suivi de leur utilisation.
+- Espace client Coiffure sécurisé avec rendez-vous à venir, historique, réservation en ligne, solde fidélité, récompenses et préférences.
+- Invitations personnelles par e-mail via la file Brevo existante, avec suspension et réactivation des accès par le salon.
+- Gestion distincte du consentement anniversaire et des communications commerciales.
+- Fidélité et espace client inclus dans toutes les offres Coiffure, mais désactivables par chaque salon.
+- Migration Supabase `064_coiffure_loyalty_client_portal.sql` et modèle e-mail `coiffure_client_portal_invitation`.
+- Cache PWA : `ncr-suite-shell-v2.12.3-coiffure-loyalty-portal`.
+- Aucun changement de NCR Academy.
+
+# V2.12.2 — Portail client Nettoyage
+
+- Portail externe sécurisé pour les clients des entreprises de nettoyage.
+- Invitations, sites, interventions, rapports, anomalies, contrôles qualité, documents et messagerie.
+- Permissions détaillées et isolation stricte des données entre les clients.
+- Portail réservé à l’offre Nettoyage Métier.
 - Cache PWA : `ncr-suite-shell-v2.12.2-cleaning-client-portal`.
 - Aucun changement de NCR Academy.
 

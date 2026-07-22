@@ -10872,3 +10872,276 @@ button { max-width: 100%; }
   .admin-delete-actions { grid-template-columns: 1fr; }
 }
 
+
+/* NCR Suite V2.12.3 — Fidélité et espace client Coiffure */
+.loyalty-page { max-width: 1560px; }
+.loyalty-page-header h1 { max-width: 820px; }
+.loyalty-summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:20px; }
+.loyalty-summary-grid article { display:flex; align-items:center; gap:14px; padding:18px; border:1px solid var(--border); border-radius:22px; background:var(--panel); box-shadow:var(--shadow-soft); }
+.loyalty-summary-grid article>span { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,transparent); }
+.loyalty-summary-grid strong { display:block; font-size:1.55rem; letter-spacing:-.04em; }
+.loyalty-summary-grid small { display:block; margin-top:2px; color:var(--muted); }
+.loyalty-tabs { width:max-content; margin-bottom:20px; }
+.loyalty-loading { min-height:220px; display:grid; place-items:center; align-content:center; gap:12px; color:var(--muted); }
+.loyalty-loading span,.hair-client-loading span,.hair-client-portal-state>span { width:30px; height:30px; border:3px solid rgba(127,127,127,.2); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; }
+.loyalty-program-form { display:grid; gap:18px; }
+.loyalty-master-panel { padding:24px; }
+.loyalty-basic-fields { display:grid; grid-template-columns:minmax(260px,.7fr) minmax(320px,1.3fr); gap:16px; margin-top:18px; }
+.loyalty-basic-fields label,.loyalty-reward-fields label,.loyalty-inline-fields label,.loyalty-single-number,.loyalty-client-form>label { display:grid; gap:8px; color:var(--text); font-size:.88rem; font-weight:700; }
+.loyalty-basic-fields input,.loyalty-basic-fields textarea,.loyalty-reward-fields input,.loyalty-reward-fields select,.loyalty-inline-fields input,.loyalty-inline-fields select,.loyalty-single-number input,.loyalty-client-form input,.loyalty-client-form textarea,.loyalty-client-form select { width:100%; border:1px solid var(--border); border-radius:14px; background:var(--surface); color:var(--text); padding:12px 13px; font:inherit; font-weight:500; }
+.loyalty-portal-toggle { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px; margin-top:18px; border-radius:18px; background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 11%,var(--surface)),var(--surface)); border:1px solid color-mix(in srgb,var(--accent) 20%,var(--border)); }
+.loyalty-portal-toggle>div { display:flex; align-items:center; gap:13px; }
+.loyalty-portal-toggle>div>span { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; color:#fff; background:var(--accent); }
+.loyalty-portal-toggle p { margin:0; display:grid; gap:4px; }
+.loyalty-portal-toggle small { color:var(--muted); font-weight:500; }
+.switch-field { display:flex!important; align-items:center; gap:9px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.switch-field input { position:absolute; opacity:0; pointer-events:none; }
+.switch-field>span { width:44px; height:25px; padding:3px; border-radius:999px; background:#b8bdc7; transition:.2s; }
+.switch-field>span::after { content:""; display:block; width:19px; height:19px; border-radius:50%; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.2); transition:.2s; }
+.switch-field input:checked+span { background:var(--accent); }
+.switch-field input:checked+span::after { transform:translateX(19px); }
+.switch-field.compact { font-size:0; }
+.loyalty-rule-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.loyalty-rule-card { padding:22px; opacity:.72; transition:.2s; }
+.loyalty-rule-card.enabled { opacity:1; border-color:color-mix(in srgb,var(--accent) 26%,var(--border)); box-shadow:0 14px 35px color-mix(in srgb,var(--accent) 8%,transparent); }
+.loyalty-rule-heading { display:grid; grid-template-columns:auto 1fr auto; gap:13px; align-items:start; }
+.loyalty-rule-heading>span { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,transparent); }
+.loyalty-rule-heading h2 { margin:0; font-size:1.12rem; }
+.loyalty-rule-heading p { margin:5px 0 0; color:var(--muted); font-size:.88rem; line-height:1.45; }
+.loyalty-rule-body { display:grid; gap:15px; margin-top:18px; }
+.loyalty-inline-fields { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; }
+.loyalty-reward-fields { display:grid; grid-template-columns:1.35fr 1fr .8fr .7fr; gap:11px; padding-top:14px; border-top:1px solid var(--border); }
+.loyalty-single-number { max-width:240px; }
+.loyalty-check-line { display:flex!important; align-items:center; gap:9px; cursor:pointer; font-size:.88rem; font-weight:650; }
+.loyalty-check-line input { position:absolute; opacity:0; }
+.loyalty-check-line>span { width:22px; height:22px; display:grid; place-items:center; border:1px solid var(--border); border-radius:7px; color:transparent; background:var(--surface); }
+.loyalty-check-line input:checked+span { color:#fff; background:var(--accent); border-color:var(--accent); }
+.loyalty-save-bar { position:sticky; bottom:14px; z-index:4; display:flex; justify-content:space-between; align-items:center; gap:18px; padding:16px 18px; border:1px solid var(--border); border-radius:20px; background:color-mix(in srgb,var(--panel) 92%,transparent); backdrop-filter:blur(18px); box-shadow:0 16px 40px rgba(0,0,0,.14); }
+.loyalty-save-bar div { display:grid; gap:3px; }
+.loyalty-save-bar span { color:var(--muted); font-size:.86rem; }
+.loyalty-client-layout { display:grid; grid-template-columns:310px minmax(0,1fr); gap:18px; align-items:start; }
+.loyalty-client-list { position:sticky; top:18px; padding:18px; max-height:calc(100vh - 48px); }
+.loyalty-client-list .search-field { margin:12px 0; }
+.loyalty-client-scroll { display:grid; gap:7px; overflow:auto; max-height:calc(100vh - 190px); padding-right:3px; }
+.loyalty-client-scroll>button { width:100%; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; padding:11px; border:1px solid transparent; border-radius:15px; background:transparent; color:var(--text); text-align:left; cursor:pointer; }
+.loyalty-client-scroll>button:hover,.loyalty-client-scroll>button.active { background:var(--surface); border-color:var(--border); }
+.loyalty-client-scroll>button.active { box-shadow:inset 3px 0 0 var(--accent); }
+.loyalty-client-scroll>button>span { width:36px; height:36px; display:grid; place-items:center; border-radius:12px; background:color-mix(in srgb,var(--accent) 12%,transparent); color:var(--accent); font-weight:800; }
+.loyalty-client-scroll>button div { min-width:0; display:grid; gap:3px; }
+.loyalty-client-scroll>button strong,.loyalty-client-scroll>button small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.loyalty-client-scroll>button small { color:var(--muted); }
+.loyalty-client-scroll>button b { min-width:22px; height:22px; display:grid; place-items:center; border-radius:999px; background:var(--accent); color:#fff; font-size:.72rem; }
+.loyalty-client-main { display:grid; gap:18px; min-width:0; }
+.loyalty-client-hero { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:22px; }
+.loyalty-client-hero h2 { margin:2px 0 5px; font-size:1.5rem; }
+.loyalty-client-hero p { margin:0; color:var(--muted); }
+.loyalty-client-hero>div:last-child { display:flex; gap:10px; flex-wrap:wrap; }
+.loyalty-client-hero>div:last-child span { min-width:100px; padding:12px 14px; border-radius:15px; background:var(--surface); text-align:center; }
+.loyalty-client-hero>div:last-child strong { display:block; font-size:1.25rem; }
+.loyalty-client-work-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+.loyalty-client-form { display:grid; align-content:start; gap:13px; padding:20px; }
+.loyalty-client-form .panel-header { margin-bottom:2px; }
+.loyalty-client-form .info-message { margin:0; }
+.loyalty-access-list { display:grid; gap:8px; margin-top:4px; }
+.loyalty-access-list>div { display:flex; align-items:center; gap:10px; padding:10px; border-radius:13px; background:var(--surface); }
+.loyalty-access-list>div>span { color:var(--accent); }
+.loyalty-access-list p { min-width:0; flex:1; margin:0; display:grid; gap:2px; }
+.loyalty-access-list small { color:var(--muted); overflow:hidden; text-overflow:ellipsis; }
+.loyalty-access-list em { color:#15803d; font-size:.72rem; font-style:normal; font-weight:800; }
+.loyalty-access-list em.suspended { color:#b45309; }
+.loyalty-access-list button,.loyalty-reward-list button { border:0; background:transparent; color:var(--accent); font-weight:750; cursor:pointer; }
+.loyalty-access-list button.danger,.loyalty-reward-list button.danger { color:#dc2626; }
+.loyalty-client-rewards { padding:20px; }
+.loyalty-reward-list { display:grid; gap:10px; }
+.loyalty-reward-list article { display:grid; grid-template-columns:auto 1fr auto auto auto; gap:12px; align-items:center; padding:14px; border:1px solid var(--border); border-radius:16px; }
+.loyalty-reward-list article>span { width:38px; height:38px; display:grid; place-items:center; border-radius:12px; color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,transparent); }
+.loyalty-reward-list article>div { display:grid; gap:3px; }
+.loyalty-reward-list article small,.loyalty-reward-list article p { color:var(--muted); margin:0; }
+.loyalty-reward-list em,.loyalty-reward-table em { padding:6px 9px; border-radius:999px; font-style:normal; font-size:.72rem; font-weight:800; }
+.loyalty-reward-list em.available,.loyalty-reward-table em.available { color:#166534; background:#dcfce7; }
+.loyalty-reward-list em.redeemed,.loyalty-reward-table em.redeemed { color:#1d4ed8; background:#dbeafe; }
+.loyalty-reward-list em.expired,.loyalty-reward-table em.expired,.loyalty-reward-list em.cancelled,.loyalty-reward-table em.cancelled { color:#64748b; background:#e2e8f0; }
+.loyalty-all-rewards { padding:20px; }
+.loyalty-reward-table { display:grid; gap:6px; overflow:auto; }
+.loyalty-reward-table-head,.loyalty-reward-table>button { min-width:760px; display:grid; grid-template-columns:1fr 1.5fr .8fr .8fr .7fr; gap:14px; align-items:center; padding:12px 14px; }
+.loyalty-reward-table-head { color:var(--muted); font-size:.76rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+.loyalty-reward-table>button { border:1px solid var(--border); border-radius:14px; background:var(--surface); color:var(--text); text-align:left; cursor:pointer; }
+.loyalty-reward-table>button:hover { border-color:color-mix(in srgb,var(--accent) 35%,var(--border)); }
+.loyalty-reward-table>button>span { display:grid; gap:2px; }
+.loyalty-reward-table small { color:var(--muted); }
+
+.hair-client-public-shell { --hair-accent:#c026d3; min-height:100vh; display:grid; place-items:center; padding:34px 16px; position:relative; overflow:hidden; background:radial-gradient(circle at 10% 10%,color-mix(in srgb,var(--hair-accent) 18%,transparent),transparent 34%),linear-gradient(145deg,#fdf8fd,#f3edf5); color:#19151b; }
+.hair-client-public-glow { position:absolute; inset:auto -10% -35% auto; width:65vw; aspect-ratio:1; border-radius:50%; background:color-mix(in srgb,var(--hair-accent) 18%,transparent); filter:blur(80px); pointer-events:none; }
+.hair-client-invitation-card,.hair-client-login-card { position:relative; z-index:1; width:min(650px,100%); padding:30px; border:1px solid rgba(255,255,255,.9); border-radius:32px; background:rgba(255,255,255,.88); backdrop-filter:blur(24px); box-shadow:0 28px 80px rgba(65,32,69,.16); }
+.hair-client-brand { display:flex; align-items:center; gap:12px; }
+.hair-client-brand>img { width:auto; max-width:170px; height:48px; object-fit:contain; }
+.hair-client-brand>span { width:46px; height:46px; display:grid; place-items:center; border-radius:15px; background:var(--hair-accent); color:#fff; }
+.hair-client-brand>div { display:grid; gap:2px; }
+.hair-client-brand small { color:#7b6f7e; }
+.hair-client-invitation-heading { padding:32px 0 18px; }
+.hair-client-invitation-heading h1 { margin:7px 0 10px; font-size:clamp(2rem,7vw,3.25rem); letter-spacing:-.055em; line-height:1.02; }
+.hair-client-invitation-heading p:last-child { margin:0; color:#716776; line-height:1.65; }
+.hair-client-invitation-summary { display:grid; gap:9px; margin:4px 0 20px; }
+.hair-client-invitation-summary>div { display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:16px; background:#faf7fb; border:1px solid #ece3ee; }
+.hair-client-invitation-summary>div>span { color:var(--hair-accent); }
+.hair-client-invitation-summary p { margin:0; display:grid; gap:2px; color:#827786; font-size:.82rem; }
+.hair-client-invitation-summary strong { color:#211b23; font-size:.95rem; }
+.hair-client-accept-box { display:grid; gap:13px; }
+.hair-client-accept-box>div:not(.hair-client-status-box) { display:flex; align-items:center; gap:9px; color:#166534; }
+.hair-client-status-box { display:flex; align-items:flex-start; gap:11px; padding:14px; border-radius:16px; color:#166534; background:#ecfdf3; }
+.hair-client-status-box.error { color:#b91c1c; background:#fef2f2; }
+.hair-client-status-box p { margin:3px 0 0; font-size:.86rem; }
+.hair-client-auth-mode { margin:8px 0 16px; }
+.hair-client-auth-form { display:grid; gap:13px; }
+.hair-client-auth-form label { display:grid; gap:7px; font-weight:700; font-size:.88rem; }
+.hair-client-auth-form input { width:100%; border:1px solid #e5dae7; border-radius:14px; padding:13px 14px; background:#fff; color:#211b23; font:inherit; }
+.hair-client-public-footer { display:flex; justify-content:center; gap:9px; margin-top:22px; color:#8c8190; font-size:.8rem; }
+.hair-client-public-footer a { color:inherit; text-decoration:none; }
+.hair-client-loading { min-height:260px; display:grid; place-items:center; align-content:center; gap:12px; color:#7b6f7e; }
+.hair-client-loading span { border-top-color:var(--hair-accent); }
+.hair-client-portal-state { min-height:100vh; display:grid; place-items:center; align-content:center; gap:13px; background:#f8f5f9; color:#7b6f7e; }
+.hair-client-portal-state.error { color:#b91c1c; }
+.hair-client-portal { --hair-accent:#c026d3; min-height:100vh; background:#f7f4f8; color:#201a22; }
+.hair-client-portal-header { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; gap:20px; padding:14px max(18px,calc((100vw - 1200px)/2)); border-bottom:1px solid #e9e1eb; background:rgba(255,255,255,.88); backdrop-filter:blur(20px); }
+.hair-client-header-actions { display:flex; align-items:center; gap:10px; }
+.hair-client-header-actions select { max-width:260px; border:1px solid #e4dce6; border-radius:12px; padding:10px; background:#fff; }
+.hair-client-header-actions button { display:flex; align-items:center; gap:7px; border:0; background:transparent; color:#6f6472; cursor:pointer; }
+.hair-client-portal-nav { position:sticky; top:75px; z-index:9; display:flex; justify-content:center; gap:6px; padding:10px 16px; border-bottom:1px solid #e9e1eb; background:rgba(247,244,248,.92); backdrop-filter:blur(18px); }
+.hair-client-portal-nav button { display:flex; align-items:center; gap:7px; padding:10px 14px; border:0; border-radius:999px; background:transparent; color:#736777; font-weight:750; cursor:pointer; }
+.hair-client-portal-nav button.active { color:#fff; background:var(--hair-accent); box-shadow:0 9px 24px color-mix(in srgb,var(--hair-accent) 25%,transparent); }
+.hair-client-portal-nav b { min-width:20px; height:20px; display:grid; place-items:center; border-radius:999px; background:#fff; color:var(--hair-accent); font-size:.7rem; }
+.hair-client-portal-main { width:min(1200px,calc(100% - 32px)); margin:0 auto; padding:32px 0 56px; }
+.hair-client-welcome { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; padding:34px; border-radius:30px; color:#fff; background:linear-gradient(135deg,var(--hair-accent),color-mix(in srgb,var(--hair-accent) 65%,#18121a)); box-shadow:0 24px 60px color-mix(in srgb,var(--hair-accent) 22%,transparent); }
+.hair-client-welcome h1 { margin:7px 0 10px; max-width:760px; font-size:clamp(2rem,5vw,3.6rem); line-height:1.02; letter-spacing:-.055em; }
+.hair-client-welcome p { max-width:720px; margin:0; color:rgba(255,255,255,.78); line-height:1.55; }
+.hair-client-welcome .eyebrow { color:rgba(255,255,255,.68); }
+.hair-client-welcome .primary-button { flex:none; background:#fff; color:var(--hair-accent); }
+.hair-client-balance-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:18px; }
+.hair-client-balance-grid article { padding:20px; border:1px solid #e8e0ea; border-radius:22px; background:#fff; box-shadow:0 10px 30px rgba(50,28,54,.06); }
+.hair-client-balance-grid article>div:first-child { display:flex; align-items:center; gap:12px; }
+.hair-client-balance-grid article>div:first-child>span { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; background:color-mix(in srgb,var(--hair-accent) 12%,transparent); color:var(--hair-accent); }
+.hair-client-balance-grid p { margin:0; display:grid; gap:1px; }
+.hair-client-balance-grid strong { font-size:1.4rem; }
+.hair-client-balance-grid small { color:#817584; }
+.hair-client-progress { height:9px; overflow:hidden; margin:16px 0 9px; border-radius:999px; background:#eee7ef; }
+.hair-client-progress span { display:block; height:100%; border-radius:inherit; background:var(--hair-accent); }
+.hair-client-balance-grid article.simple { display:flex; align-items:center; gap:13px; grid-column:1/-1; }
+.hair-client-home-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:18px; }
+.hair-client-card { padding:22px; border:1px solid #e8e0ea; border-radius:24px; background:#fff; box-shadow:0 10px 30px rgba(50,28,54,.06); }
+.hair-client-card h2 { margin:0; }
+.hair-client-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:17px; }
+.hair-client-card-head h2 { margin-top:3px; }
+.hair-client-card-head button { border:0; background:transparent; color:var(--hair-accent); font-weight:750; cursor:pointer; }
+.hair-client-next-appointment { display:grid; grid-template-columns:auto 1fr auto; gap:13px; align-items:center; }
+.hair-client-next-appointment>span,.hair-client-date-badge { width:54px; height:62px; display:grid; place-items:center; align-content:center; border-radius:16px; color:var(--hair-accent); background:color-mix(in srgb,var(--hair-accent) 10%,transparent); }
+.hair-client-next-appointment>span strong,.hair-client-date-badge strong { font-size:1.35rem; line-height:1; }
+.hair-client-next-appointment>span small,.hair-client-date-badge small { text-transform:uppercase; font-size:.67rem; font-weight:800; }
+.hair-client-next-appointment h3 { margin:0 0 4px; }
+.hair-client-next-appointment p { margin:0; color:#817584; font-size:.88rem; }
+.hair-client-next-appointment>a,.hair-client-empty a { color:var(--hair-accent); font-weight:750; text-decoration:none; }
+.hair-client-mini-reward { display:flex; align-items:center; gap:11px; padding:12px 0; border-top:1px solid #eee7ef; }
+.hair-client-mini-reward:first-of-type { border-top:0; }
+.hair-client-mini-reward>span { width:38px; height:38px; display:grid; place-items:center; border-radius:12px; color:var(--hair-accent); background:color-mix(in srgb,var(--hair-accent) 10%,transparent); }
+.hair-client-mini-reward div { display:grid; gap:3px; }
+.hair-client-mini-reward small { color:#817584; }
+.hair-client-empty { min-height:130px; display:grid; place-items:center; align-content:center; gap:8px; text-align:center; color:#8b7f8e; }
+.hair-client-empty.large { min-height:240px; grid-column:1/-1; }
+.hair-client-empty p,.hair-client-empty h2 { margin:0; }
+.hair-client-section-heading { display:flex; justify-content:space-between; align-items:end; gap:18px; margin-bottom:24px; }
+.hair-client-section-heading h1 { margin:5px 0 0; font-size:clamp(2rem,5vw,3rem); letter-spacing:-.05em; }
+.hair-client-subtitle { margin:24px 0 12px; font-size:1.05rem; }
+.hair-client-appointment-list { display:grid; gap:11px; }
+.hair-client-appointment-list article { display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:center; padding:16px; border:1px solid #e8e0ea; border-radius:20px; background:#fff; }
+.hair-client-appointment-list h2 { margin:0 0 4px; font-size:1.05rem; }
+.hair-client-appointment-list p { margin:0 0 7px; color:#817584; }
+.hair-client-appointment-list em { display:inline-flex; padding:5px 8px; border-radius:999px; background:#f0eaf1; color:#6f6472; font-size:.7rem; font-style:normal; font-weight:800; }
+.hair-client-appointment-list em.confirmed { color:#166534; background:#dcfce7; }
+.hair-client-appointment-list em.pending { color:#92400e; background:#fef3c7; }
+.hair-client-appointment-list em.completed { color:#1d4ed8; background:#dbeafe; }
+.hair-client-appointment-list article>a { color:var(--hair-accent); text-decoration:none; font-weight:750; }
+.hair-client-appointment-list.history { opacity:.82; }
+.hair-client-reward-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+.hair-client-reward-grid article { display:grid; align-content:start; gap:9px; min-height:230px; padding:20px; border:1px solid #e8e0ea; border-radius:24px; background:#fff; }
+.hair-client-reward-grid article:not(.available) { opacity:.62; }
+.hair-client-reward-head { display:flex; justify-content:space-between; align-items:center; }
+.hair-client-reward-head>span { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; color:#fff; background:var(--hair-accent); }
+.hair-client-reward-head em { padding:6px 9px; border-radius:999px; background:#dcfce7; color:#166534; font-style:normal; font-size:.7rem; font-weight:800; }
+.hair-client-reward-grid article:not(.available) .hair-client-reward-head em { color:#64748b; background:#e2e8f0; }
+.hair-client-reward-grid h2 { margin:5px 0 0; font-size:1.2rem; }
+.hair-client-reward-grid article>strong { color:var(--hair-accent); }
+.hair-client-reward-grid p { margin:0; color:#817584; line-height:1.5; }
+.hair-client-reward-grid article>small { margin-top:auto; color:#958a98; }
+.hair-client-loyalty-history { display:grid; gap:8px; }
+.hair-client-loyalty-history>div { display:grid; grid-template-columns:auto 1fr auto; gap:11px; align-items:center; padding:13px 15px; border:1px solid #e8e0ea; border-radius:16px; background:#fff; }
+.hair-client-loyalty-history>div>span { color:var(--hair-accent); }
+.hair-client-loyalty-history p { margin:0; display:grid; gap:2px; }
+.hair-client-loyalty-history small { color:#958a98; }
+.hair-client-loyalty-history>div>div { display:flex; gap:8px; }
+.hair-client-loyalty-history b { color:#64748b; }
+.hair-client-loyalty-history b.positive { color:#15803d; }
+.hair-client-profile-grid { display:grid; grid-template-columns:.8fr 1.2fr; gap:18px; }
+.hair-client-profile-lines { display:grid; gap:0; margin-top:15px; }
+.hair-client-profile-lines>div { display:flex; justify-content:space-between; gap:18px; padding:13px 0; border-top:1px solid #eee7ef; }
+.hair-client-profile-lines span { color:#817584; }
+.hair-client-profile-form { display:grid; gap:14px; }
+.hair-client-profile-form>label:not(.hair-client-check) { display:grid; gap:7px; font-weight:700; }
+.hair-client-profile-form input[type="date"] { border:1px solid #e8e0ea; border-radius:13px; padding:12px; font:inherit; }
+.hair-client-check { display:grid; grid-template-columns:auto auto 1fr; gap:10px; align-items:start; cursor:pointer; }
+.hair-client-check input { position:absolute; opacity:0; }
+.hair-client-check>span { width:23px; height:23px; display:grid; place-items:center; border:1px solid #dcd1de; border-radius:7px; color:transparent; }
+.hair-client-check input:checked+span { color:#fff; background:var(--hair-accent); border-color:var(--hair-accent); }
+.hair-client-check p { margin:0; display:grid; gap:3px; }
+.hair-client-check small { color:#817584; font-weight:500; line-height:1.4; }
+.hair-client-contact-card { display:flex; align-items:center; gap:14px; margin-top:18px; padding:18px 20px; border-radius:20px; background:#211a23; color:#fff; }
+.hair-client-contact-card>span { color:var(--hair-accent); }
+.hair-client-contact-card>div:nth-child(2) { flex:1; }
+.hair-client-contact-card p { margin:3px 0 0; color:#bdb2c0; }
+.hair-client-contact-card>div:last-child { display:grid; justify-items:end; gap:4px; }
+.hair-client-contact-card a { color:#fff; text-decoration:none; }
+.hair-client-portal-footer { padding:22px; border-top:1px solid #e8e0ea; text-align:center; color:#958a98; font-size:.82rem; }
+
+@media (max-width:1100px) {
+  .loyalty-summary-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .loyalty-rule-grid,.loyalty-client-work-grid { grid-template-columns:1fr; }
+  .loyalty-reward-fields { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .hair-client-reward-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:820px) {
+  .loyalty-client-layout { grid-template-columns:1fr; }
+  .loyalty-client-list { position:static; max-height:none; }
+  .loyalty-client-scroll { max-height:330px; }
+  .loyalty-client-hero { align-items:flex-start; flex-direction:column; }
+  .loyalty-basic-fields,.hair-client-home-grid,.hair-client-balance-grid,.hair-client-profile-grid { grid-template-columns:1fr; }
+  .hair-client-portal-header { padding:12px 16px; }
+  .hair-client-brand>div small,.hair-client-header-actions button span { display:none; }
+  .hair-client-portal-nav { top:71px; justify-content:flex-start; overflow:auto; }
+  .hair-client-portal-nav button { flex:none; }
+  .hair-client-welcome { align-items:flex-start; flex-direction:column; padding:26px; }
+  .hair-client-section-heading { align-items:flex-start; flex-direction:column; }
+  .hair-client-contact-card { align-items:flex-start; flex-wrap:wrap; }
+  .hair-client-contact-card>div:last-child { width:100%; justify-items:start; padding-left:35px; }
+}
+@media (max-width:600px) {
+  .loyalty-summary-grid { grid-template-columns:1fr 1fr; gap:9px; }
+  .loyalty-summary-grid article { padding:13px; }
+  .loyalty-summary-grid article>span { display:none; }
+  .loyalty-inline-fields,.loyalty-reward-fields { grid-template-columns:1fr; }
+  .loyalty-tabs { width:100%; overflow:auto; }
+  .loyalty-save-bar { align-items:stretch; flex-direction:column; }
+  .loyalty-save-bar button { width:100%; }
+  .loyalty-client-hero>div:last-child { width:100%; display:grid; grid-template-columns:repeat(3,1fr); }
+  .loyalty-client-hero>div:last-child span { min-width:0; padding:10px 5px; }
+  .loyalty-reward-list article { grid-template-columns:auto 1fr; }
+  .loyalty-reward-list article>em,.loyalty-reward-list article>button { grid-column:2; justify-self:start; }
+  .hair-client-invitation-card,.hair-client-login-card { padding:22px; border-radius:25px; }
+  .hair-client-invitation-summary>div { align-items:flex-start; }
+  .hair-client-public-footer { flex-wrap:wrap; }
+  .hair-client-portal-main { width:min(100% - 22px,1200px); padding-top:20px; }
+  .hair-client-welcome { border-radius:24px; }
+  .hair-client-welcome h1 { font-size:2.2rem; }
+  .hair-client-reward-grid { grid-template-columns:1fr; }
+  .hair-client-appointment-list article { grid-template-columns:auto 1fr; }
+  .hair-client-appointment-list article>a,.hair-client-appointment-list article>strong { grid-column:2; }
+  .hair-client-section-heading .primary-button { width:100%; }
+  .hair-client-header-actions select { max-width:125px; }
+}

@@ -19,9 +19,11 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-cleaning-client-portal`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-coiffure-loyalty-portal`;
+const cleaningCache = 'ncr-suite-shell-v2.12.2-cleaning-client-portal';
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version frontend ne correspond pas à package.json.');
 if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime ne correspond pas à la release attendue.');
+if (!runtime.includes('RUNTIME_HEARTBEAT_INTERVAL_MS')) failures.push('La surveillance runtime a été retirée par erreur.');
 if (!sw.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker ne correspond pas à la release attendue.');
 
 requireText('src/main.tsx', ['<RuntimeMonitor />', '<ConnectivityStatus />']);
@@ -52,7 +54,9 @@ const publicRoutes = [
   '/client-securite/invitation/:token',
   '/espace-client-securite',
   '/client-nettoyage/invitation/:token',
-  '/espace-client-nettoyage'
+  '/espace-client-nettoyage',
+  '/client-coiffure/invitation/:token',
+  '/espace-client-coiffure'
 ];
 for (const route of publicRoutes) {
   if (!app.includes(`path=\"${route}\"`) && !app.includes(`path='${route}'`)) {
@@ -63,6 +67,7 @@ for (const route of publicRoutes) {
 const access = read('src/config/accessMatrix.ts');
 const crossDomainRoutes = [
   ['coiffure', '/rendez-vous'],
+  ['coiffure', '/fidelite'],
   ['formation', '/sessions'],
   ['securite', '/rondes'],
   ['securite', '/portail-clients'],
@@ -95,7 +100,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -179,6 +184,39 @@ requireText('supabase/migrations/063_cleaning_client_portal.sql', [
   "bucket_id='cleaning-client-documents'",
   'Trop de messages envoyés',
   "'2.12.2'",
+  cleaningCache,
+  'set search_path = public'
+]);
+
+requireText('src/pages/LoyaltyPage.tsx', [
+  "coiffure_loyalty_admin_overview",
+  "update_coiffure_loyalty_settings",
+  "create_coiffure_client_portal_invitation",
+  "adjust_coiffure_loyalty_balance",
+  "issue_coiffure_manual_reward",
+  "set_coiffure_client_portal_account_status"
+]);
+requireText('src/pages/CoiffureClientPortalPage.tsx', [
+  "current_coiffure_client_portal_accounts",
+  "coiffure_client_portal_dashboard",
+  "update_coiffure_client_portal_profile",
+  '/reserver/'
+]);
+requireText('src/pages/CoiffureClientPortalInvitationPage.tsx', [
+  "get_coiffure_client_portal_invitation",
+  "accept_coiffure_client_portal_invitation"
+]);
+requireText('supabase/migrations/064_coiffure_loyalty_client_portal.sql', [
+  'create table if not exists public.coiffure_loyalty_settings',
+  'create table if not exists public.coiffure_client_portal_accounts',
+  'create table if not exists public.coiffure_loyalty_rewards',
+  'create table if not exists public.coiffure_loyalty_ledger',
+  'create or replace function public.process_coiffure_appointment_loyalty',
+  'create or replace function public.coiffure_client_portal_dashboard',
+  'create or replace function public.get_coiffure_client_portal_invitation',
+  'create or replace function public.set_coiffure_client_portal_account_status',
+  "'coiffure_client_portal_invitation'",
+  "'2.12.3'",
   expectedCache,
   'set search_path = public'
 ]);
@@ -186,9 +224,12 @@ requireText('supabase/migrations/063_cleaning_client_portal.sql', [
 requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'security_client_portal_invitation'",
   "case 'cleaning_client_portal_invitation'",
+  "case 'coiffure_client_portal_invitation'",
   '/client-securite/invitation/',
   'Votre portail client Sécurité est prêt',
-  'Votre portail client Nettoyage est prêt'
+  'Votre portail client Nettoyage est prêt',
+  '/client-coiffure/invitation/',
+  'Votre espace client Coiffure'
 ]);
 
 if (failures.length) {

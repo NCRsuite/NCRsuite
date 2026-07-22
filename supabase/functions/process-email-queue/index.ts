@@ -500,6 +500,13 @@ function templateCopy(templateKey: string, payload: Record<string, unknown>) {
         title: `Votre espace client est prêt`,
         message: `${organization} vous invite à consulter les interventions de nettoyage réalisées pour votre entreprise.`,
       };
+    case 'coiffure_client_portal_invitation':
+      return {
+        subject: `Votre espace client Coiffure — ${organization}`,
+        eyebrow: 'FIDÉLITÉ & RENDEZ-VOUS',
+        title: `Votre espace client est prêt`,
+        message: `${organization} vous invite à retrouver vos rendez-vous et vos avantages fidélité.`,
+      };
     case 'team_invitation':
       return {
         subject: `Invitation à rejoindre ${organization} sur NCR Suite`,
@@ -599,6 +606,50 @@ Niveau d’accès : ${role}.
 Invitation valable jusqu’au ${expiry}.
 
 Ouvrir le portail : ${inviteUrl}`;
+    return { subject: copy.subject, html, text, replyTo: contactEmail || null };
+  }
+
+  if (item.template_key === 'coiffure_client_portal_invitation') {
+    const accent = safeColor(payload.organization_primary_color);
+    const organizationRaw = String(payload.organization_name ?? 'Votre salon');
+    const clientRaw = String(payload.client_name ?? item.recipient_name ?? '');
+    const organization = escapeHtml(organizationRaw);
+    const client = escapeHtml(clientRaw);
+    const invitee = escapeHtml(payload.invited_name ?? item.recipient_name ?? '');
+    const token = String(payload.invitation_token ?? '').trim();
+    const inviteUrl = `${publicUrl.replace(/\/$/, '')}/client-coiffure/invitation/${encodeURIComponent(token)}`;
+    const bookingSlug = String(payload.organization_slug ?? '').trim();
+    const bookingUrl = bookingSlug ? `${publicUrl.replace(/\/$/, '')}/reserver/${encodeURIComponent(bookingSlug)}` : '';
+    const contactEmail = String(payload.contact_email ?? '').trim();
+    const contactPhone = String(payload.contact_phone ?? '').trim();
+    const organizationLogoUrl = safeImageUrl(payload.organization_logo_url);
+    const expiresAt = new Date(String(payload.expires_at ?? ''));
+    const expiry = Number.isNaN(expiresAt.getTime())
+      ? 'dans 7 jours'
+      : new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(expiresAt);
+    const logo = organizationLogoUrl
+      ? `<img src="${escapeHtml(organizationLogoUrl)}" alt="${organization}" style="display:block;max-width:180px;max-height:64px;object-fit:contain">`
+      : `<div style="display:inline-flex;align-items:center;justify-content:center;background:${accent};color:#fff;font-size:24px;font-weight:800;width:58px;height:58px;border-radius:18px">${organization.slice(0, 2).toUpperCase()}</div>`;
+
+    const html = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;background:#f7f2f8;font-family:Arial,Helvetica,sans-serif;color:#18141a">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f7f2f8;padding:32px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#fff;border-radius:30px;overflow:hidden;box-shadow:0 18px 45px rgba(55,25,60,.12)">
+<tr><td style="height:8px;background:${accent}"></td></tr>
+<tr><td style="padding:34px 34px 18px">${logo}<div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:${accent};margin-top:28px">FIDÉLITÉ & RENDEZ-VOUS</div><h1 style="font-size:30px;line-height:1.15;margin:10px 0 12px">Votre espace client est prêt.</h1><p style="font-size:16px;line-height:1.65;color:#6f6573;margin:0">${invitee ? `Bonjour ${invitee}, ` : ''}${organization} vous ouvre un espace personnel pour suivre vos rendez-vous et profiter de vos avantages fidélité.</p></td></tr>
+<tr><td style="padding:12px 34px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fbf8fc;border:1px solid #eadfeb;border-radius:20px"><tr><td style="padding:16px 18px;color:#7b6f7e">Profil client</td><td align="right" style="padding:16px 18px;font-weight:700">${client}</td></tr><tr><td style="padding:16px 18px;border-top:1px solid #eadfeb;color:#7b6f7e">Dans votre espace</td><td align="right" style="padding:16px 18px;border-top:1px solid #eadfeb;font-weight:700">Rendez-vous · Fidélité · Récompenses</td></tr><tr><td style="padding:16px 18px;border-top:1px solid #eadfeb;color:#7b6f7e">Invitation valable</td><td align="right" style="padding:16px 18px;border-top:1px solid #eadfeb;font-weight:700">Jusqu’au ${escapeHtml(expiry)}</td></tr></table></td></tr>
+<tr><td style="padding:22px 34px 30px"><a href="${escapeHtml(inviteUrl)}" style="display:inline-block;background:${accent};color:#fff;text-decoration:none;font-weight:800;padding:15px 25px;border-radius:999px">Activer mon espace client</a>${bookingUrl ? `<a href="${escapeHtml(bookingUrl)}" style="display:inline-block;color:${accent};text-decoration:none;font-weight:700;padding:15px 18px">Prendre rendez-vous</a>` : ''}<p style="font-size:13px;line-height:1.55;color:#9a8f9d;margin:18px 0 0">La date de naissance et les communications commerciales restent facultatives. Elles ne sont utilisées que selon vos choix dans l’espace client.</p></td></tr>
+<tr><td style="padding:22px 34px 30px;border-top:1px solid #eadfeb;color:#7b6f7e;font-size:13px;line-height:1.7">${contactEmail ? `Contact : ${escapeHtml(contactEmail)}` : ''}${contactEmail && contactPhone ? ' · ' : ''}${contactPhone ? escapeHtml(contactPhone) : ''}<br>Invitation personnelle envoyée automatiquement par NCR Suite.</td></tr>
+</table></td></tr></table></body></html>`;
+
+    const text = `Votre espace client Coiffure est prêt
+
+${organizationRaw} vous invite à retrouver vos rendez-vous et vos avantages fidélité${clientRaw ? ` pour ${clientRaw}` : ''}.
+Invitation valable jusqu’au ${expiry}.
+
+Activer mon espace : ${inviteUrl}${bookingUrl ? `
+Prendre rendez-vous : ${bookingUrl}` : ''}`;
     return { subject: copy.subject, html, text, replyTo: contactEmail || null };
   }
 
