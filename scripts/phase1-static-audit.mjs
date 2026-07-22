@@ -107,7 +107,7 @@ const allowedAnonFunctions = new Set([
   'get_public_booking','cancel_public_booking','reschedule_public_booking','reschedule_public_booking_v2',
   'get_public_restaurant_menu','get_public_restaurant_booking_config','get_public_restaurant_booking_availability',
   'create_public_restaurant_reservation','get_public_training_satisfaction','submit_public_training_satisfaction',
-  'get_team_invitation','get_security_client_portal_invitation'
+  'get_team_invitation','get_security_client_portal_invitation','get_cleaning_client_portal_invitation'
 ]);
 for (const match of allSql.matchAll(/grant\s+execute\s+on\s+function\s+public\.(\w+)[^;]*?\s+to\s+([^;]+);/ig)) {
   const roles = match[2].toLowerCase().split(',').map((role) => role.trim());

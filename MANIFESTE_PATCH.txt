@@ -1,9 +1,13 @@
-NCR Suite V2.11.3 — Modules Sécurité à la carte
+NCR Suite V2.12.2 — Phase 3 · Portail client Nettoyage
 
-Installation :
-1. Exécuter supabase/migrations/057_security_addons.sql
-2. Ajouter/remplacer les autres fichiers dans GitHub en conservant l’arborescence
-3. Vérifier le déploiement Cloudflare
-4. Fermer puis rouvrir la PWA
+Contenu principal :
+- Migration 063 : comptes clients, invitations, permissions, messages, documents, fonctions sécurisées et politiques Storage.
+- Administration du portail client depuis le métier Nettoyage.
+- Page publique d'acceptation d'invitation.
+- Espace client Nettoyage responsive.
+- E-mail Brevo d'invitation dédié.
+- Mise à jour de la matrice d'accès, des offres, des modules, des audits et du cache PWA.
+- Extension de la suppression sécurisée aux documents du portail Nettoyage.
 
-Ce patch est incrémental et doit être installé sur la V2.11.2.
+Ordre : SQL 063 > Edge Functions > fichiers GitHub > build Cloudflare > cache PWA > tests.
+Base obligatoire : V2.12.1.

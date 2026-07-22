@@ -1,0 +1,30 @@
+NCR Suite V2.12.2 — Rapport de validation locale
+
+Base analysée
+- ZIP source : NCRsuite-main-4.zip
+- Version confirmée dans package.json : 2.12.1
+- Changelog source : V2.12.1 — Suppression sécurisée des entreprises
+
+Contrôles réussis
+- Audit statique NCR Suite : réussi
+- Parcours critiques NCR Suite : réussi
+- Syntaxe TypeScript/TSX : validée sur 149 fichiers
+- Cohérence package / runtime / Service Worker : 2.12.2
+- Contrôle élémentaire de la migration 063 : délimiteurs SQL et parenthèses équilibrés
+- Vérification des accès : routes, matrice métier, module Nettoyage et offre Métier
+- Vérification des permissions serveur : planning, rapports, anomalies, qualité, documents et messages filtrés séparément
+- Vérification du stockage privé : bucket cleaning-client-documents et suppression sécurisée
+
+Contrôle non exécuté localement
+- Le build complet npm/TypeScript/Vite n’a pas pu être lancé car le registre npm de l’environnement a renvoyé une erreur HTTP 503 lors du téléchargement des dépendances.
+- Le build Cloudflare doit donc impérativement être vérifié après l’envoi sur GitHub.
+- La migration 063 n’a pas été exécutée sur la base Supabase de production depuis cet environnement.
+
+Ordre d’installation
+1. SQL 063
+2. Edge Function process-email-queue
+3. Edge Function admin-delete-organization
+4. Fichiers GitHub
+5. Build Cloudflare
+6. Cache PWA
+7. Tests fonctionnels complets

@@ -65,6 +65,7 @@ export type OfferFeatureKey =
   | 'cleaning_recurring_planning'
   | 'cleaning_task_checklists'
   | 'cleaning_profitability'
+  | 'cleaning_client_portal'
   | 'restaurant_staff_planning'
   | 'restaurant_menu'
   | 'restaurant_allergens'
@@ -408,7 +409,7 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
         label: 'Métier', monthlyPriceCents: 10990, memberLimit: 100,
         detail: 'Pour plus de 50 agents, plusieurs agences ou des processus spécifiques.',
         additions: ['Capacité et rôles sur mesure', 'Portail client', 'Marque blanche', 'Cahiers des charges et intégrations spécifiques'],
-        features: [...cleaningProfessionnelle, ...customFeatures],
+        features: [...cleaningProfessionnelle, 'cleaning_client_portal', ...customFeatures],
         startingAt: true
       }
     }
@@ -515,6 +516,7 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   cleaning_recurring_planning: 'Planification récurrente',
   cleaning_task_checklists: 'Checklists terrain',
   cleaning_profitability: 'Rentabilité par chantier',
+  cleaning_client_portal: 'Portail client Nettoyage',
   restaurant_staff_planning: 'Employés et planning',
   restaurant_menu: 'Carte, menus et fiches plats',
   restaurant_allergens: 'Gestion structurée des allergènes',

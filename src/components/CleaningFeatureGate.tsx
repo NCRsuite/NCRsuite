@@ -8,7 +8,7 @@ import { Icon } from './Icon';
 
 interface CleaningFeatureGateProps {
   feature: OfferFeatureKey;
-  requiredPlan: 'Essentielle' | 'Professionnelle';
+  requiredPlan: 'Essentielle' | 'Professionnelle' | 'Métier';
   description: string;
   children: ReactNode;
 }

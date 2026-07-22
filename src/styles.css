@@ -10490,7 +10490,7 @@ button { max-width: 100%; }
 .client-portal-message-panel,.client-portal-document-panel { min-width:0; }
 .client-portal-message-thread { min-height:270px; max-height:480px; overflow:auto; display:flex; flex-direction:column; gap:10px; padding:14px 3px; }
 .client-portal-message { max-width:86%; padding:12px 14px; border-radius:17px; background:#f2f4f7; align-self:flex-start; }
-.client-portal-message.security { align-self:flex-end; background:color-mix(in srgb,var(--accent) 11%,white); }
+.client-portal-message.security,.client-portal-message.cleaning { align-self:flex-end; background:color-mix(in srgb,var(--accent) 11%,white); }
 .client-portal-message > div { display:flex; justify-content:space-between; gap:12px; }
 .client-portal-message strong { font-size:11px; }
 .client-portal-message small { color:var(--muted); font-size:9px; }
@@ -10768,6 +10768,31 @@ button { max-width: 100%; }
 /* Ajustements portail client Sécurité V2.12.0 */
 .security-client-status-box:not(.error) { background:#ecfdf3; color:#087443; }
 .security-client-kpis { grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); }
+
+/* V2.12.2 — portail client Nettoyage */
+.cleaning-client-public-shell { --portal-accent:#0f766e; }
+.cleaning-client-portal { --portal-accent:#0f766e; }
+.cleaning-client-report-list .security-client-mission-metrics a {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  color:var(--portal-accent);
+  font-weight:750;
+  text-decoration:none;
+}
+.cleaning-client-report-list .security-client-mission-metrics a:hover { text-decoration:underline; }
+.security-client-timeline blockquote {
+  margin:10px 0 0;
+  padding:10px 12px;
+  border-left:3px solid var(--portal-accent);
+  border-radius:0 10px 10px 0;
+  background:#f7f9fc;
+  color:#667085;
+  font-size:10px;
+  line-height:1.55;
+}
+.cleaning-client-quality-grid > article > small { display:block; line-height:1.65; }
+.cleaning-client-quality-grid blockquote + blockquote { margin-top:7px; }
 
 /* V2.12.1 — suppression sécurisée des entreprises */
 .admin-organization-danger-zone {

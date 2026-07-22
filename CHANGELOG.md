@@ -1,3 +1,19 @@
+# V2.12.2 — Phase 3 · Portail client Nettoyage
+
+- Nouveau portail externe sécurisé pour les clients des entreprises de nettoyage.
+- Invitations nominatives par e-mail avec jeton temporaire, création de compte ou connexion à un compte existant.
+- Gestion des comptes clients depuis NCR Suite : responsable client ou consultation, suspension, réactivation et permissions détaillées.
+- Consultation des sites, interventions planifiées et terminées, rapports d’intervention, anomalies et contrôles qualité.
+- Tableau de bord client avec indicateurs synthétiques : interventions à venir, interventions réalisées, anomalies ouvertes et note qualité moyenne.
+- Messagerie privée bidirectionnelle entre le client et l’entreprise de nettoyage, avec suivi des messages non lus et protection anti-abus.
+- Espace documentaire privé avec rattachement facultatif à un site ou à une intervention.
+- Isolation des données par entreprise et client via fonctions sécurisées, RLS et stockage privé.
+- Portail rattaché à l’offre Nettoyage Métier, conformément au catalogue existant de la V2.12.1.
+- Nouveau modèle d’e-mail transactionnel `cleaning_client_portal_invitation` dans la file Brevo existante.
+- Suppression sécurisée étendue au bucket documentaire du portail Nettoyage.
+- Cache PWA : `ncr-suite-shell-v2.12.2-cleaning-client-portal`.
+- Aucun changement de NCR Academy.
+
 # V2.12.1 — Suppression sécurisée des entreprises
 
 - Ajout d’une zone de suppression définitive dans Administration NCR, réservée au super-administrateur.

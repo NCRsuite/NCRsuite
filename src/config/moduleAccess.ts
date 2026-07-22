@@ -90,6 +90,7 @@ const RESTAURANT_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
 };
 
 const CLEANING_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
+  '/portail-clients': 'cleaning_client_portal',
   '/terrain': 'cleaning_agent_portal',
   '/rapports': 'cleaning_visit_reports',
   '/anomalies': 'cleaning_anomalies',
@@ -101,7 +102,7 @@ const CLEANING_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
 };
 
 const SECURITY_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/portail-clients']);
-const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/rapports', '/anomalies', '/qualite', '/stocks', '/rentabilite', '/acces-equipe']);
+const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/portail-clients', '/rapports', '/anomalies', '/qualite', '/stocks', '/rentabilite', '/acces-equipe']);
 const RESTAURANT_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/cuisine', '/personnalisation']);
 
 
@@ -126,7 +127,7 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
   }
   if (businessType === 'nettoyage') {
     const cleaningModules: Record<string, string> = {
-      '/terrain': 'cleaning_agent_portal', '/clients': 'cleaning_clients', '/sites': 'cleaning_sites', '/agents': 'cleaning_agents', '/planning': 'cleaning_planning', '/interventions': 'cleaning_interventions', '/protocoles': 'cleaning_protocols', '/rentabilite': 'cleaning_profitability', '/rapports': 'cleaning_reports', '/anomalies': 'cleaning_anomalies', '/qualite': 'cleaning_quality', '/stocks': 'cleaning_stock', '/facturation': 'cleaning_billing', '/acces-equipe': 'team_access'
+      '/terrain': 'cleaning_agent_portal', '/clients': 'cleaning_clients', '/portail-clients': 'cleaning_client_portal', '/sites': 'cleaning_sites', '/agents': 'cleaning_agents', '/planning': 'cleaning_planning', '/interventions': 'cleaning_interventions', '/protocoles': 'cleaning_protocols', '/rentabilite': 'cleaning_profitability', '/rapports': 'cleaning_reports', '/anomalies': 'cleaning_anomalies', '/qualite': 'cleaning_quality', '/stocks': 'cleaning_stock', '/facturation': 'cleaning_billing', '/acces-equipe': 'team_access'
     };
     if (cleaningModules[normalized]) return cleaningModules[normalized];
   }
@@ -149,8 +150,9 @@ export function securityRequiredPlanForPath(pathname: string): string | null {
   return null;
 }
 
-export function cleaningRequiredPlanForPath(pathname: string): 'Essentielle' | 'Professionnelle' | null {
+export function cleaningRequiredPlanForPath(pathname: string): 'Essentielle' | 'Professionnelle' | 'Métier' | null {
   const normalized = normalizedModulePath(pathname);
+  if (normalized === '/portail-clients') return 'Métier';
   if (['/anomalies', '/qualite', '/stocks', '/rentabilite'].includes(normalized)) return 'Professionnelle';
   if (['/terrain', '/rapports', '/acces-equipe'].includes(normalized)) return 'Essentielle';
   return null;

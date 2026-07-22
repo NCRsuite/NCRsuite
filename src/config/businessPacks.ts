@@ -67,6 +67,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Espace agent', path: '/terrain', icon: 'sparkles' },
       { label: 'Planning', path: '/planning', icon: 'calendar' },
       { label: 'Clients', path: '/clients', icon: 'building' },
+      { label: 'Portail clients', path: '/portail-clients', icon: 'monitor' },
       { label: 'Sites clients', path: '/sites', icon: 'map' },
       { label: 'Agents', path: '/agents', icon: 'users' },
       { label: 'Interventions', path: '/interventions', icon: 'clipboard' },

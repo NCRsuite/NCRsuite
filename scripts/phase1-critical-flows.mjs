@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-secure-organization-deletion`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-cleaning-client-portal`;
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version frontend ne correspond pas à package.json.');
 if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime ne correspond pas à la release attendue.');
 if (!sw.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker ne correspond pas à la release attendue.');
@@ -50,7 +50,9 @@ const publicRoutes = [
   '/evaluation/:token',
   '/invitation/:token',
   '/client-securite/invitation/:token',
-  '/espace-client-securite'
+  '/espace-client-securite',
+  '/client-nettoyage/invitation/:token',
+  '/espace-client-nettoyage'
 ];
 for (const route of publicRoutes) {
   if (!app.includes(`path=\"${route}\"`) && !app.includes(`path='${route}'`)) {
@@ -65,6 +67,7 @@ const crossDomainRoutes = [
   ['securite', '/rondes'],
   ['securite', '/portail-clients'],
   ['nettoyage', '/interventions'],
+  ['nettoyage', '/portail-clients'],
   ['restauration', '/commandes']
 ];
 for (const [domain, route] of crossDomainRoutes) {
@@ -92,7 +95,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -140,7 +143,7 @@ requireText('supabase/migrations/062_platform_organization_secure_deletion.sql',
   'create table if not exists public.platform_deleted_organizations',
   'enable row level security',
   "'2.12.1'",
-  expectedCache
+  'ncr-suite-shell-v2.12.1-secure-organization-deletion'
 ]);
 requireText('src/pages/PlatformAdminPage.tsx', [
   "supabase.functions.invoke('admin-delete-organization'",
@@ -148,10 +151,44 @@ requireText('src/pages/PlatformAdminPage.tsx', [
   'deleteOrganizationName'
 ]);
 
+
+requireText('src/pages/CleaningClientPortalAdminPage.tsx', [
+  "cleaning_client_portal_admin_overview",
+  "create_cleaning_client_portal_invitation",
+  "cleaning-client-documents",
+  "cleaning_client_portal_admin_send_message"
+]);
+requireText('src/pages/CleaningClientPortalPage.tsx', [
+  "current_cleaning_client_portal_accounts",
+  "cleaning_client_portal_dashboard",
+  "cleaning_client_portal_send_message",
+  "cleaning-client-documents"
+]);
+requireText('src/pages/CleaningClientPortalInvitationPage.tsx', [
+  "get_cleaning_client_portal_invitation",
+  "accept_cleaning_client_portal_invitation"
+]);
+requireText('supabase/migrations/063_cleaning_client_portal.sql', [
+  'create table if not exists public.cleaning_client_portal_accounts',
+  'create table if not exists public.cleaning_client_portal_documents',
+  'create or replace function public.cleaning_client_portal_dashboard',
+  'create or replace function public.get_cleaning_client_portal_invitation',
+  'cleaning_client_portal_documents_storage_path_check',
+  'validate_cleaning_client_portal_document_scope',
+  "'cleaning_client_portal_invitation'",
+  "bucket_id='cleaning-client-documents'",
+  'Trop de messages envoyés',
+  "'2.12.2'",
+  expectedCache,
+  'set search_path = public'
+]);
+
 requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'security_client_portal_invitation'",
+  "case 'cleaning_client_portal_invitation'",
   '/client-securite/invitation/',
-  'Votre portail client Sécurité est prêt'
+  'Votre portail client Sécurité est prêt',
+  'Votre portail client Nettoyage est prêt'
 ]);
 
 if (failures.length) {

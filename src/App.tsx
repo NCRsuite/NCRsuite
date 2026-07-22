@@ -74,6 +74,9 @@ const CleaningStockPage = lazy(() => import('./pages/CleaningStockPage').then((m
 const CleaningBillingPage = lazy(() => import('./pages/CleaningBillingPage').then((module) => ({ default: module.CleaningBillingPage })));
 const CleaningProtocolsPage = lazy(() => import('./pages/CleaningProtocolsPage').then((module) => ({ default: module.CleaningProtocolsPage })));
 const CleaningProfitabilityPage = lazy(() => import('./pages/CleaningProfitabilityPage').then((module) => ({ default: module.CleaningProfitabilityPage })));
+const CleaningClientPortalAdminPage = lazy(() => import('./pages/CleaningClientPortalAdminPage').then((module) => ({ default: module.CleaningClientPortalAdminPage })));
+const CleaningClientPortalInvitationPage = lazy(() => import('./pages/CleaningClientPortalInvitationPage').then((module) => ({ default: module.CleaningClientPortalInvitationPage })));
+const CleaningClientPortalPage = lazy(() => import('./pages/CleaningClientPortalPage').then((module) => ({ default: module.CleaningClientPortalPage })));
 const RestaurantEmployeesPage = lazy(() => import('./pages/RestaurantEmployeesPage').then((module) => ({ default: module.RestaurantEmployeesPage })));
 const RestaurantPlanningPage = lazy(() => import('./pages/RestaurantPlanningPage').then((module) => ({ default: module.RestaurantPlanningPage })));
 const RestaurantEmployeePortalPage = lazy(() => import('./pages/RestaurantEmployeePortalPage').then((module) => ({ default: module.RestaurantEmployeePortalPage })));
@@ -143,6 +146,18 @@ function TeamAccessArea() {
 }
 
 
+
+
+function ClientPortalAdminArea() {
+  const { organization } = useOrganization();
+  if (organization?.business_type === 'securite') {
+    return <SecurityFeatureGate feature="security_client_portal" requiredPlan="Professionnelle" description="Ouvrez à chaque donneur d’ordre un espace sécurisé pour consulter ses missions, rapports, rondes, documents et messages."><SecurityClientPortalAdminPage /></SecurityFeatureGate>;
+  }
+  if (organization?.business_type === 'nettoyage') {
+    return <CleaningFeatureGate feature="cleaning_client_portal" requiredPlan="Métier" description="Ouvrez à chaque client un espace sécurisé pour suivre ses interventions, rapports, anomalies, contrôles qualité, documents et messages."><CleaningClientPortalAdminPage /></CleaningFeatureGate>;
+  }
+  return <Navigate to="/" replace />;
+}
 
 function CleaningOnlyArea({ children }: { children: ReactNode }) {
   const { organization } = useOrganization();
@@ -258,6 +273,8 @@ export default function App() {
       <Route path="/r/:slug/reserver" element={<PublicRestaurantBookingPage />} />
       <Route path="/client-securite/invitation/:token" element={<SecurityClientPortalInvitationPage />} />
       <Route path="/espace-client-securite" element={<SecurityClientPortalPage />} />
+      <Route path="/client-nettoyage/invitation/:token" element={<CleaningClientPortalInvitationPage />} />
+      <Route path="/espace-client-nettoyage" element={<CleaningClientPortalPage />} />
       <Route path="/administration-ncr" element={<PlatformAdminArea />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
@@ -284,7 +301,7 @@ export default function App() {
         <Route path="pti" element={<SecurityFeatureGate feature="security_pti_sos" requiredPlan="Professionnelle" description="Activez la protection du travailleur isolé, les confirmations périodiques et le bouton SOS."><SecurityPtiPage /></SecurityFeatureGate>} />
         <Route path="supervision" element={<SecurityFeatureGate feature="security_realtime_supervision" requiredPlan="Professionnelle" description="Regroupez vacations en cours, positions GPS, PTI et urgences sur un écran de supervision."><SecuritySupervisionPage /></SecurityFeatureGate>} />
         <Route path="dossiers-vacations" element={<ModuleAccessGuard moduleKey="security_planning"><SecurityShiftDossiersPage /></ModuleAccessGuard>} />
-        <Route path="portail-clients" element={<SecurityFeatureGate feature="security_client_portal" requiredPlan="Professionnelle" description="Ouvrez à chaque donneur d’ordre un espace sécurisé pour consulter ses missions, rapports, rondes, documents et messages."><SecurityClientPortalAdminPage /></SecurityFeatureGate>} />
+        <Route path="portail-clients" element={<ClientPortalAdminArea />} />
 
         <Route path="interventions" element={<CleaningOnlyArea><ModuleAccessGuard moduleKey="cleaning_interventions"><CleaningInterventionsPage /></ModuleAccessGuard></CleaningOnlyArea>} />
         <Route path="protocoles" element={<CleaningOnlyArea><CleaningProtocolsPage /></CleaningOnlyArea>} />

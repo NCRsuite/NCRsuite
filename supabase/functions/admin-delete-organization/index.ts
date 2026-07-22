@@ -11,6 +11,7 @@ const organizationBuckets = [
   'training-documents',
   'training-signatures',
   'security-client-documents',
+  'cleaning-client-documents',
 ] as const;
 
 type StorageEntry = {
