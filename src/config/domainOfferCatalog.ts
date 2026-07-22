@@ -47,6 +47,7 @@ export type OfferFeatureKey =
   | 'security_pti_sos'
   | 'security_realtime_supervision'
   | 'security_agent_roles'
+  | 'security_client_portal'
   | 'cleaning_clients_sites'
   | 'cleaning_planning'
   | 'cleaning_scheduled_billing'
@@ -186,6 +187,7 @@ const securityProfessionnelle: OfferFeatureKey[] = [
   'security_pti_sos',
   'security_realtime_supervision',
   'security_agent_roles',
+  'security_client_portal',
   'manager_role'
 ];
 
@@ -362,7 +364,7 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       professionnelle: {
         label: 'Professionnelle', monthlyPriceCents: 8990, memberLimit: 50,
         detail: 'Ajoute la supervision opérationnelle et porte la capacité à 50 agents.',
-        additions: ['Jusqu’à 50 agents connectés', 'Géolocalisation', 'PTI / SOS', 'Supervision en temps réel', 'Rôles Agent et Chef de poste'],
+        additions: ['Jusqu’à 50 agents connectés', 'Géolocalisation', 'PTI / SOS', 'Supervision en temps réel', 'Rôles Agent et Chef de poste', 'Portail sécurisé pour les donneurs d’ordre'],
         features: securityProfessionnelle
       },
       metier: {
@@ -495,6 +497,7 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   security_pti_sos: 'PTI / SOS',
   security_realtime_supervision: 'Supervision en temps réel',
   security_agent_roles: 'Rôles Agent et Chef de poste',
+  security_client_portal: 'Portail client Sécurité',
   cleaning_clients_sites: 'Clients et sites',
   cleaning_planning: 'Planning et affectations',
   cleaning_scheduled_billing: 'Facturation des prestations programmées',

@@ -31,7 +31,7 @@ export const BUSINESS_ROUTE_PATHS: Record<BusinessType, Set<string>> = {
   ]),
   securite: new Set([
     ...common(),
-    '/terrain', '/planning', '/clients', '/agents', '/sites', '/devis', '/facturation', '/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/personnalisation'
+    '/terrain', '/planning', '/clients', '/portail-clients', '/agents', '/sites', '/devis', '/facturation', '/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/personnalisation'
   ]),
   nettoyage: new Set([
     ...common(),
@@ -56,7 +56,7 @@ const EMPLOYEE_PATHS: Record<BusinessType, Set<string>> = {
 };
 
 const MANAGER_PATHS: Partial<Record<BusinessType, Set<string>>> = {
-  securite: new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications', '/assistance', '/parametres', '/demarrage']),
+  securite: new Set(['/', '/terrain', '/planning', '/portail-clients', '/agents', '/sites', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/dossiers-vacations', '/notifications', '/assistance', '/parametres', '/demarrage']),
   nettoyage: new Set(['/', '/terrain', '/planning', '/agents', '/sites', '/interventions', '/protocoles', '/rapports', '/anomalies', '/qualite', '/stocks', '/notifications', '/assistance', '/parametres', '/demarrage']),
   restauration: new Set(['/', '/terrain', '/planning', '/equipe', '/carte', '/recettes', '/reservations', '/commandes', '/cuisine', '/salle', '/menu-qr', '/hygiene', '/stocks', '/notifications', '/assistance', '/parametres', '/demarrage'])
 };

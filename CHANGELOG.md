@@ -1,3 +1,18 @@
+# V2.12.0 — Phase 3 · Portail client Sécurité
+
+- Nouveau portail externe sécurisé pour les donneurs d’ordre des entreprises de sécurité.
+- Invitation nominative par e-mail, création ou connexion au compte client et activation par jeton temporaire de 7 jours.
+- Gestion des accès depuis NCR Suite : responsable client ou consultation, suspension, réactivation et permissions détaillées.
+- Consultation des sites, missions, agents affectés, main courante, rondes QR et indicateurs opérationnels selon les droits accordés.
+- Messagerie privée entre le donneur d’ordre et l’entreprise de sécurité, avec suivi des messages non lus et limitation anti-abus.
+- Espace documentaire privé avec PDF, images et fichiers texte jusqu’à 15 Mo, classement par catégorie et rattachement facultatif à un site.
+- Isolation stricte des données par entreprise et client via RPC SECURITY DEFINER, contrôles de rôle, RLS et stockage privé.
+- Portail inclus dans les offres Sécurité Professionnelle et Métier.
+- Nouveau modèle d’e-mail transactionnel `security_client_portal_invitation` dans la file Brevo existante.
+- Contrôles pré-build étendus aux routes, pages, fonctions SQL, migration 060 et cache de la release.
+- Cache PWA : `ncr-suite-shell-v2.12.0-security-client-portal`.
+- Aucun changement de NCR Academy.
+
 # V2.11.6 — Phase 1 · Tests critiques et surveillance globale
 
 - Nouveau centre **Surveillance** dans l’Administration NCR pour suivre les versions, erreurs d’interface, files e-mails, notifications Push et tickets urgents.

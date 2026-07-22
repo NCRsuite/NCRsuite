@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-phase1-complete`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-security-client-portal`;
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version frontend ne correspond pas à package.json.');
 if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime ne correspond pas à la release attendue.');
 if (!sw.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker ne correspond pas à la release attendue.');
@@ -48,7 +48,9 @@ const publicRoutes = [
   '/r/:slug/menu',
   '/r/:slug/reserver',
   '/evaluation/:token',
-  '/invitation/:token'
+  '/invitation/:token',
+  '/client-securite/invitation/:token',
+  '/espace-client-securite'
 ];
 for (const route of publicRoutes) {
   if (!app.includes(`path=\"${route}\"`) && !app.includes(`path='${route}'`)) {
@@ -61,6 +63,7 @@ const crossDomainRoutes = [
   ['coiffure', '/rendez-vous'],
   ['formation', '/sessions'],
   ['securite', '/rondes'],
+  ['securite', '/portail-clients'],
   ['nettoyage', '/interventions'],
   ['restauration', '/commandes']
 ];
@@ -84,14 +87,52 @@ requireText(migration, [
   'create or replace function public.platform_global_health_report',
   'create or replace function public.admin_resolve_runtime_error',
   "'2.11.6'",
-  expectedCache,
+  'ncr-suite-shell-v2.11.6-phase1-complete',
   'set search_path = public'
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
+
+
+requireText('src/pages/SecurityClientPortalAdminPage.tsx', [
+  "security_client_portal_admin_overview",
+  "create_security_client_portal_invitation",
+  "security-client-documents",
+  "security_client_portal_admin_send_message"
+]);
+requireText('src/pages/SecurityClientPortalPage.tsx', [
+  "current_security_client_portal_accounts",
+  "security_client_portal_dashboard",
+  "security_client_portal_send_message",
+  "security-client-documents"
+]);
+requireText('src/pages/SecurityClientPortalInvitationPage.tsx', [
+  "get_security_client_portal_invitation",
+  "accept_security_client_portal_invitation"
+]);
+requireText('supabase/migrations/060_security_client_portal.sql', [
+  'create table if not exists public.security_client_portal_accounts',
+  'create table if not exists public.security_client_portal_documents',
+  'create or replace function public.security_client_portal_dashboard',
+  'create or replace function public.get_security_client_portal_invitation',
+  'security_client_portal_documents_storage_path_check',
+  'email_outbox_template_key_check',
+  "'security_client_portal_invitation'",
+  "bucket_id='security-client-documents'",
+  'Trop de messages envoyés',
+  "'2.12.0'",
+  expectedCache,
+  'set search_path = public'
+]);
+
+requireText('supabase/functions/process-email-queue/index.ts', [
+  "case 'security_client_portal_invitation'",
+  '/client-securite/invitation/',
+  'Votre portail client Sécurité est prêt'
+]);
 
 if (failures.length) {
   console.error(`Parcours critiques NCR Suite : ${failures.length} échec(s)`);

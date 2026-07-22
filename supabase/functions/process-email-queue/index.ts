@@ -486,6 +486,13 @@ function templateCopy(templateKey: string, payload: Record<string, unknown>) {
         title: 'Votre avis compte',
         message: `Prenez quelques instants pour évaluer la formation « ${String(payload.program_title ?? payload.session_title ?? 'Formation')} ».`
       };
+    case 'security_client_portal_invitation':
+      return {
+        subject: `Votre portail client Sécurité — ${organization}`,
+        eyebrow: 'PORTAIL CLIENT SÉCURITÉ',
+        title: `Votre espace sécurisé est prêt`,
+        message: `${organization} vous invite à consulter les prestations de sécurité réalisées pour votre entreprise.`,
+      };
     case 'team_invitation':
       return {
         subject: `Invitation à rejoindre ${organization} sur NCR Suite`,
@@ -501,6 +508,49 @@ function templateCopy(templateKey: string, payload: Record<string, unknown>) {
 function buildEmail(item: OutboxItem, publicUrl: string) {
   const payload = item.payload ?? {};
   const copy = templateCopy(item.template_key, payload);
+
+  if (item.template_key === 'security_client_portal_invitation') {
+    const accent = safeColor(payload.organization_primary_color);
+    const organizationRaw = String(payload.organization_name ?? 'Votre prestataire de sécurité');
+    const clientRaw = String(payload.client_name ?? 'Votre entreprise');
+    const organization = escapeHtml(organizationRaw);
+    const client = escapeHtml(clientRaw);
+    const invitee = escapeHtml(payload.invited_name ?? item.recipient_name ?? '');
+    const token = String(payload.invitation_token ?? '').trim();
+    const role = String(payload.invited_role ?? '') === 'client_viewer' ? 'Consultation' : 'Responsable client';
+    const inviteUrl = `${publicUrl.replace(/\/$/, '')}/client-securite/invitation/${encodeURIComponent(token)}`;
+    const contactEmail = String(payload.contact_email ?? '').trim();
+    const contactPhone = String(payload.contact_phone ?? '').trim();
+    const organizationLogoUrl = safeImageUrl(payload.organization_logo_url);
+    const expiresAt = new Date(String(payload.expires_at ?? ''));
+    const expiry = Number.isNaN(expiresAt.getTime())
+      ? 'dans 7 jours'
+      : new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(expiresAt);
+    const logo = organizationLogoUrl
+      ? `<img src="${escapeHtml(organizationLogoUrl)}" alt="${organization}" style="display:block;max-width:180px;max-height:64px;object-fit:contain">`
+      : `<div style="display:inline-block;background:${accent};color:#fff;font-size:22px;font-weight:800;padding:12px 16px;border-radius:16px">${organization.slice(0, 2).toUpperCase()}</div>`;
+
+    const html = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;background:#eef2f7;font-family:Arial,Helvetica,sans-serif;color:#111827">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef2f7;padding:32px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 18px 45px rgba(15,23,42,.10)">
+<tr><td style="height:8px;background:${accent}"></td></tr>
+<tr><td style="padding:34px 34px 18px">${logo}<div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:${accent};margin-top:28px">PORTAIL CLIENT SÉCURITÉ</div><h1 style="font-size:30px;line-height:1.15;margin:10px 0 12px">Votre espace sécurisé est prêt.</h1><p style="font-size:16px;line-height:1.65;color:#64748b;margin:0">${invitee ? `Bonjour ${invitee}, ` : ''}${organization} vous ouvre un accès personnel pour suivre les prestations réalisées pour <strong style="color:#111827">${client}</strong>.</p></td></tr>
+<tr><td style="padding:12px 34px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px"><tr><td style="padding:16px 18px;color:#64748b">Entreprise cliente</td><td align="right" style="padding:16px 18px;font-weight:700">${client}</td></tr><tr><td style="padding:16px 18px;border-top:1px solid #e2e8f0;color:#64748b">Niveau d’accès</td><td align="right" style="padding:16px 18px;border-top:1px solid #e2e8f0;font-weight:700">${role}</td></tr><tr><td style="padding:16px 18px;border-top:1px solid #e2e8f0;color:#64748b">Invitation valable</td><td align="right" style="padding:16px 18px;border-top:1px solid #e2e8f0;font-weight:700">Jusqu’au ${escapeHtml(expiry)}</td></tr></table></td></tr>
+<tr><td style="padding:22px 34px 30px"><a href="${escapeHtml(inviteUrl)}" style="display:inline-block;background:${accent};color:#fff;text-decoration:none;font-weight:800;padding:15px 25px;border-radius:999px">Créer ou ouvrir mon portail</a><p style="font-size:13px;line-height:1.55;color:#94a3b8;margin:18px 0 0">Cet accès permet de consulter uniquement les données autorisées par votre prestataire : missions, main courante, rondes QR, documents et messages.</p></td></tr>
+<tr><td style="padding:22px 34px 30px;border-top:1px solid #e2e8f0;color:#64748b;font-size:13px;line-height:1.7">${contactEmail ? `Contact : ${escapeHtml(contactEmail)}` : ''}${contactEmail && contactPhone ? ' · ' : ''}${contactPhone ? escapeHtml(contactPhone) : ''}<br>Invitation personnelle envoyée automatiquement par NCR Suite.</td></tr>
+</table></td></tr></table></body></html>`;
+
+    const text = `Votre portail client Sécurité est prêt
+
+${organizationRaw} vous invite à suivre les prestations réalisées pour ${clientRaw}.
+Niveau d’accès : ${role}.
+Invitation valable jusqu’au ${expiry}.
+
+Ouvrir le portail : ${inviteUrl}`;
+    return { subject: copy.subject, html, text, replyTo: contactEmail || null };
+  }
 
   if (item.template_key === 'team_invitation') {
     const accent = safeColor(payload.organization_primary_color);

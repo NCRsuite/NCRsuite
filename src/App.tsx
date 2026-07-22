@@ -54,6 +54,9 @@ const SecurityGeolocationPage = lazy(() => import('./pages/SecurityGeolocationPa
 const SecurityPtiPage = lazy(() => import('./pages/SecurityPtiPage').then((module) => ({ default: module.SecurityPtiPage })));
 const SecuritySupervisionPage = lazy(() => import('./pages/SecuritySupervisionPage').then((module) => ({ default: module.SecuritySupervisionPage })));
 const SecurityShiftDossiersPage = lazy(() => import('./pages/SecurityShiftDossiersPage').then((module) => ({ default: module.SecurityShiftDossiersPage })));
+const SecurityClientPortalAdminPage = lazy(() => import('./pages/SecurityClientPortalAdminPage').then((module) => ({ default: module.SecurityClientPortalAdminPage })));
+const SecurityClientPortalInvitationPage = lazy(() => import('./pages/SecurityClientPortalInvitationPage').then((module) => ({ default: module.SecurityClientPortalInvitationPage })));
+const SecurityClientPortalPage = lazy(() => import('./pages/SecurityClientPortalPage').then((module) => ({ default: module.SecurityClientPortalPage })));
 const SecurityQuotesPage = lazy(() => import('./pages/SecurityQuotesPage').then((module) => ({ default: module.SecurityQuotesPage })));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage').then((module) => ({ default: module.NotificationsPage })));
 const SupportPage = lazy(() => import('./pages/SupportPage').then((module) => ({ default: module.SupportPage })));
@@ -253,6 +256,8 @@ export default function App() {
       <Route path="/evaluation/:token" element={<PublicTrainingSatisfactionPage />} />
       <Route path="/r/:slug/menu" element={<PublicRestaurantMenuPage />} />
       <Route path="/r/:slug/reserver" element={<PublicRestaurantBookingPage />} />
+      <Route path="/client-securite/invitation/:token" element={<SecurityClientPortalInvitationPage />} />
+      <Route path="/espace-client-securite" element={<SecurityClientPortalPage />} />
       <Route path="/administration-ncr" element={<PlatformAdminArea />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
@@ -279,6 +284,7 @@ export default function App() {
         <Route path="pti" element={<SecurityFeatureGate feature="security_pti_sos" requiredPlan="Professionnelle" description="Activez la protection du travailleur isolé, les confirmations périodiques et le bouton SOS."><SecurityPtiPage /></SecurityFeatureGate>} />
         <Route path="supervision" element={<SecurityFeatureGate feature="security_realtime_supervision" requiredPlan="Professionnelle" description="Regroupez vacations en cours, positions GPS, PTI et urgences sur un écran de supervision."><SecuritySupervisionPage /></SecurityFeatureGate>} />
         <Route path="dossiers-vacations" element={<ModuleAccessGuard moduleKey="security_planning"><SecurityShiftDossiersPage /></ModuleAccessGuard>} />
+        <Route path="portail-clients" element={<SecurityFeatureGate feature="security_client_portal" requiredPlan="Professionnelle" description="Ouvrez à chaque donneur d’ordre un espace sécurisé pour consulter ses missions, rapports, rondes, documents et messages."><SecurityClientPortalAdminPage /></SecurityFeatureGate>} />
 
         <Route path="interventions" element={<CleaningOnlyArea><ModuleAccessGuard moduleKey="cleaning_interventions"><CleaningInterventionsPage /></ModuleAccessGuard></CleaningOnlyArea>} />
         <Route path="protocoles" element={<CleaningOnlyArea><CleaningProtocolsPage /></CleaningOnlyArea>} />

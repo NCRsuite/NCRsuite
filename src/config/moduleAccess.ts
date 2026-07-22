@@ -32,6 +32,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/pti': 'security_pti_sos',
   '/supervision': 'security_realtime_supervision',
   '/dossiers-vacations': 'security_planning',
+  '/portail-clients': 'security_client_portal',
   '/documents': 'documents',
   '/formations': 'training_programs',
   '/stagiaires': 'trainees',
@@ -68,7 +69,8 @@ const SECURITY_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/consignes': 'security_site_instructions',
   '/geolocalisation': 'security_geolocation',
   '/pti': 'security_pti_sos',
-  '/supervision': 'security_realtime_supervision'
+  '/supervision': 'security_realtime_supervision',
+  '/portail-clients': 'security_client_portal'
 };
 
 const RESTAURANT_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
@@ -98,7 +100,7 @@ const CLEANING_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/rentabilite': 'cleaning_profitability'
 };
 
-const SECURITY_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision']);
+const SECURITY_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/portail-clients']);
 const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/rapports', '/anomalies', '/qualite', '/stocks', '/rentabilite', '/acces-equipe']);
 const RESTAURANT_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/cuisine', '/personnalisation']);
 
@@ -112,7 +114,7 @@ export function moduleKeyForPath(pathname: string, businessType?: Organization['
   const normalized = normalizedModulePath(pathname);
   if (businessType === 'securite') {
     const securityModules: Record<string, string> = {
-      '/terrain': 'security_agent_portal', '/clients': 'security_clients', '/sites': 'security_sites', '/agents': 'security_agents', '/planning': 'security_planning', '/devis': 'security_quotes', '/facturation': 'security_billing', '/rondes': 'security_qr_patrols', '/main-courante': 'security_smart_logbook', '/consignes': 'security_site_instructions', '/personnalisation': 'security_document_branding', '/geolocalisation': 'security_geolocation', '/pti': 'security_pti_sos', '/supervision': 'security_realtime_supervision', '/dossiers-vacations': 'security_planning'
+      '/terrain': 'security_agent_portal', '/clients': 'security_clients', '/sites': 'security_sites', '/agents': 'security_agents', '/planning': 'security_planning', '/devis': 'security_quotes', '/facturation': 'security_billing', '/rondes': 'security_qr_patrols', '/main-courante': 'security_smart_logbook', '/consignes': 'security_site_instructions', '/personnalisation': 'security_document_branding', '/geolocalisation': 'security_geolocation', '/pti': 'security_pti_sos', '/supervision': 'security_realtime_supervision', '/dossiers-vacations': 'security_planning', '/portail-clients': 'security_client_portal'
     };
     if (securityModules[normalized]) return securityModules[normalized];
   }
@@ -141,6 +143,7 @@ export function featureKeyForPath(pathname: string, businessType?: Organization[
 
 export function securityRequiredPlanForPath(pathname: string): string | null {
   const normalized = normalizedModulePath(pathname);
+  if (normalized === '/portail-clients') return 'Professionnelle';
   if (['/geolocalisation', '/pti', '/supervision'].includes(normalized)) return 'Module / Pro';
   if (['/acces-equipe', '/rondes', '/main-courante', '/consignes'].includes(normalized)) return 'Module / Essentielle';
   return null;
