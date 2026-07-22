@@ -52,6 +52,38 @@ interface SubscriptionRequest {
   review_note: string | null;
 }
 
+interface SecurityAddonLink {
+  addon_key: string;
+  display_name: string;
+  short_description: string;
+  monthly_price_cents: number;
+  available_plans: Plan[];
+  provider: 'manual' | 'qonto' | 'stripe';
+  checkout_url: string | null;
+  checkout_active: boolean;
+  sort_order: number;
+}
+
+interface SecurityAddonConfiguration {
+  addons: SecurityAddonLink[];
+}
+
+interface SecurityAddonRequest {
+  id: string;
+  organization_id: string;
+  organization_name: string;
+  owner_email: string | null;
+  addon_key: string;
+  addon_name: string;
+  action: 'add' | 'remove';
+  status: 'payment_pending' | 'pending_review' | 'approved' | 'rejected' | 'canceled';
+  provider: 'manual' | 'qonto' | 'stripe';
+  request_reference: string;
+  provider_payment_reference: string | null;
+  created_at: string;
+  review_note: string | null;
+}
+
 const planLabels: Record<Plan, string> = {
   decouverte: 'Découverte',
   essentielle: 'Essentielle',
@@ -70,6 +102,8 @@ function dateLabel(value: string) {
 export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean; onChanged?: () => void }) {
   const [configuration, setConfiguration] = useState<BillingConfiguration | null>(null);
   const [requests, setRequests] = useState<SubscriptionRequest[]>([]);
+  const [securityAddonConfiguration, setSecurityAddonConfiguration] = useState<SecurityAddonConfiguration>({ addons: [] });
+  const [securityAddonRequests, setSecurityAddonRequests] = useState<SecurityAddonRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState('');
   const [message, setMessage] = useState('');
@@ -83,6 +117,11 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     [requests]
   );
 
+  const openSecurityAddonRequests = useMemo(
+    () => securityAddonRequests.filter((request) => ['payment_pending', 'pending_review'].includes(request.status)),
+    [securityAddonRequests]
+  );
+
   const visiblePlans = useMemo(
     () => (configuration?.plans ?? [])
       .filter((plan) => plan.business_type === selectedBusinessType)
@@ -94,9 +133,11 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     if (!supabase) return;
     setLoading(true);
     setError('');
-    const [configurationResult, requestsResult] = await Promise.all([
+    const [configurationResult, requestsResult, addonConfigurationResult, addonRequestsResult] = await Promise.all([
       supabase.rpc('admin_billing_configuration'),
-      supabase.rpc('admin_list_subscription_requests', { p_status: null })
+      supabase.rpc('admin_list_subscription_requests', { p_status: null }),
+      supabase.rpc('admin_security_addon_configuration'),
+      supabase.rpc('admin_list_security_addon_requests', { p_status: null })
     ]);
     if (configurationResult.error) setError(configurationResult.error.message);
     else {
@@ -108,6 +149,10 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     }
     if (requestsResult.error) setError(requestsResult.error.message);
     else setRequests((requestsResult.data ?? []) as SubscriptionRequest[]);
+    if (addonConfigurationResult.error) setError(addonConfigurationResult.error.message);
+    else setSecurityAddonConfiguration((addonConfigurationResult.data ?? { addons: [] }) as SecurityAddonConfiguration);
+    if (addonRequestsResult.error) setError(addonRequestsResult.error.message);
+    else setSecurityAddonRequests((addonRequestsResult.data ?? []) as SecurityAddonRequest[]);
     setLoading(false);
   }
 
@@ -185,6 +230,54 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     }
   }
 
+  function updateSecurityAddonLocal(addonKey: string, updates: Partial<SecurityAddonLink>) {
+    setSecurityAddonConfiguration((current) => ({
+      ...current,
+      addons: current.addons.map((addon) => addon.addon_key === addonKey ? { ...addon, ...updates } : addon)
+    }));
+  }
+
+  async function saveSecurityAddonLink(addon: SecurityAddonLink) {
+    if (!supabase || !canManage) return;
+    setSaving(`addon-link-${addon.addon_key}`);
+    setMessage('');
+    setError('');
+    const { error: requestError } = await supabase.rpc('admin_update_security_addon_link', {
+      p_addon_key: addon.addon_key,
+      p_provider: addon.provider,
+      p_checkout_url: addon.checkout_url || null,
+      p_active: addon.checkout_active
+    });
+    setSaving('');
+    if (requestError) setError(requestError.message);
+    else {
+      setMessage(`Le paiement du module ${addon.display_name} a été configuré.`);
+      await load();
+    }
+  }
+
+  async function reviewSecurityAddonRequest(request: SecurityAddonRequest, decision: 'approve' | 'reject') {
+    if (!supabase || !canManage) return;
+    setSaving(`addon-request-${request.id}`);
+    setMessage('');
+    setError('');
+    const { error: requestError } = await supabase.rpc('admin_review_security_addon_request', {
+      p_request_id: request.id,
+      p_decision: decision,
+      p_note: reviewNotes[request.id]?.trim() || null,
+      p_provider_payment_reference: paymentReferences[request.id]?.trim() || null
+    });
+    setSaving('');
+    if (requestError) setError(requestError.message);
+    else {
+      setMessage(decision === 'approve'
+        ? `${request.addon_name} a été ${request.action === 'add' ? 'activé' : 'retiré'} pour ${request.organization_name}.`
+        : `La demande de module de ${request.organization_name} a été refusée.`);
+      await load();
+      onChanged?.();
+    }
+  }
+
   if (loading) return <section className="panel billing-admin-loading">Chargement de la facturation…</section>;
   if (!configuration) return <section className="panel"><div className="error-message">Configuration de facturation indisponible.</div></section>;
 
@@ -250,6 +343,46 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
                 <input type="url" value={plan.checkout_url ?? ''} onChange={(event) => updatePlanLocal(plan.business_type, plan.plan_key, { checkout_url: event.target.value })} placeholder={plan.plan_key === 'metier' ? 'Facultatif — offre sur étude' : 'https://...'} disabled={!canManage} />
                 <label className="compact-switch"><input type="checkbox" checked={plan.active} onChange={(event) => updatePlanLocal(plan.business_type, plan.plan_key, { active: event.target.checked })} disabled={!canManage} /><span>{plan.active ? 'Actif' : 'Inactif'}</span></label>
                 {canManage && <button className="secondary-button compact-button" type="button" onClick={() => savePlanLink(plan)} disabled={saving === `plan-${plan.business_type}-${plan.plan_key}`}>{saving === `plan-${plan.business_type}-${plan.plan_key}` ? '…' : 'Enregistrer'}</button>}
+              </div>
+            ))}
+          </div>
+        </article>
+      </div>
+
+      <div className="billing-admin-grid security-addon-admin-grid">
+        <article className="panel billing-requests-panel">
+          <div className="panel-header"><div><p className="eyebrow">MODULES SÉCURITÉ</p><h3>Demandes à la carte</h3></div><span>{openSecurityAddonRequests.length}</span></div>
+          {openSecurityAddonRequests.length === 0 ? <div className="admin-empty-state">Aucune demande de module en attente.</div> : (
+            <div className="billing-request-list">
+              {openSecurityAddonRequests.map((request) => (
+                <article key={request.id} className="billing-request-card security-addon-admin-request">
+                  <div className="billing-request-top">
+                    <span className="admin-company-avatar"><Icon name="shield" size={19} /></span>
+                    <div><strong>{request.organization_name}</strong><small>{request.owner_email || 'E-mail propriétaire non disponible'}</small></div>
+                    <span className={`admin-status-pill ${request.status === 'payment_pending' ? 'warning' : 'positive'}`}>{request.status === 'payment_pending' ? 'Paiement à vérifier' : 'Validation manuelle'}</span>
+                  </div>
+                  <div className="billing-request-route"><b>{request.action === 'add' ? 'Ajouter' : 'Retirer'}</b><Icon name="chevronRight" size={18} /><b>{request.addon_name}</b></div>
+                  <p>Référence <strong>{request.request_reference}</strong> · {request.provider === 'qonto' ? 'Qonto' : request.provider} · {dateLabel(request.created_at)}</p>
+                  {request.status === 'payment_pending' && <label>Référence du paiement Qonto (facultatif)<input value={paymentReferences[request.id] ?? ''} onChange={(event) => setPaymentReferences((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Identifiant visible dans Qonto" disabled={!canManage} /></label>}
+                  <label>Note interne<textarea rows={2} value={reviewNotes[request.id] ?? ''} onChange={(event) => setReviewNotes((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Contrôle ou échange avec le client…" disabled={!canManage} /></label>
+                  {canManage && <div className="billing-request-buttons"><button className="primary-button" type="button" onClick={() => reviewSecurityAddonRequest(request, 'approve')} disabled={saving === `addon-request-${request.id}`}>{saving === `addon-request-${request.id}` ? 'Traitement…' : request.action === 'add' ? 'Valider et activer' : 'Valider le retrait'}</button><button className="secondary-button danger" type="button" onClick={() => reviewSecurityAddonRequest(request, 'reject')} disabled={saving === `addon-request-${request.id}`}>Refuser</button></div>}
+                </article>
+              ))}
+            </div>
+          )}
+        </article>
+
+        <article className="panel billing-links-panel">
+          <div className="panel-header"><div><p className="eyebrow">PAIEMENTS MODULES</p><h3>Liens Qonto Sécurité</h3></div></div>
+          <p className="muted">Chaque module peut disposer de son propre lien récurrent. Sans lien actif, la demande remonte en validation manuelle.</p>
+          <div className="billing-plan-link-list">
+            {securityAddonConfiguration.addons.map((addon) => (
+              <div className="billing-plan-link-row" key={addon.addon_key}>
+                <div><strong>{addon.display_name}</strong><small>{money(addon.monthly_price_cents)} HT / mois · {addon.available_plans.map((plan) => planLabels[plan]).join(', ')}</small></div>
+                <select value={addon.provider} onChange={(event) => updateSecurityAddonLocal(addon.addon_key, { provider: event.target.value as SecurityAddonLink['provider'] })} disabled={!canManage}><option value="qonto">Qonto</option><option value="manual">Manuel</option><option value="stripe">Stripe (plus tard)</option></select>
+                <input type="url" value={addon.checkout_url ?? ''} onChange={(event) => updateSecurityAddonLocal(addon.addon_key, { checkout_url: event.target.value })} placeholder="https://..." disabled={!canManage} />
+                <label className="compact-switch"><input type="checkbox" checked={addon.checkout_active} onChange={(event) => updateSecurityAddonLocal(addon.addon_key, { checkout_active: event.target.checked })} disabled={!canManage} /><span>{addon.checkout_active ? 'Actif' : 'Inactif'}</span></label>
+                {canManage && <button className="secondary-button compact-button" type="button" onClick={() => saveSecurityAddonLink(addon)} disabled={saving === `addon-link-${addon.addon_key}`}>{saving === `addon-link-${addon.addon_key}` ? '…' : 'Enregistrer'}</button>}
               </div>
             ))}
           </div>

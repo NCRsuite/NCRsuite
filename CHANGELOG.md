@@ -1,3 +1,17 @@
+# NCR Suite — Changelog
+
+## V2.11.3 — Modules Sécurité à la carte
+
+- Catalogue de modules indépendants pour les offres Sécurité Découverte et Essentielle.
+- Tarification dynamique avec comparaison automatique à la formule supérieure.
+- Accès Agent Terrain pour 5 agents et extension optionnelle jusqu’à 10 agents en Découverte.
+- Modules Rondes QR, Main courante numérique, Consignes & alertes, Géolocalisation, PTI/SOS, Supervision QG et Chef de poste.
+- Gestion des prérequis entre modules.
+- Demandes d’activation ou de retrait depuis Mon abonnement.
+- Validation administrative et liens Qonto propres à chaque module.
+- Verrouillage réel côté Supabase, routes et limites d’agents.
+- Synchronisation automatique des droits lors d’un changement de formule.
+
 # V2.11.2 — Finalisation Phase 2 : démarrage, imports et diagnostic SaaS
 
 - Nouveau centre de démarrage commun à tous les métiers, avec checklist adaptée à Coiffure, Formation, Sécurité, Nettoyage et Restauration.

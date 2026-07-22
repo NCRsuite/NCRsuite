@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
+import { SecurityAddonsPanel } from '../components/SecurityAddonsPanel';
 import { businessPacks } from '../config/businessPacks';
 import { planLabel } from '../config/planEntitlements';
 import { getDomainOffer, OFFER_FEATURE_LABELS } from '../config/domainOfferCatalog';
@@ -347,7 +348,9 @@ export function SubscriptionPage() {
             </section>
           )}
 
-          <section className="subscription-plans-section">
+          {data.business_type === 'securite' && <SecurityAddonsPanel />}
+
+          <section id="subscription-plans" className="subscription-plans-section">
             <div className="section-heading-row">
               <div><p className="eyebrow">FORMULES</p><h2>Choisir le niveau adapté</h2><p>Le paiement Qonto déclenche une demande ; l’activation est validée depuis l’administration NCR.</p></div>
             </div>

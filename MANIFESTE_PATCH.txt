@@ -1,24 +1,9 @@
-PATCH NCR SUITE V2.6.5 FINAL
-Base requise : V2.6.4
+NCR Suite V2.11.3 — Modules Sécurité à la carte
 
-Fichiers modifiés ou ajoutés :
-- A_LIRE_INSTALLATION.txt
-- CHANGELOG.md
-- README.md
-- MANIFESTE_PATCH.txt
-- package.json
-- package-lock.json
-- docs/V2.6.5_INSTALLATION.md
-- public/sw.js
-- src/features/security/documentEmail.ts
-- src/pages/SecurityAgentDetailPage.tsx
-- src/pages/SecurityPlanningPage.tsx
-- src/styles.css
-- supabase/config.toml
-- supabase/migrations/042_security_delete_planned_shift.sql
-- supabase/functions/send-security-document-v2/index.ts
+Installation :
+1. Exécuter supabase/migrations/057_security_addons.sql
+2. Ajouter/remplacer les autres fichiers dans GitHub en conservant l’arborescence
+3. Vérifier le déploiement Cloudflare
+4. Fermer puis rouvrir la PWA
 
-SQL 042 obligatoire avant GitHub.
-Déploiement obligatoire de la nouvelle Edge Function send-security-document-v2.
-Ne pas modifier process-email-queue.
-Ce patch remplace entièrement le premier patch V2.6.5 non installé.
+Ce patch est incrémental et doit être installé sur la V2.11.2.

@@ -141,10 +141,10 @@ export function featureKeyForPath(pathname: string, businessType?: Organization[
   return GENERIC_FEATURE_BY_PATH[normalized];
 }
 
-export function securityRequiredPlanForPath(pathname: string): 'Essentielle' | 'Professionnelle' | null {
+export function securityRequiredPlanForPath(pathname: string): string | null {
   const normalized = normalizedModulePath(pathname);
-  if (['/geolocalisation', '/pti', '/supervision'].includes(normalized)) return 'Professionnelle';
-  if (['/acces-equipe', '/rondes', '/main-courante', '/consignes'].includes(normalized)) return 'Essentielle';
+  if (['/geolocalisation', '/pti', '/supervision'].includes(normalized)) return 'Module / Pro';
+  if (['/acces-equipe', '/rondes', '/main-courante', '/consignes'].includes(normalized)) return 'Module / Essentielle';
   return null;
 }
 

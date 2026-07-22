@@ -45,6 +45,21 @@ export function businessPlanHasFeature(businessType: BusinessType, plan: Plan, f
   return getPlanDefinition(businessType, plan).features.includes(feature);
 }
 
+
+const SECURITY_ADDON_FEATURE_MODULES: Partial<Record<PlanFeature, string>> = {
+  team_access: 'team_access',
+  manager_role: 'security_agent_roles',
+  security_agent_portal: 'security_agent_portal',
+  security_qr_patrols: 'security_qr_patrols',
+  security_smart_logbook: 'security_smart_logbook',
+  security_site_instructions: 'security_site_instructions',
+  security_logbook_pdf: 'security_logbook_pdf',
+  security_geolocation: 'security_geolocation',
+  security_pti_sos: 'security_pti_sos',
+  security_realtime_supervision: 'security_realtime_supervision',
+  security_agent_roles: 'security_agent_roles'
+};
+
 const FORMATION_FEATURE_MODULES: Partial<Record<PlanFeature, string>> = {
   training_programs: 'training_programs',
   training_trainees: 'trainees',
@@ -66,6 +81,11 @@ const FORMATION_FEATURE_MODULES: Partial<Record<PlanFeature, string>> = {
 };
 
 export function organizationHasFeature(organization: Organization, feature: PlanFeature) {
+  if (organization.business_type === 'securite') {
+    const addonModule = SECURITY_ADDON_FEATURE_MODULES[feature];
+    if (addonModule && (organization.enabled_modules ?? []).includes(addonModule)) return true;
+  }
+
   if (!businessPlanHasFeature(organization.business_type, organization.plan, feature)) return false;
 
   if (organization.business_type === 'formation' && organization.plan === 'metier' && organization.metier_modules_configured) {
