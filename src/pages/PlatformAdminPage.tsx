@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { AdminCreateSpaceModal } from '../components/AdminCreateSpaceModal';
 import { BillingAdminPanel } from '../components/BillingAdminPanel';
 import { MetierAdminPanel } from '../components/MetierAdminPanel';
@@ -149,6 +149,8 @@ export function PlatformAdminPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [showCreateSpace, setShowCreateSpace] = useState(false);
+  const [loginEmail, setLoginEmail] = useState(user?.email ?? '');
+  const [changingLoginEmail, setChangingLoginEmail] = useState(false);
 
   const [editPlan, setEditPlan] = useState<Plan>('decouverte');
   const [editOrganizationStatus, setEditOrganizationStatus] = useState<OrganizationStatus>('active');
@@ -214,6 +216,10 @@ export function PlatformAdminPage() {
   }, []);
 
   useEffect(() => {
+    setLoginEmail(user?.email ?? '');
+  }, [user?.email]);
+
+  useEffect(() => {
     const timer = window.setTimeout(() => {
       void loadOrganizations(false).catch((requestError: any) => setError(requestError?.message ?? 'Recherche impossible.'));
     }, 280);
@@ -245,6 +251,37 @@ export function PlatformAdminPage() {
     setEditPlan(value);
     const defaultPrice = selectedPlans.find((plan) => plan.value === value)?.defaultPrice ?? 0;
     setEditPrice((defaultPrice / 100).toFixed(2));
+  }
+
+  async function changeSuperAdminLoginEmail(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || profile?.role !== 'super_admin') return;
+
+    const nextEmail = loginEmail.trim().toLowerCase();
+    if (!nextEmail || nextEmail === user?.email?.toLowerCase()) {
+      setError(nextEmail ? 'Cette adresse est déjà utilisée pour ta connexion.' : 'Saisis une adresse e-mail valide.');
+      setMessage('');
+      return;
+    }
+
+    setChangingLoginEmail(true);
+    setError('');
+    setMessage('');
+
+    const { error: updateError } = await supabase.auth.updateUser(
+      { email: nextEmail },
+      { emailRedirectTo: `${window.location.origin}/administration-ncr` }
+    );
+
+    if (updateError) {
+      setError(updateError.message);
+    } else {
+      setMessage(
+        'La demande de changement a été envoyée. Confirme les e-mails reçus sur l’ancienne et la nouvelle adresse, puis reconnecte-toi avec la nouvelle adresse.'
+      );
+    }
+
+    setChangingLoginEmail(false);
   }
 
   async function handleSpaceCreated(_organizationId: string, organizationName: string) {
@@ -317,6 +354,40 @@ export function PlatformAdminPage() {
 
         {error && <div className="error-message page-message" role="alert">{error}</div>}
         {message && <div className="success-message page-message" role="status">{message}</div>}
+
+        {profile?.role === 'super_admin' && (
+          <section className="panel" aria-labelledby="super-admin-login-email-title">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">COMPTE SUPER-ADMINISTRATEUR</p>
+                <h2 id="super-admin-login-email-title">Adresse de connexion</h2>
+                <p>Le changement conserve le même compte, le même mot de passe et tous les droits d’administration.</p>
+              </div>
+            </div>
+            <form onSubmit={changeSuperAdminLoginEmail} className="form-grid">
+              <label className="field">
+                <span>Nouvelle adresse e-mail</span>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  value={loginEmail}
+                  onChange={(event) => setLoginEmail(event.target.value)}
+                  placeholder="contact@ncr-suite.fr"
+                  required
+                />
+              </label>
+              <div className="form-actions">
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={changingLoginEmail || loginEmail.trim().toLowerCase() === user?.email?.toLowerCase()}
+                >
+                  {changingLoginEmail ? 'Envoi en cours…' : 'Changer mon e-mail de connexion'}
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
 
         <nav className="platform-admin-tabs admin-saas-tabs" aria-label="Sections de l’administration NCR">
           <button type="button" className={activeSection === 'cockpit' ? 'active' : ''} onClick={() => setActiveSection('cockpit')}>
