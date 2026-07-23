@@ -1,3 +1,20 @@
+# V2.13.0 — Finalisation Restauration premium
+
+- Refonte complète du menu public QR avec un rendu mobile-first, moderne et adapté à l’univers de la restauration.
+- Personnalisation selon l’enseigne : nom public, logo, couverture, couleurs principale et secondaire, accroche, adresse, horaires et informations pratiques.
+- Six ambiances visuelles sélectionnables : Signature, Bistro, Gastronomique, Street food, Méditerranéen et Minimal.
+- Deux présentations de carte : cartes visuelles et mise en page éditoriale.
+- Navigation rapide par catégories, suggestions du chef, badges végétarien/végan et allergènes traduits.
+- Bouton de réservation publique personnalisable lorsqu’il est inclus et activé dans l’offre.
+- Ajout des photos de plats depuis la gestion de la carte, avec aperçu dans l’administration et affichage public optimisé.
+- Page QR modernisée avec identité de l’enseigne, téléchargement haute définition, aperçu et lien vers la personnalisation.
+- Respect des domaines personnalisés actifs pour les liens publics et les QR codes.
+- Maintien de la traduction FR, EN, ES et IT, avec relecture et modification manuelles.
+- Migration Supabase `065_restaurant_public_menu_premium.sql`.
+- Cache PWA : `ncr-suite-shell-v2.13.0-restaurant-premium`.
+- Les droits d’upload existants du métier Sécurité sont explicitement préservés.
+- Aucun changement de NCR Academy.
+
 # V2.12.3 — Espace client Coiffure et fidélité configurable
 
 - Transformation de la rubrique **Fidélité** en véritable centre de configuration pour les salons.

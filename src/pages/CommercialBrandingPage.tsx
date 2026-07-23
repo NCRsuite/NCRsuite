@@ -3,6 +3,7 @@ import { Icon } from '../components/Icon';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
+import { RestaurantCommercialBrandingPage } from './RestaurantCommercialBrandingPage';
 
 const allowedTypes = ['image/png', 'image/jpeg', 'image/webp'];
 
@@ -510,5 +511,6 @@ export function CommercialBrandingPage() {
   const { organization } = useOrganization();
   if (organization?.business_type === 'formation') return <TrainingCommercialBrandingPage />;
   if (organization?.business_type === 'securite') return <SecurityDocumentBrandingPage />;
+  if (organization?.business_type === 'restauration') return <RestaurantCommercialBrandingPage />;
   return <CoiffureCommercialBrandingPage />;
 }

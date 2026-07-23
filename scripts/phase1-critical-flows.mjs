@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-coiffure-loyalty-portal`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-restaurant-premium`;
+const coiffureCache = 'ncr-suite-shell-v2.12.3-coiffure-loyalty-portal';
 const cleaningCache = 'ncr-suite-shell-v2.12.2-cleaning-client-portal';
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version frontend ne correspond pas à package.json.');
 if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime ne correspond pas à la release attendue.');
@@ -100,7 +101,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -217,6 +218,46 @@ requireText('supabase/migrations/064_coiffure_loyalty_client_portal.sql', [
   'create or replace function public.set_coiffure_client_portal_account_status',
   "'coiffure_client_portal_invitation'",
   "'2.12.3'",
+  coiffureCache,
+  'set search_path = public'
+]);
+
+requireText('src/pages/RestaurantCommercialBrandingPage.tsx', [
+  "update_restaurant_public_menu_settings",
+  "organization-branding",
+  "restaurant-theme-grid",
+  "showDishImages",
+  "showBookingButton"
+]);
+requireText('src/pages/PublicRestaurantMenuPage.tsx', [
+  "get_public_restaurant_menu",
+  "restaurant-theme-",
+  "image_url",
+  "restaurant-public-category-nav",
+  "/reserver"
+]);
+requireText('src/pages/RestaurantMenuPage.tsx', [
+  "restaurant-dish-photo-field",
+  "organization-branding",
+  "image_url"
+]);
+requireText('src/pages/RestaurantQrMenuPage.tsx', [
+  "Personnaliser le rendu",
+  "QRCode.toDataURL",
+  "restaurant-qr-premium"
+]);
+requireText('src/pages/CommercialBrandingPage.tsx', [
+  "business_type === 'restauration'",
+  "<RestaurantCommercialBrandingPage />"
+]);
+requireText('supabase/migrations/065_restaurant_public_menu_premium.sql', [
+  'create table if not exists public.restaurant_public_menu_settings',
+  'create or replace function public.update_restaurant_public_menu_settings',
+  'create or replace function public.get_public_restaurant_menu',
+  "public.organization_has_plan_feature(o.id, 'commercial_branding')",
+  "o.business_type = 'securite'",
+  "'image_url', i.image_url",
+  "'2.13.0'",
   expectedCache,
   'set search_path = public'
 ]);

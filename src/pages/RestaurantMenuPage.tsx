@@ -26,6 +26,7 @@ type MenuForm = {
   descriptionIt: string;
   price: string;
   cost: string;
+  imageUrl: string;
   allergens: string[];
   vegetarian: boolean;
   vegan: boolean;
@@ -49,6 +50,7 @@ const emptyItem: MenuForm = {
   descriptionIt: '',
   price: '',
   cost: '',
+  imageUrl: '',
   allergens: [],
   vegetarian: false,
   vegan: false,
@@ -58,6 +60,23 @@ const emptyItem: MenuForm = {
 function centsFromInput(value: string) {
   const amount = Number(value.replace(',', '.'));
   return Number.isFinite(amount) && amount >= 0 ? Math.round(amount * 100) : null;
+}
+
+const restaurantDishImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
+
+function restaurantImageExtension(file: File) {
+  if (file.type === 'image/png') return 'png';
+  if (file.type === 'image/webp') return 'webp';
+  return 'jpg';
+}
+
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Lecture de la photo impossible.'));
+    reader.readAsDataURL(file);
+  });
 }
 
 function menuVisual(categoryName = '') {
@@ -89,6 +108,7 @@ export function RestaurantMenuPage() {
   const [items, setItems] = useState<RestaurantMenuItemRecord[]>([]);
   const [categoryName, setCategoryName] = useState('');
   const [form, setForm] = useState<MenuForm>(emptyItem);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [saving, setSaving] = useState(false);
@@ -100,6 +120,26 @@ export function RestaurantMenuPage() {
   const hasQr = Boolean(organization && organizationHasFeature(organization, 'restaurant_multilingual_qr_menu'));
   const hasCost = Boolean(organization && organizationHasFeature(organization, 'restaurant_food_cost'));
   const canViewCosts = hasCost && ['owner', 'admin'].includes(organization?.role ?? 'viewer');
+  const imagePreview = useMemo(() => imageFile ? URL.createObjectURL(imageFile) : form.imageUrl || null, [imageFile, form.imageUrl]);
+
+  useEffect(() => () => { if (imageFile && imagePreview) URL.revokeObjectURL(imagePreview); }, [imageFile, imagePreview]);
+
+  function selectDishImage(file: File | undefined) {
+    if (!file) return;
+    setError('');
+    if (!restaurantDishImageTypes.includes(file.type)) { setError('Utilise une photo PNG, JPG ou WebP.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setError('La photo du plat ne doit pas dépasser 5 Mo.'); return; }
+    setImageFile(file);
+  }
+
+  async function uploadDishImage(file: File) {
+    if (!organization || !supabase) throw new Error('Supabase n’est pas configuré.');
+    const itemKey = editingId || crypto.randomUUID();
+    const path = `${organization.id}/restaurant/dishes/${itemKey}-${Date.now()}.${restaurantImageExtension(file)}`;
+    const { error: uploadError } = await supabase.storage.from('organization-branding').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
+    if (uploadError) throw uploadError;
+    return supabase.storage.from('organization-branding').getPublicUrl(path).data.publicUrl;
+  }
 
   async function load() {
     if (!organization) return;
@@ -234,6 +274,15 @@ export function RestaurantMenuPage() {
       }
     }
 
+    let resolvedImageUrl = nullableRestaurantText(resolvedForm.imageUrl);
+    try {
+      if (imageFile) resolvedImageUrl = demoMode || !supabase ? await fileToDataUrl(imageFile) : await uploadDishImage(imageFile);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Import de la photo impossible.');
+      setSaving(false);
+      return;
+    }
+
     const category = categories.find((row) => row.id === resolvedForm.categoryId);
     const payload = {
       organization_id: organization.id,
@@ -247,6 +296,7 @@ export function RestaurantMenuPage() {
       description_es: hasQr ? nullableRestaurantText(resolvedForm.descriptionEs) : null,
       description_it: hasQr ? nullableRestaurantText(resolvedForm.descriptionIt) : null,
       price_cents: priceCents,
+      image_url: resolvedImageUrl,
       allergens: resolvedForm.allergens,
       vegetarian: resolvedForm.vegetarian,
       vegan: resolvedForm.vegan,
@@ -263,7 +313,6 @@ export function RestaurantMenuPage() {
           ...payload,
           cost_cents: Number(costCents ?? 0),
           available: editingId ? (items.find((row) => row.id === editingId)?.available ?? true) : true,
-          image_url: null,
           restaurant_menu_categories: category ? { name: category.name, name_en: category.name_en, name_es: category.name_es, name_it: category.name_it } : null,
         };
         saved = { id: editingId || crypto.randomUUID(), ...base };
@@ -302,6 +351,7 @@ export function RestaurantMenuPage() {
         ? current.map((row) => row.id === editingId ? saved : row)
         : [...current, saved]);
       setForm(emptyItem);
+      setImageFile(null);
       setEditingId(null);
       setSuccess(editingId ? 'Le plat a été modifié.' : 'Le plat a été ajouté à la carte.');
     } catch (caught) {
@@ -325,11 +375,13 @@ export function RestaurantMenuPage() {
       descriptionIt: row.description_it || '',
       price: (row.price_cents / 100).toFixed(2).replace('.', ','),
       cost: ((row.cost_cents ?? 0) / 100).toFixed(2).replace('.', ','),
+      imageUrl: row.image_url || '',
       allergens: row.allergens ?? [],
       vegetarian: row.vegetarian,
       vegan: row.vegan,
       featured: row.featured,
     });
+    setImageFile(null);
     setError(''); setSuccess(''); setWarning('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -459,12 +511,13 @@ export function RestaurantMenuPage() {
       </article>
 
       <article className="panel restaurant-form-panel restaurant-menu-form">
-        <div className="panel-header"><div><p className="eyebrow">{editingId ? 'MODIFICATION' : 'NOUVEAU PLAT'}</p><h2>{editingId ? 'Modifier le plat' : 'Ajouter à la carte'}</h2></div>{editingId && <button type="button" className="text-button" onClick={() => { setEditingId(null); setForm(emptyItem); }}>Annuler</button>}</div>
+        <div className="panel-header"><div><p className="eyebrow">{editingId ? 'MODIFICATION' : 'NOUVEAU PLAT'}</p><h2>{editingId ? 'Modifier le plat' : 'Ajouter à la carte'}</h2></div>{editingId && <button type="button" className="text-button" onClick={() => { setEditingId(null); setImageFile(null); setForm(emptyItem); }}>Annuler</button>}</div>
         <form className="restaurant-form-grid" onSubmit={submitItem}>
           <label>Catégorie *<select required value={form.categoryId} onChange={(event) => setForm({ ...form, categoryId: event.target.value })}><option value="">Sélectionner…</option>{categories.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
           <label>Nom français *<input required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })}/></label>
           <label>Prix TTC (€) *<input required inputMode="decimal" value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })}/></label>
           {canViewCosts && <label>Coût matière (€)<input inputMode="decimal" value={form.cost} onChange={(event) => setForm({ ...form, cost: event.target.value })}/></label>}
+          {hasQr && <div className="full-field restaurant-dish-photo-field"><div className="restaurant-dish-photo-preview">{imagePreview ? <img src={imagePreview} alt="Aperçu du plat"/> : <span>{menuVisual(categories.find((row) => row.id === form.categoryId)?.name || '')}</span>}</div><div><strong>Photo du plat</strong><p>Une belle photo améliore nettement le rendu du menu public. PNG, JPG ou WebP · 5 Mo maximum.</p><label className="secondary-button compact-button">Choisir une photo<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => selectDishImage(event.target.files?.[0])}/></label>{imagePreview && <button type="button" className="danger-text-button" onClick={() => { setImageFile(null); setForm({ ...form, imageUrl: '' }); }}>Retirer</button>}</div></div>}
           <label className="full-field">Description française<textarea rows={3} value={form.descriptionFr} onChange={(event) => setForm({ ...form, descriptionFr: event.target.value })}/></label>
 
           {hasQr && <>
@@ -490,7 +543,7 @@ export function RestaurantMenuPage() {
         const margin = row.price_cents > 0 && row.cost_cents > 0 ? Math.round(((row.price_cents - row.cost_cents) / row.price_cents) * 100) : null;
         const translated = Boolean(row.name_en && row.name_es && row.name_it && (!row.description_fr || (row.description_en && row.description_es && row.description_it)));
         const categoryName = row.restaurant_menu_categories?.name || 'Sans catégorie';
-        return <article key={row.id} className={`restaurant-dish-admin-card ${!row.available ? 'is-muted' : ''} ${row.featured ? 'is-featured' : ''}`}><div className="restaurant-dish-admin-visual"><span>{menuVisual(categoryName)}</span>{row.featured && <small>Suggestion</small>}</div><div className="restaurant-menu-copy"><div><span>{categoryName}</span>{hasQr && <small className={translated ? 'translation-ok' : 'translation-missing'}>{translated ? '3 langues prêtes' : 'Traduction à compléter'}</small>}</div><h3>{row.name}</h3><p>{row.description_fr || 'Ajoute une description pour mieux présenter ce plat sur le menu public.'}</p><div className="restaurant-menu-tags">{row.vegetarian && <span>🌿 Végétarien</span>}{row.vegan && <span>🌱 Végan</span>}{row.allergens.map((allergen) => <span key={allergen} className="warning">{allergen}</span>)}</div></div><div className="restaurant-menu-price"><strong>{formatRestaurantMoney(row.price_cents)}</strong><span className={row.available ? 'available' : 'unavailable'}>{row.available ? 'Disponible' : 'Indisponible'}</span>{canViewCosts && <div className="restaurant-menu-margin"><span>Coût {formatRestaurantMoney(row.cost_cents)}</span>{margin !== null && <small>{margin}% de marge brute</small>}</div>}</div><div className="restaurant-item-actions"><Link className="secondary-button compact-button" to={`/recettes?plat=${row.id}`}>Fiche recette</Link><button className="secondary-button compact-button" type="button" onClick={() => startEditing(row)}>Modifier</button>{hasQr && <button className="secondary-button compact-button" type="button" disabled={translating} onClick={() => void translateExisting(row)}>{translated ? 'Retraduire' : 'Traduire'}</button>}<button className="secondary-button compact-button" type="button" onClick={() => void toggleAvailability(row)}>{row.available ? 'Masquer' : 'Remettre en vente'}</button><button className="text-button danger-text" type="button" onClick={() => void removeItem(row)}>Supprimer</button></div></article>;
+        return <article key={row.id} className={`restaurant-dish-admin-card ${!row.available ? 'is-muted' : ''} ${row.featured ? 'is-featured' : ''}`}><div className={`restaurant-dish-admin-visual ${row.image_url ? 'has-photo' : ''}`}>{row.image_url ? <img src={row.image_url} alt="" loading="lazy"/> : <span>{menuVisual(categoryName)}</span>}{row.featured && <small>Suggestion</small>}</div><div className="restaurant-menu-copy"><div><span>{categoryName}</span>{hasQr && <small className={translated ? 'translation-ok' : 'translation-missing'}>{translated ? '3 langues prêtes' : 'Traduction à compléter'}</small>}</div><h3>{row.name}</h3><p>{row.description_fr || 'Ajoute une description pour mieux présenter ce plat sur le menu public.'}</p><div className="restaurant-menu-tags">{row.vegetarian && <span>🌿 Végétarien</span>}{row.vegan && <span>🌱 Végan</span>}{row.allergens.map((allergen) => <span key={allergen} className="warning">{allergen}</span>)}</div></div><div className="restaurant-menu-price"><strong>{formatRestaurantMoney(row.price_cents)}</strong><span className={row.available ? 'available' : 'unavailable'}>{row.available ? 'Disponible' : 'Indisponible'}</span>{canViewCosts && <div className="restaurant-menu-margin"><span>Coût {formatRestaurantMoney(row.cost_cents)}</span>{margin !== null && <small>{margin}% de marge brute</small>}</div>}</div><div className="restaurant-item-actions"><Link className="secondary-button compact-button" to={`/recettes?plat=${row.id}`}>Fiche recette</Link><button className="secondary-button compact-button" type="button" onClick={() => startEditing(row)}>Modifier</button>{hasQr && <button className="secondary-button compact-button" type="button" disabled={translating} onClick={() => void translateExisting(row)}>{translated ? 'Retraduire' : 'Traduire'}</button>}<button className="secondary-button compact-button" type="button" onClick={() => void toggleAvailability(row)}>{row.available ? 'Masquer' : 'Remettre en vente'}</button><button className="text-button danger-text" type="button" onClick={() => void removeItem(row)}>Supprimer</button></div></article>;
       })}{filtered.length === 0 && <div className="restaurant-empty"><Icon name="utensils" size={30}/><strong>Aucun plat dans cette sélection.</strong></div>}</div>
     </section>
   </div>;

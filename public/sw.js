@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.12.3-coiffure-loyalty-portal';
+const CACHE = 'ncr-suite-shell-v2.13.0-restaurant-premium';
 const SHELL = [
   '/',
   '/index.html',

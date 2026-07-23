@@ -73,6 +73,20 @@ if (!/SecurityFeatureGate[\s\S]{0,350}security_client_portal/.test(app)) {
   errors.push('Le Portail clients Sécurité doit être protégé par SecurityFeatureGate.');
 }
 
+
+// V2.13.0 — le rendu public Restauration doit rester isolé et personnalisable.
+const commercialBrandingPage = read('src/pages/CommercialBrandingPage.tsx');
+if (!commercialBrandingPage.includes("business_type === 'restauration'") || !commercialBrandingPage.includes('<RestaurantCommercialBrandingPage />')) {
+  errors.push('La personnalisation Restauration premium n’est pas raccordée à la page centrale.');
+}
+const restaurantPremiumMigration = read('supabase/migrations/065_restaurant_public_menu_premium.sql');
+if (!restaurantPremiumMigration.includes("o.business_type = 'securite'") || !restaurantPremiumMigration.includes("organization_has_plan_feature(o.id, 'commercial_branding')")) {
+  errors.push('La règle Storage V2.13.0 doit préserver les logos Sécurité et la personnalisation par fonctionnalité.');
+}
+if (!restaurantPremiumMigration.includes("ncr-suite-shell-v2.13.0-restaurant-premium")) {
+  errors.push('La migration Restauration premium ne publie pas le cache attendu.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

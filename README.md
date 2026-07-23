@@ -1,15 +1,9 @@
-# NCR Suite V2.6.5 FINAL
+# NCR Suite V2.13.0 — Restauration premium
 
-Correctif cumulatif à appliquer directement sur la V2.6.4.
+Patch différentiel à appliquer uniquement sur la **V2.12.3 stable**, correctif UI PC/mobile inclus.
 
-Cette version comprend :
+Cette version finalise l’expérience publique du métier Restauration : menu QR multilingue, identité visuelle de l’enseigne, thèmes premium, photos des plats, navigation par catégories et réservation publique.
 
-- envoi fiable des devis et factures via `send-security-document-v2` ;
-- planning hebdomadaire détaillé dans la fiche Agent ;
-- synthèse mensuelle des heures ;
-- suppression sécurisée d’une planification future créée par erreur.
+Consulte `A_LIRE_INSTALLATION_V2.13.0.txt` avant l’installation.
 
-Une mission ne peut pas être supprimée après son démarrage ou lorsqu’elle possède une main courante, une ronde, une position GPS, un PTI/SOS ou une donnée de facturation. Dans ce cas, NCR Suite conserve la traçabilité et demande d’utiliser l’annulation ou la régularisation.
-
-Consulte `A_LIRE_INSTALLATION.txt` avant l’installation.
- 
+NCR Academy est un projet distinct et ne doit pas être modifié.
