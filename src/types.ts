@@ -85,6 +85,18 @@ export interface Organization {
   training_document_footer?: string | null;
   training_default_terms?: string | null;
   training_default_vat_basis_points?: number;
+  training_invoice_prefix?: string;
+  training_payment_terms_days?: number;
+  training_late_penalty_text?: string | null;
+  training_tax_exemption_text?: string | null;
+  training_bank_account_holder?: string | null;
+  training_bank_name?: string | null;
+  training_bank_iban?: string | null;
+  training_bank_bic?: string | null;
+  training_invoice_reminder_enabled?: boolean;
+  training_invoice_reminder_first_delay_days?: number;
+  training_invoice_reminder_interval_days?: number;
+  training_invoice_reminder_max_count?: number;
   training_signature_url?: string | null;
   training_stamp_url?: string | null;
   company_contact_name?: string | null;
