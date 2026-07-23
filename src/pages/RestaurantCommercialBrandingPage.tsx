@@ -104,16 +104,17 @@ export function RestaurantCommercialBrandingPage() {
   }, [logoFile, logoPreview, coverFile, coverPreview]);
 
   useEffect(() => {
-    if (!organization) return;
-    setPublicName(organization.public_name || organization.name);
-    setSlug(organization.slug);
-    setPrimaryColor(organization.primary_color || '#7f1d1d');
-    setLogoUrl(organization.logo_url ?? null);
-    setTagline(organization.booking_tagline ?? 'Une cuisine qui se découvre aussi avec les yeux.');
-    setAddress(organization.booking_address ?? '');
-    setHoursText(organization.booking_hours_text ?? '');
-    setPracticalInfo(organization.booking_practical_info ?? '');
-    setShowNcrBranding(organization.show_ncr_branding ?? true);
+    const currentOrganization = organization;
+    if (!currentOrganization) return;
+    setPublicName(currentOrganization.public_name || currentOrganization.name);
+    setSlug(currentOrganization.slug);
+    setPrimaryColor(currentOrganization.primary_color || '#7f1d1d');
+    setLogoUrl(currentOrganization.logo_url ?? null);
+    setTagline(currentOrganization.booking_tagline ?? 'Une cuisine qui se découvre aussi avec les yeux.');
+    setAddress(currentOrganization.booking_address ?? '');
+    setHoursText(currentOrganization.booking_hours_text ?? '');
+    setPracticalInfo(currentOrganization.booking_practical_info ?? '');
+    setShowNcrBranding(currentOrganization.show_ncr_branding ?? true);
     setLogoFile(null);
     setCoverFile(null);
 
@@ -124,9 +125,9 @@ export function RestaurantCommercialBrandingPage() {
       try {
         let settings: RestaurantMenuSettings | null = null;
         if (demoMode || !supabase) {
-          settings = readJsonStorage<RestaurantMenuSettings | null>(`ncr-restaurant-public-branding-${organization.id}`, null);
+          settings = readJsonStorage<RestaurantMenuSettings | null>(`ncr-restaurant-public-branding-${currentOrganization.id}`, null);
         } else {
-          const { data, error: loadError } = await supabase.from('restaurant_public_menu_settings').select('*').eq('organization_id', organization.id).maybeSingle();
+          const { data, error: loadError } = await supabase.from('restaurant_public_menu_settings').select('*').eq('organization_id', currentOrganization.id).maybeSingle();
           if (loadError) throw loadError;
           settings = data as RestaurantMenuSettings | null;
         }
@@ -135,7 +136,7 @@ export function RestaurantCommercialBrandingPage() {
         setTheme(resolved.theme_code);
         setLayout(resolved.layout_code);
         setSecondaryColor(resolved.secondary_color);
-        setCoverUrl(resolved.cover_url ?? organization.booking_banner_url ?? null);
+        setCoverUrl(resolved.cover_url ?? currentOrganization.booking_banner_url ?? null);
         setHeroEyebrow(resolved.hero_eyebrow ?? '');
         setHeroTitle(resolved.hero_title ?? '');
         setHeroDescription(resolved.hero_description ?? '');
@@ -156,14 +157,15 @@ export function RestaurantCommercialBrandingPage() {
   }, [organization?.id, demoMode]);
 
   if (!organization) return null;
+  const currentOrganization = organization;
 
-  const canManage = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
-  const hasBranding = organizationHasFeature(organization, 'commercial_branding');
-  const canHideNcrBranding = organizationHasFeature(organization, 'white_label');
-  const publicOrigin = organization.custom_domain && organization.custom_domain_status === 'active'
-    ? `https://${organization.custom_domain}`
+  const canManage = ['owner', 'admin', 'manager'].includes(currentOrganization.role ?? 'viewer');
+  const hasBranding = organizationHasFeature(currentOrganization, 'commercial_branding');
+  const canHideNcrBranding = organizationHasFeature(currentOrganization, 'white_label');
+  const publicOrigin = currentOrganization.custom_domain && currentOrganization.custom_domain_status === 'active'
+    ? `https://${currentOrganization.custom_domain}`
     : typeof window === 'undefined' ? '' : window.location.origin;
-  const publicUrl = publicOrigin ? `${publicOrigin}/r/${slug || organization.slug}/menu` : '';
+  const publicUrl = publicOrigin ? `${publicOrigin}/r/${slug || currentOrganization.slug}/menu` : '';
   const previewStyle = {
     '--restaurant-brand': primaryColor,
     '--restaurant-secondary': secondaryColor,
@@ -181,7 +183,7 @@ export function RestaurantCommercialBrandingPage() {
 
   async function uploadAsset(file: File, kind: 'restaurant-logo' | 'restaurant-cover') {
     if (!supabase) throw new Error('Supabase n’est pas configuré.');
-    const path = `${organization.id}/restaurant/${kind}-${Date.now()}.${extensionFor(file)}`;
+    const path = `${currentOrganization.id}/restaurant/${kind}-${Date.now()}.${extensionFor(file)}`;
     const { error: uploadError } = await supabase.storage.from('organization-branding').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
     if (uploadError) throw uploadError;
     return supabase.storage.from('organization-branding').getPublicUrl(path).data.publicUrl;
@@ -209,7 +211,7 @@ export function RestaurantCommercialBrandingPage() {
       });
 
       const settings: RestaurantMenuSettings = {
-        organization_id: organization.id,
+        organization_id: currentOrganization.id,
         theme_code: theme,
         layout_code: layout,
         secondary_color: secondaryColor,
@@ -226,10 +228,10 @@ export function RestaurantCommercialBrandingPage() {
       };
 
       if (demoMode || !supabase) {
-        writeJsonStorage(`ncr-restaurant-public-branding-${organization.id}`, settings);
+        writeJsonStorage(`ncr-restaurant-public-branding-${currentOrganization.id}`, settings);
       } else {
         const { error: rpcError } = await supabase.rpc('update_restaurant_public_menu_settings', {
-          p_organization_id: organization.id,
+          p_organization_id: currentOrganization.id,
           p_theme_code: theme,
           p_layout_code: layout,
           p_secondary_color: secondaryColor,
