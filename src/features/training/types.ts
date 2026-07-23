@@ -61,6 +61,10 @@ export interface TrainingSessionRecord {
   closure_notes?: string | null;
   reopened_at?: string | null;
   reopened_by?: string | null;
+  training_dossier_requirements?: TrainingDossierRequirementOverrides | null;
+  training_dossier_notes?: string | null;
+  training_dossier_reviewed_at?: string | null;
+  training_dossier_reviewed_by?: string | null;
   created_at: string;
 }
 
@@ -333,3 +337,55 @@ export const trainingCommercialDocumentStatusLabels: Record<TrainingCommercialDo
 export function formatTrainingMoney(cents: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
 }
+
+
+export type TrainingDossierRequirementKey =
+  | 'commercial'
+  | 'program_document'
+  | 'convocations'
+  | 'attendance'
+  | 'evaluations'
+  | 'certificates'
+  | 'administrative';
+
+export type TrainingDossierRequirementOverrides = Partial<Record<TrainingDossierRequirementKey, boolean>>;
+export type TrainingDossierPhase = 'preparation' | 'delivery' | 'closure' | 'closed' | 'canceled';
+export type TrainingDossierCheckState = 'ready' | 'missing' | 'upcoming' | 'not_required';
+
+export interface TrainingDossierCheck {
+  key: string;
+  requirementKey?: TrainingDossierRequirementKey;
+  label: string;
+  detail: string;
+  group: 'preparation' | 'delivery' | 'closure';
+  path: string;
+  state: TrainingDossierCheckState;
+  required: boolean;
+  current: number;
+  expected: number;
+}
+
+export interface TrainingSessionDossierSummary {
+  session: TrainingSessionRecord;
+  phase: TrainingDossierPhase;
+  progress: number;
+  readyCount: number;
+  requiredCount: number;
+  missingCount: number;
+  canClose: boolean;
+  checks: TrainingDossierCheck[];
+  enrollmentCount: number;
+  commercialReference: string | null;
+  customerName: string | null;
+  funderName: string | null;
+}
+
+export const trainingDossierRequirementLabels: Record<TrainingDossierRequirementKey, string> = {
+  commercial: 'Pièce commerciale',
+  program_document: 'Programme pédagogique',
+  convocations: 'Convocations',
+  attendance: 'Émargements',
+  evaluations: 'Évaluations',
+  certificates: 'Attestations',
+  administrative: 'Justificatifs administratifs'
+};

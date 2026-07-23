@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-commercial`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-dossiers`;
+const trainingCommercialCache = 'ncr-suite-shell-v2.14.0-training-commercial';
 const coiffureCache = 'ncr-suite-shell-v2.12.3-coiffure-loyalty-portal';
 const cleaningCache = 'ncr-suite-shell-v2.12.2-cleaning-client-portal';
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version frontend ne correspond pas à package.json.');
@@ -101,7 +102,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -310,9 +311,30 @@ requireText('supabase/migrations/068_training_commercial_administration.sql', [
   "when 'training_commercial' then 'training_commercial'",
   "organization_has_plan_feature(organization_id, 'training_commercial')",
   "'2.14.0'",
+  trainingCommercialCache,
+  'set search_path = public'
+]);
+
+
+requireText('src/pages/TrainingDossiersPage.tsx', [
+  'Dossiers de formation',
+  'training_session_dossier',
+  'update_training_session_dossier_settings',
+  'close_training_session',
+  'generateSessionDossierPdf',
+  'training-workspace-premium'
+]);
+requireText('supabase/migrations/069_training_session_dossier_workspace.sql', [
+  'training_dossier_requirements',
+  'update_training_session_dossier_settings',
+  "organization_has_plan_feature(p_organization_id, 'training_session_dossier')",
+  "'2.14.1'",
   expectedCache,
   'set search_path = public'
 ]);
+if (!app.includes('path="dossiers-formation"') || !access.includes("'/dossiers-formation'")) {
+  failures.push('Le dossier centralisé Formation doit rester raccordé à la navigation et à la matrice d’accès.');
+}
 
 requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'security_client_portal_invitation'",

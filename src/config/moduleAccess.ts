@@ -39,6 +39,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/formateurs': 'trainers',
   '/sessions': 'sessions',
   '/commercial': 'training_commercial',
+  '/dossiers-formation': 'documents',
   '/emargements': 'attendance',
   '/evaluations': 'evaluations',
   '/attestations': 'certificates',
@@ -61,7 +62,8 @@ const GENERIC_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/evaluations': 'training_satisfaction',
   '/emargements': 'training_blank_attendance',
   '/attestations': 'training_automatic_certificates',
-  '/commercial': 'training_commercial'
+  '/commercial': 'training_commercial',
+  '/dossiers-formation': 'training_session_dossier'
 };
 
 const COIFFURE_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {

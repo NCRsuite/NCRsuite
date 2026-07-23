@@ -11738,3 +11738,432 @@ button { max-width: 100%; }
   .training-commercial-entity-grid > article { grid-template-columns: 42px minmax(0, 1fr); }
   .training-commercial-entity-grid > article .danger-text-button { grid-column: 2; justify-self: start; }
 }
+
+/* ========================================================================== */
+/* NCR Suite V2.14.1 — Formation : dossiers premium                           */
+/* ========================================================================== */
+
+.training-workspace-premium {
+  --training-navy: #10243f;
+  --training-blue: #4d7df3;
+  --training-violet: #7658e8;
+  --training-mint: #32b88b;
+  --training-amber: #e5a13f;
+  --training-danger: #d95b64;
+  min-width: 0;
+}
+
+.training-dossier-page { display: grid; gap: 18px; }
+.training-dossier-hero {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid rgba(69, 91, 137, .12);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(134, 106, 255, .34), transparent 27%),
+    radial-gradient(circle at 72% 94%, rgba(47, 189, 153, .18), transparent 30%),
+    linear-gradient(135deg, #10233e 0%, #18375f 54%, #293f73 100%);
+  color: #fff;
+  box-shadow: 0 24px 68px rgba(20, 43, 78, .16);
+}
+.training-dossier-hero::before {
+  content: '';
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  right: -155px;
+  top: -205px;
+  border: 44px solid rgba(255, 255, 255, .045);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.training-dossier-hero::after {
+  content: '';
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  left: 44%;
+  bottom: -135px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .035);
+  pointer-events: none;
+}
+.training-dossier-hero > * { position: relative; z-index: 1; }
+.training-dossier-hero-copy { display: flex; align-items: flex-start; gap: 16px; max-width: 720px; }
+.training-dossier-hero-icon {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12);
+  backdrop-filter: blur(10px);
+}
+.training-dossier-hero .eyebrow { color: #a9c9f8; }
+.training-dossier-hero h1 { margin: 5px 0 8px; color: #fff; font-size: clamp(28px, 3vw, 42px); letter-spacing: -.045em; }
+.training-dossier-hero-copy p:last-child { max-width: 650px; margin: 0; color: #c9d8ec; line-height: 1.55; }
+.training-dossier-hero-actions { position: absolute; top: 28px; right: 28px; display: flex; gap: 9px; }
+.training-dossier-ghost-button,
+.training-dossier-primary-button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 15px;
+  border-radius: 14px;
+  font-size: .78rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+.training-dossier-ghost-button { border: 1px solid rgba(255,255,255,.17); background: rgba(255,255,255,.08); color: #fff; }
+.training-dossier-primary-button { border: 1px solid rgba(255,255,255,.88); background: #fff; color: #17345a; box-shadow: 0 10px 24px rgba(5,19,42,.18); }
+.training-dossier-ghost-button:hover,
+.training-dossier-primary-button:hover { transform: translateY(-1px); }
+.training-dossier-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 26px; }
+.training-dossier-metrics article {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 18px;
+  background: rgba(255,255,255,.075);
+  backdrop-filter: blur(11px);
+}
+.training-dossier-metrics article > span {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: rgba(255,255,255,.1);
+  color: #d5e4fb;
+}
+.training-dossier-metrics article.is-ready > span { background: rgba(50,184,139,.2); color: #8ee8c9; }
+.training-dossier-metrics article.has-alert > span { background: rgba(229,161,63,.2); color: #ffd18d; }
+.training-dossier-metrics article > div { min-width: 0; display: grid; gap: 3px; }
+.training-dossier-metrics strong { font-size: 1.4rem; line-height: 1; letter-spacing: -.04em; }
+.training-dossier-metrics small { overflow: hidden; color: #b9cbe2; font-size: .69rem; text-overflow: ellipsis; white-space: nowrap; }
+
+.training-dossier-commandbar {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 13px;
+  border: 1px solid rgba(31, 48, 74, .09);
+  border-radius: 20px;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 12px 32px rgba(30, 48, 75, .045);
+}
+.training-dossier-tabs { min-width: 0; display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.training-dossier-tabs::-webkit-scrollbar { display: none; }
+.training-dossier-tabs button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: #687486;
+  font-size: .74rem;
+  font-weight: 790;
+  cursor: pointer;
+}
+.training-dossier-tabs button b { min-width: 21px; height: 21px; display: grid; place-items: center; padding: 0 5px; border-radius: 999px; background: #eef1f5; color: #566273; font-size: .65rem; }
+.training-dossier-tabs button.active { background: #edf3ff; color: #315fbd; }
+.training-dossier-tabs button.active b { background: #d9e7ff; color: #315fbd; }
+.training-dossier-search {
+  min-width: min(290px, 34vw);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid #e1e6ed;
+  border-radius: 13px;
+  background: #f8fafc;
+  color: #7a8694;
+}
+.training-dossier-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #27364a; font: inherit; font-size: .78rem; }
+
+.training-dossier-workspace {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(300px, .72fr) minmax(0, 1.75fr);
+  align-items: start;
+  gap: 16px;
+}
+.training-dossier-list-panel,
+.training-dossier-detail {
+  min-width: 0;
+  border: 1px solid rgba(31,48,74,.09);
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: 0 18px 46px rgba(26,43,68,.055);
+}
+.training-dossier-list-panel { overflow: hidden; position: sticky; top: 82px; }
+.training-dossier-list-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 20px 20px 13px; border-bottom: 1px solid #edf0f4; }
+.training-dossier-list-heading h2 { margin: 3px 0 0; font-size: 1.15rem; letter-spacing: -.025em; }
+.training-dossier-list-heading > span { max-width: 140px; overflow: hidden; padding: 7px 9px; border-radius: 999px; background: #f1f5fb; color: #58708d; font-size: .64rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.training-dossier-session-list { max-height: calc(100vh - 285px); display: grid; gap: 7px; overflow-y: auto; padding: 10px; }
+.training-dossier-session-card {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 47px minmax(0,1fr) 58px;
+  align-items: center;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid transparent;
+  border-radius: 17px;
+  background: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.training-dossier-session-card:hover { transform: translateY(-1px); border-color: #dae4f2; background: #fff; box-shadow: 0 8px 22px rgba(34,56,86,.065); }
+.training-dossier-session-card.selected { border-color: rgba(77,125,243,.3); background: linear-gradient(145deg,#f4f8ff,#fff); box-shadow: 0 10px 25px rgba(56,93,166,.1); }
+.training-dossier-session-date { width: 47px; height: 47px; display: grid; place-items: center; align-content: center; border-radius: 14px; background: #eaf1ff; color: #3568c9; }
+.training-dossier-session-date strong { font-size: 1.05rem; line-height: 1; }
+.training-dossier-session-date small { margin-top: 2px; font-size: .58rem; font-weight: 850; text-transform: uppercase; }
+.training-dossier-session-card.phase-delivery .training-dossier-session-date { background: #fff3dd; color: #a86a08; }
+.training-dossier-session-card.phase-closure .training-dossier-session-date { background: #fff0eb; color: #bb5f3e; }
+.training-dossier-session-card.phase-closed .training-dossier-session-date { background: #e7f7ef; color: #198259; }
+.training-dossier-session-copy { min-width: 0; display: grid; gap: 3px; }
+.training-dossier-session-copy small { overflow: hidden; color: #6f83a0; font-size: .58rem; font-weight: 850; letter-spacing: .04em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.training-dossier-session-copy strong { overflow: hidden; color: #203047; font-size: .82rem; text-overflow: ellipsis; white-space: nowrap; }
+.training-dossier-session-copy em { overflow: hidden; color: #7d8998; font-size: .65rem; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.training-dossier-session-progress { display: grid; justify-items: center; gap: 4px; }
+.training-dossier-session-progress i,
+.training-dossier-progress-ring {
+  background: conic-gradient(var(--training-blue) var(--dossier-progress), #e7ecf3 0);
+}
+.training-dossier-session-progress i { width: 39px; height: 39px; display: grid; place-items: center; border-radius: 50%; font-style: normal; }
+.training-dossier-session-progress i::before { content: ''; grid-area: 1/1; width: 31px; height: 31px; border-radius: 50%; background: #fff; }
+.training-dossier-session-progress b { grid-area: 1/1; position: relative; color: #3a5376; font-size: .58rem; }
+.training-dossier-session-progress small { max-width: 62px; overflow: hidden; color: #8a95a3; font-size: .54rem; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.training-dossier-empty { min-height: 260px; display: grid; place-items: center; align-content: center; gap: 8px; padding: 24px; color: #7d8998; text-align: center; }
+.training-dossier-empty strong { color: #28384e; }
+.training-dossier-empty p { max-width: 250px; margin: 0; font-size: .75rem; line-height: 1.45; }
+.training-dossier-loader { width: 30px; height: 30px; border: 3px solid #e2e8f1; border-top-color: var(--training-blue); border-radius: 50%; animation: training-dossier-spin .8s linear infinite; }
+@keyframes training-dossier-spin { to { transform: rotate(360deg); } }
+
+.training-dossier-detail { overflow: hidden; }
+.training-dossier-detail-empty { min-height: 560px; display: grid; place-items: center; align-content: center; gap: 9px; padding: 28px; color: #8792a1; text-align: center; }
+.training-dossier-detail-empty h2 { margin: 7px 0 0; color: #26364c; }
+.training-dossier-detail-empty p { margin: 0; }
+.training-dossier-detail-header {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 20px;
+  padding: 25px 26px 20px;
+  background:
+    radial-gradient(circle at 90% 8%, rgba(102,87,232,.08), transparent 25%),
+    linear-gradient(180deg,#fff,#fbfcff);
+}
+.training-dossier-detail-title { min-width: 0; }
+.training-dossier-kicker { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.training-dossier-kicker > span { min-height: 26px; display: inline-flex; align-items: center; padding: 0 9px; border-radius: 999px; background: #f1f4f8; color: #667487; font-size: .63rem; font-weight: 820; }
+.training-dossier-phase.phase-preparation { background: #eaf1ff; color: #3566c3; }
+.training-dossier-phase.phase-delivery { background: #fff2d9; color: #a76a08; }
+.training-dossier-phase.phase-closure { background: #ffede7; color: #b95735; }
+.training-dossier-phase.phase-closed { background: #e5f7ed; color: #177c54; }
+.training-dossier-phase.phase-canceled { background: #f8e9eb; color: #a8434b; }
+.training-dossier-detail-title h2 { margin: 10px 0 6px; color: #18283e; font-size: clamp(23px, 2.3vw, 32px); letter-spacing: -.04em; }
+.training-dossier-detail-title > p { margin: 0; color: #768396; font-size: .82rem; }
+.training-dossier-progress-ring { width: 86px; height: 86px; display: grid; place-items: center; border-radius: 50%; box-shadow: 0 12px 30px rgba(61,88,135,.12); }
+.training-dossier-progress-ring::before { content: ''; grid-area: 1/1; width: 68px; height: 68px; border-radius: 50%; background: #fff; }
+.training-dossier-progress-ring > div { grid-area: 1/1; position: relative; display: grid; justify-items: center; gap: 1px; }
+.training-dossier-progress-ring strong { color: #263e61; font-size: 1.05rem; letter-spacing: -.04em; }
+.training-dossier-progress-ring small { color: #8691a0; font-size: .54rem; font-weight: 760; text-transform: uppercase; }
+
+.training-dossier-facts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; padding: 0 20px 20px; border-bottom: 1px solid #edf0f4; }
+.training-dossier-facts article { min-width: 0; display: grid; grid-template-columns: 34px minmax(0,1fr); align-items: center; gap: 9px; padding: 11px; border: 1px solid #e7ebf0; border-radius: 15px; background: #fff; }
+.training-dossier-facts article > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: #eef3fb; color: #4b6f9d; }
+.training-dossier-facts article > div { min-width: 0; display: grid; gap: 2px; }
+.training-dossier-facts small { color: #8a95a3; font-size: .57rem; font-weight: 820; text-transform: uppercase; }
+.training-dossier-facts strong,
+.training-dossier-facts p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-dossier-facts strong { color: #28384d; font-size: .73rem; }
+.training-dossier-facts p { margin: 0; color: #7f8a99; font-size: .61rem; }
+
+.training-dossier-detail-grid { min-width: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(280px, .42fr); align-items: start; gap: 0; }
+.training-dossier-checklist { min-width: 0; display: grid; gap: 19px; padding: 22px; background: #f8fafc; }
+.training-dossier-check-group { min-width: 0; display: grid; gap: 10px; }
+.training-dossier-check-group > header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 0 2px; }
+.training-dossier-check-group > header > div { min-width: 0; }
+.training-dossier-check-group h3 { margin: 3px 0 3px; color: #26364c; font-size: 1rem; }
+.training-dossier-check-group header span { color: #8691a0; font-size: .69rem; line-height: 1.4; }
+.training-dossier-check-group header > b { min-width: 39px; height: 29px; display: grid; place-items: center; padding: 0 8px; border-radius: 999px; background: #e9eef6; color: #55708f; font-size: .68rem; }
+.training-dossier-check-group > div { display: grid; gap: 7px; }
+.training-dossier-check {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 38px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e5e9ef;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(34,52,77,.025);
+}
+.training-dossier-check.state-ready { border-color: #d4eade; background: #fbfffd; }
+.training-dossier-check.state-missing { border-color: #f0d8cb; background: #fffdfb; }
+.training-dossier-check.state-upcoming { background: #fcfdff; }
+.training-dossier-check.state-not_required { opacity: .7; border-style: dashed; }
+.training-dossier-check-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; background: #eef2f7; color: #788595; }
+.training-dossier-check.state-ready .training-dossier-check-icon { background: #e1f5e9; color: #1a875b; }
+.training-dossier-check.state-missing .training-dossier-check-icon { background: #ffebe3; color: #c0603e; }
+.training-dossier-check.state-upcoming .training-dossier-check-icon { background: #edf2fb; color: #5c76a0; }
+.training-dossier-check-copy { min-width: 0; display: grid; gap: 4px; }
+.training-dossier-check-copy > div { min-width: 0; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.training-dossier-check-copy strong { color: #29394e; font-size: .78rem; }
+.training-dossier-check-copy > div span { min-height: 21px; display: inline-flex; align-items: center; padding: 0 7px; border-radius: 999px; background: #eef1f5; color: #727e8c; font-size: .55rem; font-weight: 850; text-transform: uppercase; }
+.training-dossier-check.state-ready .training-dossier-check-copy > div span { background: #e3f5ea; color: #1e8058; }
+.training-dossier-check.state-missing .training-dossier-check-copy > div span { background: #ffebe3; color: #b95b3a; }
+.training-dossier-check-copy p { margin: 0; color: #7c8795; font-size: .66rem; line-height: 1.4; }
+.training-dossier-mini-progress { width: min(230px,100%); height: 4px; overflow: hidden; border-radius: 99px; background: #edf0f4; }
+.training-dossier-mini-progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--training-blue),var(--training-violet)); }
+.training-dossier-check-actions { display: grid; justify-items: end; gap: 4px; }
+.training-dossier-check-actions a,
+.training-dossier-check-actions button { display: inline-flex; align-items: center; gap: 3px; border: 0; background: transparent; font-size: .62rem; font-weight: 800; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.training-dossier-check-actions a { color: #3d6fc9; }
+.training-dossier-check-actions button { color: #8a5d4e; }
+
+.training-dossier-sidepanel { min-width: 0; display: grid; gap: 13px; padding: 18px; border-left: 1px solid #edf0f4; background: #fff; }
+.training-dossier-action-card,
+.training-dossier-notes-card,
+.training-dossier-shortcuts { min-width: 0; padding: 17px; border: 1px solid #e5e9ef; border-radius: 19px; background: #fff; }
+.training-dossier-action-card { overflow: hidden; position: relative; background: linear-gradient(145deg,#132a48,#1f4472); color: #fff; border: 0; box-shadow: 0 16px 36px rgba(21,48,82,.15); }
+.training-dossier-action-card::after { content: ''; position: absolute; width: 150px; height: 150px; right: -75px; top: -85px; border: 24px solid rgba(255,255,255,.05); border-radius: 50%; }
+.training-dossier-action-card > * { position: relative; z-index: 1; }
+.training-dossier-action-card .eyebrow { color: #9dc4f5; }
+.training-dossier-action-card h3 { margin: 6px 0; color: #fff; font-size: 1.05rem; }
+.training-dossier-action-card > p:not(.eyebrow) { margin: 0; color: #c7d7e9; font-size: .7rem; line-height: 1.5; }
+.training-dossier-scoreline { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 10px; margin-top: 15px; }
+.training-dossier-scoreline > span { height: 6px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.13); }
+.training-dossier-scoreline i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#69c9ff,#9f8bff); }
+.training-dossier-scoreline b { color: #d7e6f7; font-size: .66rem; }
+.training-dossier-pdf-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 14px; }
+.training-dossier-pdf-actions .secondary-button { min-width: 0; min-height: 38px; padding: 0 8px; border-color: rgba(255,255,255,.14); background: rgba(255,255,255,.09); color: #fff; font-size: .62rem; }
+.training-dossier-close-button,
+.training-dossier-reopen-button { width: 100%; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; margin-top: 8px; border: 0; border-radius: 13px; font-size: .72rem; font-weight: 850; cursor: pointer; }
+.training-dossier-close-button { background: #fff; color: #173b65; }
+.training-dossier-reopen-button { border: 1px solid rgba(255,255,255,.17); background: rgba(255,255,255,.08); color: #fff; }
+.training-dossier-notes-card > div:first-child { display: flex; align-items: center; gap: 9px; }
+.training-dossier-notes-card > div:first-child > span { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px; background: #eef3fb; color: #4d6f99; }
+.training-dossier-notes-card h3 { margin: 2px 0 0; font-size: .9rem; }
+.training-dossier-notes-card textarea { width: 100%; box-sizing: border-box; margin-top: 12px; padding: 11px; border: 1px solid #dfe5ed; border-radius: 13px; outline: 0; resize: vertical; background: #f9fbfd; color: #2e3d51; font: inherit; font-size: .72rem; line-height: 1.5; }
+.training-dossier-notes-card textarea:focus { border-color: rgba(77,125,243,.45); box-shadow: 0 0 0 3px rgba(77,125,243,.09); background: #fff; }
+.training-dossier-notes-card .primary-button { width: 100%; margin-top: 8px; }
+.training-dossier-notes-card > small { display: block; margin-top: 8px; color: #8b96a4; font-size: .58rem; }
+.training-dossier-shortcuts { display: grid; gap: 6px; }
+.training-dossier-shortcuts > p { margin-bottom: 3px; }
+.training-dossier-shortcuts a { min-width: 0; display: grid; grid-template-columns: 22px minmax(0,1fr) auto; align-items: center; gap: 7px; min-height: 35px; padding: 0 8px; border-radius: 10px; color: #54667e; font-size: .68rem; font-weight: 730; text-decoration: none; }
+.training-dossier-shortcuts a:hover { background: #f3f6fa; color: #315fbd; }
+
+@media (max-width: 1180px) {
+  .training-dossier-hero-actions { position: static; margin-top: 18px; }
+  .training-dossier-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .training-dossier-workspace { grid-template-columns: minmax(270px,.62fr) minmax(0,1.38fr); }
+  .training-dossier-facts { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .training-dossier-detail-grid { grid-template-columns: 1fr; }
+  .training-dossier-sidepanel { grid-template-columns: repeat(2,minmax(0,1fr)); border-left: 0; border-top: 1px solid #edf0f4; }
+  .training-dossier-shortcuts { grid-column: 1/-1; }
+}
+
+@media (max-width: 980px) {
+  .training-dossier-workspace { grid-template-columns: 1fr; }
+  .training-dossier-list-panel { position: static; }
+  .training-dossier-session-list { max-height: 470px; }
+  .training-dossier-detail { scroll-margin-top: 74px; }
+}
+
+@media (max-width: 760px) {
+  .training-dossier-page { gap: 12px; }
+  .training-dossier-hero { padding: 21px 17px; border-radius: 24px; }
+  .training-dossier-hero-copy { gap: 11px; }
+  .training-dossier-hero-icon { width: 45px; height: 45px; flex-basis: 45px; border-radius: 15px; }
+  .training-dossier-hero h1 { margin-top: 4px; font-size: 27px; }
+  .training-dossier-hero-copy p:last-child { font-size: .78rem; }
+  .training-dossier-hero-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .training-dossier-metrics { gap: 7px; margin-top: 17px; }
+  .training-dossier-metrics article { padding: 10px; border-radius: 15px; }
+  .training-dossier-metrics article > span { width: 33px; height: 33px; flex-basis: 33px; border-radius: 11px; }
+  .training-dossier-metrics strong { font-size: 1.15rem; }
+  .training-dossier-commandbar { align-items: stretch; flex-direction: column; padding: 8px; border-radius: 17px; }
+  .training-dossier-tabs { width: 100%; }
+  .training-dossier-tabs button { min-height: 36px; padding-inline: 10px; }
+  .training-dossier-search { width: 100%; min-width: 0; box-sizing: border-box; }
+  .training-dossier-list-panel,
+  .training-dossier-detail { border-radius: 21px; }
+  .training-dossier-list-heading { padding: 17px 15px 11px; }
+  .training-dossier-session-list { max-height: none; padding: 8px; }
+  .training-dossier-session-card { grid-template-columns: 43px minmax(0,1fr) 53px; padding: 9px; border-radius: 15px; }
+  .training-dossier-session-date { width: 43px; height: 43px; border-radius: 13px; }
+  .training-dossier-detail-header { grid-template-columns: minmax(0,1fr) 68px; gap: 12px; padding: 20px 16px 16px; }
+  .training-dossier-progress-ring { width: 68px; height: 68px; }
+  .training-dossier-progress-ring::before { width: 54px; height: 54px; }
+  .training-dossier-progress-ring strong { font-size: .88rem; }
+  .training-dossier-facts { gap: 6px; padding: 0 12px 14px; }
+  .training-dossier-facts article { grid-template-columns: 30px minmax(0,1fr); gap: 7px; padding: 9px; border-radius: 13px; }
+  .training-dossier-facts article > span { width: 30px; height: 30px; border-radius: 10px; }
+  .training-dossier-checklist { gap: 16px; padding: 14px 10px; }
+  .training-dossier-check-group > header { padding-inline: 3px; }
+  .training-dossier-check-group header span { font-size: .64rem; }
+  .training-dossier-check { grid-template-columns: 34px minmax(0,1fr); align-items: start; padding: 10px; border-radius: 14px; }
+  .training-dossier-check-icon { width: 34px; height: 34px; border-radius: 11px; }
+  .training-dossier-check-actions { grid-column: 2; width: 100%; display: flex; justify-content: space-between; justify-items: initial; padding-top: 2px; }
+  .training-dossier-sidepanel { grid-template-columns: 1fr; padding: 12px; }
+  .training-dossier-shortcuts { grid-column: auto; }
+}
+
+@media (max-width: 460px) {
+  .training-dossier-hero-copy { display: grid; }
+  .training-dossier-hero-actions { grid-template-columns: 1fr; }
+  .training-dossier-metrics article { display: grid; grid-template-columns: 31px minmax(0,1fr); gap: 7px; }
+  .training-dossier-metrics small { white-space: normal; line-height: 1.2; }
+  .training-dossier-session-card { grid-template-columns: 41px minmax(0,1fr); }
+  .training-dossier-session-progress { grid-column: 2; display: flex; align-items: center; justify-items: initial; gap: 7px; }
+  .training-dossier-session-progress i { width: 32px; height: 32px; }
+  .training-dossier-session-progress i::before { width: 25px; height: 25px; }
+  .training-dossier-session-progress small { max-width: none; }
+  .training-dossier-detail-header { grid-template-columns: 1fr; }
+  .training-dossier-progress-ring { width: 72px; height: 72px; justify-self: start; }
+  .training-dossier-facts { grid-template-columns: 1fr; }
+  .training-dossier-pdf-actions { grid-template-columns: 1fr; }
+}
+
+.training-dossier-locked {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 24px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #ffffff, #f6f9ff);
+}
+.training-dossier-locked > svg { padding: 13px; border-radius: 17px; color: #4f6fa0; background: #eaf1fb; }
+.training-dossier-locked h1 { margin: 5px 0 7px; font-size: clamp(1.2rem, 2vw, 1.7rem); }
+.training-dossier-locked p:not(.eyebrow) { margin: 0; max-width: 760px; color: #6f7d8f; line-height: 1.55; }
+@media (max-width: 760px) {
+  .training-dossier-locked { grid-template-columns: 48px minmax(0, 1fr); padding: 18px; }
+  .training-dossier-locked .primary-button { grid-column: 1 / -1; width: 100%; }
+}

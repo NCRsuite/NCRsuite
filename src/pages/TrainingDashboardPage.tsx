@@ -228,8 +228,8 @@ export function TrainingDashboardPage() {
       <section className="training-quality-overview" aria-label="État des sessions">
         <article className="training-quality-overview-card planned"><span><Icon name="calendar" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.plannedSessions}</strong><small>Planifiées à 30 jours</small></div><Link to="/sessions?view=planned">Voir</Link></article>
         <article className="training-quality-overview-card current"><span><Icon name="activity" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.inProgressSessions}</strong><small>En cours maintenant</small></div><Link to="/sessions?view=current">Voir</Link></article>
-        <article className="training-quality-overview-card ready"><span><Icon name="check" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.readyToCloseSessions}</strong><small>Prêtes à clôturer</small></div><Link to="/sessions?view=current">Traiter</Link></article>
-        <article className="training-quality-overview-card closed"><span><Icon name="lock" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.closedSessions}</strong><small>Clôturées · {qualityPeriodLabel(periodDays)}</small></div><Link to="/sessions?view=closed">Voir</Link></article>
+        <article className="training-quality-overview-card ready"><span><Icon name="check" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.readyToCloseSessions}</strong><small>Prêtes à clôturer</small></div><Link to="/dossiers-formation?tab=to_close">Traiter</Link></article>
+        <article className="training-quality-overview-card closed"><span><Icon name="lock" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.closedSessions}</strong><small>Clôturées · {qualityPeriodLabel(periodDays)}</small></div><Link to="/dossiers-formation?tab=closed">Voir</Link></article>
       </section>
 
       <section className="stats-grid training-quality-stats">

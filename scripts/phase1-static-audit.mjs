@@ -120,6 +120,21 @@ if (!trainingCommercialPage.includes("organizationHasFeature(organization, 'mult
 }
 if (!accessMatrix.includes("'/commercial'")) errors.push('La route commerciale Formation est absente de la matrice d’accès.');
 
+
+// V2.14.1 — le dossier centralisé Formation doit rester moderne, isolé et protégé par l’offre.
+const trainingDossiersPage = read('src/pages/TrainingDossiersPage.tsx');
+const trainingDossiersMigration = read('supabase/migrations/069_training_session_dossier_workspace.sql');
+if (!trainingDossiersPage.includes('Dossiers de formation') || !trainingDossiersPage.includes('training-workspace-premium') || !trainingDossiersPage.includes('generateSessionDossierPdf')) {
+  errors.push('L’espace dossier Formation V2.14.1 est incomplet.');
+}
+if (!trainingDossiersPage.includes("organizationHasFeature(organization, 'training_session_dossier')") || !trainingDossiersMigration.includes("organization_has_plan_feature(p_organization_id, 'training_session_dossier')")) {
+  errors.push('Le dossier Formation doit rester protégé côté interface et côté base.');
+}
+if (!trainingDossiersMigration.includes('update_training_session_dossier_settings') || !trainingDossiersMigration.includes("ncr-suite-shell-v2.14.1-training-dossiers") || !trainingDossiersMigration.includes("'2.14.1'")) {
+  errors.push('La migration V2.14.1 du dossier Formation est incomplète.');
+}
+if (!accessMatrix.includes("'/dossiers-formation'")) errors.push('La route des dossiers Formation est absente de la matrice d’accès.');
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

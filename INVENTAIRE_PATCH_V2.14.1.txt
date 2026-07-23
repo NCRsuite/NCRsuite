@@ -1,0 +1,27 @@
+NCR Suite V2.14.1 — Inventaire du patch
+
+22 fichiers ajoutés ou modifiés.
+0 fichier(s) à supprimer.
+
+A_LIRE_INSTALLATION_V2.14.1.txt
+CHANGELOG.md
+MANIFESTE_PATCH_V2.14.1.txt
+README.md
+docs/V2.14.1_INSTALLATION.md
+package-lock.json
+package.json
+public/sw.js
+scripts/phase1-critical-flows.mjs
+scripts/phase1-static-audit.mjs
+src/App.tsx
+src/config/accessMatrix.ts
+src/config/businessPacks.ts
+src/config/moduleAccess.ts
+src/config/runtime.ts
+src/features/training/sessionDossierPdf.ts
+src/features/training/types.ts
+src/pages/TrainingDashboardPage.tsx
+src/pages/TrainingDossiersPage.tsx
+src/pages/TrainingSessionsPage.tsx
+src/styles.css
+supabase/migrations/069_training_session_dossier_workspace.sql
