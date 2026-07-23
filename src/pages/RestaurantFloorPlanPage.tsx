@@ -658,7 +658,7 @@ export function RestaurantFloorPlanPage() {
     <div className="page restaurant-page restaurant-floor-page">
       <header className="page-header">
         <div>
-          <p className="eyebrow">RESTAURATION · V2.8.2</p>
+          <p className="eyebrow">RESTAURATION · PLAN DE SALLE</p>
           <h1>Plan de salle interactif</h1>
           <p>Positionne librement les tables, construis la salle et pilote son état pendant le service.</p>
         </div>

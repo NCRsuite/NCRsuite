@@ -82,11 +82,12 @@ function detectInitialLanguage(queryLanguage?: string | null): Language {
 }
 
 function localizedWelcome(config: PublicBookingConfig, language: Language) {
+  const source = config.booking_welcome_text?.trim() ?? '';
+  if (language === 'fr') return source || ui.fr.defaultWelcome;
   if (language === 'en' && config.booking_welcome_text_en?.trim()) return config.booking_welcome_text_en.trim();
   if (language === 'es' && config.booking_welcome_text_es?.trim()) return config.booking_welcome_text_es.trim();
   if (language === 'it' && config.booking_welcome_text_it?.trim()) return config.booking_welcome_text_it.trim();
-  const source = config.booking_welcome_text?.trim();
-  if (!source) return ui[language].defaultWelcome;
+  if (!source || source === ui.fr.defaultWelcome) return ui[language].defaultWelcome;
   return source;
 }
 
@@ -112,6 +113,25 @@ export function PublicRestaurantBookingPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const copy = ui[language];
+  const restaurantName = config?.public_name || config?.organization_name || '';
+  const pageDescription = config ? localizedWelcome(config, language) : copy.defaultWelcome;
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    const previousLanguage = document.documentElement.lang;
+    const descriptionMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    const previousDescription = descriptionMeta?.content ?? '';
+
+    document.documentElement.lang = language;
+    if (restaurantName) document.title = `${copy.eyebrow} · ${restaurantName}`;
+    if (descriptionMeta) descriptionMeta.content = pageDescription;
+
+    return () => {
+      document.title = previousTitle;
+      document.documentElement.lang = previousLanguage;
+      if (descriptionMeta) descriptionMeta.content = previousDescription;
+    };
+  }, [language, restaurantName, copy.eyebrow, pageDescription]);
 
   useEffect(() => {
     const selected = normalizeLanguage(searchParams.get('lang'));

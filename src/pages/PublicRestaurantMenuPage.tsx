@@ -76,18 +76,19 @@ interface PublicMenuPayload {
 }
 
 const languageLabels: Record<Language, string> = { fr: 'FR', en: 'EN', es: 'ES', it: 'IT' };
+const localeByLanguage: Record<Language, string> = { fr: 'fr-FR', en: 'en-GB', es: 'es-ES', it: 'it-IT' };
 
 const ui: Record<Language, {
   menu: string; vegetarian: string; vegan: string; powered: string; loading: string;
   unavailableTitle: string; unavailableMessage: string; languageNav: string;
   selection: string; featured: string; book: string; address: string; hours: string;
   practical: string; categories: string; empty: string; allergens: string; scrollTop: string;
-  defaultEyebrow: string; defaultTitle: string; defaultDescription: string;
+  loadError: string; defaultEyebrow: string; defaultTitle: string; defaultDescription: string;
 }> = {
-  fr: { menu: 'La carte', vegetarian: 'Végétarien', vegan: 'Végan', powered: 'Menu numérique propulsé par NCR Suite', loading: 'Préparation du menu…', unavailableTitle: 'Menu indisponible', unavailableMessage: 'Ce restaurant n’a pas activé son menu public.', languageNav: 'Choisir la langue', selection: 'Notre sélection', featured: 'Suggestion du chef', book: 'Réserver une table', address: 'Adresse', hours: 'Horaires', practical: 'À savoir', categories: 'Catégories', empty: 'La carte est en cours de préparation.', allergens: 'Allergènes', scrollTop: 'Revenir en haut', defaultEyebrow: 'La carte du moment', defaultTitle: 'Bienvenue à table', defaultDescription: 'Découvrez notre sélection, préparée avec soin et présentée dans la langue de votre choix.' },
-  en: { menu: 'Menu', vegetarian: 'Vegetarian', vegan: 'Vegan', powered: 'Digital menu powered by NCR Suite', loading: 'Preparing the menu…', unavailableTitle: 'Menu unavailable', unavailableMessage: 'This restaurant has not enabled its public menu.', languageNav: 'Choose language', selection: 'Our selection', featured: "Chef's recommendation", book: 'Book a table', address: 'Address', hours: 'Opening hours', practical: 'Good to know', categories: 'Categories', empty: 'The menu is being prepared.', allergens: 'Allergens', scrollTop: 'Back to top', defaultEyebrow: 'The current menu', defaultTitle: 'Welcome to our table', defaultDescription: 'Discover our carefully prepared selection, available in the language of your choice.' },
-  es: { menu: 'La carta', vegetarian: 'Vegetariano', vegan: 'Vegano', powered: 'Menú digital creado con NCR Suite', loading: 'Preparando el menú…', unavailableTitle: 'Menú no disponible', unavailableMessage: 'Este restaurante no ha activado su menú público.', languageNav: 'Elegir idioma', selection: 'Nuestra selección', featured: 'Sugerencia del chef', book: 'Reservar una mesa', address: 'Dirección', hours: 'Horarios', practical: 'Información', categories: 'Categorías', empty: 'La carta está en preparación.', allergens: 'Alérgenos', scrollTop: 'Volver arriba', defaultEyebrow: 'La carta del momento', defaultTitle: 'Bienvenido a nuestra mesa', defaultDescription: 'Descubre nuestra selección, preparada con esmero y presentada en el idioma que elijas.' },
-  it: { menu: 'Il menù', vegetarian: 'Vegetariano', vegan: 'Vegano', powered: 'Menù digitale creato con NCR Suite', loading: 'Preparazione del menù…', unavailableTitle: 'Menù non disponibile', unavailableMessage: 'Questo ristorante non ha attivato il menù pubblico.', languageNav: 'Scegli la lingua', selection: 'La nostra selezione', featured: 'Consiglio dello chef', book: 'Prenota un tavolo', address: 'Indirizzo', hours: 'Orari', practical: 'Informazioni', categories: 'Categorie', empty: 'Il menù è in preparazione.', allergens: 'Allergeni', scrollTop: 'Torna su', defaultEyebrow: 'Il menù del momento', defaultTitle: 'Benvenuti a tavola', defaultDescription: 'Scopri la nostra selezione, preparata con cura e presentata nella lingua che preferisci.' },
+  fr: { menu: 'La carte', vegetarian: 'Végétarien', vegan: 'Végan', powered: 'Menu numérique propulsé par NCR Suite', loading: 'Préparation du menu…', unavailableTitle: 'Menu indisponible', unavailableMessage: 'Ce restaurant n’a pas activé son menu public.', languageNav: 'Choisir la langue', selection: 'Notre sélection', featured: 'Suggestion du chef', book: 'Réserver une table', address: 'Adresse', hours: 'Horaires', practical: 'À savoir', categories: 'Catégories', empty: 'La carte est en cours de préparation.', allergens: 'Allergènes', scrollTop: 'Revenir en haut', loadError: 'Impossible de charger le menu pour le moment.', defaultEyebrow: 'La carte du moment', defaultTitle: 'Bienvenue à table', defaultDescription: 'Découvrez notre sélection, préparée avec soin et présentée dans la langue de votre choix.' },
+  en: { menu: 'Menu', vegetarian: 'Vegetarian', vegan: 'Vegan', powered: 'Digital menu powered by NCR Suite', loading: 'Preparing the menu…', unavailableTitle: 'Menu unavailable', unavailableMessage: 'This restaurant has not enabled its public menu.', languageNav: 'Choose language', selection: 'Our selection', featured: "Chef's recommendation", book: 'Book a table', address: 'Address', hours: 'Opening hours', practical: 'Good to know', categories: 'Categories', empty: 'The menu is being prepared.', allergens: 'Allergens', scrollTop: 'Back to top', loadError: 'Unable to load the menu right now.', defaultEyebrow: 'The current menu', defaultTitle: 'Welcome to our table', defaultDescription: 'Discover our carefully prepared selection, available in the language of your choice.' },
+  es: { menu: 'La carta', vegetarian: 'Vegetariano', vegan: 'Vegano', powered: 'Menú digital creado con NCR Suite', loading: 'Preparando el menú…', unavailableTitle: 'Menú no disponible', unavailableMessage: 'Este restaurante no ha activado su menú público.', languageNav: 'Elegir idioma', selection: 'Nuestra selección', featured: 'Sugerencia del chef', book: 'Reservar una mesa', address: 'Dirección', hours: 'Horarios', practical: 'Información', categories: 'Categorías', empty: 'La carta está en preparación.', allergens: 'Alérgenos', scrollTop: 'Volver arriba', loadError: 'No se puede cargar la carta en este momento.', defaultEyebrow: 'La carta del momento', defaultTitle: 'Bienvenido a nuestra mesa', defaultDescription: 'Descubre nuestra selección, preparada con esmero y presentada en el idioma que elijas.' },
+  it: { menu: 'Il menù', vegetarian: 'Vegetariano', vegan: 'Vegano', powered: 'Menù digitale creato con NCR Suite', loading: 'Preparazione del menù…', unavailableTitle: 'Menù non disponibile', unavailableMessage: 'Questo ristorante non ha attivato il menù pubblico.', languageNav: 'Scegli la lingua', selection: 'La nostra selezione', featured: 'Consiglio dello chef', book: 'Prenota un tavolo', address: 'Indirizzo', hours: 'Orari', practical: 'Informazioni', categories: 'Categorie', empty: 'Il menù è in preparazione.', allergens: 'Allergeni', scrollTop: 'Torna su', loadError: 'Impossibile caricare il menù in questo momento.', defaultEyebrow: 'Il menù del momento', defaultTitle: 'Benvenuti a tavola', defaultDescription: 'Scopri la nostra selezione, preparata con cura e presentata nella lingua che preferisci.' },
 };
 
 const allergenTranslations: Record<string, Record<Language, string>> = {
@@ -162,7 +163,7 @@ export function PublicRestaurantMenuPage() {
   const [language, setLanguage] = useState<Language>(() => detectInitialLanguage(searchParams.get('lang')));
   const [activeCategory, setActiveCategory] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
     const selected = normalizeLanguage(searchParams.get('lang'));
@@ -174,8 +175,8 @@ export function PublicRestaurantMenuPage() {
     let active = true;
     supabase.rpc('get_public_restaurant_menu', { p_slug: slug }).then(({ data, error: loadError }) => {
       if (!active) return;
-      if (loadError) setError(loadError.message);
-      else setPayload((Array.isArray(data) ? data[0] : data) as PublicMenuPayload | null);
+      setLoadFailed(Boolean(loadError));
+      if (!loadError) setPayload((Array.isArray(data) ? data[0] : data) as PublicMenuPayload | null);
       setLoading(false);
     });
     return () => { active = false; };
@@ -223,6 +224,23 @@ export function PublicRestaurantMenuPage() {
   const practicalInfo = payload ? localizedValue(payload.practical_info, { en: payload.practical_info_en, es: payload.practical_info_es, it: payload.practical_info_it }, language) : '';
   const bookingLabel = payload ? localizedValue(payload.booking_button_label, { en: payload.booking_button_label_en, es: payload.booking_button_label_es, it: payload.booking_button_label_it }, language, bookingDefaults) : copy.book;
 
+  useEffect(() => {
+    const previousTitle = document.title;
+    const previousLanguage = document.documentElement.lang;
+    const descriptionMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    const previousDescription = descriptionMeta?.content ?? '';
+
+    document.documentElement.lang = language;
+    if (restaurantName) document.title = `${copy.menu} · ${restaurantName}`;
+    if (descriptionMeta) descriptionMeta.content = heroDescription || copy.defaultDescription;
+
+    return () => {
+      document.title = previousTitle;
+      document.documentElement.lang = previousLanguage;
+      if (descriptionMeta) descriptionMeta.content = previousDescription;
+    };
+  }, [language, restaurantName, copy.menu, copy.defaultDescription, heroDescription]);
+
   function chooseLanguage(value: Language) {
     setLanguage(value);
     const next = new URLSearchParams(searchParams);
@@ -236,7 +254,7 @@ export function PublicRestaurantMenuPage() {
   }
 
   if (loading) return <div className="public-restaurant-page restaurant-public-loading-screen" lang={language}><div className="public-restaurant-loading"><span>✦</span><p>{copy.loading}</p></div></div>;
-  if (error || !payload?.menu_enabled) return <div className="public-restaurant-page" lang={language}><div className="public-restaurant-error"><span>🍽️</span><h1>{copy.unavailableTitle}</h1><p>{error || copy.unavailableMessage}</p></div></div>;
+  if (loadFailed || !payload?.menu_enabled) return <div className="public-restaurant-page" lang={language}><div className="public-restaurant-error"><span>🍽️</span><h1>{copy.unavailableTitle}</h1><p>{loadFailed ? copy.loadError : copy.unavailableMessage}</p></div></div>;
 
   const pageStyle = {
     '--restaurant-brand': payload.primary_color || '#7f1d1d',
@@ -282,7 +300,7 @@ export function PublicRestaurantMenuPage() {
           return <article key={item.id} className={`restaurant-public-dish-card ${item.featured ? 'featured' : ''} ${hasImage ? 'has-image' : 'without-image'}`}>
             {hasImage ? <div className="restaurant-public-dish-image"><img src={item.image_url || ''} alt="" loading="lazy"/><span>{item.featured ? copy.featured : group.name}</span></div> : <div className="restaurant-public-dish-placeholder"><span>{categoryVisual(group.name)}</span></div>}
             <div className="restaurant-public-dish-body">
-              <div className="restaurant-public-dish-heading"><div>{item.featured && <small>{copy.featured}</small>}<h3>{localizedName(item, language)}</h3></div><strong>{formatRestaurantMoney(item.price_cents)}</strong></div>
+              <div className="restaurant-public-dish-heading"><div>{item.featured && <small>{copy.featured}</small>}<h3>{localizedName(item, language)}</h3></div><strong>{formatRestaurantMoney(item.price_cents, localeByLanguage[language])}</strong></div>
               {description && <p>{description}</p>}
               {((payload.show_dietary_badges && (item.vegetarian || item.vegan)) || (payload.show_allergens && item.allergens.length > 0)) && <div className="restaurant-public-dish-tags">
                 {payload.show_dietary_badges && item.vegetarian && <span className="dietary">🌿 {copy.vegetarian}</span>}

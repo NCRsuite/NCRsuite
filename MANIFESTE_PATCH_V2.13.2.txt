@@ -1,0 +1,25 @@
+NCR Suite V2.13.2 — Patch différentiel uniquement
+
+Base requise : V2.13.1
+
+FICHIERS NOUVEAUX
+- A_LIRE_INSTALLATION_V2.13.2.txt
+- MANIFESTE_PATCH_V2.13.2.txt
+- supabase/migrations/067_restaurant_finalization_release.sql
+
+FICHIERS MODIFIÉS
+- CHANGELOG.md
+- README.md
+- package.json
+- package-lock.json
+- public/sw.js
+- scripts/phase1-critical-flows.mjs
+- scripts/phase1-static-audit.mjs
+- src/config/runtime.ts
+- src/features/restaurant/types.ts
+- src/pages/PublicRestaurantBookingPage.tsx
+- src/pages/PublicRestaurantMenuPage.tsx
+- src/pages/RestaurantFloorPlanPage.tsx
+
+AUCUN FICHIER À SUPPRIMER.
+AUCUNE EDGE FUNCTION À REDÉPLOYER.

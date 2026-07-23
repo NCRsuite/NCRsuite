@@ -237,7 +237,9 @@ requireText('src/pages/PublicRestaurantMenuPage.tsx', [
   "restaurant-public-category-nav",
   "/reserver",
   "hero_eyebrow_en",
-  "booking_button_label_it"
+  "booking_button_label_it",
+  "localeByLanguage",
+  "loadFailed"
 ]);
 requireText('src/pages/RestaurantMenuPage.tsx', [
   "restaurant-dish-photo-field",
@@ -271,7 +273,8 @@ requireText('src/pages/PublicRestaurantBookingPage.tsx', [
   "restaurant-public-languages",
   "ONLINE BOOKING",
   "RESERVA EN LÍNEA",
-  "PRENOTAZIONE ONLINE"
+  "PRENOTAZIONE ONLINE",
+  "source === ui.fr.defaultWelcome"
 ]);
 requireText('supabase/migrations/066_restaurant_public_translations_complete.sql', [
   'update_restaurant_public_menu_translations',
@@ -279,8 +282,17 @@ requireText('supabase/migrations/066_restaurant_public_translations_complete.sql
   'booking_welcome_text_it',
   'create or replace function public.get_public_restaurant_booking_config',
   "'2.13.1'",
-  expectedCache,
+  'ncr-suite-shell-v2.13.1-restaurant-premium',
   'set search_path = public'
+]);
+
+requireText('src/pages/RestaurantFloorPlanPage.tsx', [
+  'RESTAURATION · PLAN DE SALLE'
+]);
+requireText('supabase/migrations/067_restaurant_finalization_release.sql', [
+  "'2.13.2'",
+  expectedCache,
+  'on conflict(singleton) do update set'
 ]);
 
 requireText('supabase/functions/process-email-queue/index.ts', [

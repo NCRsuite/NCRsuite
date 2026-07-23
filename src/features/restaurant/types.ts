@@ -278,8 +278,8 @@ export function nullableRestaurantText(value: string) {
   return trimmed ? trimmed : null;
 }
 
-export function formatRestaurantMoney(cents: number) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
+export function formatRestaurantMoney(cents: number, locale = 'fr-FR') {
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
 }
 
 export function formatRestaurantDateTime(value: string) {

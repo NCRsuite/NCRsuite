@@ -1,9 +1,9 @@
-# V2.13.1 — Traductions publiques Restauration complètes
+# V2.13.2 — Finitions Restauration
 
-- Traduction des textes personnalisés du menu public : surtitre, titre, accueil, horaires, informations pratiques et bouton de réservation.
-- Traduction automatique du texte d’accueil de la réservation.
-- Page publique de réservation entièrement disponible en français, anglais, espagnol et italien.
-- Conservation de la langue lors du passage du menu à la réservation et inversement.
-- Traductions régénérées lors de la publication de l’identité ou de la modification des paramètres de réservation.
-- Fallbacks multilingues propres lorsque les traductions personnalisées ne sont pas encore générées.
-- Cache PWA : `ncr-suite-shell-v2.13.1-restaurant-premium`.
+- Remplacement de l’ancien libellé statique « RESTAURATION · V2.8.2 » par « RESTAURATION · PLAN DE SALLE ».
+- Messages d’erreur du menu public traduits en français, anglais, espagnol et italien, sans exposition d’erreurs techniques Supabase.
+- Format des prix adapté à la langue du menu public, en conservant l’euro.
+- Fallback multilingue corrigé pour le texte d’accueil de la réservation.
+- Titre de page, langue HTML et description publique adaptés à l’enseigne et à la langue sélectionnée.
+- Synchronisation de la release Supabase, du frontend et du cache PWA en V2.13.2.
+- Cache PWA : `ncr-suite-shell-v2.13.2-restaurant-premium`.

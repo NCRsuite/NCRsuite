@@ -74,7 +74,7 @@ if (!/SecurityFeatureGate[\s\S]{0,350}security_client_portal/.test(app)) {
 }
 
 
-// V2.13.1 — le rendu public Restauration doit rester isolé, personnalisable et multilingue.
+// V2.13.2 — le rendu public Restauration doit rester isolé, personnalisable et multilingue.
 const commercialBrandingPage = read('src/pages/CommercialBrandingPage.tsx');
 if (!commercialBrandingPage.includes("business_type === 'restauration'") || !commercialBrandingPage.includes('<RestaurantCommercialBrandingPage />')) {
   errors.push('La personnalisation Restauration premium n’est pas raccordée à la page centrale.');
@@ -86,6 +86,18 @@ if (!restaurantPremiumMigration.includes("o.business_type = 'securite'") || !res
 const restaurantTranslationsMigration = read('supabase/migrations/066_restaurant_public_translations_complete.sql');
 if (!restaurantTranslationsMigration.includes("ncr-suite-shell-v2.13.1-restaurant-premium") || !restaurantTranslationsMigration.includes('update_restaurant_public_menu_translations')) {
   errors.push('La migration V2.13.1 des traductions publiques Restauration est incomplète.');
+}
+const restaurantFinalizationMigration = read('supabase/migrations/067_restaurant_finalization_release.sql');
+if (!restaurantFinalizationMigration.includes("ncr-suite-shell-v2.13.2-restaurant-premium") || !restaurantFinalizationMigration.includes("'2.13.2'")) {
+  errors.push('La migration V2.13.2 de finalisation Restauration est incomplète.');
+}
+const restaurantFloorPlanPage = read('src/pages/RestaurantFloorPlanPage.tsx');
+if (!restaurantFloorPlanPage.includes('RESTAURATION · PLAN DE SALLE') || restaurantFloorPlanPage.includes('RESTAURATION · V2.8.2')) {
+  errors.push('Le plan de salle Restauration affiche encore un ancien numéro de version statique.');
+}
+const publicRestaurantMenuPage = read('src/pages/PublicRestaurantMenuPage.tsx');
+if (!publicRestaurantMenuPage.includes('localeByLanguage') || !publicRestaurantMenuPage.includes('loadFailed')) {
+  errors.push('Le menu public Restauration doit conserver la localisation des prix et des erreurs publiques.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
