@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.14.1-training-dossiers';
+const CACHE = 'ncr-suite-shell-v2.15.0-training-workflow';
 const SHELL = [
   '/',
   '/index.html',

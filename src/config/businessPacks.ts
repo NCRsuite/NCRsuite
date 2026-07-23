@@ -140,6 +140,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
     launchStatus: 'available',
     navigation: [
       { label: 'Tableau de bord', path: '/', icon: 'home' },
+      { label: 'Parcours Formation', path: '/parcours-formation', icon: 'sparkles' },
       { label: 'Formations', path: '/formations', icon: 'graduation' },
       { label: 'Stagiaires', path: '/stagiaires', icon: 'users' },
       { label: 'Formateurs', path: '/formateurs', icon: 'briefcase' },
@@ -152,6 +153,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Attestations', path: '/attestations', icon: 'graduation' },
       { label: 'Établissements', path: '/etablissements', icon: 'building' },
       { label: 'Accès équipe', path: '/acces-equipe', icon: 'users' },
+      { label: 'Profil organisme', path: '/profil-organisme', icon: 'building' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
       notifications,
       support,

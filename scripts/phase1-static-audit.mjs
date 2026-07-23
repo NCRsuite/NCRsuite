@@ -135,6 +135,28 @@ if (!trainingDossiersMigration.includes('update_training_session_dossier_setting
 }
 if (!accessMatrix.includes("'/dossiers-formation'")) errors.push('La route des dossiers Formation est absente de la matrice d’accès.');
 
+
+// V2.15.0 — parcours Formation unifié, profil unique et modèles de formation complets.
+const trainingProgramsV215 = read('src/pages/TrainingProgramsPage.tsx');
+const trainingProfileV215 = read('src/pages/TrainingOrganizationProfilePage.tsx');
+const trainingWorkflowV215 = read('src/pages/TrainingWorkflowPage.tsx');
+const trainingWorkflowMigration = read('supabase/migrations/070_training_unified_workflow.sql');
+if (!trainingProgramsV215.includes('Formations complètes') || !trainingProgramsV215.includes('training_program_trainers')) {
+  errors.push('Le catalogue maître Formation V2.15.0 est incomplet.');
+}
+if (!trainingProfileV215.includes('update_training_organization_profile') || !trainingProfileV215.includes('Adresse de réponse pour les documents signés')) {
+  errors.push('Le profil unique de l’organisme Formation V2.15.0 est incomplet.');
+}
+if (!trainingWorkflowV215.includes('create_training_session_from_commercial') || !trainingWorkflowV215.includes('validate_training_session_workflow')) {
+  errors.push('Le cockpit unifié Formation V2.15.0 est incomplet.');
+}
+if (!trainingWorkflowMigration.includes('training_program_trainers') || !trainingWorkflowMigration.includes("ncr-suite-shell-v2.15.0-training-workflow") || !trainingWorkflowMigration.includes("'2.15.0'")) {
+  errors.push('La migration V2.15.0 du parcours Formation est incomplète.');
+}
+if (!accessMatrix.includes("'/parcours-formation'") || !accessMatrix.includes("'/profil-organisme'")) {
+  errors.push('Les routes V2.15.0 Formation sont absentes de la matrice d’accès.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

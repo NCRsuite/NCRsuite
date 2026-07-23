@@ -41,6 +41,8 @@ const TrainingEvaluationsPage = lazy(() => import('./pages/TrainingEvaluationsPa
 const TrainingSitesPage = lazy(() => import('./pages/TrainingSitesPage').then((module) => ({ default: module.TrainingSitesPage })));
 const TrainingCommercialPage = lazy(() => import('./pages/TrainingCommercialPage').then((module) => ({ default: module.TrainingCommercialPage })));
 const TrainingDossiersPage = lazy(() => import('./pages/TrainingDossiersPage').then((module) => ({ default: module.TrainingDossiersPage })));
+const TrainingWorkflowPage = lazy(() => import('./pages/TrainingWorkflowPage').then((module) => ({ default: module.TrainingWorkflowPage })));
+const TrainingOrganizationProfilePage = lazy(() => import('./pages/TrainingOrganizationProfilePage').then((module) => ({ default: module.TrainingOrganizationProfilePage })));
 const PublicTrainingSatisfactionPage = lazy(() => import('./pages/PublicTrainingSatisfactionPage').then((module) => ({ default: module.PublicTrainingSatisfactionPage })));
 const SecurityClientsPage = lazy(() => import('./pages/SecurityClientsPage').then((module) => ({ default: module.SecurityClientsPage })));
 const SecurityAgentsPage = lazy(() => import('./pages/SecurityAgentsPage').then((module) => ({ default: module.SecurityAgentsPage })));
@@ -285,6 +287,8 @@ export default function App() {
       <Route path="/administration-ncr" element={<PlatformAdminArea />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
+        <Route path="parcours-formation" element={<ModuleAccessGuard moduleKey="sessions"><TrainingWorkflowPage /></ModuleAccessGuard>} />
+        <Route path="profil-organisme" element={<ModuleAccessGuard moduleKey="training_programs"><TrainingOrganizationProfilePage /></ModuleAccessGuard>} />
         <Route path="formations" element={<ModuleAccessGuard moduleKey="training_programs"><TrainingProgramsPage /></ModuleAccessGuard>} />
         <Route path="stagiaires" element={<ModuleAccessGuard moduleKey="trainees"><TrainingTraineesPage /></ModuleAccessGuard>} />
         <Route path="formateurs" element={<ModuleAccessGuard moduleKey="trainers"><TrainingTrainersPage /></ModuleAccessGuard>} />

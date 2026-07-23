@@ -34,6 +34,8 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/dossiers-vacations': 'security_planning',
   '/portail-clients': 'security_client_portal',
   '/documents': 'documents',
+  '/parcours-formation': 'training_session_dossier',
+  '/profil-organisme': 'training_commercial',
   '/formations': 'training_programs',
   '/stagiaires': 'trainees',
   '/formateurs': 'trainers',
@@ -63,6 +65,8 @@ const GENERIC_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/emargements': 'training_blank_attendance',
   '/attestations': 'training_automatic_certificates',
   '/commercial': 'training_commercial',
+  '/parcours-formation': 'training_session_dossier',
+  '/profil-organisme': 'training_commercial',
   '/dossiers-formation': 'training_session_dossier'
 };
 

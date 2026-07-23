@@ -1,5 +1,7 @@
-# NCR Suite V2.14.1 — Formation · Dossiers centralisés
+# NCR Suite V2.15.0 — Formation · Parcours unifié
 
-Cette version poursuit la restructuration du métier Formation avec un espace de pilotage moderne par session : complétude des pièces, actions guidées, notes internes, clôture et export du dossier.
+Cette version simplifie le métier Formation autour d’un parcours unique : profil organisme, formation complète, proposition commerciale signée, création de session, validation et préparation des convocations.
 
-Installation : consulter `A_LIRE_INSTALLATION_V2.14.1.txt`.
+Le cockpit Formation propose une interface moderne et responsive qui centralise les étapes administratives et pédagogiques de chaque session.
+
+Installation : consulter `A_LIRE_INSTALLATION_V2.15.0.txt`.

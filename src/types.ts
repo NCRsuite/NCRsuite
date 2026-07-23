@@ -70,6 +70,15 @@ export interface Organization {
   training_satisfaction_enabled?: boolean;
   training_satisfaction_delay_hours?: number;
   training_satisfaction_intro?: string | null;
+  training_nda_number?: string | null;
+  training_legal_representative?: string | null;
+  training_reply_to_email?: string | null;
+  training_vat_number?: string | null;
+  training_document_footer?: string | null;
+  training_default_terms?: string | null;
+  training_default_vat_basis_points?: number;
+  training_signature_url?: string | null;
+  training_stamp_url?: string | null;
   company_contact_name?: string | null;
   company_email?: string | null;
   company_phone?: string | null;
@@ -142,6 +151,7 @@ export type IconName =
   | 'eye'
   | 'sun'
   | 'clock'
+  | 'refresh'
   | 'bell'
   | 'message'
   | 'headset'

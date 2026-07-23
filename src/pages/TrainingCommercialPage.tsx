@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
@@ -13,6 +13,7 @@ import {
   trainingCommercialDocumentTypeLabels,
   trainingCustomerTypeLabels,
   trainingFunderTypeLabels,
+  trainingProgramCompletion,
   type TrainingCommercialDocumentRecord,
   type TrainingCommercialDocumentStatus,
   type TrainingCommercialDocumentType,
@@ -20,6 +21,7 @@ import {
   type TrainingCustomerType,
   type TrainingFunderRecord,
   type TrainingFunderType,
+  type TrainingProgramRecord,
   type TrainingSessionRecord,
   type TrainingTraineeRecord
 } from '../features/training/types';
@@ -66,6 +68,7 @@ type DocumentForm = {
   funderId: string;
   sessionId: string;
   traineeId: string;
+  programId: string;
   participantCount: string;
   issueDate: string;
   validUntil: string;
@@ -90,7 +93,7 @@ const emptyFunder: FunderForm = {
   funderType: 'opco', name: '', contactName: '', email: '', phone: '', billingAddress: '', postalCode: '', city: '', referenceCode: '', notes: ''
 };
 const emptyDocument: DocumentForm = {
-  documentType: 'quote', title: '', trainingSummary: '', customerId: '', funderId: '', sessionId: '', traineeId: '', participantCount: '1', issueDate: today(), validUntil: inThirtyDays(), amountExclTax: '0', vatRate: '20', notes: '', terms: 'Conditions de règlement et modalités d’exécution à convenir entre les parties.', siteId: ''
+  documentType: 'quote', title: '', trainingSummary: '', customerId: '', funderId: '', sessionId: '', traineeId: '', programId: '', participantCount: '1', issueDate: today(), validUntil: inThirtyDays(), amountExclTax: '0', vatRate: '20', notes: '', terms: 'Conditions de règlement et modalités d’exécution à convenir entre les parties.', siteId: ''
 };
 
 function moneyToCents(value: string) {
@@ -116,6 +119,7 @@ function readRows<T>(key: string): T[] {
 export function TrainingCommercialPage() {
   const { organization, sites, activeSiteId } = useOrganization();
   const { user, demoMode } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<Tab>('documents');
   const [editor, setEditor] = useState<Editor>(searchParams.get('new') === '1' ? 'document' : null);
@@ -124,6 +128,7 @@ export function TrainingCommercialPage() {
   const [documents, setDocuments] = useState<TrainingCommercialDocumentRecord[]>([]);
   const [sessions, setSessions] = useState<TrainingSessionRecord[]>([]);
   const [trainees, setTrainees] = useState<TrainingTraineeRecord[]>([]);
+  const [programs, setPrograms] = useState<TrainingProgramRecord[]>([]);
   const [customerForm, setCustomerForm] = useState<CustomerForm>(emptyCustomer);
   const [funderForm, setFunderForm] = useState<FunderForm>(emptyFunder);
   const [documentForm, setDocumentForm] = useState<DocumentForm>(emptyDocument);
@@ -155,27 +160,29 @@ export function TrainingCommercialPage() {
         setDocuments(readRows<TrainingCommercialDocumentRecord>(`ncr-suite-training-commercial-${organizationId}`));
         setSessions(readRows<TrainingSessionRecord>(`ncr-suite-training-sessions-${organizationId}`));
         setTrainees(readRows<TrainingTraineeRecord>(`ncr-suite-training-trainees-${organizationId}`));
+        setPrograms(readRows<TrainingProgramRecord>(`ncr-suite-training-programs-${organizationId}`));
         setLoading(false);
         return;
       }
       let customerRequest = supabase.from('training_customers').select('id,organization_id,site_id,customer_type,legal_name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,notes,status,created_at,updated_at').eq('organization_id', organizationId).neq('status', 'archived').order('legal_name');
-      let documentRequest = supabase.from('training_commercial_documents').select('id,organization_id,site_id,customer_id,funder_id,session_id,trainee_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,created_at,updated_at').eq('organization_id', organizationId).order('created_at', { ascending: false });
-      let sessionRequest = supabase.from('training_sessions').select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,created_at').eq('organization_id', organizationId).neq('status', 'canceled').order('starts_at', { ascending: false });
+      let documentRequest = supabase.from('training_commercial_documents').select('id,organization_id,site_id,customer_id,funder_id,session_id,trainee_id,program_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,signed_document_path,signed_document_received_at,signed_document_received_by,created_at,updated_at').eq('organization_id', organizationId).order('created_at', { ascending: false });
+      let sessionRequest = supabase.from('training_sessions').select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,source_commercial_document_id,validated_at,validated_by,created_at').eq('organization_id', organizationId).neq('status', 'canceled').order('starts_at', { ascending: false });
       if (activeSiteId) {
         const siteScope = `site_id.is.null,site_id.eq.${activeSiteId}`;
         customerRequest = customerRequest.or(siteScope);
         documentRequest = documentRequest.or(siteScope);
         sessionRequest = sessionRequest.or(siteScope);
       }
-      const [customerResult, funderResult, documentResult, sessionResult, traineeResult] = await Promise.all([
+      const [customerResult, funderResult, documentResult, sessionResult, traineeResult, programResult] = await Promise.all([
         customerRequest,
         supabase.from('training_funders').select('id,organization_id,funder_type,name,contact_name,email,phone,billing_address,postal_code,city,reference_code,notes,status,created_at,updated_at').eq('organization_id', organizationId).neq('status', 'archived').order('name'),
         documentRequest,
         sessionRequest,
-        supabase.from('training_trainees').select('id,organization_id,first_name,last_name,email,phone,company,notes,status,created_at').eq('organization_id', organizationId).eq('status', 'active').order('last_name')
+        supabase.from('training_trainees').select('id,organization_id,first_name,last_name,email,phone,company,notes,status,created_at').eq('organization_id', organizationId).eq('status', 'active').order('last_name'),
+        supabase.from('training_programs').select('id,organization_id,site_id,title,code,duration_hours,modality,objectives,description,audience,prerequisites,detailed_program,teaching_methods,training_resources,assessment_methods,accessibility,price_excl_tax_cents,vat_rate_basis_points,default_capacity,default_location,completion_status,status,created_at,updated_at').eq('organization_id', organizationId).neq('status', 'archived').order('title')
       ]);
       if (!active) return;
-      const firstError = customerResult.error || funderResult.error || documentResult.error || sessionResult.error || traineeResult.error;
+      const firstError = customerResult.error || funderResult.error || documentResult.error || sessionResult.error || traineeResult.error || programResult.error;
       if (firstError) setError(`Chargement impossible : ${firstError.message}`);
       else {
         setCustomers((customerResult.data ?? []) as TrainingCustomerRecord[]);
@@ -186,6 +193,7 @@ export function TrainingCommercialPage() {
         })) as TrainingCommercialDocumentRecord[]);
         setSessions((sessionResult.data ?? []) as TrainingSessionRecord[]);
         setTrainees((traineeResult.data ?? []) as TrainingTraineeRecord[]);
+        setPrograms((programResult.data ?? []).map((row) => ({ ...row, duration_hours: Number(row.duration_hours), price_excl_tax_cents: Number(row.price_excl_tax_cents), vat_rate_basis_points: Number(row.vat_rate_basis_points), default_capacity: Number(row.default_capacity) })) as TrainingProgramRecord[]);
       }
       setLoading(false);
     }
@@ -197,6 +205,29 @@ export function TrainingCommercialPage() {
   const funderById = useMemo(() => new Map(funders.map((row) => [row.id, row])), [funders]);
   const sessionById = useMemo(() => new Map(sessions.map((row) => [row.id, row])), [sessions]);
   const traineeById = useMemo(() => new Map(trainees.map((row) => [row.id, row])), [trainees]);
+  const programById = useMemo(() => new Map(programs.map((row) => [row.id, row])), [programs]);
+
+
+  useEffect(() => {
+    const requestedProgram = searchParams.get('program');
+    if (searchParams.get('new') === '1' && requestedProgram && programs.length > 0) {
+      const program = programById.get(requestedProgram);
+      if (program) {
+        setEditor('document');
+        setDocumentForm((current) => ({
+          ...current,
+          programId: program.id,
+          title: program.title,
+          trainingSummary: program.description || program.objectives || '',
+          participantCount: String(program.default_capacity),
+          amountExclTax: String(program.price_excl_tax_cents / 100).replace('.', ','),
+          vatRate: String(program.vat_rate_basis_points / 100).replace('.', ','),
+          siteId: program.site_id || current.siteId,
+          terms: organization?.training_default_terms || current.terms
+        }));
+      }
+    }
+  }, [searchParams, programs, programById, organization?.training_default_terms]);
 
   const filteredDocuments = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase('fr');
@@ -227,7 +258,20 @@ export function TrainingCommercialPage() {
 
   function openEditor(next: Exclude<Editor, null>) {
     setEditor(next); setError(''); setSuccess('');
-    if (next === 'document') setDocumentForm({ ...emptyDocument, siteId: activeSiteId || sites[0]?.id || '' });
+    if (next === 'document') {
+      const requestedProgram = programById.get(searchParams.get('program') ?? '');
+      setDocumentForm({
+        ...emptyDocument,
+        siteId: activeSiteId || sites[0]?.id || '',
+        programId: requestedProgram?.id ?? '',
+        title: requestedProgram?.title ?? '',
+        trainingSummary: requestedProgram?.description || requestedProgram?.objectives || '',
+        participantCount: requestedProgram ? String(requestedProgram.default_capacity) : '1',
+        amountExclTax: requestedProgram ? String(requestedProgram.price_excl_tax_cents / 100).replace('.', ',') : '0',
+        vatRate: requestedProgram ? String(requestedProgram.vat_rate_basis_points / 100).replace('.', ',') : '20',
+        terms: organization?.training_default_terms || emptyDocument.terms
+      });
+    }
     if (next === 'customer') setCustomerForm({ ...emptyCustomer, siteId: activeSiteId || sites[0]?.id || '' });
     if (next === 'funder') setFunderForm(emptyFunder);
   }
@@ -299,6 +343,9 @@ export function TrainingCommercialPage() {
     const vatRate = Number(documentForm.vatRate.replace(',', '.'));
     const participantCount = Number(documentForm.participantCount);
     if (documentForm.title.trim().length < 2) { setError('Renseigne l’objet du dossier.'); return; }
+    const selectedProgram = programById.get(documentForm.programId);
+    if (!selectedProgram) { setError('Sélectionne une formation complète.'); return; }
+    if (!trainingProgramCompletion(selectedProgram).ready) { setError('La fiche formation doit être complète avant de créer une proposition.'); return; }
     if (!Number.isFinite(amount) || amount < 0) { setError('Le montant HT est invalide.'); return; }
     if (!Number.isFinite(vatRate) || vatRate < 0 || vatRate > 100) { setError('Le taux de TVA est invalide.'); return; }
     if (!Number.isInteger(participantCount) || participantCount < 1) { setError('Le nombre de participants est invalide.'); return; }
@@ -307,7 +354,7 @@ export function TrainingCommercialPage() {
     const payload = {
       organization_id: organization.id,
       site_id: multiSiteEnabled ? nullableText(documentForm.siteId) : null,
-      customer_id: nullableText(documentForm.customerId), funder_id: nullableText(documentForm.funderId), session_id: nullableText(documentForm.sessionId), trainee_id: nullableText(documentForm.traineeId),
+      customer_id: nullableText(documentForm.customerId), funder_id: nullableText(documentForm.funderId), session_id: nullableText(documentForm.sessionId), trainee_id: nullableText(documentForm.traineeId), program_id: documentForm.programId,
       document_type: documentForm.documentType, title: documentForm.title.trim(), training_summary: nullableText(documentForm.trainingSummary), participant_count: participantCount,
       issue_date: documentForm.issueDate, valid_until: nullableText(documentForm.validUntil), amount_excl_tax_cents: amount, vat_rate_basis_points: Math.round(vatRate * 100),
       notes: nullableText(documentForm.notes), terms: nullableText(documentForm.terms), created_by: user.id
@@ -316,10 +363,10 @@ export function TrainingCommercialPage() {
       let created: TrainingCommercialDocumentRecord;
       if (demoMode || !supabase) {
         const tax = Math.round(amount * Math.round(vatRate * 100) / 10000);
-        created = { id: crypto.randomUUID(), ...payload, reference: `${documentForm.documentType === 'quote' ? 'DEV' : documentForm.documentType === 'agreement' ? 'CONV' : 'CTR'}-${new Date().getFullYear()}-${String(documents.length + 1).padStart(4, '0')}`, status: 'draft', tax_cents: tax, amount_incl_tax_cents: amount + tax, sent_at: null, accepted_at: null, signed_at: null, created_at: new Date().toISOString() };
+        created = { id: crypto.randomUUID(), ...payload, reference: `${documentForm.documentType === 'quote' ? 'DEV' : documentForm.documentType === 'agreement' ? 'CONV' : 'CTR'}-${new Date().getFullYear()}-${String(documents.length + 1).padStart(4, '0')}`, status: 'draft', tax_cents: tax, amount_incl_tax_cents: amount + tax, sent_at: null, accepted_at: null, signed_at: null, signed_document_path: null, signed_document_received_at: null, signed_document_received_by: null, created_at: new Date().toISOString() };
         writeJsonStorage(`ncr-suite-training-commercial-${organization.id}`, [created, ...documents]);
       } else {
-        const { data, error: insertError } = await supabase.from('training_commercial_documents').insert(payload).select('id,organization_id,site_id,customer_id,funder_id,session_id,trainee_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,created_at,updated_at').single();
+        const { data, error: insertError } = await supabase.from('training_commercial_documents').insert(payload).select('id,organization_id,site_id,customer_id,funder_id,session_id,trainee_id,program_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,signed_document_path,signed_document_received_at,signed_document_received_by,created_at,updated_at').single();
         if (insertError) throw insertError;
         if (!data) throw new Error('Le dossier créé n’a pas été retourné par Supabase.');
         created = { ...(data as TrainingCommercialDocumentRecord), participant_count: Number(data.participant_count), amount_excl_tax_cents: Number(data.amount_excl_tax_cents), vat_rate_basis_points: Number(data.vat_rate_basis_points), tax_cents: Number(data.tax_cents), amount_incl_tax_cents: Number(data.amount_incl_tax_cents) };
@@ -349,6 +396,30 @@ export function TrainingCommercialPage() {
       setDocuments((current) => current.map((item) => item.id === row.id ? { ...item, ...patch } : item));
       setSuccess(`Statut mis à jour : ${trainingCommercialDocumentStatusLabels[status]}.`);
     } catch (caught) { setError(`Mise à jour impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+    finally { setBusyId(''); }
+  }
+
+  async function uploadSignedDocument(row: TrainingCommercialDocumentRecord, file: File) {
+    if (!organization || !user || !canManage) return;
+    if (file.size > 20 * 1024 * 1024) { setError('Le document signé ne doit pas dépasser 20 Mo.'); return; }
+    setBusyId(row.id); setError(''); setSuccess('');
+    try {
+      const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'pdf';
+      const path = `${organization.id}/commercial/signes/${row.id}-${Date.now()}.${extension}`;
+      const timestamp = new Date().toISOString();
+      const patch = { status: 'signed' as const, signed_at: timestamp, signed_document_path: path, signed_document_received_at: timestamp, signed_document_received_by: user.id };
+      if (demoMode || !supabase) {
+        const next = documents.map((item) => item.id === row.id ? { ...item, ...patch } : item);
+        writeJsonStorage(`ncr-suite-training-commercial-${organization.id}`, next);
+      } else {
+        const { error: uploadError } = await supabase.storage.from('training-documents').upload(path, file, { contentType: file.type || 'application/pdf', upsert: true });
+        if (uploadError) throw uploadError;
+        const { error: updateError } = await supabase.from('training_commercial_documents').update(patch).eq('organization_id', organization.id).eq('id', row.id);
+        if (updateError) throw updateError;
+      }
+      setDocuments((current) => current.map((item) => item.id === row.id ? { ...item, ...patch } : item));
+      setSuccess(`${row.reference} est marqué comme signé. Tu peux maintenant créer la session.`);
+    } catch (caught) { setError(`Import impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
     finally { setBusyId(''); }
   }
 
@@ -447,10 +518,11 @@ export function TrainingCommercialPage() {
           {editor === 'document' && <form className="training-form-grid" onSubmit={saveDocument}>
             <label>Document<select value={documentForm.documentType} onChange={(event) => setDocumentForm({ ...documentForm, documentType: event.target.value as TrainingCommercialDocumentType })}>{Object.entries(trainingCommercialDocumentTypeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <label>Objet *<input autoFocus required value={documentForm.title} onChange={(event) => setDocumentForm({ ...documentForm, title: event.target.value })} placeholder="Ex. Formation SST interentreprises" /></label>
+            <label className="full-field">Formation complète *<select required value={documentForm.programId} onChange={(event) => { const program = programById.get(event.target.value); setDocumentForm({ ...documentForm, programId: event.target.value, title: program?.title || documentForm.title, trainingSummary: program?.description || program?.objectives || '', participantCount: program ? String(program.default_capacity) : documentForm.participantCount, amountExclTax: program ? String(program.price_excl_tax_cents / 100).replace('.', ',') : documentForm.amountExclTax, vatRate: program ? String(program.vat_rate_basis_points / 100).replace('.', ',') : documentForm.vatRate, siteId: program?.site_id || documentForm.siteId }); }}><option value="">Sélectionner une formation</option>{programs.map((program) => <option key={program.id} value={program.id} disabled={!trainingProgramCompletion(program).ready}>{program.title}{trainingProgramCompletion(program).ready ? '' : ' · à compléter'}</option>)}</select></label>
             <label>Entreprise cliente<select value={documentForm.customerId} onChange={(event) => setDocumentForm({ ...documentForm, customerId: event.target.value })}><option value="">Aucune / particulier</option>{customers.map((row) => <option key={row.id} value={row.id}>{row.legal_name}</option>)}</select></label>
             <label>Stagiaire bénéficiaire<select value={documentForm.traineeId} onChange={(event) => setDocumentForm({ ...documentForm, traineeId: event.target.value })}><option value="">Non nominatif</option>{trainees.map((row) => <option key={row.id} value={row.id}>{personName(row.first_name, row.last_name)}</option>)}</select></label>
             <label>Financeur<select value={documentForm.funderId} onChange={(event) => setDocumentForm({ ...documentForm, funderId: event.target.value })}><option value="">Sans financeur</option>{funders.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label>
-            <label>Session<select value={documentForm.sessionId} onChange={(event) => { const session = sessionById.get(event.target.value); setDocumentForm({ ...documentForm, sessionId: event.target.value, title: documentForm.title || session?.title || '', trainingSummary: documentForm.trainingSummary || session?.title || '' }); }}><option value="">Dossier hors session</option>{sessions.map((row) => <option key={row.id} value={row.id}>{row.title} · {new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' }).format(new Date(row.starts_at))}</option>)}</select></label>
+            <label>Session<select value={documentForm.sessionId} onChange={(event) => { const session = sessionById.get(event.target.value); const program = session ? programById.get(session.program_id) : null; setDocumentForm({ ...documentForm, sessionId: event.target.value, programId: program?.id || documentForm.programId, title: documentForm.title || session?.title || '', trainingSummary: documentForm.trainingSummary || program?.description || program?.objectives || session?.title || '' }); }}><option value="">Dossier hors session</option>{sessions.map((row) => <option key={row.id} value={row.id}>{row.title} · {new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' }).format(new Date(row.starts_at))}</option>)}</select></label>
             {multiSiteEnabled && <label>Établissement<select value={documentForm.siteId} onChange={(event) => setDocumentForm({ ...documentForm, siteId: event.target.value })}><option value="">Global</option>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>}
             <label>Participants<input type="number" min="1" value={documentForm.participantCount} onChange={(event) => setDocumentForm({ ...documentForm, participantCount: event.target.value })} /></label>
             <label>Date d’émission<input type="date" required value={documentForm.issueDate} onChange={(event) => setDocumentForm({ ...documentForm, issueDate: event.target.value })} /></label>
@@ -473,12 +545,12 @@ export function TrainingCommercialPage() {
         {loading ? <div className="training-empty">Chargement…</div> : tab === 'documents' ? (
           filteredDocuments.length === 0 ? <div className="training-empty"><Icon name="file" size={30} /><strong>Aucun dossier commercial</strong><span>Crée le premier devis, la première convention ou le premier contrat.</span></div> :
           <div className="training-commercial-document-list">{filteredDocuments.map((row) => {
-            const customer = customerById.get(row.customer_id ?? ''); const trainee = traineeById.get(row.trainee_id ?? ''); const funder = funderById.get(row.funder_id ?? ''); const session = sessionById.get(row.session_id ?? '');
+            const customer = customerById.get(row.customer_id ?? ''); const trainee = traineeById.get(row.trainee_id ?? ''); const funder = funderById.get(row.funder_id ?? ''); const session = sessionById.get(row.session_id ?? ''); const program = programById.get(row.program_id ?? '');
             return <article key={row.id}>
               <span className="training-commercial-document-icon"><Icon name={row.document_type === 'quote' ? 'creditCard' : row.document_type === 'agreement' ? 'file' : 'signature'} size={22} /></span>
-              <div className="training-commercial-document-main"><div><span className="training-commercial-type">{trainingCommercialDocumentTypeLabels[row.document_type]}</span><strong>{row.reference} · {row.title}</strong></div><p>{customer?.legal_name || (trainee ? personName(trainee.first_name, trainee.last_name) : 'Bénéficiaire à compléter')}{funder ? ` · ${funder.name}` : ''}</p><small>{session ? `${session.title} · ` : ''}Émis le {dateLabel(row.issue_date)}{row.valid_until ? ` · validité ${dateLabel(row.valid_until)}` : ''}</small></div>
+              <div className="training-commercial-document-main"><div><span className="training-commercial-type">{trainingCommercialDocumentTypeLabels[row.document_type]}</span><strong>{row.reference} · {row.title}</strong></div><p>{customer?.legal_name || (trainee ? personName(trainee.first_name, trainee.last_name) : 'Bénéficiaire à compléter')}{funder ? ` · ${funder.name}` : ''}</p><small>{program ? `${program.title} · ` : session ? `${session.title} · ` : ''}Émis le {dateLabel(row.issue_date)}{row.valid_until ? ` · validité ${dateLabel(row.valid_until)}` : ''}</small></div>
               <div className="training-commercial-document-value"><strong>{formatTrainingMoney(row.amount_incl_tax_cents)}</strong><span className={`status-chip ${statusClass(row.status)}`}>{trainingCommercialDocumentStatusLabels[row.status]}</span></div>
-              <div className="training-commercial-document-actions"><button type="button" className="secondary-button compact-button" onClick={() => void downloadPdf(row)}><Icon name="file" size={15} />PDF</button>{canManage && <select aria-label={`Statut de ${row.reference}`} value={row.status} disabled={busyId === row.id} onChange={(event) => void updateDocumentStatus(row, event.target.value as TrainingCommercialDocumentStatus)}>{Object.entries(trainingCommercialDocumentStatusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select>}</div>
+              <div className="training-commercial-document-actions"><button type="button" className="secondary-button compact-button" onClick={() => void downloadPdf(row)}><Icon name="file" size={15} />PDF</button>{canManage && ['sent','accepted'].includes(row.status) && <label className="secondary-button compact-button training-signed-upload"><Icon name="signature" size={15} />Signé reçu<input type="file" accept="application/pdf,image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadSignedDocument(row, file); event.currentTarget.value = ''; }} /></label>}{canManage && row.status === 'signed' && !row.session_id && row.program_id && <button type="button" className="primary-button compact-button" onClick={() => navigate(`/parcours-formation?convert=${encodeURIComponent(row.id)}`)}>Créer la session</button>}{canManage && <select aria-label={`Statut de ${row.reference}`} value={row.status} disabled={busyId === row.id} onChange={(event) => void updateDocumentStatus(row, event.target.value as TrainingCommercialDocumentStatus)}>{Object.entries(trainingCommercialDocumentStatusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select>}</div>
             </article>;
           })}</div>
         ) : tab === 'customers' ? (

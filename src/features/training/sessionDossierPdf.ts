@@ -260,6 +260,6 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
   pdf.setTitle(`Dossier de session - ${input.session.title}`);
   pdf.setAuthor(input.organization.public_name || input.organization.name);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.14.1');
+  pdf.setProducer('NCR Suite V2.15.0');
   return { bytes: await pdf.save(), filename: `dossier-session-${slugify(input.session.title)}.pdf` };
 }

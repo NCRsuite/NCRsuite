@@ -27,7 +27,7 @@ export const BUSINESS_ROUTE_PATHS: Record<BusinessType, Set<string>> = {
   ]),
   formation: new Set([
     ...common(),
-    '/formations', '/stagiaires', '/formateurs', '/sessions', '/commercial', '/dossiers-formation', '/documents', '/emargements', '/evaluations', '/attestations', '/etablissements', '/acces-equipe', '/personnalisation'
+    '/parcours-formation', '/profil-organisme', '/formations', '/stagiaires', '/formateurs', '/sessions', '/commercial', '/dossiers-formation', '/documents', '/emargements', '/evaluations', '/attestations', '/etablissements', '/acces-equipe', '/personnalisation'
   ]),
   securite: new Set([
     ...common(),
@@ -43,7 +43,7 @@ export const BUSINESS_ROUTE_PATHS: Record<BusinessType, Set<string>> = {
   ])
 };
 
-const OWNER_ADMIN_ONLY_PATHS = new Set(['/abonnement', '/acces-equipe', '/personnalisation', '/offre-metier']);
+const OWNER_ADMIN_ONLY_PATHS = new Set(['/abonnement', '/acces-equipe', '/personnalisation', '/profil-organisme', '/offre-metier']);
 const ALL_ROLE_PATHS = new Set(['/', '/notifications', '/assistance']);
 const MANAGER_COMMON_PATHS = new Set(['/', '/notifications', '/assistance', '/parametres', '/demarrage']);
 

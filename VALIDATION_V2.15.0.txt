@@ -1,0 +1,18 @@
+NCR SUITE V2.15.0 — RAPPORT DE VALIDATION
+==========================================
+
+VALIDÉ DANS L’ENVIRONNEMENT DE PRÉPARATION
+------------------------------------------
+- Audit statique NCR Suite : OK
+- Parcours critiques NCR Suite : OK
+- Syntaxe TypeScript/TSX : OK (159 fichiers contrôlés, hors fichier de déclaration Vite)
+- Imports relatifs du frontend : OK (152 fichiers contrôlés)
+- Cohérence des noms d’icônes : OK
+- Cohérence package / runtime / Service Worker : OK
+- Patch différentiel réappliqué sur la V2.14.1 : contrôle effectué avant livraison
+
+NON VÉRIFIÉ LOCALEMENT
+----------------------
+Le build complet `tsc -b && vite build` n’a pas pu être exécuté, car le registre npm de l’environnement ne permet pas de restaurer les dépendances. Le build Cloudflare reste donc le contrôle final obligatoire.
+
+La migration SQL n’a pas été exécutée directement sur la base Supabase de production.

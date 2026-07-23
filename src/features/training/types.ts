@@ -12,8 +12,29 @@ export interface TrainingProgramRecord {
   modality: TrainingModality;
   objectives: string | null;
   description: string | null;
+  audience: string | null;
+  prerequisites: string | null;
+  detailed_program: string | null;
+  teaching_methods: string | null;
+  training_resources: string | null;
+  assessment_methods: string | null;
+  accessibility: string | null;
+  price_excl_tax_cents: number;
+  vat_rate_basis_points: number;
+  default_capacity: number;
+  default_location: string | null;
+  completion_status: 'draft' | 'ready';
   status: TrainingEntityStatus;
   created_at: string;
+  updated_at?: string;
+}
+
+export interface TrainingProgramTrainerRecord {
+  organization_id: string;
+  program_id: string;
+  trainer_id: string;
+  is_primary: boolean;
+  created_at?: string;
 }
 
 export interface TrainingTraineeRecord {
@@ -61,6 +82,9 @@ export interface TrainingSessionRecord {
   closure_notes?: string | null;
   reopened_at?: string | null;
   reopened_by?: string | null;
+  source_commercial_document_id?: string | null;
+  validated_at?: string | null;
+  validated_by?: string | null;
   training_dossier_requirements?: TrainingDossierRequirementOverrides | null;
   training_dossier_notes?: string | null;
   training_dossier_reviewed_at?: string | null;
@@ -136,6 +160,28 @@ export const trainingDocumentVisibilityLabels: Record<TrainingDocumentVisibility
   session: 'Toute la session',
   trainee: 'Un stagiaire'
 };
+
+
+
+export function trainingProgramCompletion(program: TrainingProgramRecord) {
+  const required = [
+    program.title,
+    program.objectives,
+    program.audience,
+    program.prerequisites,
+    program.detailed_program,
+    program.teaching_methods,
+    program.assessment_methods,
+    program.accessibility
+  ];
+  const completed = required.filter((value) => Boolean(String(value ?? '').trim())).length;
+  return {
+    completed,
+    total: required.length,
+    percent: Math.round((completed / required.length) * 100),
+    ready: program.completion_status === 'ready' || completed === required.length
+  };
+}
 
 export const modalityLabels: Record<TrainingModality, string> = {
   presentiel: 'Présentiel',
@@ -283,6 +329,7 @@ export interface TrainingCommercialDocumentRecord {
   funder_id: string | null;
   session_id: string | null;
   trainee_id: string | null;
+  program_id: string | null;
   document_type: TrainingCommercialDocumentType;
   reference: string;
   title: string;
@@ -300,6 +347,9 @@ export interface TrainingCommercialDocumentRecord {
   sent_at: string | null;
   accepted_at: string | null;
   signed_at: string | null;
+  signed_document_path: string | null;
+  signed_document_received_at: string | null;
+  signed_document_received_by: string | null;
   created_at: string;
   updated_at?: string;
 }

@@ -19,8 +19,9 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-dossiers`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-workflow`;
 const trainingCommercialCache = 'ncr-suite-shell-v2.14.0-training-commercial';
+const trainingDossiersCache = 'ncr-suite-shell-v2.14.1-training-dossiers';
 const coiffureCache = 'ncr-suite-shell-v2.12.3-coiffure-loyalty-portal';
 const cleaningCache = 'ncr-suite-shell-v2.12.2-cleaning-client-portal';
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version frontend ne correspond pas à package.json.');
@@ -102,7 +103,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -329,11 +330,42 @@ requireText('supabase/migrations/069_training_session_dossier_workspace.sql', [
   'update_training_session_dossier_settings',
   "organization_has_plan_feature(p_organization_id, 'training_session_dossier')",
   "'2.14.1'",
-  expectedCache,
+  trainingDossiersCache,
   'set search_path = public'
 ]);
 if (!app.includes('path="dossiers-formation"') || !access.includes("'/dossiers-formation'")) {
   failures.push('Le dossier centralisé Formation doit rester raccordé à la navigation et à la matrice d’accès.');
+}
+
+
+requireText('src/pages/TrainingProgramsPage.tsx', [
+  'Formations complètes',
+  'trainingProgramCompletion',
+  'training_program_trainers',
+  'Créer une proposition'
+]);
+requireText('src/pages/TrainingOrganizationProfilePage.tsx', [
+  'Profil de l’organisme',
+  'update_training_organization_profile',
+  'Adresse de réponse pour les documents signés'
+]);
+requireText('src/pages/TrainingWorkflowPage.tsx', [
+  'Du programme au dossier complet',
+  'create_training_session_from_commercial',
+  'validate_training_session_workflow',
+  'Valider et envoyer'
+]);
+requireText('supabase/migrations/070_training_unified_workflow.sql', [
+  'create table if not exists public.training_program_trainers',
+  'create or replace function public.update_training_organization_profile',
+  'create or replace function public.create_training_session_from_commercial',
+  'create or replace function public.validate_training_session_workflow',
+  "'2.15.0'",
+  expectedCache,
+  'set search_path = public'
+]);
+if (!app.includes('path="parcours-formation"') || !app.includes('path="profil-organisme"') || !access.includes("'/parcours-formation'") || !access.includes("'/profil-organisme'")) {
+  failures.push('Le parcours Formation V2.15.0 doit rester raccordé aux routes et à la matrice d’accès.');
 }
 
 requireText('supabase/functions/process-email-queue/index.ts', [

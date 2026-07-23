@@ -1,0 +1,38 @@
+NCR SUITE V2.15.0 — MANIFESTE DU PATCH
+=======================================
+
+Base requise : V2.14.1 validée + correctif PDF commercial Formation.
+
+7 fichier(s) ajouté(s), 20 fichier(s) modifié(s), 0 fichier(s) supprimé(s).
+
+FICHIERS DU PATCH
+------------------
+AJOUT       MANIFESTE_PATCH_V2.15.0.txt
+AJOUT       A_LIRE_INSTALLATION_V2.15.0.txt
+MODIFICATION CHANGELOG.md
+MODIFICATION README.md
+AJOUT       VALIDATION_V2.15.0.txt
+AJOUT       docs/V2.15.0_INSTALLATION.md
+MODIFICATION package-lock.json
+MODIFICATION package.json
+MODIFICATION public/sw.js
+MODIFICATION scripts/phase1-critical-flows.mjs
+MODIFICATION scripts/phase1-static-audit.mjs
+MODIFICATION src/App.tsx
+MODIFICATION src/components/Icon.tsx
+MODIFICATION src/config/accessMatrix.ts
+MODIFICATION src/config/businessPacks.ts
+MODIFICATION src/config/moduleAccess.ts
+MODIFICATION src/config/runtime.ts
+MODIFICATION src/contexts/OrganizationContext.tsx
+MODIFICATION src/features/training/sessionDossierPdf.ts
+MODIFICATION src/features/training/types.ts
+MODIFICATION src/pages/TrainingCommercialPage.tsx
+AJOUT       src/pages/TrainingOrganizationProfilePage.tsx
+MODIFICATION src/pages/TrainingProgramsPage.tsx
+AJOUT       src/pages/TrainingWorkflowPage.tsx
+MODIFICATION src/styles.css
+MODIFICATION src/types.ts
+AJOUT       supabase/migrations/070_training_unified_workflow.sql
+
+Aucun dossier complet, node_modules, dist ou fichier *.tsbuildinfo n’est inclus.
