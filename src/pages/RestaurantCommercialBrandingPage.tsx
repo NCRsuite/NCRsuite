@@ -118,6 +118,9 @@ export function RestaurantCommercialBrandingPage() {
     setLogoFile(null);
     setCoverFile(null);
 
+    const organizationId = currentOrganization.id;
+    const organizationBannerUrl = currentOrganization.booking_banner_url ?? null;
+
     let active = true;
     async function loadSettings() {
       setLoading(true);
@@ -125,9 +128,9 @@ export function RestaurantCommercialBrandingPage() {
       try {
         let settings: RestaurantMenuSettings | null = null;
         if (demoMode || !supabase) {
-          settings = readJsonStorage<RestaurantMenuSettings | null>(`ncr-restaurant-public-branding-${currentOrganization.id}`, null);
+          settings = readJsonStorage<RestaurantMenuSettings | null>(`ncr-restaurant-public-branding-${organizationId}`, null);
         } else {
-          const { data, error: loadError } = await supabase.from('restaurant_public_menu_settings').select('*').eq('organization_id', currentOrganization.id).maybeSingle();
+          const { data, error: loadError } = await supabase.from('restaurant_public_menu_settings').select('*').eq('organization_id', organizationId).maybeSingle();
           if (loadError) throw loadError;
           settings = data as RestaurantMenuSettings | null;
         }
@@ -136,7 +139,7 @@ export function RestaurantCommercialBrandingPage() {
         setTheme(resolved.theme_code);
         setLayout(resolved.layout_code);
         setSecondaryColor(resolved.secondary_color);
-        setCoverUrl(resolved.cover_url ?? currentOrganization.booking_banner_url ?? null);
+        setCoverUrl(resolved.cover_url ?? organizationBannerUrl);
         setHeroEyebrow(resolved.hero_eyebrow ?? '');
         setHeroTitle(resolved.hero_title ?? '');
         setHeroDescription(resolved.hero_description ?? '');
