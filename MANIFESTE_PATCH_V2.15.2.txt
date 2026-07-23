@@ -1,0 +1,31 @@
+NCR Suite V2.15.2 — Patch différentiel uniquement
+Base obligatoire : V2.15.1 validée avec correctif sessions local/multi-site
+
+24 fichiers applicatifs ajoutés ou modifiés.
+Aucun fichier supprimé.
+
+Fichiers inclus :
+- A_LIRE_INSTALLATION_V2.15.2.txt
+- CHANGELOG.md
+- README.md
+- docs/V2.15.2_INSTALLATION.md
+- package-lock.json
+- package.json
+- public/sw.js
+- scripts/phase1-critical-flows.mjs
+- scripts/phase1-static-audit.mjs
+- src/config/runtime.ts
+- src/contexts/OrganizationContext.tsx
+- src/features/training/commercialPdf.ts
+- src/features/training/programPdf.ts
+- src/features/training/sessionDossierPdf.ts
+- src/features/training/types.ts
+- src/pages/PublicTrainingSatisfactionPage.tsx
+- src/pages/TrainingDossiersPage.tsx
+- src/pages/TrainingEvaluationsPage.tsx
+- src/pages/TrainingSessionsPage.tsx
+- src/pages/TrainingWorkflowPage.tsx
+- src/styles.css
+- src/types.ts
+- supabase/functions/process-email-queue/index.ts
+- supabase/migrations/073_training_delivery_closure_automation.sql

@@ -82,6 +82,11 @@ export interface TrainingSessionRecord {
   closure_notes?: string | null;
   reopened_at?: string | null;
   reopened_by?: string | null;
+  delivery_completed_at?: string | null;
+  closure_automation_started_at?: string | null;
+  training_dossier_finalized_at?: string | null;
+  training_dossier_finalized_by?: string | null;
+  training_dossier_auto_completed?: boolean;
   source_commercial_document_id?: string | null;
   validated_at?: string | null;
   validated_by?: string | null;
@@ -245,6 +250,7 @@ export const attendanceStatusLabels: Record<TrainingAttendanceStatus, string> = 
   excused: 'Absence justifiée'
 };
 
+export type TrainingEvaluationType = 'initial' | 'final';
 export type TrainingSatisfactionStatus = 'pending' | 'sent' | 'completed' | 'expired' | 'cancelled';
 
 export interface TrainingSatisfactionRecord {
@@ -254,6 +260,7 @@ export interface TrainingSatisfactionRecord {
   session_id: string;
   trainee_id: string;
   public_token: string;
+  evaluation_type: TrainingEvaluationType;
   status: TrainingSatisfactionStatus;
   scheduled_for: string;
   emailed_at: string | null;
@@ -265,6 +272,12 @@ export interface TrainingSatisfactionRecord {
   recommend: boolean | null;
   comment: string | null;
   improvement: string | null;
+  initial_level: number | null;
+  initial_expectations: string | null;
+  initial_objectives: string | null;
+  initial_needs: string | null;
+  reminder_count: number;
+  last_reminded_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -430,6 +443,8 @@ export interface TrainingSessionDossierSummary {
   requiredCount: number;
   missingCount: number;
   canClose: boolean;
+  canLaunchClosure: boolean;
+  canFinalize: boolean;
   checks: TrainingDossierCheck[];
   enrollmentCount: number;
   commercialReference: string | null;

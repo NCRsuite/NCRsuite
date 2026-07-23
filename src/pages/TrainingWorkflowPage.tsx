@@ -38,7 +38,7 @@ type ConvertForm = {
 };
 
 const PROGRAM_SELECT = 'id,organization_id,site_id,title,code,duration_hours,modality,objectives,description,audience,prerequisites,detailed_program,teaching_methods,training_resources,assessment_methods,accessibility,price_excl_tax_cents,vat_rate_basis_points,default_capacity,default_location,completion_status,status,created_at,updated_at';
-const SESSION_SELECT = 'id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,source_commercial_document_id,validated_at,validated_by,training_dossier_requirements,training_dossier_notes,training_dossier_reviewed_at,training_dossier_reviewed_by,created_at';
+const SESSION_SELECT = 'id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,delivery_completed_at,closure_automation_started_at,training_dossier_finalized_at,training_dossier_finalized_by,training_dossier_auto_completed,source_commercial_document_id,validated_at,validated_by,training_dossier_requirements,training_dossier_notes,training_dossier_reviewed_at,training_dossier_reviewed_by,created_at';
 const COMMERCIAL_SELECT = 'id,organization_id,site_id,customer_id,funder_id,session_id,trainee_id,program_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,signed_document_path,signed_document_received_at,signed_document_received_by,created_at,updated_at';
 
 function toLocalParts(value: Date) {
@@ -142,7 +142,7 @@ export function TrainingWorkflowPage() {
       supabase.from('training_commercial_documents').select(COMMERCIAL_SELECT).eq('organization_id', organizationId).order('created_at', { ascending: false }),
       supabase.from('training_documents').select('id,organization_id,site_id,session_id,program_id,trainee_id,title,category,storage_path,mime_type,size_bytes,visibility,status,notes,generated_automatically,automation_key,generated_at,emailed_at,created_at').eq('organization_id', organizationId).neq('status', 'archived'),
       supabase.from('training_attendance').select('id,organization_id,site_id,session_id,trainee_id,attendance_date,period,status,signature_path,signatory_name,signed_at,notes,created_at,updated_at').eq('organization_id', organizationId),
-      supabase.from('training_satisfaction_surveys').select('id,organization_id,site_id,session_id,trainee_id,public_token,status,scheduled_for,emailed_at,completed_at,content_rating,trainer_rating,organization_rating,objectives_rating,recommend,comment,improvement,created_at,updated_at').eq('organization_id', organizationId)
+      supabase.from('training_satisfaction_surveys').select('id,organization_id,site_id,session_id,trainee_id,public_token,evaluation_type,status,scheduled_for,emailed_at,completed_at,content_rating,trainer_rating,organization_rating,objectives_rating,recommend,comment,improvement,initial_level,initial_expectations,initial_objectives,initial_needs,reminder_count,last_reminded_at,created_at,updated_at').eq('organization_id', organizationId)
     ]);
     const firstError = programResult.error || trainerResult.error || programTrainerResult.error || traineeResult.error || sessionResult.error || enrollmentResult.error || commercialResult.error || documentResult.error || attendanceResult.error || surveyResult.error;
     if (firstError) setError(`Chargement impossible : ${firstError.message}`);
@@ -222,22 +222,27 @@ export function TrainingWorkflowPage() {
     const commercial = selectedSession.source_commercial_document_id ? commercialById.get(selectedSession.source_commercial_document_id) ?? commercials.find((row) => row.session_id === selectedSession.id) ?? null : commercials.find((row) => row.session_id === selectedSession.id) ?? null;
     const convocationCount = sessionDocuments.filter((row) => row.category === 'convocation').length;
     const certificateCount = sessionDocuments.filter((row) => row.category === 'attestation').length;
-    const signedAttendance = sessionAttendance.filter((row) => row.status === 'present' && row.signed_at).length;
-    const completedSurveys = sessionSurveys.filter((row) => row.status === 'completed').length;
+    const signedAttendance = sessionAttendance.filter((row) => ['present', 'absent', 'excused'].includes(row.status)).length;
+    const initialSurveys = sessionSurveys.filter((row) => row.evaluation_type === 'initial');
+    const finalSurveys = sessionSurveys.filter((row) => row.evaluation_type === 'final');
+    const completedInitial = initialSurveys.filter((row) => row.status === 'completed').length;
+    const completedFinal = finalSurveys.filter((row) => row.status === 'completed').length;
     const program = programById.get(selectedSession.program_id) ?? null;
     const programReady = program ? trainingProgramCompletion(program).ready : false;
     const isValidated = Boolean(selectedSession.validated_at) || selectedSession.status !== 'draft';
+    const isEnded = new Date(selectedSession.ends_at).getTime() <= Date.now();
+    const isFinalized = Boolean(selectedSession.training_dossier_finalized_at);
     const steps = [
       { key: 'commercial', label: 'Commercial', detail: commercial ? `${trainingCommercialDocumentTypeLabels[commercial.document_type]} ${commercial.reference} · ${commercial.status === 'completed' ? 'transformé' : commercial.status}` : 'Aucune proposition reliée', icon: 'creditCard' as const, state: commercial ? 'ready' : 'attention', path: '/commercial' },
       { key: 'participants', label: 'Participants', detail: `${sessionEnrollments.length} / ${selectedSession.capacity} inscrit${sessionEnrollments.length > 1 ? 's' : ''}`, icon: 'users' as const, state: sessionEnrollments.length > 0 ? 'ready' : 'attention', path: `/sessions?session=${selectedSession.id}` },
       { key: 'convocations', label: 'Validation & convocations', detail: isValidated ? `${convocationCount} convocation${convocationCount > 1 ? 's' : ''} disponible${convocationCount > 1 ? 's' : ''}` : 'Session encore en préparation', icon: 'file' as const, state: isValidated && convocationCount >= sessionEnrollments.length && sessionEnrollments.length > 0 ? 'ready' : isValidated ? 'progress' : 'attention', path: `/documents?session=${selectedSession.id}&category=convocation` },
-      { key: 'initial', label: 'Évaluation initiale', detail: selectedSession.status === 'draft' ? 'Préparée après validation' : 'À réaliser au démarrage', icon: 'chart' as const, state: selectedSession.status === 'draft' ? 'upcoming' : 'progress', path: `/evaluations?session=${selectedSession.id}` },
-      { key: 'attendance', label: 'Émargements', detail: `${signedAttendance} présence${signedAttendance > 1 ? 's' : ''} signée${signedAttendance > 1 ? 's' : ''}`, icon: 'signature' as const, state: signedAttendance > 0 ? 'progress' : selectedSession.status === 'completed' ? 'attention' : 'upcoming', path: `/emargements?session=${selectedSession.id}` },
-      { key: 'final', label: 'Évaluation de fin', detail: `${completedSurveys} réponse${completedSurveys > 1 ? 's' : ''} reçue${completedSurveys > 1 ? 's' : ''}`, icon: 'chart' as const, state: completedSurveys >= sessionEnrollments.length && sessionEnrollments.length > 0 ? 'ready' : selectedSession.status === 'completed' ? 'attention' : 'upcoming', path: `/evaluations?session=${selectedSession.id}` },
-      { key: 'certificates', label: 'Attestations', detail: `${certificateCount} attestation${certificateCount > 1 ? 's' : ''}`, icon: 'graduation' as const, state: certificateCount >= sessionEnrollments.length && sessionEnrollments.length > 0 ? 'ready' : selectedSession.status === 'completed' ? 'progress' : 'upcoming', path: `/attestations?session=${selectedSession.id}` },
-      { key: 'dossier', label: 'Dossier complet', detail: selectedSession.status === 'completed' ? 'Contrôle final disponible' : 'Se complète au fil du parcours', icon: 'clipboard' as const, state: selectedSession.status === 'completed' ? 'progress' : 'upcoming', path: `/dossiers-formation?session=${selectedSession.id}` }
+      { key: 'initial', label: 'Évaluation initiale', detail: `${completedInitial}/${sessionEnrollments.length} réponse${sessionEnrollments.length > 1 ? 's' : ''}`, icon: 'chart' as const, state: completedInitial >= sessionEnrollments.length && sessionEnrollments.length > 0 ? 'ready' : selectedSession.status === 'draft' ? 'upcoming' : 'progress', path: `/evaluations?session=${selectedSession.id}&type=initial` },
+      { key: 'attendance', label: 'Émargements', detail: `${signedAttendance} créneau${signedAttendance > 1 ? 'x' : ''} renseigné${signedAttendance > 1 ? 's' : ''}`, icon: 'signature' as const, state: signedAttendance > 0 ? 'progress' : selectedSession.status === 'completed' ? 'attention' : 'upcoming', path: `/emargements?session=${selectedSession.id}` },
+      { key: 'final', label: 'Évaluation de fin', detail: `${completedFinal}/${sessionEnrollments.length} réponse${sessionEnrollments.length > 1 ? 's' : ''}`, icon: 'chart' as const, state: completedFinal >= sessionEnrollments.length && sessionEnrollments.length > 0 ? 'ready' : selectedSession.status === 'completed' ? 'attention' : 'upcoming', path: `/evaluations?session=${selectedSession.id}&type=final` },
+      { key: 'certificates', label: 'Attestations', detail: `${certificateCount}/${sessionEnrollments.length} générée${certificateCount > 1 ? 's' : ''}`, icon: 'graduation' as const, state: certificateCount >= sessionEnrollments.length && sessionEnrollments.length > 0 ? 'ready' : selectedSession.status === 'completed' ? 'progress' : 'upcoming', path: `/attestations?session=${selectedSession.id}` },
+      { key: 'dossier', label: 'Dossier complet', detail: isFinalized ? 'Dossier automatiquement finalisé' : selectedSession.status === 'completed' ? 'Clôture automatisée en cours' : 'Se complète au fil du parcours', icon: 'clipboard' as const, state: isFinalized ? 'ready' : selectedSession.status === 'completed' ? 'progress' : 'upcoming', path: `/dossiers-formation?session=${selectedSession.id}` }
     ];
-    return { sessionEnrollments, sessionDocuments, commercial, convocationCount, certificateCount, signedAttendance, completedSurveys, program, programReady, isValidated, steps };
+    return { sessionEnrollments, sessionDocuments, commercial, convocationCount, certificateCount, signedAttendance, completedInitial, completedFinal, program, programReady, isValidated, isEnded, isFinalized, steps };
   }, [selectedSession, enrollments, documents, attendance, surveys, commercialById, commercials, programById]);
 
   function toggleTrainee(id: string) {
@@ -311,12 +316,33 @@ export function TrainingWorkflowPage() {
       } else {
         const { data, error: rpcError } = await supabase.rpc('validate_training_session_workflow', { p_organization_id: organization.id, p_session_id: session.id, p_send_convocations: true });
         if (rpcError) throw rpcError;
-        const queued = Number((data as { convocations_queued?: number } | null)?.convocations_queued ?? 0);
-        setSuccess(`Session validée. ${queued} convocation${queued > 1 ? 's ont' : ' a'} été mise${queued > 1 ? 's' : ''} en file d’envoi Brevo.`);
+        const result = (data ?? {}) as { convocations_queued?: number; initial_evaluations_queued?: number };
+        const queued = Number(result.convocations_queued ?? 0);
+        const initialQueued = Number(result.initial_evaluations_queued ?? 0);
+        setSuccess(`Session validée. ${queued} convocation${queued > 1 ? 's' : ''} et ${initialQueued} évaluation${initialQueued > 1 ? 's initiales' : ' initiale'} ont été mises en file Brevo.`);
         await loadData();
       }
       if (demoMode || !supabase) setSuccess('Session validée. Les convocations seront préparées par le processeur d’e-mails.');
     } catch (caught) { setError(`Validation impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+    finally { setBusyId(''); }
+  }
+
+  async function finishSession(session: TrainingSessionRecord) {
+    if (!organization || !canManage || !window.confirm('Terminer cette session et lancer automatiquement l’évaluation finale, les attestations et le contrôle du dossier ?')) return;
+    setBusyId(`finish-${session.id}`); setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        const next = sessions.map((row) => row.id === session.id ? { ...row, status: 'completed' as const, delivery_completed_at: new Date().toISOString(), closure_automation_started_at: new Date().toISOString() } : row);
+        writeJsonStorage(`ncr-suite-training-sessions-${organization.id}`, next); setSessions(next);
+        setSuccess('Session terminée. La clôture automatisée est lancée en mode démonstration.');
+      } else {
+        const { data, error: rpcError } = await supabase.rpc('close_training_session', { p_organization_id: organization.id, p_session_id: session.id, p_closure_notes: 'Session terminée depuis le cockpit Formation.' });
+        if (rpcError) throw rpcError;
+        const result = (data ?? {}) as { final_evaluations_queued?: number; attestations_queued?: number };
+        setSuccess(`Session terminée. ${result.final_evaluations_queued ?? 0} évaluation(s) finale(s) et ${result.attestations_queued ?? 0} attestation(s) ont été lancées.`);
+        await loadData();
+      }
+    } catch (caught) { setError(`Clôture impossible : ${workflowErrorMessage(caught)}`); }
     finally { setBusyId(''); }
   }
 
@@ -372,7 +398,10 @@ export function TrainingWorkflowPage() {
         {!selectedSession || !sessionData ? <div className="training-empty"><Icon name="clipboard" size={31} /><strong>Sélectionne une session</strong><span>Le cockpit affichera le parcours complet et la prochaine action.</span></div> : <>
           <header className="training-workflow-cockpit-head"><div><p className="eyebrow">COCKPIT DE SESSION</p><h2>{selectedSession.title}</h2><p>{formatDateTime(selectedSession.starts_at)} → {formatDateTime(selectedSession.ends_at)}</p><div><span className={`status-chip ${statusTone(selectedSession.status)}`}>{sessionStatusLabels[selectedSession.status]}</span>{selectedSession.location && <span><Icon name="map" size={13} />{selectedSession.location}</span>}{selectedSession.trainer_id && <span><Icon name="briefcase" size={13} />{personName(trainerById.get(selectedSession.trainer_id)?.first_name ?? '', trainerById.get(selectedSession.trainer_id)?.last_name ?? '')}</span>}</div></div><div className="training-workflow-cockpit-score"><strong>{sessionData.steps.filter((step) => step.state === 'ready').length}/{sessionData.steps.length}</strong><small>étapes prêtes</small></div></header>
 
-          {selectedSession.status === 'draft' && <section className="training-workflow-next-action"><span><Icon name="sparkles" size={21} /></span><div><p className="eyebrow">PROCHAINE ACTION</p><h3>Valider la session et envoyer les convocations</h3><p>NCR Suite contrôle la fiche formation, le formateur, les stagiaires et leurs adresses e-mail avant de lancer la génération automatique.</p>{!sessionData.programReady && <Link to={`/formations?edit=${encodeURIComponent(selectedSession.program_id)}`}>Compléter la fiche formation <Icon name="chevronRight" size={14} /></Link>}</div><button type="button" className="primary-button" disabled={busyId === selectedSession.id || !sessionData.programReady || sessionData.sessionEnrollments.length === 0} onClick={() => void validateSession(selectedSession)}>{busyId === selectedSession.id ? 'Validation…' : 'Valider et envoyer'}</button></section>}
+          {selectedSession.status === 'draft' && <section className="training-workflow-next-action"><span><Icon name="sparkles" size={21} /></span><div><p className="eyebrow">PROCHAINE ACTION</p><h3>Valider la session et envoyer les convocations</h3><p>NCR Suite contrôle la fiche formation, le formateur, les stagiaires et leurs adresses e-mail avant de lancer les convocations et l’évaluation initiale.</p>{!sessionData.programReady && <Link to={`/formations?edit=${encodeURIComponent(selectedSession.program_id)}`}>Compléter la fiche formation <Icon name="chevronRight" size={14} /></Link>}</div><button type="button" className="primary-button" disabled={busyId === selectedSession.id || !sessionData.programReady || sessionData.sessionEnrollments.length === 0} onClick={() => void validateSession(selectedSession)}>{busyId === selectedSession.id ? 'Validation…' : 'Valider et envoyer'}</button></section>}
+          {selectedSession.status !== 'draft' && selectedSession.status !== 'completed' && sessionData.isEnded && <section className="training-workflow-next-action closure"><span><Icon name="check" size={21} /></span><div><p className="eyebrow">SESSION ARRIVÉE À SON TERME</p><h3>Terminer et lancer la clôture automatisée</h3><p>Les évaluations finales partent par Brevo. Les attestations sont ensuite générées selon vos réglages et le dossier se finalise automatiquement.</p></div><button type="button" className="primary-button" disabled={busyId === `finish-${selectedSession.id}`} onClick={() => void finishSession(selectedSession)}>{busyId === `finish-${selectedSession.id}` ? 'Clôture…' : 'Terminer la session'}</button></section>}
+          {selectedSession.status === 'completed' && !sessionData.isFinalized && <section className="training-workflow-next-action automation"><span><Icon name="refresh" size={21} /></span><div><p className="eyebrow">CLÔTURE AUTOMATISÉE</p><h3>Le dossier se complète sans ressaisie</h3><p>Brevo suit les évaluations finales, les relances et l’envoi des attestations. Ouvrez le dossier complet pour voir les éléments encore attendus.</p></div><Link className="primary-button" to={`/dossiers-formation?session=${selectedSession.id}`}>Suivre la clôture</Link></section>}
+          {selectedSession.status === 'completed' && sessionData.isFinalized && <section className="training-workflow-next-action finalized"><span><Icon name="check" size={21} /></span><div><p className="eyebrow">DOSSIER FINALISÉ</p><h3>La session est complète</h3><p>Les évaluations, émargements et attestations requis sont réunis dans le dossier de formation.</p></div><Link className="primary-button" to={`/dossiers-formation?session=${selectedSession.id}`}>Consulter le dossier</Link></section>}
 
           <div className="training-workflow-facts"><article><span><Icon name="graduation" size={17} /></span><div><small>Formation</small><strong>{sessionData.program?.title || 'Introuvable'}</strong></div></article><article><span><Icon name="users" size={17} /></span><div><small>Participants</small><strong>{sessionData.sessionEnrollments.length} / {selectedSession.capacity}</strong></div></article><article><span><Icon name="creditCard" size={17} /></span><div><small>Origine</small><strong>{sessionData.commercial?.reference || 'Session directe'}</strong></div></article><article><span><Icon name="check" size={17} /></span><div><small>Validation</small><strong>{selectedSession.validated_at ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short' }).format(new Date(selectedSession.validated_at)) : 'En attente'}</strong></div></article></div>
 

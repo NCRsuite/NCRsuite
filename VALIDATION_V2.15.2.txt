@@ -1,0 +1,10 @@
+VALIDATION V2.15.2
+
+- Audit statique NCR : validé
+- Parcours critiques NCR : validés
+- Syntaxe TypeScript/TSX : 153 fichiers validés
+- Syntaxe Edge Function process-email-queue : validée
+- Cohérence version frontend / base / cache : validée
+- Reconstruction différentielle : validée
+
+Le build Vite complet doit être confirmé par Cloudflare, les dépendances React/Vite n’étant pas restaurées dans l’environnement local.

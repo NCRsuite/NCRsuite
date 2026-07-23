@@ -12745,3 +12745,66 @@ button { max-width: 100%; }
   .training-commercial-actions { justify-content: flex-start; }
   .training-commercial-email-state { justify-content: flex-start; }
 }
+
+/* NCR Suite V2.15.2 — Formation · déroulement et clôture automatisés */
+.training-evaluations-v2152 { --training-quality-accent:#6d5dfc; }
+.training-evaluation-page-header { align-items:flex-start; gap:18px; }
+.training-evaluation-header-badge { display:flex; align-items:center; gap:11px; min-width:220px; padding:13px 15px; border:1px solid rgba(109,93,252,.17); border-radius:18px; background:linear-gradient(145deg,rgba(109,93,252,.10),rgba(63,164,255,.08)); box-shadow:0 12px 30px rgba(31,41,55,.06); }
+.training-evaluation-header-badge > svg { color:var(--training-quality-accent); }
+.training-evaluation-header-badge span { display:grid; gap:2px; }
+.training-evaluation-header-badge strong { font-size:.78rem; color:var(--text-primary); }
+.training-evaluation-header-badge small { font-size:.62rem; color:var(--text-muted); }
+.training-evaluation-mode-switch { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:14px; padding:6px; border:1px solid var(--border-color); border-radius:22px; background:rgba(248,250,252,.78); }
+.training-evaluation-mode-switch button { min-width:0; display:flex; align-items:center; gap:12px; padding:14px 16px; border:0; border-radius:17px; background:transparent; color:var(--text-muted); text-align:left; cursor:pointer; transition:.2s ease; }
+.training-evaluation-mode-switch button > span { width:38px; height:38px; display:grid; place-items:center; flex:0 0 auto; border-radius:13px; background:rgba(148,163,184,.13); }
+.training-evaluation-mode-switch button div { min-width:0; display:grid; gap:2px; }
+.training-evaluation-mode-switch button strong { font-size:.8rem; color:var(--text-primary); }
+.training-evaluation-mode-switch button small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.62rem; }
+.training-evaluation-mode-switch button.active { background:#fff; color:var(--training-quality-accent); box-shadow:0 9px 26px rgba(31,41,55,.09); }
+.training-evaluation-mode-switch button.active > span { background:rgba(109,93,252,.12); }
+.evaluation-automation-workspace { overflow:hidden; }
+.training-evaluation-settings-columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; padding:0 18px 18px; }
+.training-evaluation-settings-columns > article { min-width:0; display:grid; align-content:start; gap:13px; padding:17px; border:1px solid var(--border-color); border-radius:20px; background:linear-gradient(145deg,#fff,#fbfcff); }
+.training-evaluation-settings-title { display:flex; align-items:center; gap:10px; }
+.training-evaluation-settings-title > span { width:37px; height:37px; display:grid; place-items:center; flex:0 0 auto; border-radius:13px; color:var(--training-quality-accent); background:rgba(109,93,252,.10); }
+.training-evaluation-settings-title > div { display:grid; gap:2px; }
+.training-evaluation-settings-title strong { font-size:.78rem; }
+.training-evaluation-settings-title small { font-size:.61rem; color:var(--text-muted); }
+.training-evaluation-settings-columns label:not(.toggle-card) { display:grid; gap:6px; font-size:.65rem; font-weight:750; color:var(--text-secondary); }
+.training-evaluation-settings-columns select,
+.training-evaluation-settings-columns textarea { width:100%; min-width:0; }
+.training-evaluation-settings-wide { grid-column:1/-1; }
+.training-evaluation-settings-inline { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(150px,.7fr) minmax(140px,.6fr) minmax(0,1.3fr) minmax(0,1.3fr); gap:10px; align-items:stretch; }
+.training-evaluation-settings-inline > label { min-width:0; }
+.evaluation-pending-actions { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px; padding:10px 12px; border-radius:14px; background:var(--surface-secondary); }
+.evaluation-pending-copy { margin:0!important; color:var(--text-muted)!important; font-size:.63rem!important; }
+.evaluation-pending-actions button { flex:0 0 auto; display:inline-flex; align-items:center; gap:5px; padding:7px 10px; border:1px solid var(--border-color); border-radius:999px; background:#fff; color:var(--text-primary); font-size:.61rem; font-weight:800; cursor:pointer; }
+.training-dossier-automation-note { display:flex; align-items:flex-start; gap:10px; margin-top:12px; padding:12px; border-radius:15px; background:linear-gradient(145deg,rgba(109,93,252,.10),rgba(42,176,132,.08)); color:#5546d8; }
+.training-dossier-automation-note span { min-width:0; display:grid; gap:3px; }
+.training-dossier-automation-note strong { font-size:.69rem; }
+.training-dossier-automation-note small { color:var(--text-muted); font-size:.6rem; line-height:1.45; }
+.training-workflow-next-action.closure { background:linear-gradient(145deg,#173e34,#24775e); }
+.training-workflow-next-action.automation { background:linear-gradient(145deg,#382e75,#6654c8); }
+.training-workflow-next-action.finalized { background:linear-gradient(145deg,#173f32,#24885f); }
+.training-workflow-next-action.automation .primary-button,
+.training-workflow-next-action.finalized .primary-button,
+.training-workflow-next-action.closure .primary-button { margin-top:0; }
+.public-satisfaction-card.initial-evaluation-card .public-satisfaction-icon { background:linear-gradient(145deg,rgba(109,93,252,.16),rgba(63,164,255,.12)); color:#6957ef; }
+
+@media (max-width:1100px) {
+  .training-evaluation-settings-inline { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .training-evaluation-settings-inline > :first-child,
+  .training-evaluation-settings-inline > :nth-child(4),
+  .training-evaluation-settings-inline > :nth-child(5) { grid-column:span 1; }
+}
+@media (max-width:760px) {
+  .training-evaluation-page-header { display:grid; }
+  .training-evaluation-header-badge { width:100%; min-width:0; }
+  .training-evaluation-mode-switch { grid-template-columns:1fr; border-radius:19px; }
+  .training-evaluation-mode-switch button small { white-space:normal; }
+  .training-evaluation-settings-columns { grid-template-columns:1fr; padding:0 12px 14px; }
+  .training-evaluation-settings-wide { grid-column:auto; }
+  .training-evaluation-settings-inline { grid-template-columns:1fr; }
+  .evaluation-pending-actions { align-items:flex-start; flex-direction:column; }
+  .evaluation-pending-actions button { width:100%; justify-content:center; }
+}

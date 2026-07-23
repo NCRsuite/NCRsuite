@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.15.1-training-documents';
+const CACHE = 'ncr-suite-shell-v2.15.2-training-closure';
 const SHELL = [
   '/',
   '/index.html',

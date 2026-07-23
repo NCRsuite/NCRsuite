@@ -1,22 +1,19 @@
-# V2.15.1 — Formation · Documents premium & automatisations Brevo
+# Changelog NCR Suite
 
-- Nouveau moteur graphique commun pour les documents Formation.
-- En-tête premium avec logo isolé, identité de l’organisme, couleur d’enseigne et coordonnées lisibles.
-- Pied de page légal automatique avec SIRET, NDA et TVA.
-- Génération d’un programme PDF complet depuis la fiche formation.
-- Refonte des devis, conventions et contrats : mise en page moderne, montants, prestation, programme, conditions et signatures.
-- Gestion des contenus longs sur plusieurs pages sans texte coupé.
-- Import facultatif de la signature et du cachet depuis le Profil organisme.
-- Génération, dépôt privé et envoi direct du document commercial via Brevo.
-- Choix automatique du destinataire selon le document : client, stagiaire ou financeur.
-- Suivi de la mise en file et du dernier destinataire dans la rubrique Commercial.
-- E-mail commercial premium avec pièce jointe, adresse Reply-To et consigne de retour signé.
-- Refonte des convocations et attestations générées par `process-email-queue`.
-- Correction du chevauchement logo/adresse observé sur les convocations.
-- Protection WinAnsi conservée pour éviter les échecs sur les caractères typographiques.
-- Synchronisation frontend, base et cache PWA en V2.15.1.
-- Cache PWA : `ncr-suite-shell-v2.15.1-training-documents`.
+## V2.15.2 — Formation · Déroulement et clôture automatisés
 
-## Suite prévue
+- Évaluation initiale individuelle envoyée par Brevo lors de la validation de session.
+- Évaluation finale individuelle envoyée par Brevo lors de la fin de session.
+- Relances automatiques configurables pour les questionnaires sans réponse.
+- Questionnaire public unique adapté au début ou à la fin de formation.
+- Génération et envoi automatique des attestations selon les réglages de l’organisme.
+- Contrôle automatique des émargements, évaluations et attestations.
+- Finalisation automatique du dossier complet.
+- Nouveau centre d’évaluations moderne et responsive.
+- Cockpit et dossiers de formation raccordés à la clôture automatisée.
+- Cache PWA et état de version synchronisés en V2.15.2.
 
-La V2.15.2 automatisera les évaluations initiales et finales, les relances, la génération des attestations et la clôture du dossier complet.
+## V2.15.1 — Formation · Documents premium & Brevo
+
+- Moteur documentaire premium commun.
+- Envois Brevo des documents commerciaux et convocations.

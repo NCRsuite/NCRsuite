@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-documents`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-closure`;
+const trainingDocumentsCache = 'ncr-suite-shell-v2.15.1-training-documents';
 const trainingWorkflowCache = 'ncr-suite-shell-v2.15.0-training-workflow';
 const trainingCommercialCache = 'ncr-suite-shell-v2.14.0-training-commercial';
 const trainingDossiersCache = 'ncr-suite-shell-v2.14.1-training-dossiers';
@@ -104,7 +105,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -381,7 +382,7 @@ requireText('src/features/training/programPdf.ts', [
   'Organisation pratique'
 ]);
 requireText('src/features/training/commercialPdf.ts', [
-  'NCR Suite V2.15.1',
+  'NCR Suite V2.15.2',
   'Acceptation et signatures',
   'Programme détaillé'
 ]);
@@ -400,14 +401,37 @@ requireText('supabase/migrations/071_training_premium_documents_brevo.sql', [
   'queue_training_commercial_document_email',
   'update_training_document_branding',
   "'2.15.1'",
-  expectedCache,
+  trainingDocumentsCache,
   'set search_path = public'
 ]);
 requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'training_commercial_document'",
   "item.template_key === 'training_commercial_document'",
   'Convocation à une formation',
-  'NCR Suite V2.15.1'
+  'NCR Suite V2.15.2'
+]);
+requireText('supabase/migrations/073_training_delivery_closure_automation.sql', [
+  'update_training_evaluation_settings',
+  'queue_training_session_evaluation',
+  'queue_due_training_evaluation_reminders',
+  'launch_training_session_closure_automation',
+  'refresh_training_session_dossier_completion',
+  "'2.15.2'",
+  expectedCache,
+  'set search_path = public'
+]);
+requireText('src/pages/TrainingEvaluationsPage.tsx', [
+  'Évaluations début & fin',
+  'queue_training_session_evaluation',
+  'training_evaluation_summary'
+]);
+requireText('src/pages/PublicTrainingSatisfactionPage.tsx', [
+  'submit_public_training_evaluation',
+  "evaluation_type === 'initial'"
+]);
+requireText('src/pages/TrainingWorkflowPage.tsx', [
+  'finishSession',
+  'Terminer et lancer la clôture automatisée'
 ]);
 
 requireText('supabase/functions/process-email-queue/index.ts', [

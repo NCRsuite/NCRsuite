@@ -420,7 +420,7 @@ export function TrainingSessionsPage() {
         await loadData();
       }
       setClosureSession(null); setClosureCheck(null); setClosureNotes(''); setSessionView('closed');
-      setSuccess('La session est clôturée. Les attestations et évaluations prévues peuvent maintenant être générées ou envoyées.');
+      setSuccess('La session est terminée. Les évaluations finales, relances et attestations sont maintenant prises en charge automatiquement.');
     } catch (caught) {
       setError(`Clôture impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
     } finally { setClosureBusyId(''); }

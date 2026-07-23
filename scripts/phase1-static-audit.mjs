@@ -181,6 +181,26 @@ if (!trainingEmailProcessor.includes("case 'training_commercial_document'") || !
   errors.push('Le processeur Brevo V2.15.1 ne couvre pas tous les documents Formation attendus.');
 }
 
+// V2.15.2 — évaluations début/fin, relances, attestations et clôture automatisée.
+const trainingEvaluationsV2152 = read('src/pages/TrainingEvaluationsPage.tsx');
+const publicTrainingEvaluationV2152 = read('src/pages/PublicTrainingSatisfactionPage.tsx');
+const trainingClosureMigration = read('supabase/migrations/073_training_delivery_closure_automation.sql');
+if (!trainingEvaluationsV2152.includes('Évaluations début & fin') || !trainingEvaluationsV2152.includes('queue_training_session_evaluation') || !trainingEvaluationsV2152.includes('training_evaluation_summary')) {
+  errors.push('Le centre d’évaluations Formation V2.15.2 est incomplet.');
+}
+if (!publicTrainingEvaluationV2152.includes('submit_public_training_evaluation') || !publicTrainingEvaluationV2152.includes("evaluation_type === 'initial'")) {
+  errors.push('Le questionnaire public V2.15.2 ne couvre pas les évaluations initiales et finales.');
+}
+if (!trainingWorkflowV215.includes('finishSession') || !trainingDossiersPage.includes('Clôture automatisée en cours')) {
+  errors.push('Le cockpit et le dossier Formation ne sont pas raccordés à la clôture automatisée.');
+}
+if (!trainingClosureMigration.includes('queue_due_training_evaluation_reminders') || !trainingClosureMigration.includes('launch_training_session_closure_automation') || !trainingClosureMigration.includes("ncr-suite-shell-v2.15.2-training-closure") || !trainingClosureMigration.includes("'2.15.2'")) {
+  errors.push('La migration V2.15.2 de clôture automatisée est incomplète.');
+}
+if (!trainingEmailProcessor.includes('queue_due_training_evaluation_reminders') || !trainingEmailProcessor.includes('FINAL_EVALUATION_REQUIRED') || !trainingEmailProcessor.includes("evaluation_type', 'final'")) {
+  errors.push('Le processeur Brevo V2.15.2 ne couvre pas les relances et les attestations conditionnelles.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {
@@ -214,7 +234,7 @@ const allowedAnonFunctions = new Set([
   'create_public_booking','create_public_booking_v2','create_public_booking_v3',
   'get_public_booking','cancel_public_booking','reschedule_public_booking','reschedule_public_booking_v2',
   'get_public_restaurant_menu','get_public_restaurant_booking_config','get_public_restaurant_booking_availability',
-  'create_public_restaurant_reservation','get_public_training_satisfaction','submit_public_training_satisfaction',
+  'create_public_restaurant_reservation','get_public_training_satisfaction','submit_public_training_satisfaction','submit_public_training_evaluation',
   'get_team_invitation','get_security_client_portal_invitation','get_cleaning_client_portal_invitation','get_coiffure_client_portal_invitation'
 ]);
 for (const match of allSql.matchAll(/grant\s+execute\s+on\s+function\s+public\.(\w+)[^;]*?\s+to\s+([^;]+);/ig)) {

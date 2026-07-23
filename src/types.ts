@@ -70,6 +70,14 @@ export interface Organization {
   training_satisfaction_enabled?: boolean;
   training_satisfaction_delay_hours?: number;
   training_satisfaction_intro?: string | null;
+  training_initial_evaluation_enabled?: boolean;
+  training_initial_evaluation_lead_hours?: number;
+  training_initial_evaluation_intro?: string | null;
+  training_evaluation_reminder_enabled?: boolean;
+  training_evaluation_reminder_delay_hours?: number;
+  training_evaluation_reminder_max_count?: number;
+  training_attestation_auto_send?: boolean;
+  training_attestation_requires_final_evaluation?: boolean;
   training_nda_number?: string | null;
   training_legal_representative?: string | null;
   training_reply_to_email?: string | null;

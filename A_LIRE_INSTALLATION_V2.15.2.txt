@@ -1,0 +1,28 @@
+NCR SUITE V2.15.2 — FORMATION · DÉROULEMENT ET CLÔTURE AUTOMATISÉS
+
+BASE REQUISE
+- NCR Suite V2.15.1 publiée
+- correctif de création de session / migration 072 déjà appliqué si présent dans votre dépôt
+
+ORDRE D’INSTALLATION
+1. Supabase > SQL Editor : exécuter entièrement
+   supabase/migrations/073_training_delivery_closure_automation.sql
+
+2. GitHub : ajouter/remplacer tous les fichiers du patch en conservant leurs chemins.
+
+3. Supabase Edge Functions : redéployer
+   supabase/functions/process-email-queue/index.ts
+
+4. Cloudflare : vérifier que npm run build termine en vert et affiche ncr-suite@2.15.2.
+
+5. Fermer complètement la PWA puis la rouvrir.
+
+TESTS CONSEILLÉS
+- Valider une session : convocations + évaluations initiales mises en file Brevo.
+- Répondre à une évaluation initiale depuis le lien public.
+- Compléter les émargements puis terminer la session.
+- Vérifier l’envoi de l’évaluation finale et ses relances.
+- Répondre à l’évaluation finale puis vérifier la génération et l’envoi de l’attestation.
+- Contrôler la finalisation automatique du dossier complet.
+
+AUCUN PORTAIL ENTREPRISE / FINANCEUR N’EST AJOUTÉ DANS CETTE VERSION.

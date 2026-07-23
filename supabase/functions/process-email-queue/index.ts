@@ -351,7 +351,7 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
   pdf.setAuthor(organization);
   pdf.setSubject(program);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.15.1');
+  pdf.setProducer('NCR Suite V2.15.2');
   return await pdf.save();
 }
 async function processTrainingDocumentJobs(supabase: any) {
@@ -371,7 +371,7 @@ async function processTrainingDocumentJobs(supabase: any) {
 
       const { data: organizationProfile, error: organizationError } = await supabase
         .from('organizations')
-        .select('name,public_name,logo_url,primary_color,timezone,company_address,company_postal_code,company_city,company_email,company_phone,company_siret,training_nda_number,training_vat_number,training_legal_representative,training_document_footer,training_signature_url,training_stamp_url,show_ncr_branding')
+        .select('name,public_name,logo_url,primary_color,timezone,company_address,company_postal_code,company_city,company_email,company_phone,company_siret,training_nda_number,training_vat_number,training_legal_representative,training_document_footer,training_signature_url,training_stamp_url,show_ncr_branding,training_attestation_requires_final_evaluation')
         .eq('id', job.organization_id)
         .maybeSingle();
       if (organizationError) throw organizationError;
@@ -415,6 +415,19 @@ async function processTrainingDocumentJobs(supabase: any) {
         if (String(trainingPayload.session_status) !== 'completed') throw new Error('La session n’est pas terminée.');
         if (Number(trainingPayload.attendance_present ?? 0) < 1) {
           throw new Error('ATTENDANCE_REQUIRED: aucune présence signée pour ce stagiaire.');
+        }
+        if (organizationProfile?.training_attestation_requires_final_evaluation !== false) {
+          const { data: finalEvaluation, error: finalEvaluationError } = await supabase
+            .from('training_satisfaction_surveys')
+            .select('id')
+            .eq('organization_id', job.organization_id)
+            .eq('session_id', job.session_id)
+            .eq('trainee_id', job.trainee_id)
+            .eq('evaluation_type', 'final')
+            .eq('status', 'completed')
+            .maybeSingle();
+          if (finalEvaluationError) throw finalEvaluationError;
+          if (!finalEvaluation) throw new Error('FINAL_EVALUATION_REQUIRED: évaluation finale non complétée.');
         }
       }
 
@@ -494,6 +507,13 @@ async function processTrainingDocumentJobs(supabase: any) {
         })
         .eq('id', job.id);
       if (completedError) throw completedError;
+      if (job.document_kind === 'attestation') {
+        const { error: refreshError } = await supabase.rpc('refresh_training_session_dossier_completion', {
+          p_organization_id: job.organization_id,
+          p_session_id: job.session_id,
+        });
+        if (refreshError) console.error('Training dossier refresh:', refreshError);
+      }
       generated += 1;
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : String(caught);
@@ -592,13 +612,19 @@ function templateCopy(templateKey: string, payload: Record<string, unknown>) {
         title: 'Votre attestation est disponible',
         message: `Vous trouverez en pièce jointe votre attestation relative à la formation « ${String(payload.program_title ?? payload.session_title ?? 'Formation')} ».`
       };
-    case 'training_satisfaction_request':
+    case 'training_satisfaction_request': {
+      const isInitial = String(payload.evaluation_type ?? 'final') === 'initial';
+      const isReminder = payload.is_reminder === true;
+      const program = String(payload.program_title ?? payload.session_title ?? 'Formation');
       return {
-        subject: `Votre avis sur la formation — ${organization}`,
-        eyebrow: 'QUESTIONNAIRE DE SATISFACTION',
-        title: 'Votre avis compte',
-        message: `Prenez quelques instants pour évaluer la formation « ${String(payload.program_title ?? payload.session_title ?? 'Formation')} ».`
+        subject: `${isReminder ? 'Rappel — ' : ''}${isInitial ? 'Préparez votre formation' : 'Votre avis sur la formation'} — ${organization}`,
+        eyebrow: isReminder ? 'RAPPEL PERSONNEL' : isInitial ? 'ÉVALUATION DE DÉBUT' : 'ÉVALUATION DE FIN',
+        title: isInitial ? 'Préparons votre formation' : 'Votre avis compte',
+        message: isInitial
+          ? `Partagez votre niveau, vos attentes et vos besoins avant la formation « ${program} ».`
+          : `Prenez quelques instants pour évaluer la formation « ${program} ».`
       };
+    }
     case 'training_commercial_document': {
       const typeLabels: Record<string, string> = { quote: 'Devis', agreement: 'Convention', contract: 'Contrat' };
       const label = typeLabels[String(payload.document_type ?? '')] ?? 'Document';
@@ -861,20 +887,23 @@ ${amount ? `<tr><td style="padding:16px 18px;border-top:1px solid #e2e8f0;color:
     const emailLogo = organizationLogoUrl
       ? `<div style="margin-bottom:22px"><img src="${escapeHtml(organizationLogoUrl)}" alt="${organization}" style="display:block;max-width:180px;max-height:72px;object-fit:contain"></div>`
       : '';
+    const isInitial = String(payload.evaluation_type ?? 'final') === 'initial';
+    const isReminder = payload.is_reminder === true;
+    const buttonLabel = isInitial ? 'Préparer ma formation' : 'Donner mon avis';
     const intro = escapeHtml(payload.intro_text ?? copy.message);
     const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;background:#f5f5f7;font-family:Arial,Helvetica,sans-serif;color:#1d1d1f">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;padding:28px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 12px 35px rgba(0,0,0,.08)">
 <tr><td style="height:8px;background:${accent}"></td></tr>
-<tr><td style="padding:34px 32px 14px">${emailLogo}<div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">Bonjour ${trainee}, ${intro}</p></td></tr>
+<tr><td style="padding:34px 32px 14px">${emailLogo}${isReminder ? `<div style="display:inline-block;margin-bottom:14px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;padding:7px 11px;border-radius:999px;font-size:11px;font-weight:800">RAPPEL ${Number(payload.reminder_count ?? 1)}</div>` : ''}<div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">Bonjour ${trainee}, ${intro}</p></td></tr>
 <tr><td style="padding:18px 32px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;border-radius:20px;padding:8px 18px">
 <tr><td style="padding:13px 0;color:#6e6e73">Organisme</td><td align="right" style="font-weight:700">${organization}</td></tr>
 <tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Formation</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${program}</td></tr>
 <tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Période</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${escapeHtml(formatTrainingDate(payload.starts_at, timezone, true))}</td></tr>
 ${trainer ? `<tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Formateur</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${trainer}</td></tr>` : ''}
 </table></td></tr>
-<tr><td style="padding:8px 32px 30px"><a href="${escapeHtml(surveyUrl)}" style="display:inline-block;background:${accent};color:#fff;text-decoration:none;font-weight:700;padding:14px 24px;border-radius:999px">Donner mon avis</a></td></tr>
+<tr><td style="padding:8px 32px 30px"><a href="${escapeHtml(surveyUrl)}" style="display:inline-block;background:${accent};color:#fff;text-decoration:none;font-weight:700;padding:14px 24px;border-radius:999px">${escapeHtml(buttonLabel)}</a></td></tr>
 <tr><td style="padding:22px 32px 32px;border-top:1px solid #ededf0;color:#86868b;font-size:13px;line-height:1.6">${contactEmail || contactPhone ? `Une question ? ${[contactEmail, contactPhone].filter(Boolean).map(escapeHtml).join(' · ')}<br>` : ''}${payload.show_ncr_branding !== false ? `Propulsé par NCR Suite pour ${organization}.` : `E-mail envoyé automatiquement pour ${organization}.`}</td></tr>
 </table></td></tr></table></body></html>`;
     const text = `${copy.title}
@@ -907,7 +936,7 @@ Répondre au questionnaire : ${surveyUrl}`;
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;padding:28px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 12px 35px rgba(0,0,0,.08)">
 <tr><td style="height:8px;background:${accent}"></td></tr>
-<tr><td style="padding:34px 32px 14px">${emailLogo}<div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">Bonjour ${trainee}, ${escapeHtml(copy.message)}</p></td></tr>
+<tr><td style="padding:34px 32px 14px">${emailLogo}${isReminder ? `<div style="display:inline-block;margin-bottom:14px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;padding:7px 11px;border-radius:999px;font-size:11px;font-weight:800">RAPPEL ${Number(payload.reminder_count ?? 1)}</div>` : ''}<div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">Bonjour ${trainee}, ${escapeHtml(copy.message)}</p></td></tr>
 <tr><td style="padding:18px 32px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;border-radius:20px;padding:8px 18px">
 <tr><td style="padding:13px 0;color:#6e6e73">Organisme</td><td align="right" style="font-weight:700">${organization}</td></tr>
 <tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Formation</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${program}</td></tr>
@@ -969,7 +998,7 @@ Répondre au questionnaire : ${surveyUrl}`;
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;padding:28px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 12px 35px rgba(0,0,0,.08)">
 <tr><td style="height:8px;background:${accent}"></td></tr>
-<tr><td style="padding:34px 32px 14px">${emailLogo}<div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">${clientFirstName && isCustomer ? `Bonjour ${clientFirstName}, ` : ''}${escapeHtml(copy.message)}</p></td></tr>
+<tr><td style="padding:34px 32px 14px">${emailLogo}${isReminder ? `<div style="display:inline-block;margin-bottom:14px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;padding:7px 11px;border-radius:999px;font-size:11px;font-weight:800">RAPPEL ${Number(payload.reminder_count ?? 1)}</div>` : ''}<div style="font-size:12px;letter-spacing:.12em;font-weight:800;color:${accent}">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:28px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.6;color:#6e6e73;margin:0">${clientFirstName && isCustomer ? `Bonjour ${clientFirstName}, ` : ''}${escapeHtml(copy.message)}</p></td></tr>
 <tr><td style="padding:18px 32px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f5f7;border-radius:20px;padding:8px 18px">
 <tr><td style="padding:13px 0;color:#6e6e73">Établissement</td><td align="right" style="font-weight:700">${organization}</td></tr>
 <tr><td style="padding:13px 0;border-top:1px solid #e5e5e7;color:#6e6e73">Prestation</td><td align="right" style="border-top:1px solid #e5e5e7;font-weight:700">${service}</td></tr>
@@ -1019,6 +1048,15 @@ Deno.serve(async (request) => {
   const supabase = createClient(supabaseUrl, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+
+  let remindersQueued = 0;
+  try {
+    const { data: reminderCount, error: reminderError } = await supabase.rpc('queue_due_training_evaluation_reminders', { p_limit: 100 });
+    if (reminderError) throw reminderError;
+    remindersQueued = Number(reminderCount ?? 0);
+  } catch (caught) {
+    console.error('Training evaluation reminder processor:', caught);
+  }
 
   let documentJobs = { claimed: 0, generated: 0, failed: 0 };
   try {
@@ -1131,6 +1169,13 @@ Deno.serve(async (request) => {
           await supabase.from('training_commercial_documents').update({ emailed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', commercialDocumentId);
         }
       }
+      if (item.template_key === 'training_satisfaction_request') {
+        const surveyId = String(item.payload?.survey_id ?? '').trim();
+        if (surveyId) {
+          const sentAt = new Date().toISOString();
+          await supabase.from('training_satisfaction_surveys').update({ status: 'sent', emailed_at: sentAt, updated_at: sentAt }).eq('id', surveyId).neq('status', 'completed');
+        }
+      }
       sent += 1;
     } catch (caught) {
       const errorMessage = caught instanceof Error ? caught.message : String(caught);
@@ -1150,7 +1195,7 @@ Deno.serve(async (request) => {
     }
   }
 
-  return new Response(JSON.stringify({ documents: documentJobs, emails: { claimed: items.length, sent, failed } }), {
+  return new Response(JSON.stringify({ reminders_queued: remindersQueued, documents: documentJobs, emails: { claimed: items.length, sent, failed } }), {
     status: 200,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });

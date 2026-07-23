@@ -1,7 +1,7 @@
-# NCR Suite V2.15.1 — Formation · Documents premium & Brevo
+# NCR Suite V2.15.2
 
-Cette version unifie l’identité documentaire du métier Formation et simplifie l’envoi des propositions commerciales.
+Base SaaS multi-métier NCR Suite.
 
-Elle ajoute un moteur PDF premium commun, le programme de formation téléchargeable, la génération modernisée des devis, conventions et contrats, leur dépôt sécurisé puis leur envoi direct par Brevo. Les convocations et attestations générées par le processeur d’e-mails adoptent également le nouvel en-tête sans chevauchement du logo et de l’adresse.
+Cette version finalise le déroulement automatisé du métier Formation : évaluations initiales et finales par Brevo, relances, attestations et contrôle du dossier complet.
 
-Installation : consulter `A_LIRE_INSTALLATION_V2.15.1.txt`.
+Consulter `A_LIRE_INSTALLATION_V2.15.2.txt` avant déploiement.

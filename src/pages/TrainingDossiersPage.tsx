@@ -83,7 +83,7 @@ function inclusiveSessionDays(session: TrainingSessionRecord) {
 
 function dossierPhase(session: TrainingSessionRecord): TrainingDossierPhase {
   if (session.status === 'canceled') return 'canceled';
-  if (session.status === 'completed') return 'closed';
+  if (session.status === 'completed') return session.training_dossier_finalized_at ? 'closed' : 'closure';
   const now = Date.now();
   const startsAt = new Date(session.starts_at).getTime();
   const endsAt = new Date(session.ends_at).getTime();
@@ -194,7 +194,7 @@ export function TrainingDossiersPage() {
 
     let sessionRequest = supabase
       .from('training_sessions')
-      .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,training_dossier_requirements,training_dossier_notes,training_dossier_reviewed_at,training_dossier_reviewed_by,created_at')
+      .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,delivery_completed_at,closure_automation_started_at,training_dossier_finalized_at,training_dossier_finalized_by,training_dossier_auto_completed,training_dossier_requirements,training_dossier_notes,training_dossier_reviewed_at,training_dossier_reviewed_by,created_at')
       .eq('organization_id', organizationId)
       .order('starts_at', { ascending: false });
     let programRequest = supabase
@@ -228,7 +228,7 @@ export function TrainingDossiersPage() {
       supabase.from('training_session_enrollments').select('organization_id,session_id,trainee_id,status').eq('organization_id', organizationId),
       supabase.from('training_documents').select('id,organization_id,site_id,session_id,program_id,trainee_id,title,category,storage_path,mime_type,size_bytes,visibility,status,notes,generated_automatically,automation_key,generated_at,emailed_at,created_at').eq('organization_id', organizationId).neq('status', 'archived'),
       supabase.from('training_attendance').select('id,organization_id,site_id,session_id,trainee_id,attendance_date,period,status,signature_path,signatory_name,signed_at,notes,created_at,updated_at').eq('organization_id', organizationId),
-      supabase.from('training_satisfaction_surveys').select('id,organization_id,site_id,session_id,trainee_id,public_token,status,scheduled_for,emailed_at,completed_at,content_rating,trainer_rating,organization_rating,objectives_rating,recommend,comment,improvement,created_at,updated_at').eq('organization_id', organizationId),
+      supabase.from('training_satisfaction_surveys').select('id,organization_id,site_id,session_id,trainee_id,public_token,evaluation_type,status,scheduled_for,emailed_at,completed_at,content_rating,trainer_rating,organization_rating,objectives_rating,recommend,comment,improvement,initial_level,initial_expectations,initial_objectives,initial_needs,reminder_count,last_reminded_at,created_at,updated_at').eq('organization_id', organizationId),
       supabase.from('training_commercial_documents').select('id,organization_id,site_id,customer_id,funder_id,session_id,trainee_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,created_at,updated_at').eq('organization_id', organizationId).order('created_at', { ascending: false }),
       supabase.from('training_customers').select('id,organization_id,site_id,customer_type,legal_name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,notes,status,created_at,updated_at').eq('organization_id', organizationId).neq('status', 'archived'),
       supabase.from('training_funders').select('id,organization_id,funder_type,name,contact_name,email,phone,billing_address,postal_code,city,reference_code,notes,status,created_at,updated_at').eq('organization_id', organizationId).neq('status', 'archived')
@@ -288,7 +288,10 @@ export function TrainingDossiersPage() {
       const latestCommercial = sessionCommercial[0] ?? null;
       const expectedAttendance = activeEnrollments.length * inclusiveSessionDays(session) * 2;
       const completedAttendance = sessionAttendance.filter((row) => ['present', 'absent', 'excused'].includes(row.status)).length;
-      const completedEvaluations = sessionSatisfaction.filter((row) => row.status === 'completed').length;
+      const initialEvaluations = sessionSatisfaction.filter((row) => row.evaluation_type === 'initial');
+      const finalEvaluations = sessionSatisfaction.filter((row) => row.evaluation_type === 'final');
+      const completedInitialEvaluations = initialEvaluations.filter((row) => row.status === 'completed').length;
+      const completedFinalEvaluations = finalEvaluations.filter((row) => row.status === 'completed').length;
       const convocationCount = sessionDocuments.filter((row) => row.category === 'convocation').length;
       const programDocumentCount = sessionDocuments.filter((row) => row.category === 'programme').length;
       const certificateCount = sessionDocuments.filter((row) => row.category === 'attestation').length;
@@ -312,14 +315,17 @@ export function TrainingDossiersPage() {
         createCheck({ key: 'commercial', requirementKey: 'commercial', label: 'Devis, convention ou contrat validé', detail: latestCommercial ? `${latestCommercial.reference} · ${latestCommercial.title}` : 'Aucune pièce commerciale n’est rattachée à cette session.', group: 'preparation', path: '/commercial', enabled: enabled('commercial', hasCommercial), current: acceptedCommercial.length, expected: 1 }),
         createCheck({ key: 'program_document', requirementKey: 'program_document', label: 'Programme pédagogique déposé', detail: `${programDocumentCount} programme${programDocumentCount > 1 ? 's' : ''} dans la bibliothèque.`, group: 'preparation', path: `/documents?session=${session.id}&category=programme`, enabled: enabled('program_document', hasDocuments), current: programDocumentCount, expected: 1 }),
         createCheck({ key: 'convocations', requirementKey: 'convocations', label: 'Convocations des stagiaires', detail: `${convocationCount} convocation${convocationCount > 1 ? 's' : ''} pour ${activeEnrollments.length} inscrit${activeEnrollments.length > 1 ? 's' : ''}.`, group: 'preparation', path: `/documents?session=${session.id}&category=convocation`, enabled: enabled('convocations', hasDocuments), current: convocationCount, expected: Math.max(activeEnrollments.length, 1) }),
+        createCheck({ key: 'initial_evaluations', requirementKey: 'evaluations', label: 'Évaluations initiales', detail: `${completedInitialEvaluations} réponse${completedInitialEvaluations > 1 ? 's' : ''} sur ${activeEnrollments.length} stagiaire${activeEnrollments.length > 1 ? 's' : ''}.`, group: 'preparation', path: `/evaluations?session=${session.id}&type=initial`, enabled: enabled('evaluations', hasEvaluations) && (organization.training_initial_evaluation_enabled ?? true), activeNow: session.status !== 'draft', current: completedInitialEvaluations, expected: Math.max(activeEnrollments.length, 1) }),
         createCheck({ key: 'attendance', requirementKey: 'attendance', label: 'Émargements renseignés', detail: `${completedAttendance} créneau${completedAttendance > 1 ? 'x' : ''} complété${completedAttendance > 1 ? 's' : ''} sur ${expectedAttendance}.`, group: 'delivery', path: `/emargements?session=${session.id}`, enabled: enabled('attendance', hasAttendance), activeNow: ['delivery', 'closure', 'closed'].includes(phase), current: completedAttendance, expected: Math.max(expectedAttendance, 1) }),
-        createCheck({ key: 'evaluations', requirementKey: 'evaluations', label: 'Évaluations de satisfaction', detail: `${completedEvaluations} réponse${completedEvaluations > 1 ? 's' : ''} complète${completedEvaluations > 1 ? 's' : ''} sur ${activeEnrollments.length}.`, group: 'closure', path: `/evaluations?session=${session.id}`, enabled: enabled('evaluations', hasEvaluations), activeNow: ['closure', 'closed'].includes(phase), current: completedEvaluations, expected: Math.max(activeEnrollments.length, 1) }),
+        createCheck({ key: 'final_evaluations', requirementKey: 'evaluations', label: 'Évaluations finales', detail: `${completedFinalEvaluations} réponse${completedFinalEvaluations > 1 ? 's' : ''} complète${completedFinalEvaluations > 1 ? 's' : ''} sur ${activeEnrollments.length}.`, group: 'closure', path: `/evaluations?session=${session.id}&type=final`, enabled: enabled('evaluations', hasEvaluations) && (organization.training_satisfaction_enabled ?? true), activeNow: session.status === 'completed', current: completedFinalEvaluations, expected: Math.max(activeEnrollments.length, 1) }),
         createCheck({ key: 'certificates', requirementKey: 'certificates', label: 'Attestations de fin de formation', detail: `${certificateCount} attestation${certificateCount > 1 ? 's' : ''} pour ${activeEnrollments.length} bénéficiaire${activeEnrollments.length > 1 ? 's' : ''}.`, group: 'closure', path: `/attestations?session=${session.id}&category=attestation`, enabled: enabled('certificates', hasCertificates), activeNow: ['closure', 'closed'].includes(phase), current: certificateCount, expected: Math.max(activeEnrollments.length, 1) }),
         createCheck({ key: 'administrative', requirementKey: 'administrative', label: 'Justificatifs administratifs complémentaires', detail: `${administrativeCount} justificatif${administrativeCount > 1 ? 's' : ''} déposé${administrativeCount > 1 ? 's' : ''}.`, group: 'closure', path: `/documents?session=${session.id}&category=administrative`, enabled: overrides.administrative === true, activeNow: ['closure', 'closed'].includes(phase), current: administrativeCount, expected: 1 })
       ];
 
       const requiredChecks = checks.filter((check) => check.required);
       const readyChecks = requiredChecks.filter((check) => check.state === 'ready');
+      const preClosureChecks = requiredChecks.filter((check) => !['final_evaluations', 'certificates'].includes(check.key));
+      const preClosureReady = preClosureChecks.length > 0 && preClosureChecks.every((check) => check.state === 'ready');
       const requiredCount = requiredChecks.length;
       const readyCount = readyChecks.length;
       const progress = requiredCount === 0 ? 100 : Math.round((readyCount / requiredCount) * 100);
@@ -333,7 +339,9 @@ export function TrainingDossiersPage() {
         readyCount,
         requiredCount,
         missingCount: Math.max(requiredCount - readyCount, 0),
-        canClose: phase === 'closure' && requiredCount > 0 && readyCount === requiredCount,
+        canClose: session.status === 'completed' && !session.training_dossier_finalized_at && requiredCount > 0 && readyCount === requiredCount,
+        canLaunchClosure: phase === 'closure' && session.status !== 'completed' && preClosureReady,
+        canFinalize: session.status === 'completed' && !session.training_dossier_finalized_at && requiredCount > 0 && readyCount === requiredCount,
         checks,
         enrollmentCount: activeEnrollments.length,
         commercialReference: latestCommercial?.reference ?? null,
@@ -355,7 +363,7 @@ export function TrainingDossiersPage() {
     return {
       active: active.length,
       average,
-      ready: summaries.filter((summary) => summary.canClose).length,
+      ready: summaries.filter((summary) => summary.canLaunchClosure || summary.canFinalize).length,
       missing: active.reduce((sum, summary) => sum + summary.missingCount, 0)
     };
   }, [summaries]);
@@ -463,17 +471,27 @@ export function TrainingDossiersPage() {
   }
 
   async function closeSessionDossier() {
-    if (!organization || !selectedSummary || !selectedSummary.canClose || !window.confirm('Clôturer définitivement cette session et figer son dossier administratif ?')) return;
+    if (!organization || !selectedSummary) return;
+    const launch = selectedSummary.canLaunchClosure;
+    const finalize = selectedSummary.canFinalize;
+    if (!launch && !finalize) return;
+    const confirmation = launch
+      ? 'Terminer la session et lancer automatiquement l’évaluation finale puis les attestations ?'
+      : 'Finaliser ce dossier maintenant que toutes les pièces sont complètes ?';
+    if (!window.confirm(confirmation)) return;
     const session = selectedSummary.session;
     setBusyAction(`close-${session.id}`);
     setError('');
     setSuccess('');
     try {
       if (demoMode || !supabase) {
-        const nextSessions = sessions.map((row) => row.id === session.id ? { ...row, status: 'completed' as const, closed_at: new Date().toISOString(), closure_notes: notesDraft.trim() || null } : row);
+        const nextSessions = sessions.map((row) => row.id === session.id ? launch
+          ? { ...row, status: 'completed' as const, closed_at: new Date().toISOString(), delivery_completed_at: new Date().toISOString(), closure_notes: notesDraft.trim() || null }
+          : { ...row, training_dossier_finalized_at: new Date().toISOString(), training_dossier_auto_completed: false }
+          : row);
         writeJsonStorage(`ncr-suite-training-sessions-${organization.id}`, nextSessions);
         setSessions(nextSessions);
-      } else {
+      } else if (launch) {
         const { error: rpcError } = await supabase.rpc('close_training_session', {
           p_organization_id: organization.id,
           p_session_id: session.id,
@@ -481,11 +499,20 @@ export function TrainingDossiersPage() {
         });
         if (rpcError) throw rpcError;
         await loadData();
+      } else {
+        const { error: rpcError } = await supabase.rpc('finalize_training_session_dossier', {
+          p_organization_id: organization.id,
+          p_session_id: session.id
+        });
+        if (rpcError) throw rpcError;
+        await loadData();
       }
-      setSuccess('La session et son dossier sont maintenant clôturés.');
-      setTab('closed');
+      setSuccess(launch
+        ? 'La session est terminée. Les évaluations finales sont envoyées par Brevo et les attestations suivront automatiquement.'
+        : 'Le dossier complet est maintenant finalisé.');
+      setTab(launch ? 'to_close' : 'closed');
     } catch (caught) {
-      setError(`Clôture impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+      setError(`${launch ? 'Fin de session' : 'Finalisation'} impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
     } finally {
       setBusyAction('');
     }
@@ -664,7 +691,8 @@ export function TrainingDossiersPage() {
                     <p>{selectedSummary.phase === 'preparation' ? 'Prépare les éléments nécessaires avant l’accueil des stagiaires.' : selectedSummary.phase === 'delivery' ? 'Les preuves de réalisation se complètent pendant la formation.' : selectedSummary.phase === 'closure' ? 'Finalise les preuves puis clôture la session.' : 'Le dossier reste consultable et peut être exporté.'}</p>
                     <div className="training-dossier-scoreline"><span><i style={{ width: `${selectedSummary.progress}%` }} /></span><b>{selectedSummary.readyCount}/{selectedSummary.requiredCount}</b></div>
                     <div className="training-dossier-pdf-actions"><button type="button" className="secondary-button" disabled={busyAction === `pdf-${selectedSummary.session.id}`} onClick={() => void generateDossierPdf('preview')}><Icon name="eye" size={16} />Visualiser le PDF</button><button type="button" className="secondary-button" disabled={busyAction === `pdf-${selectedSummary.session.id}`} onClick={() => void generateDossierPdf('download')}><Icon name="file" size={16} />Télécharger</button></div>
-                    {selectedSummary.canClose && canManage && <button type="button" className="training-dossier-close-button" disabled={busyAction === `close-${selectedSummary.session.id}`} onClick={() => void closeSessionDossier()}><Icon name="check" size={17} />{busyAction === `close-${selectedSummary.session.id}` ? 'Clôture…' : 'Clôturer le dossier'}</button>}
+                    {(selectedSummary.canLaunchClosure || selectedSummary.canFinalize) && canManage && <button type="button" className="training-dossier-close-button" disabled={busyAction === `close-${selectedSummary.session.id}`} onClick={() => void closeSessionDossier()}><Icon name="check" size={17} />{busyAction === `close-${selectedSummary.session.id}` ? 'Traitement…' : selectedSummary.canLaunchClosure ? 'Terminer et lancer la clôture' : 'Finaliser le dossier'}</button>}
+                    {selectedSummary.session.status === 'completed' && !selectedSummary.session.training_dossier_finalized_at && !selectedSummary.canFinalize && <div className="training-dossier-automation-note"><Icon name="refresh" size={16} /><span><strong>Clôture automatisée en cours</strong><small>Les évaluations finales, attestations et relances complètent ce dossier automatiquement.</small></span></div>}
                     {selectedSummary.phase === 'closed' && canReopen && <button type="button" className="training-dossier-reopen-button" disabled={busyAction === `reopen-${selectedSummary.session.id}`} onClick={() => void reopenSessionDossier()}><Icon name="activity" size={16} />Rouvrir la session</button>}
                   </section>
 
