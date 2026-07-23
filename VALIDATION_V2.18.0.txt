@@ -1,0 +1,31 @@
+VALIDATION V2.18.0
+
+Date : 2026-07-24
+Base analysee : NCR Suite V2.17.0 locale
+Version cible : ncr-suite@2.18.0
+
+Controles executes :
+- npm run audit:phase1 : OK
+- npm run test:critical : OK
+- npx tsc -b : OK
+- npm run build : OK
+- Vite 8.1.4 : 421 modules transformes, build termine en 1,05 s.
+
+Points couverts :
+- Migration 078 presente apres la migration 077.
+- Tables factures, lignes et paiements protegees par RLS.
+- Fonctions d'emission, encaissement, avoir et envoi protegees par role et module.
+- Montant facture limite au solde du dossier commercial.
+- Numero attribue uniquement a l'emission.
+- Identites vendeur et payeur figees lors de l'emission.
+- Historique des encaissements sans ecrasement.
+- Relances automatiques dedupliquees.
+- PDF brouillon, facture et avoir.
+- Source BPF basculee vers les factures emises avec repli V2.17.0.
+- Regles responsives ordinateur, tablette et mobile presentes.
+- APP_VERSION, cache PWA, producteurs PDF et processeur e-mail synchronises en V2.18.0.
+
+Limites de validation locale :
+- La migration 078 n'est pas executee contre la base Supabase de production.
+- La transmission de facture electronique via une plateforme agreee n'est pas incluse.
+- La verification visuelle en conditions reelles doit etre faite apres le build Cloudflare.

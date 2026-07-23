@@ -1,5 +1,19 @@
 # Changelog NCR Suite
 
+## V2.18.0 — Formation · Facturation et encaissements
+
+- Création de factures depuis les dossiers commerciaux acceptés, signés ou réalisés.
+- Facturation partielle et partage entre client et financeur sans dépasser le montant commercial.
+- Numérotation définitive par organisme et par exercice lors de l’émission.
+- Factures et avoirs PDF avec identité figée du vendeur et du payeur.
+- Historique des encaissements partiels ou complets et calcul du solde.
+- Suivi des échéances, retards et relances automatiques Brevo.
+- Réglages de paiement, mentions TVA, pénalités et coordonnées bancaires.
+- BPF alimenté par les factures et avoirs émis dès qu’ils existent sur l’exercice.
+- Conservation du calcul commercial V2.17.0 pour les anciens exercices sans facture.
+- Cloisonnement multi-entreprises, rôles, fonctions contrôlées et RLS Supabase.
+- Cache PWA, producteurs PDF, processeur e-mail et audits synchronisés en V2.18.0.
+
 ## V2.17.0 — Formation · BPF automatique
 
 - Nouveau module annuel `BPF automatique`.

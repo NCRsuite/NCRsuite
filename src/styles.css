@@ -13620,3 +13620,187 @@ button { max-width: 100%; }
   .training-bpf-footer button { width: 100%; }
   .training-bpf-footer button { justify-content: center; }
 }
+
+/* Formation · facturation et encaissements V2.18.0 */
+.training-billing-page {
+  --billing-ink: #17212b;
+  --billing-muted: #6d7782;
+  --billing-line: #dfe3e7;
+  --billing-soft: #f5f7f8;
+  --billing-green: #157347;
+  --billing-red: #b42318;
+  --billing-blue: #1769aa;
+  display: grid;
+  gap: 16px;
+}
+.training-billing-metrics {
+  display: grid;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  gap: 10px;
+}
+.training-billing-metrics article {
+  display: grid;
+  grid-template-columns: 38px minmax(0,1fr);
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  min-height: 92px;
+  padding: 14px;
+  border: 1px solid var(--billing-line);
+  border-radius: 8px;
+  background: #fff;
+}
+.training-billing-metrics article > span {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 7px;
+  color: var(--billing-blue);
+  background: #eaf3fa;
+}
+.training-billing-metrics article:nth-child(2) > span { color: var(--billing-green); background: #eaf6ef; }
+.training-billing-metrics article:nth-child(5) > span { color: #6e5a12; background: #f7f1db; }
+.training-billing-metrics article.is-alert { border-color: #e7b9b5; }
+.training-billing-metrics article.is-alert > span { color: var(--billing-red); background: #fcecea; }
+.training-billing-metrics article > div { display: grid; gap: 2px; min-width: 0; }
+.training-billing-metrics small { color: var(--billing-muted); font-size: 9px; font-weight: 760; text-transform: uppercase; }
+.training-billing-metrics strong { overflow: hidden; color: var(--billing-ink); font-size: 17px; text-overflow: ellipsis; white-space: nowrap; }
+.training-billing-metrics em { overflow: hidden; color: #9299a1; font-size: 9px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.training-billing-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 46px;
+  padding: 4px;
+  border: 1px solid var(--billing-line);
+  border-radius: 8px;
+  background: var(--billing-soft);
+}
+.training-billing-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 6px;
+  color: #64707b;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 780;
+  cursor: pointer;
+}
+.training-billing-tabs button.active { color: var(--billing-ink); background: #fff; box-shadow: 0 1px 4px rgba(23,33,43,.09); }
+.training-billing-editor,
+.training-payment-editor,
+.training-billing-settings { padding: 19px; }
+.training-billing-list { padding: 0; overflow: hidden; }
+.training-billing-list .training-toolbar {
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--billing-line);
+}
+.training-invoice-list { display: grid; }
+.training-invoice-list article {
+  display: grid;
+  grid-template-columns: 40px minmax(260px,1fr) minmax(135px,.34fr) minmax(260px,.72fr);
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 13px 15px;
+  border-bottom: 1px solid #eceff1;
+  background: #fff;
+}
+.training-invoice-list article:last-child { border-bottom: 0; }
+.training-invoice-list article.is-overdue { box-shadow: inset 4px 0 0 var(--billing-red); }
+.training-invoice-kind {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 7px;
+  color: var(--billing-blue);
+  background: #edf4f9;
+}
+.training-invoice-main { display: grid; gap: 3px; min-width: 0; }
+.training-invoice-main > div { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.training-invoice-main > div small { flex: 0 0 auto; color: var(--billing-blue); font-size: 8px; font-weight: 820; }
+.training-invoice-main strong,
+.training-invoice-main p,
+.training-invoice-main em { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-invoice-main strong { color: var(--billing-ink); font-size: 12px; }
+.training-invoice-main p { margin: 0; color: #596470; font-size: 10px; }
+.training-invoice-main em { color: #8a929a; font-size: 9px; font-style: normal; }
+.training-invoice-main > span { display: inline-flex; align-items: center; gap: 4px; width: fit-content; color: #7b5b0c; font-size: 9px; font-weight: 720; }
+.training-invoice-value { display: grid; gap: 4px; justify-items: end; min-width: 0; }
+.training-invoice-value strong { font-size: 14px; }
+.training-invoice-value small { color: var(--billing-muted); font-size: 9px; }
+.training-invoice-value .status-chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-invoice-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; min-width: 0; }
+.training-invoice-actions button { min-height: 34px; padding: 0 10px; border-radius: 6px; font-size: 9px; }
+.training-payment-list { display: grid; }
+.training-payment-list article {
+  display: grid;
+  grid-template-columns: 36px minmax(0,1fr) auto;
+  gap: 11px;
+  align-items: center;
+  min-width: 0;
+  padding: 13px 16px;
+  border-bottom: 1px solid #eceff1;
+}
+.training-payment-list article:last-child { border-bottom: 0; }
+.training-payment-list article > span {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--billing-green);
+  background: #eaf6ef;
+}
+.training-payment-list article > div { display: grid; gap: 2px; min-width: 0; }
+.training-payment-list strong,
+.training-payment-list p,
+.training-payment-list small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-payment-list strong { font-size: 11px; }
+.training-payment-list p { margin: 0; color: #69737d; font-size: 10px; }
+.training-payment-list small { color: #90979e; font-size: 9px; }
+.training-payment-list b { color: var(--billing-green); font-size: 13px; }
+.training-toggle-field {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 11px !important;
+  min-height: 62px;
+  padding: 10px 12px;
+  border: 1px solid var(--billing-line);
+  border-radius: 7px;
+  background: var(--billing-soft);
+}
+.training-toggle-field > input { flex: 0 0 auto; width: 18px !important; min-height: 18px !important; height: 18px; margin: 0; }
+.training-toggle-field > span { display: grid; gap: 3px; }
+.training-toggle-field strong { color: var(--billing-ink); font-size: 11px; }
+.training-toggle-field small { color: var(--billing-muted); font-size: 9px; font-weight: 500; }
+
+@media (max-width: 1260px) {
+  .training-billing-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .training-invoice-list article { grid-template-columns: 40px minmax(240px,1fr) 135px; }
+  .training-invoice-actions { grid-column: 2 / -1; justify-content: flex-start; }
+}
+@media (max-width: 820px) {
+  .training-billing-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .training-billing-list .training-toolbar { align-items: stretch; flex-direction: column; }
+  .training-billing-list .training-search { width: 100%; }
+  .training-invoice-list article { grid-template-columns: 40px minmax(0,1fr); }
+  .training-invoice-value { grid-column: 2; justify-items: start; }
+  .training-invoice-actions { grid-column: 1 / -1; justify-content: flex-start; }
+}
+@media (max-width: 560px) {
+  .training-billing-metrics { grid-template-columns: 1fr; }
+  .training-billing-tabs { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .training-billing-tabs button { min-width: 0; padding: 0 7px; font-size: 9px; }
+  .training-filter-chips { overflow-x: auto; flex-wrap: nowrap; width: 100%; padding-bottom: 3px; }
+  .training-invoice-list article { padding: 12px; }
+  .training-invoice-actions button { flex: 1 1 120px; }
+}

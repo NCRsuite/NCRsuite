@@ -80,7 +80,7 @@ function metricValue(value: TrainingBpfMetric) {
 
 export async function generateTrainingBpfPdf(organization: Organization, calculation: TrainingBpfCalculation) {
   const pdf = await PDFDocument.create();
-  pdf.setProducer('NCR Suite V2.17.0');
+  pdf.setProducer('NCR Suite V2.18.0');
   pdf.setTitle(`BPF préparatoire ${calculation.period.year} - ${calculation.identity.name}`);
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);

@@ -43,6 +43,7 @@ const TrainingCommercialPage = lazy(() => import('./pages/TrainingCommercialPage
 const TrainingDossiersPage = lazy(() => import('./pages/TrainingDossiersPage').then((module) => ({ default: module.TrainingDossiersPage })));
 const TrainingWorkflowPage = lazy(() => import('./pages/TrainingWorkflowPage').then((module) => ({ default: module.TrainingWorkflowPage })));
 const TrainingOrganizationProfilePage = lazy(() => import('./pages/TrainingOrganizationProfilePage').then((module) => ({ default: module.TrainingOrganizationProfilePage })));
+const TrainingBillingPage = lazy(() => import('./pages/TrainingBillingPage').then((module) => ({ default: module.TrainingBillingPage })));
 const TrainingBpfPage = lazy(() => import('./pages/TrainingBpfPage').then((module) => ({ default: module.TrainingBpfPage })));
 const PublicTrainingSatisfactionPage = lazy(() => import('./pages/PublicTrainingSatisfactionPage').then((module) => ({ default: module.PublicTrainingSatisfactionPage })));
 const SecurityClientsPage = lazy(() => import('./pages/SecurityClientsPage').then((module) => ({ default: module.SecurityClientsPage })));
@@ -300,6 +301,7 @@ export default function App() {
         <Route path="evaluations" element={<ModuleAccessGuard moduleKey="evaluations"><TrainingEvaluationsPage /></ModuleAccessGuard>} />
         <Route path="etablissements" element={<ModuleAccessGuard moduleKey="sites"><TrainingSitesPage /></ModuleAccessGuard>} />
         <Route path="commercial" element={<ModuleAccessGuard moduleKey="training_commercial"><TrainingCommercialPage /></ModuleAccessGuard>} />
+        <Route path="facturation-formation" element={<ModuleAccessGuard moduleKey="training_billing"><TrainingBillingPage /></ModuleAccessGuard>} />
         <Route path="bpf" element={<ModuleAccessGuard moduleKey="training_bpf"><TrainingBpfPage /></ModuleAccessGuard>} />
         <Route path="dossiers-formation" element={<ModuleAccessGuard moduleKey="documents"><TrainingDossiersPage /></ModuleAccessGuard>} />
         <Route path="terrain" element={<FieldTerrainArea />} />

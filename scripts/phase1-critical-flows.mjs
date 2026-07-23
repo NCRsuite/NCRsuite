@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-bpf-automation`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-billing-collections`;
+const trainingBpfCache = 'ncr-suite-shell-v2.17.0-training-bpf-automation';
 const trainingCrmCache = 'ncr-suite-shell-v2.16.0-training-crm-pipeline';
 const trainingSavCache = 'ncr-suite-shell-v2.15.4-training-sav-admin';
 const trainingIntegrityCache = 'ncr-suite-shell-v2.15.3-training-automation-integrity';
@@ -386,7 +387,7 @@ requireText('src/features/training/programPdf.ts', [
   'Organisation pratique'
 ]);
 requireText('src/features/training/commercialPdf.ts', [
-  'NCR Suite V2.17.0',
+  'NCR Suite V2.18.0',
   'Acceptation et signatures',
   'Programme détaillé'
 ]);
@@ -412,7 +413,7 @@ requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'training_commercial_document'",
   "item.template_key === 'training_commercial_document'",
   'Convocation à une formation',
-  'NCR Suite V2.17.0'
+  'NCR Suite V2.18.0'
 ]);
 requireText('supabase/migrations/073_training_delivery_closure_automation.sql', [
   'update_training_evaluation_settings',
@@ -523,7 +524,7 @@ requireText('supabase/migrations/077_training_bpf_automation.sql', [
   'create or replace function public.training_bpf_participant_rows',
   'alter table public.training_bpf_reports enable row level security',
   "'2.17.0'",
-  expectedCache,
+  trainingBpfCache,
   'set search_path = public'
 ]);
 requireText('src/pages/TrainingBpfPage.tsx', [
@@ -538,7 +539,7 @@ requireText('src/pages/TrainingBpfPage.tsx', [
   'Verrouiller le BPF'
 ]);
 requireText('src/features/training/bpfPdf.ts', [
-  'NCR Suite V2.17.0',
+  'NCR Suite V2.18.0',
   'Cerfa 10443*17',
   'BPF PREPARATOIRE'
 ]);
@@ -549,6 +550,45 @@ requireText('src/features/training/bpfCsv.ts', [
 ]);
 if (!app.includes('path="bpf"') || !access.includes("'/bpf'")) {
   failures.push('Le BPF Formation V2.17.0 doit rester raccordé aux routes et à la matrice d’accès.');
+}
+
+requireText('supabase/migrations/078_training_billing_collections.sql', [
+  'create table if not exists public.training_invoices',
+  'create table if not exists public.training_invoice_lines',
+  'create table if not exists public.training_invoice_payments',
+  'create or replace function public.create_training_invoice',
+  'create or replace function public.issue_training_invoice',
+  'create or replace function public.record_training_invoice_payment',
+  'create or replace function public.create_training_credit_note',
+  'create or replace function public.queue_training_invoice_email',
+  'create or replace function public.queue_due_training_invoice_reminders',
+  'refresh_training_bpf_report_commercial_legacy',
+  'alter table public.training_invoices enable row level security',
+  "'2.18.0'",
+  expectedCache,
+  'set search_path = public'
+]);
+requireText('src/pages/TrainingBillingPage.tsx', [
+  "supabase.rpc('create_training_invoice'",
+  "supabase.rpc('issue_training_invoice'",
+  "supabase.rpc('record_training_invoice_payment'",
+  "supabase.rpc('create_training_credit_note'",
+  "supabase.rpc('queue_training_invoice_email'",
+  'Facturation et encaissements',
+  'Nouvelle facture'
+]);
+requireText('src/features/training/invoicePdf.ts', [
+  'NCR Suite V2.18.0',
+  'Indemnite forfaitaire pour frais de recouvrement',
+  'BROUILLON'
+]);
+requireText('supabase/functions/process-email-queue/index.ts', [
+  "case 'training_invoice'",
+  "item.template_key === 'training_invoice'",
+  'queue_due_training_invoice_reminders'
+]);
+if (!app.includes('path="facturation-formation"') || !access.includes("'/facturation-formation'")) {
+  failures.push('La facturation Formation V2.18.0 doit rester raccordée aux routes et à la matrice d’accès.');
 }
 
 requireText('supabase/functions/process-email-queue/index.ts', [

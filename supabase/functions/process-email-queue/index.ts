@@ -351,7 +351,7 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
   pdf.setAuthor(organization);
   pdf.setSubject(program);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.17.0');
+  pdf.setProducer('NCR Suite V2.18.0');
   return await pdf.save();
 }
 async function processTrainingDocumentJobs(supabase: any) {
@@ -635,6 +635,19 @@ function templateCopy(templateKey: string, payload: Record<string, unknown>) {
         message: `Vous trouverez en pièce jointe le document ${String(payload.document_reference ?? '')} relatif à la formation « ${String(payload.program_title ?? payload.document_title ?? 'Formation')} ».`
       };
     }
+    case 'training_invoice': {
+      const isCredit = String(payload.document_kind ?? 'invoice') === 'credit_note';
+      const isReminder = payload.is_reminder === true;
+      const reference = String(payload.invoice_number ?? '');
+      return {
+        subject: `${isReminder ? 'Rappel — ' : ''}${isCredit ? 'Avoir' : 'Facture'} ${reference} — ${organization}`,
+        eyebrow: isReminder ? 'RAPPEL DE PAIEMENT' : isCredit ? 'AVOIR DE FORMATION' : 'FACTURE DE FORMATION',
+        title: isReminder ? `Échéance dépassée pour ${reference}` : `${isCredit ? 'Votre avoir' : 'Votre facture'} est disponible`,
+        message: isReminder
+          ? `Sauf erreur de notre part, le solde de la facture ${reference} reste à régler.`
+          : `Vous trouverez en pièce jointe ${isCredit ? 'votre avoir' : 'votre facture'} ${reference}.`
+      };
+    }
     case 'security_client_portal_invitation':
       return {
         subject: `Votre portail client Sécurité — ${organization}`,
@@ -871,6 +884,44 @@ ${amount ? `<tr><td style="padding:16px 18px;border-top:1px solid #e2e8f0;color:
     const text = `${copy.title}\n\n${copy.message}\n\nRéférence : ${payload.document_reference ?? ''}\nFormation : ${payload.program_title ?? payload.document_title ?? ''}${amount ? `\nMontant TTC : ${amount}` : ''}\nValidité : ${validUntil}\n\n${payload.return_instructions ?? ''}\n\nLe document PDF est joint à cet e-mail.`;
     return { subject: copy.subject, html, text, replyTo: contactEmail || null };
   }
+  if (item.template_key === 'training_invoice') {
+    const accent = safeColor(payload.organization_primary_color);
+    const organizationRaw = String(payload.organization_name ?? 'Votre organisme de formation');
+    const organization = escapeHtml(organizationRaw);
+    const recipient = escapeHtml(item.recipient_name ?? payload.buyer_name ?? '');
+    const reference = escapeHtml(payload.invoice_number ?? '');
+    const title = escapeHtml(payload.document_title ?? 'Prestation de formation');
+    const isCredit = String(payload.document_kind ?? 'invoice') === 'credit_note';
+    const isReminder = payload.is_reminder === true;
+    const dueDate = payload.due_date
+      ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(`${String(payload.due_date)}T12:00:00`))
+      : 'À réception';
+    const total = formatPrice(payload.total_cents);
+    const balance = formatPrice(payload.balance_due_cents);
+    const contactEmail = String(payload.reply_to_email ?? payload.contact_email ?? '').trim();
+    const contactPhone = String(payload.contact_phone ?? '').trim();
+    const organizationLogoUrl = safeImageUrl(payload.organization_logo_url);
+    const logo = organizationLogoUrl
+      ? `<img src="${escapeHtml(organizationLogoUrl)}" alt="${organization}" style="display:block;max-width:190px;max-height:70px;object-fit:contain">`
+      : `<div style="display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:10px;background:${accent};color:#fff;font-size:22px;font-weight:800">${organization.slice(0, 2).toUpperCase()}</div>`;
+    const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;background:#eef2f4;font-family:Arial,Helvetica,sans-serif;color:#17212b">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef2f4;padding:32px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:650px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 18px 44px rgba(23,33,43,.12)">
+<tr><td style="height:8px;background:${accent}"></td></tr>
+<tr><td style="padding:34px 36px 18px">${logo}${isReminder ? `<div style="display:inline-block;margin:24px 0 0;background:#fff3e8;color:#a13f15;border:1px solid #f2c8ae;padding:7px 11px;border-radius:6px;font-size:11px;font-weight:800">RELANCE ${Number(payload.reminder_count ?? 1)}</div>` : ''}<div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:${accent};margin-top:24px">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:29px;line-height:1.15;margin:10px 0 12px;color:#17212b">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.65;color:#65717d;margin:0">${recipient ? `Bonjour ${recipient}, ` : ''}${escapeHtml(copy.message)}</p></td></tr>
+<tr><td style="padding:14px 36px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f8f9;border:1px solid #dfe3e7;border-radius:8px;overflow:hidden">
+<tr><td style="padding:15px 18px;color:#65717d">Référence</td><td align="right" style="padding:15px 18px;font-weight:800">${reference}</td></tr>
+<tr><td style="padding:15px 18px;border-top:1px solid #dfe3e7;color:#65717d">Objet</td><td align="right" style="padding:15px 18px;border-top:1px solid #dfe3e7;font-weight:800">${title}</td></tr>
+<tr><td style="padding:15px 18px;border-top:1px solid #dfe3e7;color:#65717d">${isCredit ? 'Montant de l’avoir' : 'Montant TTC'}</td><td align="right" style="padding:15px 18px;border-top:1px solid #dfe3e7;font-weight:800">${escapeHtml(total)}</td></tr>
+${!isCredit ? `<tr><td style="padding:15px 18px;border-top:1px solid #dfe3e7;color:#65717d">Solde à régler</td><td align="right" style="padding:15px 18px;border-top:1px solid #dfe3e7;font-weight:800;color:${isReminder ? '#b42318' : '#17212b'}">${escapeHtml(balance)}</td></tr><tr><td style="padding:15px 18px;border-top:1px solid #dfe3e7;color:#65717d">Échéance</td><td align="right" style="padding:15px 18px;border-top:1px solid #dfe3e7;font-weight:800">${escapeHtml(dueDate)}</td></tr>` : ''}
+</table></td></tr>
+<tr><td style="padding:24px 36px 30px"><div style="display:inline-block;background:${accent};color:#fff;font-weight:800;padding:13px 22px;border-radius:7px">PDF joint à cet e-mail</div></td></tr>
+<tr><td style="padding:22px 36px 32px;border-top:1px solid #dfe3e7;color:#65717d;font-size:13px;line-height:1.7">${contactEmail || contactPhone ? `Une question ? ${[contactEmail, contactPhone].filter(Boolean).map(escapeHtml).join(' · ')}<br>` : ''}E-mail envoyé automatiquement pour ${organization}.</td></tr>
+</table></td></tr></table></body></html>`;
+    const text = `${copy.title}\n\n${copy.message}\n\nRéférence : ${payload.invoice_number ?? ''}\nObjet : ${payload.document_title ?? ''}\nMontant : ${total}${!isCredit ? `\nSolde : ${balance}\nÉchéance : ${dueDate}` : ''}\n\nLe document PDF est joint à cet e-mail.`;
+    return { subject: copy.subject, html, text, replyTo: contactEmail || null };
+  }
 
   if (item.template_key === 'training_satisfaction_request') {
     const accent = safeColor(payload.organization_primary_color);
@@ -1058,6 +1109,15 @@ Deno.serve(async (request) => {
     console.error('Training evaluation reminder processor:', caught);
   }
 
+  let invoiceRemindersQueued = 0;
+  try {
+    const { data: reminderCount, error: reminderError } = await supabase.rpc('queue_due_training_invoice_reminders', { p_limit: 100 });
+    if (reminderError) throw reminderError;
+    invoiceRemindersQueued = Number(reminderCount ?? 0);
+  } catch (caught) {
+    console.error('Training invoice reminder processor:', caught);
+  }
+
   let documentJobs = { claimed: 0, generated: 0, failed: 0 };
   try {
     documentJobs = await processTrainingDocumentJobs(supabase);
@@ -1169,6 +1229,18 @@ Deno.serve(async (request) => {
           await supabase.from('training_commercial_documents').update({ emailed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', commercialDocumentId);
         }
       }
+      if (item.template_key === 'training_invoice') {
+        const trainingInvoiceId = String(item.payload?.training_invoice_id ?? '').trim();
+        if (trainingInvoiceId) {
+          const sentAt = new Date().toISOString();
+          const isReminder = item.payload?.is_reminder === true;
+          const { data: invoice } = await supabase.from('training_invoices').select('document_kind,status').eq('id', trainingInvoiceId).maybeSingle();
+          const invoicePatch: Record<string, unknown> = { emailed_at: sentAt, updated_at: sentAt };
+          if (!isReminder) invoicePatch.sent_at = sentAt;
+          if (!isReminder && invoice?.document_kind === 'invoice' && invoice?.status === 'issued') invoicePatch.status = 'sent';
+          await supabase.from('training_invoices').update(invoicePatch).eq('id', trainingInvoiceId);
+        }
+      }
       if (item.template_key === 'training_satisfaction_request') {
         const surveyId = String(item.payload?.survey_id ?? '').trim();
         if (surveyId) {
@@ -1195,7 +1267,7 @@ Deno.serve(async (request) => {
     }
   }
 
-  return new Response(JSON.stringify({ reminders_queued: remindersQueued, documents: documentJobs, emails: { claimed: items.length, sent, failed } }), {
+  return new Response(JSON.stringify({ evaluation_reminders_queued: remindersQueued, invoice_reminders_queued: invoiceRemindersQueued, documents: documentJobs, emails: { claimed: items.length, sent, failed } }), {
     status: 200,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });

@@ -34,6 +34,7 @@ import {
   type TrainingCustomerRecord,
   type TrainingEnrollmentRecord,
   type TrainingFunderRecord,
+  type TrainingInvoiceRecord,
   type TrainingProgramRecord,
   type TrainingSessionRecord,
   type TrainingTraineeRecord,
@@ -158,6 +159,7 @@ export function TrainingBpfPage() {
   const [enrollments, setEnrollments] = useState<TrainingEnrollmentRecord[]>([]);
   const [attendance, setAttendance] = useState<TrainingAttendanceRecord[]>([]);
   const [documents, setDocuments] = useState<TrainingCommercialDocumentRecord[]>([]);
+  const [invoices, setInvoices] = useState<TrainingInvoiceRecord[]>([]);
   const [customers, setCustomers] = useState<TrainingCustomerRecord[]>([]);
   const [funders, setFunders] = useState<TrainingFunderRecord[]>([]);
   const [reportForm, setReportForm] = useState<ReportForm>(emptyReportForm);
@@ -213,6 +215,7 @@ export function TrainingBpfPage() {
         const nextEnrollments = readRows<TrainingEnrollmentRecord>(`ncr-suite-training-enrollments-${organizationId}`);
         const nextAttendance = readRows<TrainingAttendanceRecord>(`ncr-suite-training-attendance-${organizationId}`);
         const nextDocuments = readRows<TrainingCommercialDocumentRecord>(`ncr-suite-training-commercial-${organizationId}`);
+        const nextInvoices = readRows<TrainingInvoiceRecord>(`ncr-suite-training-invoices-${organizationId}`);
         const nextCustomers = readRows<TrainingCustomerRecord>(`ncr-suite-training-customers-${organizationId}`);
         const nextFunders = readRows<TrainingFunderRecord>(`ncr-suite-training-funders-${organizationId}`);
         let nextReports = readRows<TrainingBpfReportRecord>(reportStorageKey(organizationId)).map(normalizeTrainingBpfReport);
@@ -234,6 +237,7 @@ export function TrainingBpfPage() {
             enrollments: nextEnrollments,
             attendance: nextAttendance,
             documents: nextDocuments,
+            invoices: nextInvoices,
             customers: nextCustomers,
             funders: nextFunders
           });
@@ -248,7 +252,7 @@ export function TrainingBpfPage() {
         setReports(nextReports.sort((a, b) => b.reporting_year - a.reporting_year));
         setPrograms(nextPrograms); setTrainers(nextTrainers); setTrainees(nextTrainees);
         setSessions(nextSessions); setEnrollments(nextEnrollments); setAttendance(nextAttendance);
-        setDocuments(nextDocuments); setCustomers(nextCustomers); setFunders(nextFunders);
+        setDocuments(nextDocuments); setInvoices(nextInvoices); setCustomers(nextCustomers); setFunders(nextFunders);
         applyReportState(calculatedReport, nextCalculation);
       } else {
         const [
@@ -260,6 +264,7 @@ export function TrainingBpfPage() {
           enrollmentResult,
           attendanceResult,
           documentResult,
+          invoiceResult,
           customerResult,
           funderResult
         ] = await Promise.all([
@@ -271,12 +276,13 @@ export function TrainingBpfPage() {
           supabase.from('training_session_enrollments').select('organization_id,session_id,trainee_id,status,bpf_trainee_type,bpf_attended_hours').eq('organization_id', organizationId),
           supabase.from('training_attendance').select('id,organization_id,site_id,session_id,trainee_id,attendance_date,period,status,signature_path,signatory_name,signed_at,notes,created_at,updated_at').eq('organization_id', organizationId),
           supabase.from('training_commercial_documents').select('id,organization_id,site_id,opportunity_id,customer_id,funder_id,session_id,trainee_id,program_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,signed_document_path,signed_document_received_at,signed_document_received_by,bpf_revenue_category,bpf_revenue_recognized_at,bpf_included,created_at,updated_at').eq('organization_id', organizationId).order('issue_date', { ascending: false }),
+          supabase.from('training_invoices').select('*').eq('organization_id', organizationId).order('issue_date', { ascending: false }),
           supabase.from('training_customers').select('id,organization_id,site_id,customer_type,legal_name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,notes,status,created_at,updated_at').eq('organization_id', organizationId),
           supabase.from('training_funders').select('id,organization_id,funder_type,name,contact_name,email,phone,billing_address,postal_code,city,reference_code,notes,status,created_at,updated_at').eq('organization_id', organizationId)
         ]);
         const firstError = reportResult.error || programResult.error || trainerResult.error || traineeResult.error
           || sessionResult.error || enrollmentResult.error || attendanceResult.error || documentResult.error
-          || customerResult.error || funderResult.error;
+          || invoiceResult.error || customerResult.error || funderResult.error;
         if (firstError) throw firstError;
 
         let nextReports = (reportResult.data ?? []).map((row) => normalizeTrainingBpfReport(row as TrainingBpfReportRecord));
@@ -325,6 +331,14 @@ export function TrainingBpfPage() {
           tax_cents: Number(row.tax_cents),
           amount_incl_tax_cents: Number(row.amount_incl_tax_cents)
         })) as TrainingCommercialDocumentRecord[]);
+        setInvoices((invoiceResult.data ?? []).map((row) => ({
+          ...row,
+          subtotal_cents: Number(row.subtotal_cents),
+          tax_cents: Number(row.tax_cents),
+          total_cents: Number(row.total_cents),
+          paid_amount_cents: Number(row.paid_amount_cents),
+          balance_due_cents: Number(row.balance_due_cents)
+        })) as TrainingInvoiceRecord[]);
         setCustomers((customerResult.data ?? []) as TrainingCustomerRecord[]);
         setFunders((funderResult.data ?? []) as TrainingFunderRecord[]);
         applyReportState(calculatedReport, nextCalculation);
@@ -383,6 +397,14 @@ export function TrainingBpfPage() {
         && date <= report.exercise_end;
     });
   }, [documents, report]);
+  const periodInvoices = useMemo(() => {
+    if (!report) return [];
+    return invoices.filter((row) => (
+      ['issued', 'sent', 'partial', 'paid', 'overdue'].includes(row.status)
+      && row.issue_date >= report.exercise_start
+      && row.issue_date <= report.exercise_end
+    ));
+  }, [invoices, report]);
   const sourceIssueCount = useMemo(() => calculation?.quality.warnings.filter((row) => !['organization', 'report'].includes(row.entity_type)).length ?? 0, [calculation]);
   const yearOptions = useMemo(() => {
     const current = new Date().getFullYear();
@@ -673,6 +695,7 @@ export function TrainingBpfPage() {
   function openWarning(entityType: string) {
     if (entityType === 'organization') navigate('/profil-organisme');
     else if (entityType === 'report') setTab('financial');
+    else if (entityType === 'invoice') navigate('/facturation-formation');
     else setTab('sources');
   }
 
@@ -728,7 +751,7 @@ export function TrainingBpfPage() {
           {calculation.quality.warnings.length === 0 ? <div className="training-bpf-empty"><Icon name="check" size={25} /><strong>Aucun point bloquant</strong></div> : <div className="training-bpf-warning-list">{calculation.quality.warnings.slice(0, 12).map((warning, index) => <button key={`${warning.code}-${warning.entity_id}-${index}`} type="button" onClick={() => openWarning(warning.entity_type)}><i className={warning.severity} /><span><strong>{warning.label}</strong><small>{warning.severity === 'critical' ? 'Bloquant' : 'À vérifier'}</small></span><Icon name="chevronRight" size={17} /></button>)}</div>}
         </section>
         <aside className="training-bpf-side">
-          <section className="panel training-bpf-source-summary"><p className="eyebrow">SOURCES RETENUES</p><dl><div><dt>Sessions</dt><dd>{calculation.sources.completed_sessions}</dd></div><div><dt>Participations</dt><dd>{calculation.sources.enrollments}</dd></div><div><dt>Produits financiers</dt><dd>{calculation.sources.included_revenue_documents}</dd></div><div><dt>Formation à distance</dt><dd>{calculation.general.distance_learning ? 'Oui' : 'Non'}</dd></div></dl></section>
+          <section className="panel training-bpf-source-summary"><p className="eyebrow">SOURCES RETENUES</p><dl><div><dt>Sessions</dt><dd>{calculation.sources.completed_sessions}</dd></div><div><dt>Participations</dt><dd>{calculation.sources.enrollments}</dd></div><div><dt>{calculation.sources.revenue_source === 'invoices' ? 'Factures et avoirs' : 'Produits financiers'}</dt><dd>{calculation.sources.included_revenue_documents}</dd></div><div><dt>Formation à distance</dt><dd>{calculation.general.distance_learning ? 'Oui' : 'Non'}</dd></div></dl></section>
           <section className="panel training-bpf-workflow"><p className="eyebrow">VALIDATION</p><ol><li className="done"><span>1</span><div><strong>Brouillon calculé</strong><small>{dateLabel(calculation.period.end)}</small></div></li><li className={report.status !== 'draft' ? 'done' : ''}><span>2</span><div><strong>Vérification</strong><small>Contrôle financier et pédagogique</small></div></li><li className={report.status === 'locked' ? 'done' : ''}><span>3</span><div><strong>Verrouillage</strong><small>Instantané annuel</small></div></li></ol></section>
         </aside>
       </div>
@@ -801,10 +824,13 @@ export function TrainingBpfPage() {
         <div className="training-bpf-source-list compact">{trainers.filter((row) => periodTrainerIds.has(row.id)).map((trainer) => <article key={trainer.id}><div className="training-bpf-source-title"><strong>{personName(trainer.first_name, trainer.last_name)}</strong><small>{trainer.specialties.join(' · ') || 'Formateur'}</small></div><select value={trainer.bpf_relationship ?? 'internal'} disabled={locked || busyId === `trainer-${trainer.id}`} onChange={(event) => void updateTrainer(trainer.id, event.target.value as TrainingBpfTrainerRelationship)}>{Object.entries(trainingBpfTrainerRelationshipLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></article>)}</div>
       </details>
 
-      <details className="panel training-bpf-source-group" open={periodDocuments.some((row) => row.bpf_included && !row.bpf_revenue_category)}>
+      {periodInvoices.length > 0 ? <details className="panel training-bpf-source-group" open={periodInvoices.some((row) => row.status === 'overdue')}>
+        <summary><span><Icon name="creditCard" size={19} /><strong>Factures et avoirs émis</strong></span><b>{periodInvoices.length}</b></summary>
+        <div className="training-bpf-source-list">{periodInvoices.map((invoice) => <article key={invoice.id} className={!invoice.bpf_revenue_category ? 'needs-review' : ''}><div className="training-bpf-source-title"><strong>{invoice.invoice_number} · {invoice.title}</strong><small>{invoice.buyer_snapshot?.name || 'Payeur'} · {dateLabel(invoice.issue_date)}</small></div><div className="training-bpf-source-title"><strong>{invoice.bpf_revenue_category ? trainingBpfRevenueLabels[invoice.bpf_revenue_category] : 'Catégorie BPF manquante'}</strong><small>{invoice.document_kind === 'credit_note' ? '- ' : ''}{formatTrainingMoney(invoice.subtotal_cents)} HT · {invoice.status === 'overdue' ? 'en retard' : invoice.status}</small></div><button className="secondary-button compact-button" type="button" onClick={() => navigate('/facturation-formation')}>Ouvrir la facturation</button></article>)}</div>
+      </details> : <details className="panel training-bpf-source-group" open={periodDocuments.some((row) => row.bpf_included && !row.bpf_revenue_category)}>
         <summary><span><Icon name="creditCard" size={19} /><strong>Produits financiers</strong></span><b>{periodDocuments.length}</b></summary>
         <div className="training-bpf-source-list">{periodDocuments.map((document) => { const draft = documentDrafts[document.id]; if (!draft) return null; return <article key={document.id} className={draft.included && !draft.category ? 'needs-review' : ''}><div className="training-bpf-source-title"><strong>{document.reference} · {document.title}</strong><small>{customerById.get(document.customer_id ?? '')?.legal_name || funderById.get(document.funder_id ?? '')?.name || 'Dossier commercial'} · {formatTrainingMoney(document.amount_excl_tax_cents)}</small></div><div className="training-bpf-document-fields"><label><input type="checkbox" checked={draft.included} disabled={locked} onChange={(event) => setDocumentDrafts({ ...documentDrafts, [document.id]: { ...draft, included: event.target.checked } })} /><span>Retenir</span></label><select value={draft.category} disabled={locked} onChange={(event) => setDocumentDrafts({ ...documentDrafts, [document.id]: { ...draft, category: event.target.value as TrainingBpfRevenueCategory | '' } })}><option value="">Catégorie financière</option>{trainingBpfRevenueKeys.map((key) => <option key={key} value={key}>{trainingBpfRevenueLabels[key]}</option>)}</select><input type="date" value={draft.recognizedAt} disabled={locked} onChange={(event) => setDocumentDrafts({ ...documentDrafts, [document.id]: { ...draft, recognizedAt: event.target.value } })} /></div>{!locked && <button className="secondary-button compact-button" type="button" disabled={busyId === `document-${document.id}`} onClick={() => void saveDocument(document.id)}>{busyId === `document-${document.id}` ? 'Enregistrement…' : 'Enregistrer'}</button>}</article>; })}</div>
-      </details>
+      </details>}
     </div>}
 
     <footer className="training-bpf-footer">

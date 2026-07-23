@@ -221,8 +221,8 @@ if (!trainingSessionsV2153.includes("status: 'draft' as TrainingSessionStatus")
     || !trainingSessionsV2153.includes('evaluation_type,status,scheduled_for')) {
   errors.push('La page Sessions Formation doit passer par la validation officielle et lire les champs d’évaluation V2.15.2.');
 }
-if (!trainingEmailProcessor.includes('NCR Suite V2.17.0')) {
-  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.17.0.');
+if (!trainingEmailProcessor.includes('NCR Suite V2.18.0')) {
+  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.18.0.');
 }
 
 // V2.15.4 — SAV Formation réservé au super administrateur NCR.
@@ -307,7 +307,7 @@ if (!trainingBpfPage.includes("supabase.rpc('refresh_training_bpf_report'")
     || !trainingBpfPage.includes('Verrouiller le BPF')) {
   errors.push('La page BPF Formation V2.17.0 est incomplète.');
 }
-if (!trainingBpfPdf.includes('NCR Suite V2.17.0')
+if (!trainingBpfPdf.includes('NCR Suite V2.18.0')
     || !trainingBpfPdf.includes('Cerfa 10443*17')
     || !trainingBpfPdf.includes('Document préparatoire')) {
   errors.push('L’export PDF préparatoire du BPF V2.17.0 est incomplet.');
@@ -315,6 +315,38 @@ if (!trainingBpfPdf.includes('NCR Suite V2.17.0')
 if (trainingBpfMigration.includes("v_funder_type = 'opco' then 'skills_plan'")
     || trainingBpfLogic.includes("funderType === 'opco'")) {
   errors.push('Un financement OPCO ambigu ne doit pas être classé automatiquement dans le BPF.');
+}
+
+// V2.18.0 — facturation, encaissements et relances Formation.
+const trainingBillingMigration = read('supabase/migrations/078_training_billing_collections.sql');
+const trainingBillingPage = read('src/pages/TrainingBillingPage.tsx');
+const trainingInvoicePdf = read('src/features/training/invoicePdf.ts');
+if (!trainingBillingMigration.includes('create table if not exists public.training_invoices')
+    || !trainingBillingMigration.includes('create table if not exists public.training_invoice_payments')
+    || !trainingBillingMigration.includes('create or replace function public.issue_training_invoice')
+    || !trainingBillingMigration.includes('create or replace function public.record_training_invoice_payment')
+    || !trainingBillingMigration.includes('create or replace function public.queue_due_training_invoice_reminders')
+    || !trainingBillingMigration.includes('refresh_training_bpf_report_commercial_legacy')
+    || !trainingBillingMigration.includes('alter table public.training_invoices enable row level security')
+    || !trainingBillingMigration.includes("ncr-suite-shell-v2.18.0-training-billing-collections")
+    || !trainingBillingMigration.includes("'2.18.0'")) {
+  errors.push('La migration V2.18.0 de facturation Formation est incomplète.');
+}
+if (!trainingBillingPage.includes("supabase.rpc('create_training_invoice'")
+    || !trainingBillingPage.includes("supabase.rpc('issue_training_invoice'")
+    || !trainingBillingPage.includes("supabase.rpc('record_training_invoice_payment'")
+    || !trainingBillingPage.includes("supabase.rpc('queue_training_invoice_email'")
+    || !trainingBillingPage.includes('Facturation et encaissements')) {
+  errors.push('La page de facturation Formation V2.18.0 est incomplète.');
+}
+if (!trainingInvoicePdf.includes('NCR Suite V2.18.0')
+    || !trainingInvoicePdf.includes('Indemnite forfaitaire pour frais de recouvrement')
+    || !trainingInvoicePdf.includes('BROUILLON')) {
+  errors.push('Le PDF de facturation Formation V2.18.0 est incomplet.');
+}
+if (!trainingEmailProcessor.includes("case 'training_invoice'")
+    || !trainingEmailProcessor.includes('queue_due_training_invoice_reminders')) {
+  errors.push('Les e-mails et relances de facturation Formation V2.18.0 sont incomplets.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

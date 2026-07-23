@@ -59,6 +59,8 @@ type FunderForm = {
   billingAddress: string;
   postalCode: string;
   city: string;
+  siret: string;
+  vatNumber: string;
   referenceCode: string;
   notes: string;
 };
@@ -94,7 +96,7 @@ const emptyCustomer: CustomerForm = {
   customerType: 'company', legalName: '', contactName: '', email: '', phone: '', billingAddress: '', postalCode: '', city: '', siret: '', vatNumber: '', notes: '', siteId: ''
 };
 const emptyFunder: FunderForm = {
-  funderType: 'opco', name: '', contactName: '', email: '', phone: '', billingAddress: '', postalCode: '', city: '', referenceCode: '', notes: ''
+  funderType: 'opco', name: '', contactName: '', email: '', phone: '', billingAddress: '', postalCode: '', city: '', siret: '', vatNumber: '', referenceCode: '', notes: ''
 };
 const emptyDocument: DocumentForm = {
   opportunityId: '', documentType: 'quote', title: '', trainingSummary: '', customerId: '', funderId: '', sessionId: '', traineeId: '', programId: '', participantCount: '1', issueDate: today(), validUntil: inThirtyDays(), amountExclTax: '0', vatRate: '20', notes: '', terms: 'Conditions de règlement et modalités d’exécution à convenir entre les parties.', siteId: ''
@@ -179,7 +181,7 @@ export function TrainingCommercialPage() {
       }
       const [customerResult, funderResult, documentResult, sessionResult, traineeResult, programResult] = await Promise.all([
         customerRequest,
-        supabase.from('training_funders').select('id,organization_id,funder_type,name,contact_name,email,phone,billing_address,postal_code,city,reference_code,notes,status,created_at,updated_at').eq('organization_id', organizationId).neq('status', 'archived').order('name'),
+        supabase.from('training_funders').select('id,organization_id,funder_type,name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,reference_code,notes,status,created_at,updated_at').eq('organization_id', organizationId).neq('status', 'archived').order('name'),
         documentRequest,
         sessionRequest,
         supabase.from('training_trainees').select('id,organization_id,first_name,last_name,email,phone,company,notes,status,created_at').eq('organization_id', organizationId).eq('status', 'active').order('last_name'),
@@ -390,6 +392,7 @@ export function TrainingCommercialPage() {
       organization_id: organization.id, funder_type: funderForm.funderType, name: funderForm.name.trim(),
       contact_name: nullableText(funderForm.contactName), email: nullableText(funderForm.email), phone: nullableText(funderForm.phone),
       billing_address: nullableText(funderForm.billingAddress), postal_code: nullableText(funderForm.postalCode), city: nullableText(funderForm.city),
+      siret: nullableText(funderForm.siret), vat_number: nullableText(funderForm.vatNumber),
       reference_code: nullableText(funderForm.referenceCode), notes: nullableText(funderForm.notes), created_by: user.id
     };
     try {
@@ -398,7 +401,7 @@ export function TrainingCommercialPage() {
         created = { id: crypto.randomUUID(), ...payload, status: 'active', created_at: new Date().toISOString() };
         writeJsonStorage(`ncr-suite-training-funders-${organization.id}`, [...funders, created]);
       } else {
-        const { data, error: insertError } = await supabase.from('training_funders').insert(payload).select('id,organization_id,funder_type,name,contact_name,email,phone,billing_address,postal_code,city,reference_code,notes,status,created_at,updated_at').single();
+        const { data, error: insertError } = await supabase.from('training_funders').insert(payload).select('id,organization_id,funder_type,name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,reference_code,notes,status,created_at,updated_at').single();
         if (insertError) throw insertError;
         if (!data) throw new Error('Le financeur créé n’a pas été retourné par Supabase.');
         created = data as TrainingFunderRecord;
@@ -680,6 +683,8 @@ export function TrainingCommercialPage() {
             <label className="full-field">Adresse<input value={funderForm.billingAddress} onChange={(event) => setFunderForm({ ...funderForm, billingAddress: event.target.value })} /></label>
             <label>Code postal<input value={funderForm.postalCode} onChange={(event) => setFunderForm({ ...funderForm, postalCode: event.target.value })} /></label>
             <label>Ville<input value={funderForm.city} onChange={(event) => setFunderForm({ ...funderForm, city: event.target.value })} /></label>
+            <label>SIRET<input value={funderForm.siret} onChange={(event) => setFunderForm({ ...funderForm, siret: event.target.value })} /></label>
+            <label>N° TVA intracommunautaire<input value={funderForm.vatNumber} onChange={(event) => setFunderForm({ ...funderForm, vatNumber: event.target.value })} /></label>
             <label className="full-field">Notes<textarea rows={3} value={funderForm.notes} onChange={(event) => setFunderForm({ ...funderForm, notes: event.target.value })} /></label>
             <div className="form-actions full-field"><button className="secondary-button" type="button" onClick={closeEditor}>Annuler</button><button className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button></div>
           </form>}

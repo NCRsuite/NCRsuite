@@ -115,7 +115,10 @@ const ORGANIZATION_FIELDS = [
   'training_evaluation_reminder_max_count','training_attestation_auto_send','training_attestation_requires_final_evaluation',
   'training_nda_number','training_legal_representative',
   'training_reply_to_email','training_vat_number','training_document_footer','training_default_terms',
-  'training_default_vat_basis_points','training_signature_url','training_stamp_url','company_contact_name','company_email','company_phone',
+  'training_default_vat_basis_points','training_invoice_prefix','training_payment_terms_days','training_late_penalty_text',
+  'training_tax_exemption_text','training_bank_account_holder','training_bank_name','training_bank_iban','training_bank_bic',
+  'training_invoice_reminder_enabled','training_invoice_reminder_first_delay_days','training_invoice_reminder_interval_days',
+  'training_invoice_reminder_max_count','training_signature_url','training_stamp_url','company_contact_name','company_email','company_phone',
   'company_address','company_postal_code','company_city','company_siret','onboarding_status','onboarding_requested_plan',
   'onboarding_objective','onboarding_checklist','onboarding_completed_at'
 ].join(',');

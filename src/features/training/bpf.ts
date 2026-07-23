@@ -11,6 +11,7 @@ import type {
   TrainingCustomerRecord,
   TrainingEnrollmentRecord,
   TrainingFunderRecord,
+  TrainingInvoiceRecord,
   TrainingProgramRecord,
   TrainingSessionRecord,
   TrainingTrainerRecord
@@ -69,7 +70,7 @@ export interface TrainingBpfWarning {
   severity: TrainingBpfWarningSeverity;
   code: string;
   label: string;
-  entity_type: 'organization' | 'report' | 'program' | 'session' | 'enrollment' | 'commercial_document';
+  entity_type: 'organization' | 'report' | 'program' | 'session' | 'enrollment' | 'commercial_document' | 'invoice';
   entity_id: string;
 }
 
@@ -132,6 +133,9 @@ export interface TrainingBpfCalculation {
     enrollments: number;
     included_revenue_documents: number;
     unreviewed_revenue_documents: number;
+    revenue_source?: 'commercial_documents' | 'invoices';
+    issued_invoices?: number;
+    issued_credit_notes?: number;
   };
 }
 
@@ -276,6 +280,7 @@ interface DemoBpfInput {
   enrollments: TrainingEnrollmentRecord[];
   attendance: TrainingAttendanceRecord[];
   documents: TrainingCommercialDocumentRecord[];
+  invoices?: TrainingInvoiceRecord[];
   customers: TrainingCustomerRecord[];
   funders: TrainingFunderRecord[];
 }
@@ -289,6 +294,7 @@ export function calculateDemoTrainingBpf({
   enrollments,
   attendance,
   documents,
+  invoices = [],
   customers,
   funders
 }: DemoBpfInput): TrainingBpfCalculation {
@@ -405,24 +411,54 @@ export function calculateDemoTrainingBpf({
   const autoRevenues = revenueRecord();
   let includedDocuments = 0;
   let unreviewedDocuments = 0;
-  for (const document of documents) {
-    const realized = ['accepted', 'signed', 'completed'].includes(document.status);
-    const included = document.bpf_included === true || linkedDocumentIds.has(document.id);
-    const recognitionDate = document.bpf_revenue_recognized_at || document.issue_date;
-    if (!realized || !dateInPeriod(recognitionDate, report.exercise_start, report.exercise_end)) continue;
-    if (!included && document.amount_excl_tax_cents > 0) {
-      unreviewedDocuments += 1;
-      warn({ severity: 'warning', code: 'commercial_document_not_included', label: 'Document commercial réalisé non retenu', entity_type: 'commercial_document', entity_id: document.id });
-      continue;
+  const periodInvoices = invoices.filter((row) => (
+    ['issued', 'sent', 'partial', 'paid', 'overdue'].includes(row.status)
+    && dateInPeriod(row.issue_date, report.exercise_start, report.exercise_end)
+  ));
+  if (periodInvoices.length > 0) {
+    includedDocuments = periodInvoices.length;
+    for (const invoice of periodInvoices) {
+      if (!invoice.bpf_revenue_category) {
+        warn({ severity: 'critical', code: 'invoice_revenue_category', label: 'Facture émise sans catégorie BPF', entity_type: 'invoice', entity_id: invoice.id });
+        continue;
+      }
+      const sign = invoice.document_kind === 'credit_note' ? -1 : 1;
+      autoRevenues[invoice.bpf_revenue_category] += sign * (Number(invoice.subtotal_cents) || 0);
+      if (invoice.document_kind === 'invoice' && (invoice.status === 'overdue' || (invoice.balance_due_cents > 0 && invoice.due_date < new Date().toISOString().slice(0, 10)))) {
+        warn({ severity: 'warning', code: 'invoice_overdue', label: 'Facture en retard de paiement', entity_type: 'invoice', entity_id: invoice.id });
+      }
     }
-    if (!included) continue;
-    includedDocuments += 1;
-    const category = documentRevenueCategory(document, customerById, funderById);
-    if (!category) {
-      warn({ severity: 'critical', code: 'revenue_category', label: 'Produit financier à classer', entity_type: 'commercial_document', entity_id: document.id });
-      continue;
+    for (const document of documents) {
+      if (!['accepted', 'signed', 'completed'].includes(document.status)) continue;
+      if (!dateInPeriod(document.issue_date, report.exercise_start, report.exercise_end)) continue;
+      const netBilled = invoices
+        .filter((row) => row.commercial_document_id === document.id && row.status !== 'canceled')
+        .reduce((sum, row) => sum + (row.document_kind === 'invoice' ? row.subtotal_cents : -row.subtotal_cents), 0);
+      if (document.amount_excl_tax_cents > netBilled) {
+        unreviewedDocuments += 1;
+        warn({ severity: 'warning', code: 'commercial_unbilled', label: 'Dossier commercial partiellement facturé', entity_type: 'commercial_document', entity_id: document.id });
+      }
     }
-    autoRevenues[category] += Number(document.amount_excl_tax_cents) || 0;
+  } else {
+    for (const document of documents) {
+      const realized = ['accepted', 'signed', 'completed'].includes(document.status);
+      const included = document.bpf_included === true || linkedDocumentIds.has(document.id);
+      const recognitionDate = document.bpf_revenue_recognized_at || document.issue_date;
+      if (!realized || !dateInPeriod(recognitionDate, report.exercise_start, report.exercise_end)) continue;
+      if (!included && document.amount_excl_tax_cents > 0) {
+        unreviewedDocuments += 1;
+        warn({ severity: 'warning', code: 'commercial_document_not_included', label: 'Document commercial réalisé non retenu', entity_type: 'commercial_document', entity_id: document.id });
+        continue;
+      }
+      if (!included) continue;
+      includedDocuments += 1;
+      const category = documentRevenueCategory(document, customerById, funderById);
+      if (!category) {
+        warn({ severity: 'critical', code: 'revenue_category', label: 'Produit financier à classer', entity_type: 'commercial_document', entity_id: document.id });
+        continue;
+      }
+      autoRevenues[category] += Number(document.amount_excl_tax_cents) || 0;
+    }
   }
 
   const revenues = revenueRecord();
@@ -487,7 +523,10 @@ export function calculateDemoTrainingBpf({
       completed_sessions: periodSessions.length,
       enrollments: attendeeRows.length,
       included_revenue_documents: includedDocuments,
-      unreviewed_revenue_documents: unreviewedDocuments
+      unreviewed_revenue_documents: unreviewedDocuments,
+      revenue_source: periodInvoices.length > 0 ? 'invoices' : 'commercial_documents',
+      issued_invoices: periodInvoices.filter((row) => row.document_kind === 'invoice').length,
+      issued_credit_notes: periodInvoices.filter((row) => row.document_kind === 'credit_note').length
     }
   };
 }

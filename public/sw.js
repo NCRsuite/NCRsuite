@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.17.0-training-bpf-automation';
+const CACHE = 'ncr-suite-shell-v2.18.0-training-billing-collections';
 const SHELL = [
   '/',
   '/index.html',

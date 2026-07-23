@@ -1,0 +1,50 @@
+NCR Suite V2.18.0 - Patch differentiel Formation · Facturation et encaissements
+Base obligatoire : V2.17.0 deployee et validee
+
+Aucun fichier supprime.
+Aucune automatisation Formation, fonction CRM ou fonction BPF existante supprimee.
+
+Fichiers ajoutes :
+- A_LIRE_INSTALLATION_V2.18.0.txt
+- MANIFESTE_PATCH_V2.18.0.txt
+- VALIDATION_V2.18.0.txt
+- docs/V2.18.0_INSTALLATION.md
+- src/features/training/invoicePdf.ts
+- src/pages/TrainingBillingPage.tsx
+- supabase/migrations/078_training_billing_collections.sql
+
+Fichiers modifies :
+- CHANGELOG.md
+- README.md
+- package-lock.json
+- package.json
+- public/sw.js
+- scripts/phase1-critical-flows.mjs
+- scripts/phase1-static-audit.mjs
+- src/App.tsx
+- src/components/AdminTrainingSavPanel.tsx
+- src/config/accessMatrix.ts
+- src/config/businessPacks.ts
+- src/config/domainOfferCatalog.ts
+- src/config/moduleAccess.ts
+- src/config/planEntitlements.ts
+- src/config/runtime.ts
+- src/contexts/OrganizationContext.tsx
+- src/features/training/bpf.ts
+- src/features/training/bpfPdf.ts
+- src/features/training/commercialPdf.ts
+- src/features/training/programPdf.ts
+- src/features/training/sessionDossierPdf.ts
+- src/features/training/types.ts
+- src/pages/TrainingBpfPage.tsx
+- src/pages/TrainingCommercialPage.tsx
+- src/styles.css
+- supabase/functions/process-email-queue/index.ts
+
+Ordre recommande :
+1. SQL Supabase : 078_training_billing_collections.sql
+2. Patch GitHub V2.18.0
+3. Edge Function process-email-queue
+4. Build Cloudflare V2.18.0
+5. Cache PWA V2.18.0
+6. Tests factures, avoirs, encaissements, relances et BPF

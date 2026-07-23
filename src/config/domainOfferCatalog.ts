@@ -32,6 +32,7 @@ export type OfferFeatureKey =
   | 'training_satisfaction'
   | 'training_session_dossier'
   | 'training_commercial'
+  | 'training_billing'
   | 'training_bpf'
   | 'security_planning'
   | 'security_clients_sites'
@@ -162,6 +163,7 @@ const formationProfessionnelle: OfferFeatureKey[] = [
   'training_satisfaction',
   'training_session_dossier',
   'training_commercial',
+  'training_billing',
   'training_bpf',
   'multi_site',
   'team_access',
@@ -489,6 +491,7 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   training_satisfaction: 'Évaluations de satisfaction',
   training_session_dossier: 'Dossier complet de session',
   training_commercial: 'CRM, relances, entreprises, financeurs et documents commerciaux',
+  training_billing: 'Factures, avoirs, encaissements, échéances et relances',
   training_bpf: 'BPF automatique, contrôles annuels et exports préparatoires',
   security_planning: 'Planning des agents',
   security_clients_sites: 'Clients et sites',

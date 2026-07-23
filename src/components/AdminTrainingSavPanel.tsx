@@ -166,6 +166,7 @@ function templateLabel(value: string) {
   if (value === 'training_attestation') return 'Attestation';
   if (value === 'training_satisfaction_request') return 'Évaluation';
   if (value === 'training_commercial_document') return 'Document commercial';
+  if (value === 'training_invoice') return 'Facture Formation';
   return value;
 }
 

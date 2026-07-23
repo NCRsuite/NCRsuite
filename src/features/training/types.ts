@@ -331,6 +331,10 @@ export type TrainingCrmStage = 'new' | 'qualified' | 'proposal' | 'negotiation' 
 export type TrainingCrmSource = 'website' | 'referral' | 'outbound' | 'event' | 'partner' | 'existing_customer' | 'other';
 export type TrainingCrmActivityType = 'note' | 'call' | 'email' | 'meeting' | 'task';
 export type TrainingCrmActivityStatus = 'planned' | 'completed' | 'canceled';
+export type TrainingInvoiceDocumentKind = 'invoice' | 'credit_note';
+export type TrainingInvoicePayerKind = 'customer' | 'funder';
+export type TrainingInvoiceStatus = 'draft' | 'issued' | 'sent' | 'partial' | 'paid' | 'overdue' | 'canceled';
+export type TrainingInvoicePaymentMethod = 'bank_transfer' | 'card' | 'cash' | 'check' | 'direct_debit' | 'other';
 
 export interface TrainingCustomerRecord {
   id: string;
@@ -363,6 +367,8 @@ export interface TrainingFunderRecord {
   billing_address: string | null;
   postal_code: string | null;
   city: string | null;
+  siret?: string | null;
+  vat_number?: string | null;
   reference_code: string | null;
   notes: string | null;
   status: TrainingEntityStatus;
@@ -412,6 +418,101 @@ export interface TrainingCommercialDocumentRecord {
   bpf_included?: boolean;
   created_at: string;
   updated_at?: string;
+}
+
+export interface TrainingInvoicePartySnapshot {
+  kind?: TrainingInvoicePayerKind;
+  name?: string | null;
+  contact_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  postal_code?: string | null;
+  city?: string | null;
+  siret?: string | null;
+  vat_number?: string | null;
+  reference_code?: string | null;
+  nda_number?: string | null;
+  legal_representative?: string | null;
+  bank_account_holder?: string | null;
+  bank_name?: string | null;
+  iban?: string | null;
+  bic?: string | null;
+}
+
+export interface TrainingInvoiceRecord {
+  id: string;
+  organization_id: string;
+  commercial_document_id: string;
+  credited_invoice_id: string | null;
+  customer_id: string | null;
+  funder_id: string | null;
+  session_id: string | null;
+  program_id: string | null;
+  document_kind: TrainingInvoiceDocumentKind;
+  invoice_number: string | null;
+  payer_kind: TrainingInvoicePayerKind;
+  title: string;
+  issue_date: string;
+  service_date: string;
+  due_date: string;
+  status: TrainingInvoiceStatus;
+  bpf_revenue_category: TrainingBpfRevenueCategory | null;
+  subtotal_cents: number;
+  tax_cents: number;
+  total_cents: number;
+  paid_amount_cents: number;
+  balance_due_cents: number;
+  seller_snapshot: TrainingInvoicePartySnapshot;
+  buyer_snapshot: TrainingInvoicePartySnapshot;
+  payment_terms_text: string | null;
+  late_penalty_text: string | null;
+  tax_exemption_text: string | null;
+  purchase_order_number: string | null;
+  notes: string | null;
+  issued_at: string | null;
+  sent_at: string | null;
+  paid_at: string | null;
+  generated_document_path: string | null;
+  generated_document_name: string | null;
+  generated_at: string | null;
+  email_queued_at: string | null;
+  emailed_at: string | null;
+  last_email_recipient: string | null;
+  last_email_outbox_id: string | null;
+  reminder_count: number;
+  last_reminded_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrainingInvoiceLineRecord {
+  id: string;
+  organization_id: string;
+  invoice_id: string;
+  position: number;
+  description: string;
+  quantity: number;
+  unit_label: string;
+  unit_price_excl_tax_cents: number;
+  vat_rate_basis_points: number;
+  subtotal_cents: number;
+  tax_cents: number;
+  total_cents: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrainingInvoicePaymentRecord {
+  id: string;
+  organization_id: string;
+  invoice_id: string;
+  payment_date: string;
+  amount_cents: number;
+  payment_method: TrainingInvoicePaymentMethod;
+  reference: string | null;
+  notes: string | null;
+  created_at: string;
 }
 
 export interface TrainingCrmOpportunityRecord {
