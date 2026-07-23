@@ -350,6 +350,13 @@ export interface TrainingCommercialDocumentRecord {
   signed_document_path: string | null;
   signed_document_received_at: string | null;
   signed_document_received_by: string | null;
+  generated_document_path?: string | null;
+  generated_document_name?: string | null;
+  generated_at?: string | null;
+  email_queued_at?: string | null;
+  emailed_at?: string | null;
+  last_email_recipient?: string | null;
+  last_email_outbox_id?: string | null;
   created_at: string;
   updated_at?: string;
 }

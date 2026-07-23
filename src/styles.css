@@ -12658,3 +12658,90 @@ button { max-width: 100%; }
   .training-convert-trainees-head > div:last-child { display: grid; grid-template-columns: 1fr 1fr; }
   .training-convert-trainees-head .secondary-button { justify-content: center; }
 }
+
+/* NCR Suite V2.15.1 · Formation — documents premium et envois Brevo */
+.training-commercial-document-actions {
+  align-content: center;
+}
+.training-commercial-email-state {
+  grid-column: 1 / -1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  color: #2f7c5a;
+  font-size: .57rem;
+  font-weight: 760;
+  overflow-wrap: anywhere;
+}
+.training-program-v215-card footer {
+  flex-wrap: wrap;
+}
+.training-program-v215-card footer .secondary-button,
+.training-program-v215-card footer .primary-button {
+  min-width: 0;
+}
+
+@media (max-width: 1180px) {
+  .training-commercial-document-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .training-commercial-document-actions > select,
+  .training-commercial-document-actions > .training-commercial-email-state {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .training-commercial-document-actions {
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+  }
+  .training-commercial-document-actions .compact-button,
+  .training-commercial-document-actions .training-signed-upload {
+    width: 100%;
+    justify-content: center;
+  }
+  .training-commercial-email-state {
+    justify-content: flex-start;
+    padding: 2px 3px;
+  }
+  .training-program-v215-card footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .training-program-v215-card footer .primary-button,
+  .training-program-v215-card footer .danger-text-button {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* V2.15.1 · Formation — documents premium et envois Brevo */
+.training-document-assets { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px; }
+.training-document-asset { min-width: 0; display: grid; grid-template-columns: 112px minmax(0,1fr); align-items: center; gap: 14px; padding: 14px; border: 1px solid #e4eaf2; border-radius: 18px; background: linear-gradient(145deg,#fff,#f8fafd); }
+.training-document-asset-preview { width: 112px; height: 82px; display: grid; place-items: center; overflow: hidden; border: 1px dashed #ccd6e4; border-radius: 14px; background: #fff; color: #6680a5; }
+.training-document-asset-preview img { width: 100%; height: 100%; padding: 8px; object-fit: contain; }
+.training-document-asset-preview > span { width: 45px; height: 45px; display: grid; place-items: center; border-radius: 14px; background: #edf3ff; }
+.training-document-asset > div:last-child { min-width: 0; display: grid; gap: 5px; }
+.training-document-asset strong { color: #26374e; font-size: .76rem; }
+.training-document-asset small { color: #7d8a9b; font-size: .6rem; line-height: 1.45; }
+.training-document-asset-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+.training-document-asset-actions label { position: relative; overflow: hidden; cursor: pointer; }
+.training-document-asset-actions input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.training-commercial-actions { min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 7px; }
+.training-commercial-email-state { flex: 1 0 100%; display: inline-flex; justify-content: flex-end; align-items: center; gap: 4px; color: #23825d; font-size: .56rem; font-weight: 780; }
+.training-program-card-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 9px; }
+.training-program-card-footer > div { display: flex; flex-wrap: wrap; gap: 7px; }
+
+@media (max-width: 1050px) {
+  .training-document-assets { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .training-document-asset { grid-template-columns: 84px minmax(0,1fr); gap: 10px; padding: 11px; }
+  .training-document-asset-preview { width: 84px; height: 70px; }
+  .training-commercial-actions { justify-content: flex-start; }
+  .training-commercial-email-state { justify-content: flex-start; }
+}

@@ -15,6 +15,8 @@ import {
   type TrainingProgramTrainerRecord,
   type TrainingTrainerRecord
 } from '../features/training/types';
+import { generateTrainingProgramPdf } from '../features/training/programPdf';
+import { closeFileWindow, prepareFileWindow, showBlobDownload } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
 
 type FormState = {
@@ -299,6 +301,25 @@ export function TrainingProgramsPage() {
     } catch (caught) { setError(`Archivage impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
   }
 
+
+  async function downloadProgramPdf(row: TrainingProgramRecord) {
+    if (!organization) return;
+    const fileWindow = prepareFileWindow(`Programme ${row.title}`, 'NCR Suite prépare le programme premium…');
+    try {
+      const linkedTrainers = programTrainers
+        .filter((item) => item.program_id === row.id)
+        .map((item) => trainerById.get(item.trainer_id))
+        .filter(Boolean) as TrainingTrainerRecord[];
+      const result = await generateTrainingProgramPdf({ organization, program: row, trainers: linkedTrainers });
+      const url = URL.createObjectURL(result.blob);
+      showBlobDownload(fileWindow, url, result.filename, 'Programme prêt');
+      window.setTimeout(() => URL.revokeObjectURL(url), 120000);
+    } catch (caught) {
+      closeFileWindow(fileWindow);
+      setError(`PDF impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+    }
+  }
+
   if (!organization) return null;
 
   return (
@@ -376,7 +397,7 @@ export function TrainingProgramsPage() {
                 <p>{row.description || row.objectives || 'Ajoute une description et les objectifs pédagogiques.'}</p>
                 <div className="training-program-v215-facts"><span>{row.duration_hours} h</span><span>{modalityLabels[row.modality]}</span><span>{row.default_capacity} places</span><span>{formatTrainingMoney(row.price_excl_tax_cents)} HT</span></div>
                 <div className="training-program-v215-trainers"><Icon name="briefcase" size={15} /><span>{linkedTrainers.length ? linkedTrainers.map((trainer) => personName(trainer.first_name, trainer.last_name)).join(', ') : 'Aucun formateur associé'}</span></div>
-                <footer><button className="secondary-button compact-button" type="button" onClick={() => setSearchParams({ edit: row.id })}>Modifier</button><button className="primary-button compact-button" type="button" disabled={!completion.ready} title={!completion.ready ? 'Complète la fiche avant de créer une proposition.' : undefined} onClick={() => navigate(`/commercial?new=1&program=${encodeURIComponent(row.id)}`)}>Créer une proposition</button><button className="danger-text-button" type="button" onClick={() => void archive(row)}>Archiver</button></footer>
+                <footer><button className="secondary-button compact-button" type="button" onClick={() => setSearchParams({ edit: row.id })}>Modifier</button><button className="secondary-button compact-button" type="button" disabled={!completion.ready} title={!completion.ready ? 'Complète la fiche avant de générer le programme.' : undefined} onClick={() => void downloadProgramPdf(row)}><Icon name="file" size={15} />Programme PDF</button><button className="primary-button compact-button" type="button" disabled={!completion.ready} title={!completion.ready ? 'Complète la fiche avant de créer une proposition.' : undefined} onClick={() => navigate(`/commercial?new=1&program=${encodeURIComponent(row.id)}`)}>Créer une proposition</button><button className="danger-text-button" type="button" onClick={() => void archive(row)}>Archiver</button></footer>
               </article>;
             })}
           </div>

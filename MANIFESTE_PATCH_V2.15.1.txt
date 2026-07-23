@@ -1,0 +1,40 @@
+NCR SUITE V2.15.1 — MANIFESTE DU PATCH
+FORMATION · DOCUMENTS PREMIUM & AUTOMATISATIONS BREVO
+
+BASE REQUISE
+- NCR Suite V2.15.0 validée.
+
+AJOUTS
+- A_LIRE_INSTALLATION_V2.15.1.txt
+- VALIDATION_V2.15.1.txt
+- docs/V2.15.1_INSTALLATION.md
+- src/features/training/premiumPdf.ts
+- src/features/training/programPdf.ts
+- supabase/migrations/071_training_premium_documents_brevo.sql
+
+MODIFICATIONS
+- CHANGELOG.md
+- README.md
+- package.json
+- package-lock.json
+- public/sw.js
+- scripts/phase1-static-audit.mjs
+- scripts/phase1-critical-flows.mjs
+- src/config/runtime.ts
+- src/features/training/commercialPdf.ts
+- src/features/training/sessionDossierPdf.ts
+- src/features/training/types.ts
+- src/pages/TrainingCommercialPage.tsx
+- src/pages/TrainingOrganizationProfilePage.tsx
+- src/pages/TrainingProgramsPage.tsx
+- src/styles.css
+- supabase/functions/process-email-queue/index.ts
+
+AUCUN FICHIER À SUPPRIMER.
+
+INSTALLATION
+1. Exécuter supabase/migrations/071_training_premium_documents_brevo.sql.
+2. Ajouter/remplacer les fichiers du patch sur GitHub.
+3. Redéployer supabase/functions/process-email-queue/index.ts.
+4. Vérifier le build Cloudflare ncr-suite@2.15.1.
+5. Fermer puis rouvrir la PWA.

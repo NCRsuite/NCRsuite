@@ -152,137 +152,208 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const accent = hexRgb(payload.organization_primary_color);
-  const dark = rgb(0.11, 0.11, 0.12);
-  const muted = rgb(0.42, 0.42, 0.45);
-  const soft = rgb(0.96, 0.96, 0.97);
-  const margin = 48;
-  const contentWidth = page.getWidth() - margin * 2;
-  let y = page.getHeight() - 48;
+  const dark = rgb(0.075, 0.1, 0.15);
+  const muted = rgb(0.38, 0.43, 0.5);
+  const line = rgb(0.87, 0.89, 0.93);
+  const surface = rgb(0.968, 0.975, 0.985);
+  const accentPale = rgb(
+    accent.red + (1 - accent.red) * 0.9,
+    accent.green + (1 - accent.green) * 0.9,
+    accent.blue + (1 - accent.blue) * 0.9,
+  );
+  const margin = 42;
+  const width = page.getWidth();
+  const height = page.getHeight();
+  const contentWidth = width - margin * 2;
 
-  page.drawRectangle({ x: 0, y: page.getHeight() - 10, width: page.getWidth(), height: 10, color: accent });
-
-  const logoUrl = safeImageUrl(payload.organization_logo_url);
-  if (logoUrl) {
-    try {
-      const response = await fetch(logoUrl);
-      if (response.ok) {
-        const contentType = response.headers.get('content-type') ?? '';
-        const bytes = new Uint8Array(await response.arrayBuffer());
-        const image = contentType.includes('png') ? await pdf.embedPng(bytes) : contentType.includes('jpeg') || contentType.includes('jpg') ? await pdf.embedJpg(bytes) : null;
-        if (image) {
-          const scaled = image.scale(Math.min(150 / image.width, 58 / image.height, 1));
-          page.drawImage(image, { x: margin, y: y - scaled.height, width: scaled.width, height: scaled.height });
-        }
-      }
-    } catch {
-      // Le document reste générable même si le logo externe est temporairement indisponible.
+  const drawText = (value: unknown, x: number, y: number, size: number, font = regular, color = dark) => {
+    page.drawText(normalizePdfText(value), { x, y, size, font, color });
+  };
+  const wrap = (value: unknown, size: number, maxWidth: number, font = regular) =>
+    wrapPdfText(normalizePdfText(value), font, size, maxWidth);
+  const drawParagraph = (value: unknown, x: number, startY: number, size: number, maxWidth: number, maxLines = 12, color = muted) => {
+    let currentY = startY;
+    for (const lineText of wrap(value, size, maxWidth).slice(0, maxLines)) {
+      drawText(lineText, x, currentY, size, regular, color);
+      currentY -= size * 1.45;
     }
+    return currentY;
+  };
+
+  const embedPayloadImage = async (value: unknown) => {
+    const url = safeImageUrl(value);
+    if (!url) return null;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return null;
+      const contentType = response.headers.get('content-type') ?? '';
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      if (contentType.includes('png') || url.toLowerCase().includes('.png')) return await pdf.embedPng(bytes);
+      if (contentType.includes('jpeg') || contentType.includes('jpg') || /\.(jpe?g)(?:$|\?)/i.test(url)) return await pdf.embedJpg(bytes);
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  // En-tête premium : logo isolé dans son propre bloc, sans chevauchement avec l'adresse.
+  const heroHeight = 164;
+  page.drawRectangle({ x: 0, y: height - heroHeight, width, height: heroHeight, color: dark });
+  page.drawRectangle({ x: 0, y: height - 8, width, height: 8, color: accent });
+  page.drawRectangle({ x: width - 116, y: height - heroHeight, width: 116, height: heroHeight, color: accent, opacity: 0.18 });
+
+  const logoBox = { x: margin, y: height - 88, width: 118, height: 52 };
+  page.drawRectangle({ ...logoBox, color: rgb(1, 1, 1), opacity: 0.98 });
+  const embeddedLogo = await embedPayloadImage(payload.organization_logo_url);
+  if (embeddedLogo) {
+    const scale = Math.min(96 / embeddedLogo.width, 34 / embeddedLogo.height, 1);
+    page.drawImage(embeddedLogo, {
+      x: logoBox.x + (logoBox.width - embeddedLogo.width * scale) / 2,
+      y: logoBox.y + (logoBox.height - embeddedLogo.height * scale) / 2,
+      width: embeddedLogo.width * scale,
+      height: embeddedLogo.height * scale,
+    });
+  } else {
+    const initials = normalizePdfText(payload.organization_name || 'OF').slice(0, 2).toUpperCase();
+    drawText(initials, logoBox.x + 45, logoBox.y + 18, 15, bold, accent);
   }
 
   const organization = normalizePdfText(payload.organization_name || 'Organisme de formation');
-  page.drawText(organization, { x: margin, y: y - 8, size: 13, font: bold, color: dark });
-  const address = normalizePdfText(payload.site_address || payload.organization_address);
-  if (address) page.drawText(address.slice(0, 105), { x: margin, y: y - 27, size: 9, font: regular, color: muted });
-  y -= 88;
+  const brandX = logoBox.x + logoBox.width + 18;
+  drawText(organization, brandX, height - 53, 11, bold, rgb(1, 1, 1));
+  const address = normalizePdfText(payload.organization_address || payload.site_address);
+  if (address) drawText(address.slice(0, 78), brandX, height - 69, 7.2, regular, rgb(0.78, 0.82, 0.88));
+  const contact = [payload.contact_email, payload.contact_phone].filter(Boolean).map(normalizePdfText).join(' · ');
+  if (contact) drawText(contact.slice(0, 78), brandX, height - 82, 7.2, regular, rgb(0.78, 0.82, 0.88));
 
-  const title = kind === 'attestation' ? 'ATTESTATION DE FIN DE FORMATION' : 'CONVOCATION À UNE FORMATION';
-  page.drawText(title, { x: margin, y, size: kind === 'attestation' ? 21 : 23, font: bold, color: dark });
-  y -= 12;
-  page.drawRectangle({ x: margin, y, width: 86, height: 4, color: accent });
-  y -= 38;
+  const title = kind === 'attestation' ? 'Attestation de fin de formation' : 'Convocation à une formation';
+  drawText(kind === 'attestation' ? 'FORMATION · DOCUMENT DE CLÔTURE' : 'FORMATION · DOCUMENT PERSONNEL', margin, height - 112, 6.8, bold, accent);
+  drawText(title, margin, height - 140, kind === 'attestation' ? 21 : 22, bold, rgb(1, 1, 1));
+  const reference = normalizePdfText(String(payload.job_id ?? '').replaceAll('-', '').slice(0, 12).toUpperCase()) || 'NCR-SUITE';
+  const refWidth = bold.widthOfTextAtSize(reference, 7.5);
+  page.drawRectangle({ x: width - margin - refWidth - 20, y: height - 126, width: refWidth + 20, height: 23, color: accent });
+  drawText(reference, width - margin - refWidth - 10, height - 118, 7.5, bold, rgb(1, 1, 1));
 
   const traineeName = normalizePdfText(`${payload.trainee_first_name ?? ''} ${payload.trainee_last_name ?? ''}`);
   const company = normalizePdfText(payload.trainee_company);
   const program = normalizePdfText(payload.program_title || payload.session_title || 'Formation');
   const session = normalizePdfText(payload.session_title || program);
-  const trainer = normalizePdfText(payload.trainer_name);
+  const trainer = normalizePdfText(payload.trainer_name) || 'À définir';
   const location = normalizePdfText(payload.location || payload.site_address || payload.organization_address || 'À confirmer');
   const modalityLabels: Record<string, string> = { presentiel: 'Présentiel', distanciel: 'Distanciel', hybride: 'Hybride' };
-  const modality = modalityLabels[String(payload.modality ?? '')] ?? normalizePdfText(payload.modality);
+  const modality = modalityLabels[String(payload.modality ?? '')] ?? (normalizePdfText(payload.modality) || 'À confirmer');
   const starts = formatTrainingDate(payload.starts_at, timezone, true);
   const ends = formatTrainingDate(payload.ends_at, timezone, true);
   const duration = Number(payload.duration_hours ?? 0);
-  const reference = normalizePdfText(String(payload.job_id ?? '').replaceAll('-', '').slice(0, 12).toUpperCase());
+  let y = height - heroHeight - 28;
+
+  // Bloc bénéficiaire.
+  page.drawRectangle({ x: margin, y: y - 72, width: contentWidth, height: 72, color: accentPale, borderColor: line, borderWidth: 0.7 });
+  page.drawRectangle({ x: margin, y: y - 72, width: 6, height: 72, color: accent });
+  drawText(kind === 'attestation' ? 'BÉNÉFICIAIRE ATTESTÉ' : 'DESTINATAIRE DE LA CONVOCATION', margin + 18, y - 19, 6.2, bold, accent);
+  drawText(traineeName || 'Stagiaire à compléter', margin + 18, y - 42, 13, bold, dark);
+  if (company) drawText(company, margin + 18, y - 59, 8, regular, muted);
+  y -= 96;
 
   const intro = kind === 'attestation'
-    ? `${organization} atteste que ${traineeName}${company ? `, rattaché(e) à ${company}` : ''}, a participé à la formation indiquée ci-dessous.`
-    : `Madame, Monsieur, ${traineeName}${company ? ` (${company})` : ''} est convoqué(e) à la session de formation indiquée ci-dessous.`;
-  for (const line of wrapPdfText(intro, regular, 11, contentWidth)) {
-    page.drawText(line, { x: margin, y, size: 11, font: regular, color: dark });
-    y -= 17;
-  }
-  y -= 14;
+    ? `${organization} atteste que ${traineeName}${company ? `, rattaché(e) à ${company}` : ''}, a participé à la formation décrite ci-dessous.`
+    : `${traineeName}${company ? ` (${company})` : ''} est convoqué(e) à la session de formation décrite ci-dessous.`;
+  y = drawParagraph(intro, margin, y, 10, contentWidth, 5, dark) - 12;
 
+  // Grille de renseignements, toujours séparée du logo et de l'adresse.
   const fields: Array<[string, string]> = [
     ['Formation', program],
     ['Session', session],
     ['Début', starts],
     ['Fin', ends],
     ['Durée prévue', duration > 0 ? `${String(duration).replace('.', ',')} heures` : 'À confirmer'],
-    ['Modalité', modality || 'À confirmer'],
+    ['Modalité', modality],
     ['Lieu / accès', location],
-    ['Formateur', trainer || 'À définir'],
+    ['Formateur', trainer],
   ];
-
-  page.drawRectangle({ x: margin, y: y - fields.length * 34 - 10, width: contentWidth, height: fields.length * 34 + 18, color: soft });
-  y -= 18;
-  for (const [label, value] of fields) {
-    page.drawText(label, { x: margin + 16, y, size: 9, font: bold, color: muted });
-    const valueLines = wrapPdfText(value || 'À confirmer', regular, 10.5, contentWidth - 150).slice(0, 2);
-    valueLines.forEach((line, index) => page.drawText(line, { x: margin + 136, y: y - index * 13, size: 10.5, font: regular, color: dark }));
-    y -= 34;
-  }
-  y -= 22;
+  const columnWidth = (contentWidth - 10) / 2;
+  fields.forEach(([label, value], index) => {
+    const column = index % 2;
+    const row = Math.floor(index / 2);
+    const x = margin + column * (columnWidth + 10);
+    const fieldY = y - row * 50;
+    page.drawRectangle({ x, y: fieldY - 40, width: columnWidth, height: 40, color: row % 2 === 0 ? surface : rgb(1, 1, 1), borderColor: line, borderWidth: 0.55 });
+    drawText(label.toUpperCase(), x + 11, fieldY - 14, 5.7, bold, accent);
+    const valueLines = wrap(value || 'À confirmer', 8.1, columnWidth - 22, bold).slice(0, 2);
+    valueLines.forEach((lineText, lineIndex) => drawText(lineText, x + 11, fieldY - 29 - lineIndex * 10, 8.1, bold, dark));
+  });
+  y -= Math.ceil(fields.length / 2) * 50 + 10;
 
   if (kind === 'convocation') {
     const objectives = normalizePdfText(payload.program_objectives);
     if (objectives) {
-      page.drawText('Objectifs principaux', { x: margin, y, size: 11, font: bold, color: dark });
+      drawText('OBJECTIFS PRINCIPAUX', margin, y, 6.4, bold, accent);
       y -= 18;
-      for (const line of wrapPdfText(objectives, regular, 10, contentWidth).slice(0, 5)) {
-        page.drawText(line, { x: margin, y, size: 10, font: regular, color: muted });
-        y -= 15;
-      }
-      y -= 8;
+      y = drawParagraph(objectives, margin, y, 8.5, contentWidth, 6, muted) - 10;
     }
     const footer = normalizePdfText(payload.document_footer);
-    if (footer) {
-      page.drawText('Informations pratiques', { x: margin, y, size: 11, font: bold, color: dark });
-      y -= 18;
-      for (const line of wrapPdfText(footer, regular, 10, contentWidth).slice(0, 5)) {
-        page.drawText(line, { x: margin, y, size: 10, font: regular, color: muted });
-        y -= 15;
-      }
+    if (footer && y > 120) {
+      const lines = wrap(footer, 7.5, contentWidth - 24).slice(0, 4);
+      const boxHeight = 33 + lines.length * 11;
+      page.drawRectangle({ x: margin, y: y - boxHeight, width: contentWidth, height: boxHeight, color: accentPale });
+      drawText('INFORMATIONS PRATIQUES', margin + 12, y - 18, 6.2, bold, accent);
+      lines.forEach((lineText, index) => drawText(lineText, margin + 12, y - 35 - index * 11, 7.5, regular, muted));
+      y -= boxHeight + 8;
     }
   } else {
     const present = Number(payload.attendance_present ?? 0);
     const absent = Number(payload.attendance_absent ?? 0);
     const excused = Number(payload.attendance_excused ?? 0);
-    page.drawText('Éléments de présence enregistrés', { x: margin, y, size: 11, font: bold, color: dark });
-    y -= 20;
-    page.drawText(`Présences signées : ${present}  ·  Absences : ${absent}  ·  Absences justifiées : ${excused}`, { x: margin, y, size: 10, font: regular, color: muted });
-    y -= 40;
-    const signatoryName = normalizePdfText(payload.signatory_name) || 'Le responsable de l’organisme';
-    const signatoryTitle = normalizePdfText(payload.signatory_title);
-    page.drawText('Fait le ' + formatTrainingDate(new Date().toISOString(), timezone), { x: margin, y, size: 10, font: regular, color: muted });
-    y -= 35;
-    page.drawText(signatoryName, { x: margin, y, size: 12, font: bold, color: dark });
-    if (signatoryTitle) page.drawText(signatoryTitle, { x: margin, y: y - 17, size: 10, font: regular, color: muted });
+    page.drawRectangle({ x: margin, y: y - 70, width: contentWidth, height: 70, color: dark });
+    const stats = [
+      ['PRÉSENCES SIGNÉES', String(present)],
+      ['ABSENCES', String(absent)],
+      ['JUSTIFIÉES', String(excused)],
+    ];
+    stats.forEach(([label, value], index) => {
+      const x = margin + 24 + index * 165;
+      drawText(label, x, y - 22, 5.8, bold, index === 0 ? accent : rgb(0.7, 0.75, 0.82));
+      drawText(value, x, y - 51, 18, bold, rgb(1, 1, 1));
+    });
+    y -= 94;
+    const signatoryName = normalizePdfText(payload.signatory_name) || normalizePdfText(payload.organization_legal_representative) || 'Le responsable de l’organisme';
+    const signatoryTitle = normalizePdfText(payload.signatory_title) || 'Pour l’organisme de formation';
+    page.drawRectangle({ x: margin, y: y - 98, width: contentWidth, height: 98, color: surface, borderColor: line, borderWidth: 0.7 });
+    drawText('CERTIFICATION DE L’ORGANISME', margin + 14, y - 20, 6.2, bold, accent);
+    drawText(`Fait le ${formatTrainingDate(new Date().toISOString(), timezone)}`, margin + 14, y - 41, 8, regular, muted);
+    drawText(signatoryName, margin + 14, y - 64, 10, bold, dark);
+    drawText(signatoryTitle, margin + 14, y - 80, 7.5, regular, muted);
+    const signature = await embedPayloadImage(payload.organization_signature_url);
+    const stamp = await embedPayloadImage(payload.organization_stamp_url);
+    if (signature) {
+      const scale = Math.min(112 / signature.width, 43 / signature.height, 1);
+      page.drawImage(signature, { x: margin + 252, y: y - 82, width: signature.width * scale, height: signature.height * scale });
+    }
+    if (stamp) {
+      const scale = Math.min(70 / stamp.width, 55 / stamp.height, 1);
+      page.drawImage(stamp, { x: width - margin - stamp.width * scale - 16, y: y - 84, width: stamp.width * scale, height: stamp.height * scale, opacity: 0.82 });
+    }
   }
 
-  page.drawText(`Référence : ${reference || 'NCR-SUITE'}`, { x: margin, y: 32, size: 8, font: regular, color: muted });
-  if (payload.show_ncr_branding !== false) {
-    const branding = 'Document généré automatiquement par NCR Suite';
-    page.drawText(branding, { x: page.getWidth() - margin - regular.widthOfTextAtSize(branding, 8), y: 32, size: 8, font: regular, color: muted });
-  }
+  // Pied de page légal commun.
+  page.drawLine({ start: { x: margin, y: 48 }, end: { x: width - margin, y: 48 }, thickness: 0.8, color: line });
+  const legal = [
+    payload.organization_siret ? `SIRET ${normalizePdfText(payload.organization_siret)}` : '',
+    payload.organization_nda_number ? `NDA ${normalizePdfText(payload.organization_nda_number)}` : '',
+    payload.organization_vat_number ? `TVA ${normalizePdfText(payload.organization_vat_number)}` : '',
+  ].filter(Boolean).join(' · ');
+  drawText(legal || `Référence ${reference}`, margin, 31, 6.5, regular, muted);
+  const branding = payload.show_ncr_branding !== false ? 'Document généré par NCR Suite' : reference;
+  const brandingWidth = regular.widthOfTextAtSize(normalizePdfText(branding), 6.5);
+  drawText(branding, width - margin - brandingWidth, 31, 6.5, regular, muted);
 
   pdf.setTitle(`${title} - ${traineeName}`);
   pdf.setAuthor(organization);
   pdf.setSubject(program);
   pdf.setCreator('NCR Suite');
+  pdf.setProducer('NCR Suite V2.15.1');
   return await pdf.save();
 }
-
 async function processTrainingDocumentJobs(supabase: any) {
   const { data, error } = await supabase.rpc('claim_training_document_jobs', { p_limit: 10 });
   if (error) throw new Error(`File documents : ${error.message}`);
@@ -295,8 +366,50 @@ async function processTrainingDocumentJobs(supabase: any) {
     try {
       const { data: rawPayload, error: payloadError } = await supabase.rpc('training_document_job_payload', { p_job_id: job.id });
       if (payloadError) throw payloadError;
-      const trainingPayload = (rawPayload ?? {}) as Record<string, unknown>;
+      const trainingPayload = { ...((rawPayload ?? {}) as Record<string, unknown>) };
       if (!trainingPayload.job_id) throw new Error('Données de génération introuvables.');
+
+      const { data: organizationProfile, error: organizationError } = await supabase
+        .from('organizations')
+        .select('name,public_name,logo_url,primary_color,timezone,company_address,company_postal_code,company_city,company_email,company_phone,company_siret,training_nda_number,training_vat_number,training_legal_representative,training_document_footer,training_signature_url,training_stamp_url,show_ncr_branding')
+        .eq('id', job.organization_id)
+        .maybeSingle();
+      if (organizationError) throw organizationError;
+      if (organizationProfile) {
+        Object.assign(trainingPayload, {
+          organization_name: organizationProfile.public_name || organizationProfile.name,
+          organization_logo_url: organizationProfile.logo_url,
+          organization_primary_color: organizationProfile.primary_color,
+          organization_timezone: organizationProfile.timezone || trainingPayload.organization_timezone || 'Europe/Paris',
+          organization_address: [organizationProfile.company_address, organizationProfile.company_postal_code, organizationProfile.company_city].filter(Boolean).join(' '),
+          contact_email: organizationProfile.company_email,
+          contact_phone: organizationProfile.company_phone,
+          organization_siret: organizationProfile.company_siret,
+          organization_nda_number: organizationProfile.training_nda_number,
+          organization_vat_number: organizationProfile.training_vat_number,
+          organization_legal_representative: organizationProfile.training_legal_representative,
+          document_footer: organizationProfile.training_document_footer,
+          organization_signature_url: organizationProfile.training_signature_url,
+          organization_stamp_url: organizationProfile.training_stamp_url,
+          show_ncr_branding: organizationProfile.show_ncr_branding
+        });
+      }
+      const programId = String(trainingPayload.program_id ?? '').trim();
+      if (programId) {
+        const { data: programProfile, error: programError } = await supabase
+          .from('training_programs')
+          .select('title,objectives,modality,duration_hours')
+          .eq('organization_id', job.organization_id)
+          .eq('id', programId)
+          .maybeSingle();
+        if (programError) throw programError;
+        if (programProfile) {
+          trainingPayload.program_title = programProfile.title || trainingPayload.program_title;
+          trainingPayload.program_objectives = programProfile.objectives || trainingPayload.program_objectives;
+          trainingPayload.modality = programProfile.modality || trainingPayload.modality;
+          trainingPayload.duration_hours = programProfile.duration_hours || trainingPayload.duration_hours;
+        }
+      }
 
       if (job.document_kind === 'attestation') {
         if (String(trainingPayload.session_status) !== 'completed') throw new Error('La session n’est pas terminée.');
@@ -486,6 +599,16 @@ function templateCopy(templateKey: string, payload: Record<string, unknown>) {
         title: 'Votre avis compte',
         message: `Prenez quelques instants pour évaluer la formation « ${String(payload.program_title ?? payload.session_title ?? 'Formation')} ».`
       };
+    case 'training_commercial_document': {
+      const typeLabels: Record<string, string> = { quote: 'Devis', agreement: 'Convention', contract: 'Contrat' };
+      const label = typeLabels[String(payload.document_type ?? '')] ?? 'Document';
+      return {
+        subject: `${label} ${String(payload.document_reference ?? '')} — ${organization}`,
+        eyebrow: `${label.toUpperCase()} DE FORMATION`,
+        title: `${label} prêt à être consulté`,
+        message: `Vous trouverez en pièce jointe le document ${String(payload.document_reference ?? '')} relatif à la formation « ${String(payload.program_title ?? payload.document_title ?? 'Formation')} ».`
+      };
+    }
     case 'security_client_portal_invitation':
       return {
         subject: `Votre portail client Sécurité — ${organization}`,
@@ -686,6 +809,43 @@ Prendre rendez-vous : ${bookingUrl}` : ''}`;
     const text = `${copy.title}\n\n${copy.message}\n\nAccès : ${role}\nInvitation valable jusqu’au ${expiry}.\n\nAccepter l’invitation : ${inviteUrl}`;
     return { subject: copy.subject, html, text, replyTo: null };
   }
+  if (item.template_key === 'training_commercial_document') {
+    const accent = safeColor(payload.organization_primary_color);
+    const organizationRaw = String(payload.organization_name ?? 'Votre organisme de formation');
+    const organization = escapeHtml(organizationRaw);
+    const recipient = escapeHtml(item.recipient_name ?? '');
+    const reference = escapeHtml(payload.document_reference ?? '');
+    const title = escapeHtml(payload.document_title ?? payload.program_title ?? 'Formation');
+    const program = escapeHtml(payload.program_title ?? payload.document_title ?? 'Formation');
+    const validUntil = payload.valid_until ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(`${String(payload.valid_until)}T12:00:00`)) : 'Sans échéance';
+    const amount = formatPrice(payload.amount_incl_tax_cents);
+    const contactEmail = String(payload.reply_to_email ?? payload.contact_email ?? '').trim();
+    const contactPhone = String(payload.contact_phone ?? '').trim();
+    const returnInstructions = escapeHtml(payload.return_instructions ?? 'Merci de nous retourner le document signé.');
+    const organizationLogoUrl = safeImageUrl(payload.organization_logo_url);
+    const logo = organizationLogoUrl
+      ? `<img src="${escapeHtml(organizationLogoUrl)}" alt="${organization}" style="display:block;max-width:190px;max-height:70px;object-fit:contain">`
+      : `<div style="display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:18px;background:${accent};color:#fff;font-size:22px;font-weight:800">${organization.slice(0, 2).toUpperCase()}</div>`;
+    const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;background:#eef2f7;font-family:Arial,Helvetica,sans-serif;color:#111827">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef2f7;padding:32px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:650px;background:#fff;border-radius:30px;overflow:hidden;box-shadow:0 20px 50px rgba(15,23,42,.12)">
+<tr><td style="height:9px;background:${accent}"></td></tr>
+<tr><td style="padding:36px 36px 18px">${logo}<div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:${accent};margin-top:26px">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:31px;line-height:1.13;margin:10px 0 12px;color:#111827">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.65;color:#64748b;margin:0">${recipient ? `Bonjour ${recipient}, ` : ''}${escapeHtml(copy.message)}</p></td></tr>
+<tr><td style="padding:14px 36px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:22px;overflow:hidden">
+<tr><td style="padding:16px 18px;color:#64748b">Référence</td><td align="right" style="padding:16px 18px;font-weight:800">${reference}</td></tr>
+<tr><td style="padding:16px 18px;border-top:1px solid #e2e8f0;color:#64748b">Formation</td><td align="right" style="padding:16px 18px;border-top:1px solid #e2e8f0;font-weight:800">${program}</td></tr>
+<tr><td style="padding:16px 18px;border-top:1px solid #e2e8f0;color:#64748b">Objet</td><td align="right" style="padding:16px 18px;border-top:1px solid #e2e8f0;font-weight:800">${title}</td></tr>
+${amount ? `<tr><td style="padding:16px 18px;border-top:1px solid #e2e8f0;color:#64748b">Montant TTC</td><td align="right" style="padding:16px 18px;border-top:1px solid #e2e8f0;font-weight:800">${escapeHtml(amount)}</td></tr>` : ''}
+<tr><td style="padding:16px 18px;border-top:1px solid #e2e8f0;color:#64748b">Validité</td><td align="right" style="padding:16px 18px;border-top:1px solid #e2e8f0;font-weight:800">${escapeHtml(validUntil)}</td></tr>
+</table></td></tr>
+<tr><td style="padding:24px 36px 30px"><div style="display:inline-block;background:${accent};color:#fff;font-weight:800;padding:14px 24px;border-radius:999px">Document PDF joint</div><p style="font-size:14px;line-height:1.65;color:#64748b;margin:20px 0 0"><strong style="color:#111827">Retour du document :</strong> ${returnInstructions}</p></td></tr>
+<tr><td style="padding:22px 36px 32px;border-top:1px solid #e2e8f0;color:#64748b;font-size:13px;line-height:1.7">${contactEmail || contactPhone ? `Une question ? ${[contactEmail, contactPhone].filter(Boolean).map(escapeHtml).join(' · ')}<br>` : ''}${payload.show_ncr_branding !== false ? `Document transmis par NCR Suite pour ${organization}.` : `E-mail envoyé automatiquement pour ${organization}.`}</td></tr>
+</table></td></tr></table></body></html>`;
+    const text = `${copy.title}\n\n${copy.message}\n\nRéférence : ${payload.document_reference ?? ''}\nFormation : ${payload.program_title ?? payload.document_title ?? ''}${amount ? `\nMontant TTC : ${amount}` : ''}\nValidité : ${validUntil}\n\n${payload.return_instructions ?? ''}\n\nLe document PDF est joint à cet e-mail.`;
+    return { subject: copy.subject, html, text, replyTo: contactEmail || null };
+  }
+
   if (item.template_key === 'training_satisfaction_request') {
     const accent = safeColor(payload.organization_primary_color);
     const organization = escapeHtml(payload.organization_name ?? 'NCR Suite');
@@ -963,6 +1123,12 @@ Deno.serve(async (request) => {
         const automationKey = String(item.payload?.automation_key ?? '').trim();
         if (automationKey) {
           await supabase.from('training_documents').update({ emailed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('automation_key', automationKey);
+        }
+      }
+      if (item.template_key === 'training_commercial_document') {
+        const commercialDocumentId = String(item.payload?.commercial_document_id ?? '').trim();
+        if (commercialDocumentId) {
+          await supabase.from('training_commercial_documents').update({ emailed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', commercialDocumentId);
         }
       }
       sent += 1;

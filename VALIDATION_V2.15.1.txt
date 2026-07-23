@@ -1,0 +1,22 @@
+NCR SUITE V2.15.1 — RAPPORT DE VALIDATION
+
+VALIDÉ LOCALEMENT
+- Audit statique NCR Suite : OK.
+- Parcours critiques NCR Suite : OK.
+- Syntaxe TypeScript/TSX : 160 fichiers contrôlés, OK.
+- Contrôle sémantique ciblé du moteur PDF premium : OK.
+- Imports relatifs des fichiers ajoutés/modifiés : à contrôler dans la reconstruction.
+- Migration 071 : fonctions SECURITY DEFINER protégées par search_path et droits explicites.
+
+VALIDATION FINALE REQUISE
+- Le build complet tsc -b && vite build doit être confirmé par Cloudflare.
+- Le registre npm de l’environnement local n’a pas permis de restaurer intégralement les dépendances React/Vite.
+- La migration doit être exécutée sur Supabase.
+- process-email-queue doit être redéployée puis testée avec Brevo.
+
+TESTS FONCTIONNELS CONSEILLÉS
+- Programme PDF long sur plusieurs pages.
+- Devis, convention et contrat avec logo, SIRET, NDA, signature et cachet.
+- Envoi Brevo avec pièce jointe et Reply-To.
+- Convocation PDF sans chevauchement logo/adresse.
+- Attestation avec signature/cachet lorsque configurés.

@@ -157,6 +157,30 @@ if (!accessMatrix.includes("'/parcours-formation'") || !accessMatrix.includes("'
   errors.push('Les routes V2.15.0 Formation sont absentes de la matrice d’accès.');
 }
 
+// V2.15.1 — identité documentaire premium et envois Brevo commerciaux.
+const trainingPremiumPdf = read('src/features/training/premiumPdf.ts');
+const trainingProgramPdf = read('src/features/training/programPdf.ts');
+const trainingPremiumMigration = read('supabase/migrations/071_training_premium_documents_brevo.sql');
+const trainingEmailProcessor = read('supabase/functions/process-email-queue/index.ts');
+if (!trainingPremiumPdf.includes('drawTrainingPremiumHeader') || !trainingPremiumPdf.includes('training_signature_url') || !trainingPremiumPdf.includes('training_stamp_url')) {
+  errors.push('Le moteur documentaire premium Formation V2.15.1 est incomplet.');
+}
+if (!trainingProgramPdf.includes('generateTrainingProgramPdf') || !trainingProgramsV215.includes('Programme PDF')) {
+  errors.push('Le programme PDF premium n’est pas raccordé à la fiche formation.');
+}
+if (!trainingCommercialPage.includes('queue_training_commercial_document_email') || !trainingCommercialPage.includes("storage.from('training-documents')")) {
+  errors.push('L’envoi Brevo des documents commerciaux Formation n’est pas raccordé.');
+}
+if (!trainingProfileV215.includes('update_training_document_branding') || !trainingProfileV215.includes('Signature du représentant') || !trainingProfileV215.includes('Cachet de l’organisme')) {
+  errors.push('Le profil organisme doit permettre de configurer signature et cachet.');
+}
+if (!trainingPremiumMigration.includes('queue_training_commercial_document_email') || !trainingPremiumMigration.includes('update_training_document_branding') || !trainingPremiumMigration.includes("ncr-suite-shell-v2.15.1-training-documents") || !trainingPremiumMigration.includes("'2.15.1'")) {
+  errors.push('La migration V2.15.1 des documents premium et de Brevo est incomplète.');
+}
+if (!trainingEmailProcessor.includes("case 'training_commercial_document'") || !trainingEmailProcessor.includes("item.template_key === 'training_commercial_document'") || !trainingEmailProcessor.includes('Convocation à une formation')) {
+  errors.push('Le processeur Brevo V2.15.1 ne couvre pas tous les documents Formation attendus.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

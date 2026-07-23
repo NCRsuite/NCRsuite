@@ -5,6 +5,8 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
 import type { Organization } from '../types';
 
+type AssetKind = 'signature' | 'stamp';
+
 type FormState = {
   publicName: string;
   contactName: string;
@@ -50,10 +52,16 @@ export function TrainingOrganizationProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
+  const [stampUrl, setStampUrl] = useState<string | null>(null);
+  const [uploadingAsset, setUploadingAsset] = useState<AssetKind | null>(null);
   const canManage = ['owner', 'admin'].includes(organization?.role ?? 'viewer');
 
   useEffect(() => {
-    if (organization) setForm(formFromOrganization(organization));
+    if (!organization) return;
+    setForm(formFromOrganization(organization));
+    setSignatureUrl(organization.training_signature_url || null);
+    setStampUrl(organization.training_stamp_url || null);
   }, [organization]);
 
   const completeness = useMemo(() => {
@@ -74,6 +82,32 @@ export function TrainingOrganizationProfilePage() {
     const missing = fields.filter(([, value]) => !value.trim()).map(([label]) => label);
     return { percent: Math.round(((fields.length - missing.length) / fields.length) * 100), missing };
   }, [form]);
+
+  async function uploadDocumentAsset(file: File, kind: AssetKind) {
+    if (!organization || !canManage) return;
+    if (!file.type.startsWith('image/')) { setError('Choisis une image PNG, JPEG ou WebP.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setError('L’image ne doit pas dépasser 5 Mo.'); return; }
+    setUploadingAsset(kind); setError(''); setSuccess('');
+    try {
+      let publicUrl = URL.createObjectURL(file);
+      if (!demoMode && supabase) {
+        const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+        const path = `${organization.id}/training/${kind}-${Date.now()}.${extension}`;
+        const { error: uploadError } = await supabase.storage.from('organization-branding').upload(path, file, {
+          contentType: file.type,
+          cacheControl: '3600',
+          upsert: false
+        });
+        if (uploadError) throw uploadError;
+        publicUrl = supabase.storage.from('organization-branding').getPublicUrl(path).data.publicUrl;
+      }
+      if (kind === 'signature') setSignatureUrl(publicUrl);
+      else setStampUrl(publicUrl);
+      setSuccess(`${kind === 'signature' ? 'La signature' : 'Le cachet'} sera utilisé sur les documents premium après enregistrement.`);
+    } catch (caught) {
+      setError(`Import impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+    } finally { setUploadingAsset(null); }
+  }
 
   async function save(event: FormEvent) {
     event.preventDefault();
@@ -100,7 +134,9 @@ export function TrainingOrganizationProfilePage() {
           training_vat_number: form.vatNumber.trim() || null,
           training_document_footer: form.documentFooter.trim() || null,
           training_default_terms: form.defaultTerms.trim() || null,
-          training_default_vat_basis_points: Math.round(vat * 100)
+          training_default_vat_basis_points: Math.round(vat * 100),
+          training_signature_url: signatureUrl,
+          training_stamp_url: stampUrl
         };
         localStorage.setItem('ncr-suite-demo-org', JSON.stringify(next));
       } else {
@@ -123,6 +159,12 @@ export function TrainingOrganizationProfilePage() {
           p_default_vat_basis_points: Math.round(vat * 100)
         });
         if (rpcError) throw rpcError;
+        const { error: brandingError } = await supabase.rpc('update_training_document_branding', {
+          p_organization_id: organization.id,
+          p_signature_url: signatureUrl,
+          p_stamp_url: stampUrl
+        });
+        if (brandingError) throw brandingError;
       }
       refreshOrganizations();
       setSuccess('Le profil de l’organisme est enregistré. Ces informations seront réutilisées dans tout le parcours Formation.');
@@ -168,13 +210,23 @@ export function TrainingOrganizationProfilePage() {
           <label className="full-field">Conditions par défaut<textarea rows={6} value={form.defaultTerms} onChange={(event) => setForm({ ...form, defaultTerms: event.target.value })} /></label>
         </div></section>
 
-        <div className="training-profile-submit"><div><Icon name="sparkles" size={18} /><p><strong>Une seule source de vérité</strong><span>La prochaine version de documents premium utilisera directement ce profil.</span></p></div><button className="primary-button" disabled={saving || !canManage}>{saving ? 'Enregistrement…' : 'Enregistrer le profil'}</button></div>
+        <section><header><span>04</span><div><p className="eyebrow">SIGNATURE & CACHET</p><h2>Validation visuelle des documents</h2></div></header><div className="training-document-assets">
+          {([
+            { kind: 'signature' as const, label: 'Signature du représentant', url: signatureUrl, setter: setSignatureUrl, hint: 'PNG conseillé avec fond transparent.' },
+            { kind: 'stamp' as const, label: 'Cachet de l’organisme', url: stampUrl, setter: setStampUrl, hint: 'Image nette, cadrée et sans marge excessive.' }
+          ]).map((asset) => <article key={asset.kind} className="training-document-asset">
+            <div className="training-document-asset-preview">{asset.url ? <img src={asset.url} alt="" /> : <span><Icon name="signature" size={28} /></span>}</div>
+            <div><strong>{asset.label}</strong><small>{asset.hint}</small><div className="training-document-asset-actions"><label className="secondary-button compact-button">{uploadingAsset === asset.kind ? 'Import…' : asset.url ? 'Remplacer' : 'Importer'}<input type="file" accept="image/png,image/jpeg,image/webp" disabled={uploadingAsset !== null || !canManage} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadDocumentAsset(file, asset.kind); event.currentTarget.value = ''; }} /></label>{asset.url && <button type="button" className="text-button danger-text" onClick={() => asset.setter(null)}>Retirer</button>}</div></div>
+          </article>)}
+        </div></section>
+
+        <div className="training-profile-submit"><div><Icon name="sparkles" size={18} /><p><strong>Une seule source de vérité</strong><span>Les documents premium utilisent directement ce profil, la signature et le cachet enregistrés.</span></p></div><button className="primary-button" disabled={saving || !canManage}>{saving ? 'Enregistrement…' : 'Enregistrer le profil'}</button></div>
       </main>
 
       <aside className="training-profile-aside">
         <section className="training-profile-preview"><p className="eyebrow">APERÇU D’EN-TÊTE</p><div className="training-profile-preview-brand">{organization.logo_url ? <img src={organization.logo_url} alt="" /> : <span>{form.publicName.slice(0, 2).toUpperCase()}</span>}<div><strong>{form.publicName || organization.name}</strong><small>{[form.address, form.postalCode, form.city].filter(Boolean).join(' · ') || 'Adresse à compléter'}</small></div></div><div className="training-profile-preview-lines"><i /><i /><i /></div><footer><span>SIRET {form.siret || '—'}</span><span>NDA {form.ndaNumber || '—'}</span></footer></section>
         <section className="training-profile-check"><p className="eyebrow">À COMPLÉTER</p>{completeness.missing.length === 0 ? <div className="training-profile-complete"><Icon name="check" size={19} /><span>Le profil contient toutes les informations essentielles.</span></div> : <ul>{completeness.missing.map((label) => <li key={label}><span /><b>{label}</b></li>)}</ul>}</section>
-        <section className="training-profile-note"><Icon name="sparkles" size={20} /><div><strong>Identité visuelle</strong><p>Le logo et les couleurs restent gérés dans « Personnalisation ». Ils seront fusionnés avec ces informations dans les documents premium.</p></div></section>
+        <section className="training-profile-note"><Icon name="sparkles" size={20} /><div><strong>Identité documentaire</strong><p>Le logo et les couleurs viennent de « Personnalisation ». La signature et le cachet ci-contre complètent automatiquement les documents premium.</p></div></section>
       </aside>
     </form>
   </div>;

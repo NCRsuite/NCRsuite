@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-workflow`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-documents`;
+const trainingWorkflowCache = 'ncr-suite-shell-v2.15.0-training-workflow';
 const trainingCommercialCache = 'ncr-suite-shell-v2.14.0-training-commercial';
 const trainingDossiersCache = 'ncr-suite-shell-v2.14.1-training-dossiers';
 const coiffureCache = 'ncr-suite-shell-v2.12.3-coiffure-loyalty-portal';
@@ -361,12 +362,53 @@ requireText('supabase/migrations/070_training_unified_workflow.sql', [
   'create or replace function public.create_training_session_from_commercial',
   'create or replace function public.validate_training_session_workflow',
   "'2.15.0'",
-  expectedCache,
+  trainingWorkflowCache,
   'set search_path = public'
 ]);
 if (!app.includes('path="parcours-formation"') || !app.includes('path="profil-organisme"') || !access.includes("'/parcours-formation'") || !access.includes("'/profil-organisme'")) {
   failures.push('Le parcours Formation V2.15.0 doit rester raccordé aux routes et à la matrice d’accès.');
 }
+
+requireText('src/features/training/premiumPdf.ts', [
+  'drawTrainingPremiumHeader',
+  'drawTrainingPremiumFooter',
+  'training_signature_url',
+  'training_stamp_url'
+]);
+requireText('src/features/training/programPdf.ts', [
+  'generateTrainingProgramPdf',
+  'Programme de formation',
+  'Organisation pratique'
+]);
+requireText('src/features/training/commercialPdf.ts', [
+  'NCR Suite V2.15.1',
+  'Acceptation et signatures',
+  'Programme détaillé'
+]);
+requireText('src/pages/TrainingCommercialPage.tsx', [
+  'queue_training_commercial_document_email',
+  'training-documents',
+  'Brevo'
+]);
+requireText('src/pages/TrainingOrganizationProfilePage.tsx', [
+  'update_training_document_branding',
+  'Signature du représentant',
+  'Cachet de l’organisme'
+]);
+requireText('supabase/migrations/071_training_premium_documents_brevo.sql', [
+  'training_commercial_document',
+  'queue_training_commercial_document_email',
+  'update_training_document_branding',
+  "'2.15.1'",
+  expectedCache,
+  'set search_path = public'
+]);
+requireText('supabase/functions/process-email-queue/index.ts', [
+  "case 'training_commercial_document'",
+  "item.template_key === 'training_commercial_document'",
+  'Convocation à une formation',
+  'NCR Suite V2.15.1'
+]);
 
 requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'security_client_portal_invitation'",

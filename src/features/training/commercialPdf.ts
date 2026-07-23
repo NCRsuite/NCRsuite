@@ -1,253 +1,304 @@
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage, type RGB } from 'pdf-lib';
+import { rgb, type PDFPage } from 'pdf-lib';
 import type { Organization } from '../../types';
 import {
+  createTrainingPdfTheme,
+  drawTrainingParagraph,
+  drawTrainingPdfText,
+  drawTrainingPremiumFooter,
+  drawTrainingPremiumHeader,
+  drawTrainingSectionTitle,
+  normalizeTrainingPdfText,
+  safeTrainingPdfName,
+  TRAINING_PDF_MARGIN,
+  TRAINING_PDF_PAGE,
+  trainingPdfDate,
+  trainingPdfText,
+  wrapTrainingPdfText,
+  type TrainingPdfTheme
+} from './premiumPdf';
+import {
   formatTrainingMoney,
+  modalityLabels,
   trainingCommercialDocumentTypeLabels,
   trainingFunderTypeLabels,
   type TrainingCommercialDocumentRecord,
   type TrainingCustomerRecord,
   type TrainingFunderRecord,
+  type TrainingProgramRecord,
   type TrainingSessionRecord,
   type TrainingTraineeRecord
 } from './types';
 
-const PAGE: [number, number] = [595.28, 841.89];
-const MARGIN = 42;
+const CONTENT_WIDTH = TRAINING_PDF_PAGE[0] - TRAINING_PDF_MARGIN * 2;
+const BOTTOM_LIMIT = 74;
 
-function clean(value: unknown) {
-  return String(value ?? '')
-    .normalize('NFKC')
-    .replace(/[’‘‚‛]/g, "'")
-    .replace(/[“”„‟]/g, '"')
-    .replace(/[–—−]/g, '-')
-    .replace(/…/g, '...')
-    .replace(/[•●▪◦]/g, '-')
-    .replace(/œ/g, 'oe')
-    .replace(/Œ/g, 'OE')
-    .replace(/æ/g, 'ae')
-    .replace(/Æ/g, 'AE')
-    .replace(/ß/g, 'ss')
-    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function pdfText(value: unknown, font: PDFFont) {
-  const normalized = clean(value);
-  let output = '';
-
-  for (const character of normalized) {
-    try {
-      font.encodeText(character);
-      output += character;
-    } catch {
-      // Les polices standard de pdf-lib utilisent WinAnsi. Tout caractère
-      // non pris en charge est remplacé sans bloquer la génération du PDF.
-      output += '?';
-    }
-  }
-
-  return output;
-}
-
-type PdfTextOptions = { x: number; y: number; size: number; font: PDFFont; color: RGB };
-
-function drawPdfText(page: PDFPage, value: unknown, options: PdfTextOptions) {
-  page.drawText(pdfText(value, options.font), options);
-}
-
-function safeName(value: string) {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
-}
-
-function dateLabel(value?: string | null) {
-  if (!value) return '—';
-  const date = new Date(`${value}T12:00:00`);
-  return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(date);
-}
-
-function accentFromOrganization(organization: Organization) {
-  const hex = String(organization.primary_color || '#2997ff').replace('#', '');
-  const full = hex.length === 3 ? hex.split('').map((char) => char + char).join('') : hex;
-  const value = Number.parseInt(full, 16);
-  if (!Number.isFinite(value)) return rgb(0.16, 0.59, 1);
-  return rgb(((value >> 16) & 255) / 255, ((value >> 8) & 255) / 255, (value & 255) / 255);
-}
-
-async function embedLogo(pdf: PDFDocument, url?: string | null): Promise<PDFImage | null> {
-  if (!url) return null;
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const bytes = await response.arrayBuffer();
-    const type = response.headers.get('content-type') || '';
-    return type.includes('png') || url.toLowerCase().includes('.png')
-      ? await pdf.embedPng(bytes)
-      : await pdf.embedJpg(bytes);
-  } catch {
-    return null;
-  }
-}
-
-function wrap(text: string, font: PDFFont, size: number, width: number) {
-  const words = pdfText(text || '-', font).split(' ');
-  const lines: string[] = [];
-  let current = '';
-  for (const word of words) {
-    const candidate = current ? `${current} ${word}` : word;
-    if (current && font.widthOfTextAtSize(candidate, size) > width) {
-      lines.push(current);
-      current = word;
-    } else current = candidate;
-  }
-  if (current) lines.push(current);
-  return lines.length ? lines : ['—'];
-}
-
-export interface TrainingCommercialPdfInput {
+type CommercialPdfInput = {
   organization: Organization;
   document: TrainingCommercialDocumentRecord;
   customer: TrainingCustomerRecord | null;
   funder: TrainingFunderRecord | null;
   session: TrainingSessionRecord | null;
   trainee: TrainingTraineeRecord | null;
+  program?: TrainingProgramRecord | null;
+};
+
+type PageState = { page: PDFPage; y: number; number: number };
+
+function beneficiaryName(input: CommercialPdfInput) {
+  if (input.customer?.legal_name) return input.customer.legal_name;
+  if (input.trainee) return `${input.trainee.first_name} ${input.trainee.last_name}`.trim();
+  return 'Bénéficiaire à compléter';
 }
 
-export async function generateTrainingCommercialPdf(input: TrainingCommercialPdfInput) {
-  const { organization, document, customer, funder, session, trainee } = input;
-  const pdf = await PDFDocument.create();
-  const regular = await pdf.embedFont(StandardFonts.Helvetica);
-  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const accent = accentFromOrganization(organization);
-  const dark = rgb(0.08, 0.1, 0.14);
-  const muted = rgb(0.4, 0.43, 0.49);
-  const line = rgb(0.86, 0.88, 0.92);
-  const soft = rgb(0.965, 0.975, 0.99);
-  const logo = await embedLogo(pdf, organization.logo_url);
-  let page!: PDFPage;
-  let y = 0;
-  let pageNumber = 0;
+function drawLabelValue(
+  page: PDFPage,
+  theme: TrainingPdfTheme,
+  label: string,
+  value: unknown,
+  x: number,
+  y: number,
+  width: number
+) {
+  drawTrainingPdfText(page, label.toUpperCase(), { x, y, size: 6.2, font: theme.bold, color: theme.muted });
+  const lines = wrapTrainingPdfText(value || '-', theme.bold, 9, width).slice(0, 2);
+  lines.forEach((line, index) => drawTrainingPdfText(page, line, { x, y: y - 17 - index * 12, size: 9, font: theme.bold, color: theme.dark }));
+}
 
-  const addPage = () => {
-    page = pdf.addPage(PAGE);
-    pageNumber += 1;
-    y = PAGE[1] - MARGIN;
-    if (logo) {
-      const scale = Math.min(88 / logo.width, 38 / logo.height, 1);
-      page.drawImage(logo, { x: MARGIN, y: y - logo.height * scale + 4, width: logo.width * scale, height: logo.height * scale });
-    }
-    const headerX = logo ? MARGIN + 103 : MARGIN;
-    drawPdfText(page, 'NCR SUITE · FORMATION', { x: headerX, y: y - 2, size: 7.2, font: bold, color: accent });
-    drawPdfText(page, trainingCommercialDocumentTypeLabels[document.document_type].toUpperCase(), { x: headerX, y: y - 28, size: 22, font: bold, color: dark });
-    drawPdfText(page, document.reference, { x: PAGE[0] - MARGIN - 150, y: y - 18, size: 10.5, font: bold, color: dark });
-    drawPdfText(page, `Page ${pageNumber}`, { x: PAGE[0] - MARGIN - 40, y: y - 38, size: 6.8, font: regular, color: muted });
-    y -= 64;
-    page.drawLine({ start: { x: MARGIN, y }, end: { x: PAGE[0] - MARGIN, y }, thickness: 1, color: line });
-    y -= 20;
+function drawEntityCard(
+  page: PDFPage,
+  theme: TrainingPdfTheme,
+  input: { x: number; y: number; width: number; title: string; name: string; lines: string[] }
+) {
+  const height = 112;
+  page.drawRectangle({ x: input.x, y: input.y - height, width: input.width, height, color: theme.surface, borderColor: theme.line, borderWidth: 0.7 });
+  page.drawRectangle({ x: input.x, y: input.y - height, width: 5, height, color: theme.accent });
+  drawTrainingPdfText(page, input.title.toUpperCase(), { x: input.x + 16, y: input.y - 20, size: 6.4, font: theme.bold, color: theme.accent });
+  const nameLines = wrapTrainingPdfText(input.name, theme.bold, 10, input.width - 32).slice(0, 2);
+  nameLines.forEach((line, index) => drawTrainingPdfText(page, line, { x: input.x + 16, y: input.y - 40 - index * 12, size: 10, font: theme.bold, color: theme.dark }));
+  const start = input.y - 64 - Math.max(0, nameLines.length - 1) * 10;
+  input.lines.slice(0, 4).forEach((line, index) => {
+    drawTrainingPdfText(page, line, { x: input.x + 16, y: start - index * 12, size: 7.2, font: theme.regular, color: theme.muted });
+  });
+  return input.y - height;
+}
+
+function pageTitle(input: CommercialPdfInput) {
+  return trainingCommercialDocumentTypeLabels[input.document.document_type];
+}
+
+export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
+  const { organization, document, customer, funder, session, trainee, program } = input;
+  const theme = await createTrainingPdfTheme(organization);
+  const pages: PageState[] = [];
+
+  const addPage = (continuation = false) => {
+    const page = theme.pdf.addPage(TRAINING_PDF_PAGE);
+    const number = pages.length + 1;
+    const y = drawTrainingPremiumHeader(page, theme, organization, {
+      eyebrow: continuation ? 'FORMATION · DOSSIER COMMERCIAL' : 'FORMATION · DOCUMENT OFFICIEL',
+      title: continuation ? `${pageTitle(input)} · suite` : pageTitle(input),
+      subtitle: document.title,
+      reference: document.reference,
+      pageNumber: number
+    });
+    const state = { page, y, number };
+    pages.push(state);
+    return state;
   };
 
-  const ensure = (height: number) => { if (y - height < 72) addPage(); };
-  addPage();
+  let state = addPage();
+  const ensure = (height: number) => {
+    if (state.y - height < BOTTOM_LIMIT) state = addPage(true);
+  };
 
-  const issuerName = organization.public_name || organization.name;
   const issuerLines = [
-    organization.company_contact_name,
-    organization.company_address,
+    organization.company_contact_name ? `Contact : ${organization.company_contact_name}` : '',
+    organization.company_address || '',
     [organization.company_postal_code, organization.company_city].filter(Boolean).join(' '),
     organization.company_siret ? `SIRET : ${organization.company_siret}` : '',
+    organization.training_nda_number ? `NDA : ${organization.training_nda_number}` : '',
     [organization.company_email, organization.company_phone].filter(Boolean).join(' · ')
   ].filter(Boolean);
-  const customerLines = [
-    customer?.contact_name,
-    customer?.billing_address,
+  const recipientLines = [
+    customer?.contact_name ? `Contact : ${customer.contact_name}` : '',
+    customer?.billing_address || '',
     [customer?.postal_code, customer?.city].filter(Boolean).join(' '),
     customer?.siret ? `SIRET : ${customer.siret}` : '',
-    [customer?.email, customer?.phone].filter(Boolean).join(' · ')
+    [customer?.email, customer?.phone].filter(Boolean).join(' · '),
+    !customer && trainee?.email ? trainee.email : ''
   ].filter(Boolean);
 
-  const boxWidth = (PAGE[0] - MARGIN * 2 - 12) / 2;
-  const boxHeight = 118;
-  page.drawRectangle({ x: MARGIN, y: y - boxHeight, width: boxWidth, height: boxHeight, color: soft, borderColor: line, borderWidth: 0.8 });
-  page.drawRectangle({ x: MARGIN + boxWidth + 12, y: y - boxHeight, width: boxWidth, height: boxHeight, color: soft, borderColor: line, borderWidth: 0.8 });
-  drawPdfText(page, 'ORGANISME DE FORMATION', { x: MARGIN + 13, y: y - 18, size: 6.8, font: bold, color: accent });
-  drawPdfText(page, clean(issuerName).slice(0, 46), { x: MARGIN + 13, y: y - 38, size: 10, font: bold, color: dark });
-  issuerLines.slice(0, 5).forEach((value, index) => drawPdfText(page, clean(value).slice(0, 53), { x: MARGIN + 13, y: y - 55 - index * 12, size: 7.3, font: regular, color: muted }));
-  const customerX = MARGIN + boxWidth + 25;
-  drawPdfText(page, 'CLIENT / BÉNÉFICIAIRE', { x: customerX, y: y - 18, size: 6.8, font: bold, color: accent });
-  drawPdfText(page, clean(customer?.legal_name || (trainee ? `${trainee.first_name} ${trainee.last_name}` : 'À compléter')).slice(0, 46), { x: customerX, y: y - 38, size: 10, font: bold, color: dark });
-  customerLines.slice(0, 5).forEach((value, index) => drawPdfText(page, clean(value).slice(0, 53), { x: customerX, y: y - 55 - index * 12, size: 7.3, font: regular, color: muted }));
-  y -= boxHeight + 24;
+  const cardGap = 12;
+  const cardWidth = (CONTENT_WIDTH - cardGap) / 2;
+  const cardBottom = drawEntityCard(state.page, theme, {
+    x: TRAINING_PDF_MARGIN,
+    y: state.y,
+    width: cardWidth,
+    title: 'Organisme de formation',
+    name: organization.public_name || organization.name,
+    lines: issuerLines
+  });
+  drawEntityCard(state.page, theme, {
+    x: TRAINING_PDF_MARGIN + cardWidth + cardGap,
+    y: state.y,
+    width: cardWidth,
+    title: 'Client / bénéficiaire',
+    name: beneficiaryName(input),
+    lines: recipientLines
+  });
+  state.y = cardBottom - 24;
 
-  drawPdfText(page, 'DATE D’ÉMISSION', { x: MARGIN, y, size: 6.8, font: bold, color: muted });
-  drawPdfText(page, dateLabel(document.issue_date), { x: MARGIN, y: y - 15, size: 8.5, font: bold, color: dark });
-  drawPdfText(page, 'VALIDITÉ', { x: MARGIN + 195, y, size: 6.8, font: bold, color: muted });
-  drawPdfText(page, dateLabel(document.valid_until), { x: MARGIN + 195, y: y - 15, size: 8.5, font: bold, color: dark });
-  drawPdfText(page, 'PARTICIPANTS', { x: MARGIN + 390, y, size: 6.8, font: bold, color: muted });
-  drawPdfText(page, String(document.participant_count), { x: MARGIN + 390, y: y - 15, size: 8.5, font: bold, color: dark });
-  y -= 50;
+  const metaWidth = (CONTENT_WIDTH - 24) / 4;
+  const meta = [
+    ['Émission', trainingPdfDate(document.issue_date)],
+    ['Validité', document.valid_until ? trainingPdfDate(document.valid_until) : 'Sans échéance'],
+    ['Participants', String(document.participant_count)],
+    ['Statut', document.status === 'draft' ? 'Brouillon' : document.status]
+  ];
+  meta.forEach(([label, value], index) => drawLabelValue(state.page, theme, label, value, TRAINING_PDF_MARGIN + index * (metaWidth + 8), state.y, metaWidth));
+  state.y -= 62;
 
-  drawPdfText(page, clean(document.title), { x: MARGIN, y, size: 17, font: bold, color: dark });
-  y -= 24;
-  const summary = document.training_summary || session?.title || 'Prestation de formation';
-  for (const lineText of wrap(summary, regular, 9, PAGE[0] - MARGIN * 2).slice(0, 7)) {
-    drawPdfText(page, lineText, { x: MARGIN, y, size: 9, font: regular, color: muted });
-    y -= 13;
-  }
-  if (session) {
-    y -= 5;
-    drawPdfText(page, `Session : ${clean(session.title)} · ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(session.starts_at))}`, { x: MARGIN, y, size: 8, font: bold, color: dark });
-    y -= 16;
-  }
-  if (funder) {
-    drawPdfText(page, `Financeur : ${clean(funder.name)} (${trainingFunderTypeLabels[funder.funder_type]})`, { x: MARGIN, y, size: 8, font: bold, color: dark });
-    y -= 16;
-  }
-  if (trainee) {
-    drawPdfText(page, `Stagiaire : ${clean(`${trainee.first_name} ${trainee.last_name}`)}`, { x: MARGIN, y, size: 8, font: bold, color: dark });
-    y -= 16;
-  }
+  state.y = drawTrainingSectionTitle(state.page, theme, document.title, state.y, '01');
+  const summary = document.training_summary || program?.description || program?.objectives || session?.title || 'Prestation de formation professionnelle.';
+  state.y = drawTrainingParagraph(state.page, theme, summary, state.y, { size: 9.2, color: theme.muted, lineHeight: 14, maxLines: 8 });
+  state.y -= 8;
 
-  ensure(110);
-  y -= 8;
-  page.drawRectangle({ x: MARGIN, y: y - 96, width: PAGE[0] - MARGIN * 2, height: 96, color: soft, borderColor: line, borderWidth: 0.8 });
-  drawPdfText(page, 'MONTANT HT', { x: MARGIN + 20, y: y - 24, size: 7, font: bold, color: muted });
-  drawPdfText(page, formatTrainingMoney(document.amount_excl_tax_cents), { x: MARGIN + 20, y: y - 52, size: 16, font: bold, color: dark });
-  drawPdfText(page, `TVA ${(document.vat_rate_basis_points / 100).toLocaleString('fr-FR')} %`, { x: MARGIN + 210, y: y - 24, size: 7, font: bold, color: muted });
-  drawPdfText(page, formatTrainingMoney(document.tax_cents), { x: MARGIN + 210, y: y - 52, size: 13, font: bold, color: dark });
-  drawPdfText(page, 'TOTAL TTC', { x: MARGIN + 375, y: y - 24, size: 7, font: bold, color: accent });
-  drawPdfText(page, formatTrainingMoney(document.amount_incl_tax_cents), { x: MARGIN + 375, y: y - 52, size: 17, font: bold, color: accent });
-  y -= 122;
+  ensure(126);
+  state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: state.y - 108, width: CONTENT_WIDTH, height: 108, color: theme.dark });
+  state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: state.y - 108, width: 9, height: 108, color: theme.accent });
+  const amountColumns = [
+    ['MONTANT HT', formatTrainingMoney(document.amount_excl_tax_cents)],
+    [`TVA ${(document.vat_rate_basis_points / 100).toLocaleString('fr-FR')} %`, formatTrainingMoney(document.tax_cents)],
+    ['TOTAL TTC', formatTrainingMoney(document.amount_incl_tax_cents)]
+  ];
+  amountColumns.forEach(([label, value], index) => {
+    const x = TRAINING_PDF_MARGIN + 28 + index * 160;
+    drawTrainingPdfText(state.page, label, { x, y: state.y - 30, size: 6.4, font: theme.bold, color: index === 2 ? theme.accent : rgb(0.7, 0.75, 0.82) });
+    drawTrainingPdfText(state.page, value, { x, y: state.y - 62, size: index === 2 ? 18 : 14, font: theme.bold, color: rgb(1, 1, 1) });
+  });
+  state.y -= 132;
 
-  if (document.notes) {
-    ensure(80);
-    drawPdfText(page, 'NOTES', { x: MARGIN, y, size: 7, font: bold, color: accent });
-    y -= 15;
-    for (const lineText of wrap(document.notes, regular, 8, PAGE[0] - MARGIN * 2).slice(0, 10)) {
-      drawPdfText(page, lineText, { x: MARGIN, y, size: 8, font: regular, color: muted });
-      y -= 11;
+  ensure(150);
+  state.y = drawTrainingSectionTitle(state.page, theme, 'Cadre de la prestation', state.y, '02');
+  const details = [
+    ['Formation', program?.title || session?.title || document.title],
+    ['Code', program?.code || '-'],
+    ['Durée', program ? `${String(program.duration_hours).replace('.', ',')} heures` : session ? `${Math.max(0, (new Date(session.ends_at).getTime() - new Date(session.starts_at).getTime()) / 3_600_000).toLocaleString('fr-FR')} heures` : 'À confirmer'],
+    ['Modalité', program ? modalityLabels[program.modality] : session ? modalityLabels[session.modality] : 'À confirmer'],
+    ['Période', session ? `${trainingPdfDate(session.starts_at, true)} au ${trainingPdfDate(session.ends_at, true)}` : 'À convenir'],
+    ['Lieu', session?.location || program?.default_location || 'À convenir'],
+    ['Financeur', funder ? `${funder.name} · ${trainingFunderTypeLabels[funder.funder_type]}` : 'Sans financeur identifié'],
+    ['Bénéficiaire', trainee ? `${trainee.first_name} ${trainee.last_name}`.trim() : beneficiaryName(input)]
+  ];
+  const detailColumnWidth = (CONTENT_WIDTH - 12) / 2;
+  details.forEach(([label, value], index) => {
+    const column = index % 2;
+    const row = Math.floor(index / 2);
+    const x = TRAINING_PDF_MARGIN + column * (detailColumnWidth + 12);
+    const y = state.y - row * 48;
+    state.page.drawRectangle({ x, y: y - 38, width: detailColumnWidth, height: 38, color: row % 2 === 0 ? theme.accentPale : theme.surface });
+    drawTrainingPdfText(state.page, label.toUpperCase(), { x: x + 11, y: y - 13, size: 5.8, font: theme.bold, color: theme.accent });
+    const lines = wrapTrainingPdfText(value, theme.bold, 7.8, detailColumnWidth - 22).slice(0, 2);
+    lines.forEach((line, lineIndex) => drawTrainingPdfText(state.page, line, { x: x + 11, y: y - 27 - lineIndex * 10, size: 7.8, font: theme.bold, color: theme.dark }));
+  });
+  state.y -= Math.ceil(details.length / 2) * 48 + 10;
+
+  const sections = ([
+    ['Objectifs pédagogiques', program?.objectives] as [string, unknown],
+    ['Public concerné', program?.audience] as [string, unknown],
+    ['Prérequis', program?.prerequisites] as [string, unknown],
+    ['Programme détaillé', program?.detailed_program] as [string, unknown],
+    ['Méthodes et moyens pédagogiques', [program?.teaching_methods, program?.training_resources].filter(Boolean).join('\n')] as [string, unknown],
+    ['Modalités d’évaluation', program?.assessment_methods] as [string, unknown],
+    ['Accessibilité', program?.accessibility] as [string, unknown]
+  ]).filter(([, value]) => Boolean(normalizeTrainingPdfText(value)));
+
+  sections.forEach(([title, value], sectionIndex) => {
+    const remaining = [...wrapTrainingPdfText(value, theme.regular, 8.6, CONTENT_WIDTH)];
+    let continuation = false;
+    while (remaining.length) {
+      ensure(64);
+      state.y = drawTrainingSectionTitle(
+        state.page,
+        theme,
+        continuation ? `${title} · suite` : title,
+        state.y,
+        String(sectionIndex + 3).padStart(2, '0')
+      );
+      const room = Math.max(1, Math.floor((state.y - BOTTOM_LIMIT - 10) / 12.5));
+      const chunk = remaining.splice(0, room);
+      chunk.forEach((line) => {
+        drawTrainingPdfText(state.page, line || ' ', { x: TRAINING_PDF_MARGIN, y: state.y, size: 8.6, font: theme.regular, color: theme.muted });
+        state.y -= 12.5;
+      });
+      state.y -= 13;
+      continuation = remaining.length > 0;
+      if (continuation) state = addPage(true);
     }
-    y -= 8;
-  }
+  });
 
-  if (document.terms) {
-    ensure(90);
-    drawPdfText(page, 'CONDITIONS', { x: MARGIN, y, size: 7, font: bold, color: accent });
-    y -= 15;
-    for (const lineText of wrap(document.terms, regular, 7.6, PAGE[0] - MARGIN * 2).slice(0, 14)) {
-      drawPdfText(page, lineText, { x: MARGIN, y, size: 7.6, font: regular, color: muted });
-      y -= 10;
+  if (document.terms || organization.training_default_terms) {
+    const terms = document.terms || organization.training_default_terms;
+    const remaining = [...wrapTrainingPdfText(terms, theme.regular, 7.7, CONTENT_WIDTH - 24)];
+    let continuation = false;
+    while (remaining.length) {
+      ensure(88);
+      const room = Math.max(2, Math.min(24, Math.floor((state.y - BOTTOM_LIMIT - 46) / 11)));
+      const chunk = remaining.splice(0, room);
+      const boxHeight = 38 + chunk.length * 11;
+      state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: state.y - boxHeight, width: CONTENT_WIDTH, height: boxHeight, color: theme.surface, borderColor: theme.line, borderWidth: 0.7 });
+      drawTrainingPdfText(state.page, continuation ? 'CONDITIONS ET MODALITÉS · SUITE' : 'CONDITIONS ET MODALITÉS', { x: TRAINING_PDF_MARGIN + 12, y: state.y - 19, size: 6.4, font: theme.bold, color: theme.accent });
+      chunk.forEach((line, index) => drawTrainingPdfText(state.page, line || ' ', { x: TRAINING_PDF_MARGIN + 12, y: state.y - 37 - index * 11, size: 7.7, font: theme.regular, color: theme.muted }));
+      state.y -= boxHeight + 14;
+      continuation = remaining.length > 0;
+      if (continuation) state = addPage(true);
     }
   }
 
-  for (const current of pdf.getPages()) {
-    current.drawLine({ start: { x: MARGIN, y: 46 }, end: { x: PAGE[0] - MARGIN, y: 46 }, thickness: 0.5, color: line });
-    drawPdfText(current, 'Document généré depuis NCR Suite', { x: MARGIN, y: 31, size: 6.2, font: regular, color: muted });
-    drawPdfText(current, clean(issuerName).slice(0, 55), { x: PAGE[0] - MARGIN - 190, y: 31, size: 6.2, font: bold, color: accent });
+  if (document.document_type !== 'quote') {
+    ensure(150);
+    state.y -= 8;
+    state.y = drawTrainingSectionTitle(state.page, theme, 'Acceptation et signatures', state.y, '✓');
+    const signWidth = (CONTENT_WIDTH - 14) / 2;
+    const signHeight = 104;
+    [
+      { x: TRAINING_PDF_MARGIN, title: 'Pour l’organisme', name: organization.training_legal_representative || organization.company_contact_name || organization.public_name || organization.name },
+      { x: TRAINING_PDF_MARGIN + signWidth + 14, title: 'Pour le client', name: beneficiaryName(input) }
+    ].forEach((box, index) => {
+      state.page.drawRectangle({ x: box.x, y: state.y - signHeight, width: signWidth, height: signHeight, color: rgb(1, 1, 1), borderColor: theme.line, borderWidth: 0.9 });
+      drawTrainingPdfText(state.page, box.title.toUpperCase(), { x: box.x + 12, y: state.y - 19, size: 6.3, font: theme.bold, color: theme.accent });
+      drawTrainingPdfText(state.page, box.name, { x: box.x + 12, y: state.y - 37, size: 8.3, font: theme.bold, color: theme.dark });
+      drawTrainingPdfText(state.page, 'Date, cachet et signature', { x: box.x + 12, y: state.y - 91, size: 6.5, font: theme.regular, color: theme.muted });
+      if (index === 0 && theme.signature) {
+        const scale = Math.min(88 / theme.signature.width, 38 / theme.signature.height, 1);
+        state.page.drawImage(theme.signature, { x: box.x + 12, y: state.y - 79, width: theme.signature.width * scale, height: theme.signature.height * scale });
+      }
+      if (index === 0 && theme.stamp) {
+        const scale = Math.min(58 / theme.stamp.width, 45 / theme.stamp.height, 1);
+        state.page.drawImage(theme.stamp, { x: box.x + signWidth - theme.stamp.width * scale - 12, y: state.y - 81, width: theme.stamp.width * scale, height: theme.stamp.height * scale, opacity: 0.82 });
+      }
+    });
+    state.y -= signHeight + 12;
   }
 
-  pdf.setTitle(`${trainingCommercialDocumentTypeLabels[document.document_type]} ${document.reference}`);
-  pdf.setAuthor(clean(issuerName));
-  const bytes = await pdf.save();
-  const blob = new Blob([new Uint8Array(bytes).buffer], { type: 'application/pdf' });
-  return { blob, filename: `${safeName(document.reference || document.title)}.pdf` };
+  if (organization.training_document_footer) {
+    ensure(70);
+    state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: state.y - 52, width: CONTENT_WIDTH, height: 52, color: theme.accentPale });
+    drawTrainingPdfText(state.page, 'INFORMATIONS UTILES', { x: TRAINING_PDF_MARGIN + 12, y: state.y - 17, size: 6.3, font: theme.bold, color: theme.accent });
+    drawTrainingParagraph(state.page, theme, organization.training_document_footer, state.y - 32, { x: TRAINING_PDF_MARGIN + 12, width: CONTENT_WIDTH - 24, size: 7.2, lineHeight: 10, maxLines: 2 });
+  }
+
+  pages.forEach((item) => drawTrainingPremiumFooter(item.page, theme, organization, { reference: document.reference, pageNumber: item.number, totalPages: pages.length }));
+  theme.pdf.setTitle(`${pageTitle(input)} ${document.reference} - ${document.title}`);
+  theme.pdf.setAuthor(organization.public_name || organization.name);
+  theme.pdf.setSubject(program?.title || document.training_summary || document.title);
+  theme.pdf.setCreator('NCR Suite');
+  theme.pdf.setProducer('NCR Suite V2.15.1');
+
+  const bytes = await theme.pdf.save();
+  const pdfBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+  return {
+    blob: new Blob([pdfBuffer], { type: 'application/pdf' }),
+    filename: `${safeTrainingPdfName(document.reference || pageTitle(input))}.pdf`
+  };
 }
