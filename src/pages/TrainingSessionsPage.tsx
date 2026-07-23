@@ -37,7 +37,7 @@ function initialForm() {
   return {
     programId: '', trainerId: '', title: '', startDate: dateInputValue(tomorrow), endDate: dateInputValue(tomorrow),
     startTime: '09:00', endTime: '17:00', capacity: '12', location: '', modality: 'presentiel' as TrainingModality,
-    status: 'scheduled' as TrainingSessionStatus, notes: '', siteId: '', traineeIds: [] as string[]
+    status: 'draft' as TrainingSessionStatus, notes: '', siteId: '', traineeIds: [] as string[]
   };
 }
 
@@ -263,6 +263,7 @@ export function TrainingSessionsPage() {
 
     setSaving(true); setError(''); setSuccess('');
     try {
+      let successMessage = 'La session a bien été créée.';
       if (demoMode || !supabase) {
         const created: TrainingSessionRecord = {
           id: crypto.randomUUID(), organization_id: organization.id, site_id: organizationHasFeature(organization, 'multi_site') ? form.siteId : null,
@@ -277,7 +278,9 @@ export function TrainingSessionsPage() {
         localStorage.setItem(`ncr-suite-training-enrollments-${organization.id}`, JSON.stringify(nextEnrollments));
         setSessions(nextSessions); setEnrollments(nextEnrollments);
       } else {
-        const { error: rpcError } = await supabase.rpc('create_training_session', {
+        const requestedStatus = form.status;
+        const creationStatus = requestedStatus === 'scheduled' || requestedStatus === 'in_progress' ? 'draft' : requestedStatus;
+        const { data: createdSessionId, error: rpcError } = await supabase.rpc('create_training_session', {
           p_organization_id: organization.id,
           p_site_id: organizationHasFeature(organization, 'multi_site') ? form.siteId : null,
           p_program_id: form.programId,
@@ -288,15 +291,35 @@ export function TrainingSessionsPage() {
           p_capacity: capacity,
           p_location: nullableText(form.location),
           p_modality: form.modality,
-          p_status: form.status,
+          p_status: creationStatus,
           p_notes: nullableText(form.notes),
           p_trainee_ids: form.traineeIds
         });
         if (rpcError) throw rpcError;
+
+        if (requestedStatus === 'scheduled' || requestedStatus === 'in_progress') {
+          const sessionId = typeof createdSessionId === 'string' ? createdSessionId : '';
+          if (!sessionId) throw new Error('Session créée mais identifiant introuvable pour la validation.');
+          const { error: validationError } = await supabase.rpc('validate_training_session_workflow', {
+            p_organization_id: organization.id,
+            p_session_id: sessionId,
+            p_send_convocations: true
+          });
+          if (validationError) throw validationError;
+          if (requestedStatus === 'in_progress') {
+            const { error: statusError } = await supabase.rpc('set_training_session_status', {
+              p_organization_id: organization.id,
+              p_session_id: sessionId,
+              p_status: 'in_progress'
+            });
+            if (statusError) throw statusError;
+          }
+          successMessage = 'La session a été créée puis validée. Les convocations et évaluations initiales sont prises en charge automatiquement.';
+        }
         await loadData();
       }
       setForm({ ...initialForm(), siteId: activeSiteId || sites[0]?.id || '' });
-      setSearchParams({}); setSuccess('La session a bien été créée.');
+      setSearchParams({}); setSuccess(successMessage);
     } catch (caught) {
       setError(`Création impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
     } finally { setSaving(false); }
@@ -320,7 +343,7 @@ export function TrainingSessionsPage() {
       } else {
         const [attendanceResult, satisfactionResult] = await Promise.all([
           supabase.from('training_attendance').select('id,organization_id,site_id,session_id,trainee_id,attendance_date,period,status,signature_path,signatory_name,signed_at,notes,created_at,updated_at').eq('organization_id', organization.id).eq('session_id', session.id),
-          supabase.from('training_satisfaction_surveys').select('id,organization_id,site_id,session_id,trainee_id,public_token,status,scheduled_for,emailed_at,completed_at,content_rating,trainer_rating,organization_rating,objectives_rating,recommend,comment,improvement,created_at,updated_at').eq('organization_id', organization.id).eq('session_id', session.id)
+          supabase.from('training_satisfaction_surveys').select('id,organization_id,site_id,session_id,trainee_id,public_token,evaluation_type,status,scheduled_for,emailed_at,completed_at,content_rating,trainer_rating,organization_rating,objectives_rating,recommend,comment,improvement,initial_level,initial_expectations,initial_objectives,initial_needs,reminder_count,last_reminded_at,created_at,updated_at').eq('organization_id', organization.id).eq('session_id', session.id)
         ]);
         const queryError = attendanceResult.error || satisfactionResult.error;
         if (queryError) throw queryError;
@@ -452,22 +475,42 @@ export function TrainingSessionsPage() {
 
   async function updateStatus(session: TrainingSessionRecord, status: TrainingSessionStatus) {
     if (!organization) return;
+    if (status === session.status) return;
     setError('');
     try {
+      let successMessage = 'Le statut de la session a été mis à jour.';
       if (demoMode || !supabase) {
         const next = sessions.map((row) => row.id === session.id ? { ...row, status } : row);
         setSessions(next);
         localStorage.setItem(`ncr-suite-training-sessions-${organization.id}`, JSON.stringify(next));
       } else {
-        const { error: rpcError } = await supabase.rpc('set_training_session_status', {
-          p_organization_id: organization.id,
-          p_session_id: session.id,
-          p_status: status
-        });
-        if (rpcError) throw rpcError;
-        setSessions((current) => current.map((row) => row.id === session.id ? { ...row, status } : row));
+        if (session.status === 'draft' && (status === 'scheduled' || status === 'in_progress')) {
+          const { error: validationError } = await supabase.rpc('validate_training_session_workflow', {
+            p_organization_id: organization.id,
+            p_session_id: session.id,
+            p_send_convocations: true
+          });
+          if (validationError) throw validationError;
+          if (status === 'in_progress') {
+            const { error: statusError } = await supabase.rpc('set_training_session_status', {
+              p_organization_id: organization.id,
+              p_session_id: session.id,
+              p_status: status
+            });
+            if (statusError) throw statusError;
+          }
+          successMessage = 'La session est validée. Les convocations et évaluations initiales sont prises en charge automatiquement.';
+        } else {
+          const { error: rpcError } = await supabase.rpc('set_training_session_status', {
+            p_organization_id: organization.id,
+            p_session_id: session.id,
+            p_status: status
+          });
+          if (rpcError) throw rpcError;
+        }
+        await loadData();
       }
-      setSuccess('Le statut de la session a été mis à jour.');
+      setSuccess(successMessage);
     } catch (caught) { setError(`Modification impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
   }
 

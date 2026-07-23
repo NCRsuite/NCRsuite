@@ -1,5 +1,15 @@
 # Changelog NCR Suite
 
+## V2.15.3 — Formation · Intégrité des automatisations
+
+- Ajout de la migration 074 pour rendre la file `training_document_jobs` autoportante dans le dépôt.
+- Déclaration explicite des métadonnées de documents automatiques (`automation_key`, `generated_at`, `emailed_at`).
+- Fonctions service-role de traitement documentaire : claim des jobs et payload PDF.
+- Garde SQL contre la planification directe d’une session sans validation officielle.
+- L’écran Sessions crée désormais en brouillon puis valide via `validate_training_session_workflow` lorsque le statut demandé est planifié ou en cours.
+- Lecture complète des champs d’évaluations initiales/finales dans le PDF direct de session.
+- Cache PWA et monitoring synchronisés en V2.15.3.
+
 ## V2.15.2 — Formation · Déroulement et clôture automatisés
 
 - Évaluation initiale individuelle envoyée par Brevo lors de la validation de session.

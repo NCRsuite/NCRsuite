@@ -1,0 +1,31 @@
+VALIDATION V2.15.3
+
+Date : 2026-07-23
+Base analysee : NCR Suite V2.15.2 extraite localement
+Version cible : ncr-suite@2.15.3
+
+Controles executes localement :
+- npm run audit:phase1 : OK
+- npm run test:critical : OK
+- npm run build : OK
+
+Resultat build :
+- TypeScript OK
+- Vite build OK
+- Service worker genere avec le cache ncr-suite-shell-v2.15.3-training-automation-integrity
+
+Points verifies :
+- Migration 074 presente.
+- File training_document_jobs autoportante.
+- Fonctions service-role claim_training_document_jobs et training_document_job_payload presentes.
+- Colonnes documentaires generated_automatically, automation_key, generated_at et emailed_at declarees.
+- Garde SQL guard_training_session_validation presente.
+- Rapport training_automation_integrity_report present.
+- Ecran Sessions Formation raccorde a validate_training_session_workflow pour planifier une session.
+- Cache PWA et APP_VERSION synchronises en V2.15.3.
+
+NCR Academy :
+- Non modifie.
+
+Note :
+- Les anciens SQL V2.15.2 et precedents etant deja deployes cote Supabase d'apres l'utilisateur, seul le SQL 074 est a executer pour cette version.

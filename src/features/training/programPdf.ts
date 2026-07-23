@@ -133,7 +133,7 @@ export async function generateTrainingProgramPdf(input: {
   theme.pdf.setAuthor(organization.public_name || organization.name);
   theme.pdf.setSubject(program.objectives || program.title);
   theme.pdf.setCreator('NCR Suite');
-  theme.pdf.setProducer('NCR Suite V2.15.2');
+  theme.pdf.setProducer('NCR Suite V2.15.3');
 
   const bytes = await theme.pdf.save();
   const pdfBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;

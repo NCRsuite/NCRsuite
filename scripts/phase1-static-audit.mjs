@@ -201,6 +201,30 @@ if (!trainingEmailProcessor.includes('queue_due_training_evaluation_reminders') 
   errors.push('Le processeur Brevo V2.15.2 ne couvre pas les relances et les attestations conditionnelles.');
 }
 
+// V2.15.3 — intégrité des automatisations Formation et dépôt autoportant.
+const trainingSessionsV2153 = read('src/pages/TrainingSessionsPage.tsx');
+const trainingIntegrityMigration = read('supabase/migrations/074_training_automation_integrity.sql');
+if (!trainingIntegrityMigration.includes('create table if not exists public.training_document_jobs')
+    || !trainingIntegrityMigration.includes('create unique index if not exists uq_training_documents_automation_key')
+    || !trainingIntegrityMigration.includes('create or replace function public.claim_training_document_jobs')
+    || !trainingIntegrityMigration.includes('create or replace function public.training_document_job_payload')
+    || !trainingIntegrityMigration.includes('create or replace function public.guard_training_session_validation')
+    || !trainingIntegrityMigration.includes('create or replace function public.training_automation_integrity_report')
+    || !trainingIntegrityMigration.includes("ncr-suite-shell-v2.15.3-training-automation-integrity")
+    || !trainingIntegrityMigration.includes("'2.15.3'")) {
+  errors.push('La migration V2.15.3 d’intégrité des automatisations Formation est incomplète.');
+}
+if (!trainingSessionsV2153.includes("status: 'draft' as TrainingSessionStatus")
+    || !trainingSessionsV2153.includes('p_status: creationStatus')
+    || !trainingSessionsV2153.includes("supabase.rpc('validate_training_session_workflow'")
+    || !trainingSessionsV2153.includes('p_send_convocations: true')
+    || !trainingSessionsV2153.includes('evaluation_type,status,scheduled_for')) {
+  errors.push('La page Sessions Formation doit passer par la validation officielle et lire les champs d’évaluation V2.15.2.');
+}
+if (!trainingEmailProcessor.includes('NCR Suite V2.15.3')) {
+  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.15.3.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {
