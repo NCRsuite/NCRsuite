@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage, type RGB } from 'pdf-lib';
 import type { Organization } from '../../types';
 import {
   formatTrainingMoney,
@@ -15,7 +15,45 @@ const PAGE: [number, number] = [595.28, 841.89];
 const MARGIN = 42;
 
 function clean(value: unknown) {
-  return String(value ?? '').replace(/[’‘]/g, "'").replace(/[–—]/g, '-').replace(/…/g, '...').replace(/\s+/g, ' ').trim();
+  return String(value ?? '')
+    .normalize('NFKC')
+    .replace(/[’‘‚‛]/g, "'")
+    .replace(/[“”„‟]/g, '"')
+    .replace(/[–—−]/g, '-')
+    .replace(/…/g, '...')
+    .replace(/[•●▪◦]/g, '-')
+    .replace(/œ/g, 'oe')
+    .replace(/Œ/g, 'OE')
+    .replace(/æ/g, 'ae')
+    .replace(/Æ/g, 'AE')
+    .replace(/ß/g, 'ss')
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function pdfText(value: unknown, font: PDFFont) {
+  const normalized = clean(value);
+  let output = '';
+
+  for (const character of normalized) {
+    try {
+      font.encodeText(character);
+      output += character;
+    } catch {
+      // Les polices standard de pdf-lib utilisent WinAnsi. Tout caractère
+      // non pris en charge est remplacé sans bloquer la génération du PDF.
+      output += '?';
+    }
+  }
+
+  return output;
+}
+
+type PdfTextOptions = { x: number; y: number; size: number; font: PDFFont; color: RGB };
+
+function drawPdfText(page: PDFPage, value: unknown, options: PdfTextOptions) {
+  page.drawText(pdfText(value, options.font), options);
 }
 
 function safeName(value: string) {
@@ -52,7 +90,7 @@ async function embedLogo(pdf: PDFDocument, url?: string | null): Promise<PDFImag
 }
 
 function wrap(text: string, font: PDFFont, size: number, width: number) {
-  const words = clean(text || '—').split(' ');
+  const words = pdfText(text || '-', font).split(' ');
   const lines: string[] = [];
   let current = '';
   for (const word of words) {
@@ -99,10 +137,10 @@ export async function generateTrainingCommercialPdf(input: TrainingCommercialPdf
       page.drawImage(logo, { x: MARGIN, y: y - logo.height * scale + 4, width: logo.width * scale, height: logo.height * scale });
     }
     const headerX = logo ? MARGIN + 103 : MARGIN;
-    page.drawText('NCR SUITE · FORMATION', { x: headerX, y: y - 2, size: 7.2, font: bold, color: accent });
-    page.drawText(trainingCommercialDocumentTypeLabels[document.document_type].toUpperCase(), { x: headerX, y: y - 28, size: 22, font: bold, color: dark });
-    page.drawText(document.reference, { x: PAGE[0] - MARGIN - 150, y: y - 18, size: 10.5, font: bold, color: dark });
-    page.drawText(`Page ${pageNumber}`, { x: PAGE[0] - MARGIN - 40, y: y - 38, size: 6.8, font: regular, color: muted });
+    drawPdfText(page, 'NCR SUITE · FORMATION', { x: headerX, y: y - 2, size: 7.2, font: bold, color: accent });
+    drawPdfText(page, trainingCommercialDocumentTypeLabels[document.document_type].toUpperCase(), { x: headerX, y: y - 28, size: 22, font: bold, color: dark });
+    drawPdfText(page, document.reference, { x: PAGE[0] - MARGIN - 150, y: y - 18, size: 10.5, font: bold, color: dark });
+    drawPdfText(page, `Page ${pageNumber}`, { x: PAGE[0] - MARGIN - 40, y: y - 38, size: 6.8, font: regular, color: muted });
     y -= 64;
     page.drawLine({ start: { x: MARGIN, y }, end: { x: PAGE[0] - MARGIN, y }, thickness: 1, color: line });
     y -= 20;
@@ -131,61 +169,61 @@ export async function generateTrainingCommercialPdf(input: TrainingCommercialPdf
   const boxHeight = 118;
   page.drawRectangle({ x: MARGIN, y: y - boxHeight, width: boxWidth, height: boxHeight, color: soft, borderColor: line, borderWidth: 0.8 });
   page.drawRectangle({ x: MARGIN + boxWidth + 12, y: y - boxHeight, width: boxWidth, height: boxHeight, color: soft, borderColor: line, borderWidth: 0.8 });
-  page.drawText('ORGANISME DE FORMATION', { x: MARGIN + 13, y: y - 18, size: 6.8, font: bold, color: accent });
-  page.drawText(clean(issuerName).slice(0, 46), { x: MARGIN + 13, y: y - 38, size: 10, font: bold, color: dark });
-  issuerLines.slice(0, 5).forEach((value, index) => page.drawText(clean(value).slice(0, 53), { x: MARGIN + 13, y: y - 55 - index * 12, size: 7.3, font: regular, color: muted }));
+  drawPdfText(page, 'ORGANISME DE FORMATION', { x: MARGIN + 13, y: y - 18, size: 6.8, font: bold, color: accent });
+  drawPdfText(page, clean(issuerName).slice(0, 46), { x: MARGIN + 13, y: y - 38, size: 10, font: bold, color: dark });
+  issuerLines.slice(0, 5).forEach((value, index) => drawPdfText(page, clean(value).slice(0, 53), { x: MARGIN + 13, y: y - 55 - index * 12, size: 7.3, font: regular, color: muted }));
   const customerX = MARGIN + boxWidth + 25;
-  page.drawText('CLIENT / BÉNÉFICIAIRE', { x: customerX, y: y - 18, size: 6.8, font: bold, color: accent });
-  page.drawText(clean(customer?.legal_name || (trainee ? `${trainee.first_name} ${trainee.last_name}` : 'À compléter')).slice(0, 46), { x: customerX, y: y - 38, size: 10, font: bold, color: dark });
-  customerLines.slice(0, 5).forEach((value, index) => page.drawText(clean(value).slice(0, 53), { x: customerX, y: y - 55 - index * 12, size: 7.3, font: regular, color: muted }));
+  drawPdfText(page, 'CLIENT / BÉNÉFICIAIRE', { x: customerX, y: y - 18, size: 6.8, font: bold, color: accent });
+  drawPdfText(page, clean(customer?.legal_name || (trainee ? `${trainee.first_name} ${trainee.last_name}` : 'À compléter')).slice(0, 46), { x: customerX, y: y - 38, size: 10, font: bold, color: dark });
+  customerLines.slice(0, 5).forEach((value, index) => drawPdfText(page, clean(value).slice(0, 53), { x: customerX, y: y - 55 - index * 12, size: 7.3, font: regular, color: muted }));
   y -= boxHeight + 24;
 
-  page.drawText('DATE D’ÉMISSION', { x: MARGIN, y, size: 6.8, font: bold, color: muted });
-  page.drawText(dateLabel(document.issue_date), { x: MARGIN, y: y - 15, size: 8.5, font: bold, color: dark });
-  page.drawText('VALIDITÉ', { x: MARGIN + 195, y, size: 6.8, font: bold, color: muted });
-  page.drawText(dateLabel(document.valid_until), { x: MARGIN + 195, y: y - 15, size: 8.5, font: bold, color: dark });
-  page.drawText('PARTICIPANTS', { x: MARGIN + 390, y, size: 6.8, font: bold, color: muted });
-  page.drawText(String(document.participant_count), { x: MARGIN + 390, y: y - 15, size: 8.5, font: bold, color: dark });
+  drawPdfText(page, 'DATE D’ÉMISSION', { x: MARGIN, y, size: 6.8, font: bold, color: muted });
+  drawPdfText(page, dateLabel(document.issue_date), { x: MARGIN, y: y - 15, size: 8.5, font: bold, color: dark });
+  drawPdfText(page, 'VALIDITÉ', { x: MARGIN + 195, y, size: 6.8, font: bold, color: muted });
+  drawPdfText(page, dateLabel(document.valid_until), { x: MARGIN + 195, y: y - 15, size: 8.5, font: bold, color: dark });
+  drawPdfText(page, 'PARTICIPANTS', { x: MARGIN + 390, y, size: 6.8, font: bold, color: muted });
+  drawPdfText(page, String(document.participant_count), { x: MARGIN + 390, y: y - 15, size: 8.5, font: bold, color: dark });
   y -= 50;
 
-  page.drawText(clean(document.title), { x: MARGIN, y, size: 17, font: bold, color: dark });
+  drawPdfText(page, clean(document.title), { x: MARGIN, y, size: 17, font: bold, color: dark });
   y -= 24;
   const summary = document.training_summary || session?.title || 'Prestation de formation';
   for (const lineText of wrap(summary, regular, 9, PAGE[0] - MARGIN * 2).slice(0, 7)) {
-    page.drawText(lineText, { x: MARGIN, y, size: 9, font: regular, color: muted });
+    drawPdfText(page, lineText, { x: MARGIN, y, size: 9, font: regular, color: muted });
     y -= 13;
   }
   if (session) {
     y -= 5;
-    page.drawText(`Session : ${clean(session.title)} · ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(session.starts_at))}`, { x: MARGIN, y, size: 8, font: bold, color: dark });
+    drawPdfText(page, `Session : ${clean(session.title)} · ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(session.starts_at))}`, { x: MARGIN, y, size: 8, font: bold, color: dark });
     y -= 16;
   }
   if (funder) {
-    page.drawText(`Financeur : ${clean(funder.name)} (${trainingFunderTypeLabels[funder.funder_type]})`, { x: MARGIN, y, size: 8, font: bold, color: dark });
+    drawPdfText(page, `Financeur : ${clean(funder.name)} (${trainingFunderTypeLabels[funder.funder_type]})`, { x: MARGIN, y, size: 8, font: bold, color: dark });
     y -= 16;
   }
   if (trainee) {
-    page.drawText(`Stagiaire : ${clean(`${trainee.first_name} ${trainee.last_name}`)}`, { x: MARGIN, y, size: 8, font: bold, color: dark });
+    drawPdfText(page, `Stagiaire : ${clean(`${trainee.first_name} ${trainee.last_name}`)}`, { x: MARGIN, y, size: 8, font: bold, color: dark });
     y -= 16;
   }
 
   ensure(110);
   y -= 8;
   page.drawRectangle({ x: MARGIN, y: y - 96, width: PAGE[0] - MARGIN * 2, height: 96, color: soft, borderColor: line, borderWidth: 0.8 });
-  page.drawText('MONTANT HT', { x: MARGIN + 20, y: y - 24, size: 7, font: bold, color: muted });
-  page.drawText(formatTrainingMoney(document.amount_excl_tax_cents), { x: MARGIN + 20, y: y - 52, size: 16, font: bold, color: dark });
-  page.drawText(`TVA ${(document.vat_rate_basis_points / 100).toLocaleString('fr-FR')} %`, { x: MARGIN + 210, y: y - 24, size: 7, font: bold, color: muted });
-  page.drawText(formatTrainingMoney(document.tax_cents), { x: MARGIN + 210, y: y - 52, size: 13, font: bold, color: dark });
-  page.drawText('TOTAL TTC', { x: MARGIN + 375, y: y - 24, size: 7, font: bold, color: accent });
-  page.drawText(formatTrainingMoney(document.amount_incl_tax_cents), { x: MARGIN + 375, y: y - 52, size: 17, font: bold, color: accent });
+  drawPdfText(page, 'MONTANT HT', { x: MARGIN + 20, y: y - 24, size: 7, font: bold, color: muted });
+  drawPdfText(page, formatTrainingMoney(document.amount_excl_tax_cents), { x: MARGIN + 20, y: y - 52, size: 16, font: bold, color: dark });
+  drawPdfText(page, `TVA ${(document.vat_rate_basis_points / 100).toLocaleString('fr-FR')} %`, { x: MARGIN + 210, y: y - 24, size: 7, font: bold, color: muted });
+  drawPdfText(page, formatTrainingMoney(document.tax_cents), { x: MARGIN + 210, y: y - 52, size: 13, font: bold, color: dark });
+  drawPdfText(page, 'TOTAL TTC', { x: MARGIN + 375, y: y - 24, size: 7, font: bold, color: accent });
+  drawPdfText(page, formatTrainingMoney(document.amount_incl_tax_cents), { x: MARGIN + 375, y: y - 52, size: 17, font: bold, color: accent });
   y -= 122;
 
   if (document.notes) {
     ensure(80);
-    page.drawText('NOTES', { x: MARGIN, y, size: 7, font: bold, color: accent });
+    drawPdfText(page, 'NOTES', { x: MARGIN, y, size: 7, font: bold, color: accent });
     y -= 15;
     for (const lineText of wrap(document.notes, regular, 8, PAGE[0] - MARGIN * 2).slice(0, 10)) {
-      page.drawText(lineText, { x: MARGIN, y, size: 8, font: regular, color: muted });
+      drawPdfText(page, lineText, { x: MARGIN, y, size: 8, font: regular, color: muted });
       y -= 11;
     }
     y -= 8;
@@ -193,18 +231,18 @@ export async function generateTrainingCommercialPdf(input: TrainingCommercialPdf
 
   if (document.terms) {
     ensure(90);
-    page.drawText('CONDITIONS', { x: MARGIN, y, size: 7, font: bold, color: accent });
+    drawPdfText(page, 'CONDITIONS', { x: MARGIN, y, size: 7, font: bold, color: accent });
     y -= 15;
     for (const lineText of wrap(document.terms, regular, 7.6, PAGE[0] - MARGIN * 2).slice(0, 14)) {
-      page.drawText(lineText, { x: MARGIN, y, size: 7.6, font: regular, color: muted });
+      drawPdfText(page, lineText, { x: MARGIN, y, size: 7.6, font: regular, color: muted });
       y -= 10;
     }
   }
 
   for (const current of pdf.getPages()) {
     current.drawLine({ start: { x: MARGIN, y: 46 }, end: { x: PAGE[0] - MARGIN, y: 46 }, thickness: 0.5, color: line });
-    current.drawText('Document généré depuis NCR Suite', { x: MARGIN, y: 31, size: 6.2, font: regular, color: muted });
-    current.drawText(clean(issuerName).slice(0, 55), { x: PAGE[0] - MARGIN - 190, y: 31, size: 6.2, font: bold, color: accent });
+    drawPdfText(current, 'Document généré depuis NCR Suite', { x: MARGIN, y: 31, size: 6.2, font: regular, color: muted });
+    drawPdfText(current, clean(issuerName).slice(0, 55), { x: PAGE[0] - MARGIN - 190, y: 31, size: 6.2, font: bold, color: accent });
   }
 
   pdf.setTitle(`${trainingCommercialDocumentTypeLabels[document.document_type]} ${document.reference}`);
