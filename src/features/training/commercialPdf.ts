@@ -293,7 +293,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
   theme.pdf.setAuthor(organization.public_name || organization.name);
   theme.pdf.setSubject(program?.title || document.training_summary || document.title);
   theme.pdf.setCreator('NCR Suite');
-  theme.pdf.setProducer('NCR Suite V2.15.4');
+  theme.pdf.setProducer('NCR Suite V2.16.0');
 
   const bytes = await theme.pdf.save();
   const pdfBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;

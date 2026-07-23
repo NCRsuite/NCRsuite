@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-sav-admin`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-crm-pipeline`;
+const trainingSavCache = 'ncr-suite-shell-v2.15.4-training-sav-admin';
 const trainingIntegrityCache = 'ncr-suite-shell-v2.15.3-training-automation-integrity';
 const trainingClosureCache = 'ncr-suite-shell-v2.15.2-training-closure';
 const trainingDocumentsCache = 'ncr-suite-shell-v2.15.1-training-documents';
@@ -107,7 +108,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -306,7 +307,7 @@ requireText('src/pages/TrainingCommercialPage.tsx', [
   'training_funders',
   'training_commercial_documents',
   'generateTrainingCommercialPdf',
-  'Commercial & financeurs'
+  'CRM & COMMERCIAL'
 ]);
 requireText('supabase/migrations/068_training_commercial_administration.sql', [
   'create table if not exists public.training_customers',
@@ -384,7 +385,7 @@ requireText('src/features/training/programPdf.ts', [
   'Organisation pratique'
 ]);
 requireText('src/features/training/commercialPdf.ts', [
-  'NCR Suite V2.15.4',
+  'NCR Suite V2.16.0',
   'Acceptation et signatures',
   'Programme détaillé'
 ]);
@@ -410,7 +411,7 @@ requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'training_commercial_document'",
   "item.template_key === 'training_commercial_document'",
   'Convocation à une formation',
-  'NCR Suite V2.15.4'
+  'NCR Suite V2.16.0'
 ]);
 requireText('supabase/migrations/073_training_delivery_closure_automation.sql', [
   'update_training_evaluation_settings',
@@ -462,7 +463,7 @@ requireText('supabase/migrations/075_admin_training_sav_supervision.sql', [
   'create or replace function public.admin_training_sav_repair_session',
   'public.is_platform_super_admin()',
   "'2.15.4'",
-  expectedCache,
+  trainingSavCache,
   'set search_path = public'
 ]);
 requireText('src/components/AdminTrainingSavPanel.tsx', [
@@ -479,6 +480,37 @@ requireText('src/pages/PlatformAdminPage.tsx', [
   "activeSection === 'trainingSav'",
   'SAV Formation',
   '<AdminTrainingSavPanel />'
+]);
+
+requireText('supabase/migrations/076_training_crm_pipeline.sql', [
+  'create table if not exists public.training_crm_opportunities',
+  'create table if not exists public.training_crm_activities',
+  'create or replace function public.move_training_crm_opportunity',
+  'create or replace function public.convert_training_crm_opportunity_to_customer',
+  'create or replace function public.set_training_crm_activity_completed',
+  'create or replace function public.sync_training_crm_from_commercial_document',
+  'alter table public.training_crm_opportunities enable row level security',
+  'alter table public.training_crm_activities enable row level security',
+  "'2.16.0'",
+  expectedCache,
+  'set search_path = public'
+]);
+requireText('src/components/TrainingCrmPipeline.tsx', [
+  "supabase.rpc('move_training_crm_opportunity'",
+  "supabase.rpc('convert_training_crm_opportunity_to_customer'",
+  "supabase.rpc('set_training_crm_activity_completed'",
+  "from('training_crm_opportunities')",
+  "from('training_crm_activities')",
+  'Pipeline',
+  'Prochaines actions',
+  'Préparer le devis'
+]);
+requireText('src/pages/TrainingCommercialPage.tsx', [
+  "type Tab = 'crm'",
+  '<TrainingCrmPipeline',
+  'opportunity_id',
+  'createDocumentFromOpportunity',
+  'CRM & COMMERCIAL'
 ]);
 
 requireText('supabase/functions/process-email-queue/index.ts', [

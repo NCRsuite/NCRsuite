@@ -351,7 +351,7 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
   pdf.setAuthor(organization);
   pdf.setSubject(program);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.15.4');
+  pdf.setProducer('NCR Suite V2.16.0');
   return await pdf.save();
 }
 async function processTrainingDocumentJobs(supabase: any) {

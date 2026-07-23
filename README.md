@@ -1,7 +1,7 @@
-# NCR Suite V2.15.4
+# NCR Suite V2.16.0
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version ajoute un SAV Formation réservé au super administrateur NCR. Il centralise le diagnostic des évaluations, attestations, documents et e-mails automatiques, avec des actions guidées de relance et de réparation.
+Cette version ajoute le CRM Formation : pipeline des prospects, opportunités, relances, historique des échanges, transformation en client et liaison directe avec les devis.
 
-Consulter `A_LIRE_INSTALLATION_V2.15.4.txt` avant déploiement.
+Consulter `A_LIRE_INSTALLATION_V2.16.0.txt` avant déploiement.

@@ -1,0 +1,41 @@
+VALIDATION V2.16.0
+
+Date : 2026-07-23
+Base analysee : NCR Suite V2.15.4 locale
+Version cible : ncr-suite@2.16.0
+
+Controles executes localement :
+- npm run audit:phase1 : OK
+- npm run test:critical : OK
+- npx tsc -b --pretty false : OK
+- npm run build : OK
+
+Resultat build :
+- TypeScript : OK
+- Vite build : OK
+- 415 modules transformes
+- Bundle TrainingCommercialPage genere
+- Service worker synchronise avec le cache ncr-suite-shell-v2.16.0-training-crm-pipeline
+
+Points verifies :
+- Migration 076 presente apres la migration 075.
+- Tables training_crm_opportunities et training_crm_activities protegees par RLS.
+- Fonctions CRM protegees par le role et le module Commercial Formation.
+- Pipeline Nouveau, Qualifie, Proposition, Negociation, Gagne et Perdu.
+- Relances planifiees et actions en retard.
+- Historique des appels, e-mails, rendez-vous, taches et notes.
+- Conversion d'une opportunite en fiche client.
+- Liaison entre opportunite et dossier commercial.
+- Creation d'un devis pre-rempli depuis l'opportunite.
+- Synchronisation automatique du pipeline depuis le statut commercial.
+- Mode demonstration et stockage local conserves.
+- Mise en page responsive declaree pour ordinateur, tablette et mobile.
+- APP_VERSION, cache PWA, producteurs PDF et processeur e-mail synchronises en V2.16.0.
+
+Limite locale :
+- La verification visuelle automatisee n'a pas pu etre executee, car le bac a sable interdit l'ouverture d'un serveur local et le navigateur bloque les URL de fichiers locaux.
+- Le build de production, les points de rupture responsive et l'absence d'erreur TypeScript ont ete verifies.
+
+Note de deploiement :
+- Les migrations 001 a 075 etant deja deployees, seul le SQL 076 doit etre execute pour cette version.
+- L'Edge Function process-email-queue doit etre redeployee uniquement si sa publication n'est pas automatique depuis GitHub.

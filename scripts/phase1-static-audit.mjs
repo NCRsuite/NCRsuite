@@ -103,7 +103,7 @@ if (!publicRestaurantMenuPage.includes('localeByLanguage') || !publicRestaurantM
 // V2.14.0 — le module commercial Formation doit rester isolé au métier et audité.
 const trainingCommercialPage = read('src/pages/TrainingCommercialPage.tsx');
 const trainingCommercialMigration = read('supabase/migrations/068_training_commercial_administration.sql');
-if (!trainingCommercialPage.includes('Commercial & financeurs') || !trainingCommercialPage.includes('generateTrainingCommercialPdf')) {
+if (!trainingCommercialPage.includes('CRM & COMMERCIAL') || !trainingCommercialPage.includes('generateTrainingCommercialPdf')) {
   errors.push('La page commerciale Formation V2.14.0 est incomplète.');
 }
 if (!trainingCommercialMigration.includes('create table if not exists public.training_commercial_documents') || !trainingCommercialMigration.includes("ncr-suite-shell-v2.14.0-training-commercial") || !trainingCommercialMigration.includes("'2.14.0'")) {
@@ -221,8 +221,8 @@ if (!trainingSessionsV2153.includes("status: 'draft' as TrainingSessionStatus")
     || !trainingSessionsV2153.includes('evaluation_type,status,scheduled_for')) {
   errors.push('La page Sessions Formation doit passer par la validation officielle et lire les champs d’évaluation V2.15.2.');
 }
-if (!trainingEmailProcessor.includes('NCR Suite V2.15.4')) {
-  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.15.4.');
+if (!trainingEmailProcessor.includes('NCR Suite V2.16.0')) {
+  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.16.0.');
 }
 
 // V2.15.4 — SAV Formation réservé au super administrateur NCR.
@@ -251,6 +251,37 @@ if (!platformAdminPage.includes('AdminTrainingSavPanel')
     || !platformAdminPage.includes("activeSection === 'trainingSav'")
     || !platformAdminPage.includes('SAV Formation')) {
   errors.push('Le SAV Formation doit rester raccordé à l’administration centrale.');
+}
+
+// V2.16.0 — CRM Formation, pipeline, relances et liaison avec les devis.
+const trainingCrmMigration = read('supabase/migrations/076_training_crm_pipeline.sql');
+const trainingCrmPipeline = read('src/components/TrainingCrmPipeline.tsx');
+if (!trainingCrmMigration.includes('create table if not exists public.training_crm_opportunities')
+    || !trainingCrmMigration.includes('create table if not exists public.training_crm_activities')
+    || !trainingCrmMigration.includes('create or replace function public.move_training_crm_opportunity')
+    || !trainingCrmMigration.includes('create or replace function public.convert_training_crm_opportunity_to_customer')
+    || !trainingCrmMigration.includes('create or replace function public.set_training_crm_activity_completed')
+    || !trainingCrmMigration.includes('create or replace function public.sync_training_crm_from_commercial_document')
+    || !trainingCrmMigration.includes('alter table public.training_crm_opportunities enable row level security')
+    || !trainingCrmMigration.includes('alter table public.training_crm_activities enable row level security')
+    || !trainingCrmMigration.includes("ncr-suite-shell-v2.16.0-training-crm-pipeline")
+    || !trainingCrmMigration.includes("'2.16.0'")) {
+  errors.push('La migration V2.16.0 du CRM Formation est incomplète.');
+}
+if (!trainingCrmPipeline.includes("from('training_crm_opportunities')")
+    || !trainingCrmPipeline.includes("from('training_crm_activities')")
+    || !trainingCrmPipeline.includes("supabase.rpc('move_training_crm_opportunity'")
+    || !trainingCrmPipeline.includes("supabase.rpc('convert_training_crm_opportunity_to_customer'")
+    || !trainingCrmPipeline.includes("supabase.rpc('set_training_crm_activity_completed'")
+    || !trainingCrmPipeline.includes('Prochaines actions')
+    || !trainingCrmPipeline.includes('Préparer le devis')) {
+  errors.push('Le pipeline CRM Formation V2.16.0 est incomplet.');
+}
+if (!trainingCommercialPage.includes('<TrainingCrmPipeline')
+    || !trainingCommercialPage.includes('createDocumentFromOpportunity')
+    || !trainingCommercialPage.includes('opportunity_id')
+    || !trainingCommercialPage.includes('Pipeline CRM')) {
+  errors.push('Le CRM doit rester intégré au module commercial Formation.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

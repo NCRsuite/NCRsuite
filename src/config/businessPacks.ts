@@ -145,7 +145,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Stagiaires', path: '/stagiaires', icon: 'users' },
       { label: 'Formateurs', path: '/formateurs', icon: 'briefcase' },
       { label: 'Sessions', path: '/sessions', icon: 'calendar' },
-      { label: 'Commercial', path: '/commercial', icon: 'creditCard' },
+      { label: 'CRM & commercial', path: '/commercial', icon: 'creditCard' },
       { label: 'Dossiers de formation', path: '/dossiers-formation', icon: 'clipboard' },
       { label: 'Documents', path: '/documents', icon: 'file' },
       { label: 'Émargements', path: '/emargements', icon: 'signature' },

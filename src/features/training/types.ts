@@ -295,6 +295,10 @@ export type TrainingCustomerType = 'company' | 'individual';
 export type TrainingFunderType = 'opco' | 'employer' | 'cpf' | 'public' | 'self' | 'other';
 export type TrainingCommercialDocumentType = 'quote' | 'agreement' | 'contract';
 export type TrainingCommercialDocumentStatus = 'draft' | 'sent' | 'accepted' | 'signed' | 'refused' | 'canceled' | 'completed';
+export type TrainingCrmStage = 'new' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
+export type TrainingCrmSource = 'website' | 'referral' | 'outbound' | 'event' | 'partner' | 'existing_customer' | 'other';
+export type TrainingCrmActivityType = 'note' | 'call' | 'email' | 'meeting' | 'task';
+export type TrainingCrmActivityStatus = 'planned' | 'completed' | 'canceled';
 
 export interface TrainingCustomerRecord {
   id: string;
@@ -338,6 +342,7 @@ export interface TrainingCommercialDocumentRecord {
   id: string;
   organization_id: string;
   site_id: string | null;
+  opportunity_id: string | null;
   customer_id: string | null;
   funder_id: string | null;
   session_id: string | null;
@@ -374,6 +379,49 @@ export interface TrainingCommercialDocumentRecord {
   updated_at?: string;
 }
 
+export interface TrainingCrmOpportunityRecord {
+  id: string;
+  organization_id: string;
+  site_id: string | null;
+  customer_id: string | null;
+  program_id: string | null;
+  title: string;
+  company_name: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  source: TrainingCrmSource;
+  stage: TrainingCrmStage;
+  estimated_value_cents: number;
+  probability: number;
+  expected_close_date: string | null;
+  next_action_label: string | null;
+  next_action_at: string | null;
+  notes: string | null;
+  lost_reason: string | null;
+  assigned_to: string | null;
+  created_by: string | null;
+  won_at: string | null;
+  lost_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrainingCrmActivityRecord {
+  id: string;
+  organization_id: string;
+  opportunity_id: string;
+  activity_type: TrainingCrmActivityType;
+  subject: string;
+  details: string | null;
+  due_at: string | null;
+  status: TrainingCrmActivityStatus;
+  completed_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export const trainingCustomerTypeLabels: Record<TrainingCustomerType, string> = {
   company: 'Entreprise',
   individual: 'Particulier'
@@ -402,6 +450,33 @@ export const trainingCommercialDocumentStatusLabels: Record<TrainingCommercialDo
   refused: 'Refusé',
   canceled: 'Annulé',
   completed: 'Terminé'
+};
+
+export const trainingCrmStageLabels: Record<TrainingCrmStage, string> = {
+  new: 'Nouveau',
+  qualified: 'Qualifié',
+  proposal: 'Proposition',
+  negotiation: 'Négociation',
+  won: 'Gagné',
+  lost: 'Perdu'
+};
+
+export const trainingCrmSourceLabels: Record<TrainingCrmSource, string> = {
+  website: 'Site internet',
+  referral: 'Recommandation',
+  outbound: 'Prospection',
+  event: 'Événement',
+  partner: 'Partenaire',
+  existing_customer: 'Client existant',
+  other: 'Autre'
+};
+
+export const trainingCrmActivityTypeLabels: Record<TrainingCrmActivityType, string> = {
+  note: 'Note',
+  call: 'Appel',
+  email: 'E-mail',
+  meeting: 'Rendez-vous',
+  task: 'Tâche'
 };
 
 export function formatTrainingMoney(cents: number) {

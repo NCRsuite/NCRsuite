@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { TrainingCrmPipeline } from '../components/TrainingCrmPipeline';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -17,6 +18,8 @@ import {
   type TrainingCommercialDocumentRecord,
   type TrainingCommercialDocumentStatus,
   type TrainingCommercialDocumentType,
+  type TrainingCrmActivityRecord,
+  type TrainingCrmOpportunityRecord,
   type TrainingCustomerRecord,
   type TrainingCustomerType,
   type TrainingFunderRecord,
@@ -29,7 +32,7 @@ import { closeFileWindow, prepareFileWindow, showBlobDownload } from '../lib/bro
 import { readJsonStorage, writeJsonStorage } from '../lib/safeStorage';
 import { supabase } from '../lib/supabase';
 
-type Tab = 'documents' | 'customers' | 'funders';
+type Tab = 'crm' | 'documents' | 'customers' | 'funders';
 type Editor = 'document' | 'customer' | 'funder' | null;
 
 type CustomerForm = {
@@ -61,6 +64,7 @@ type FunderForm = {
 };
 
 type DocumentForm = {
+  opportunityId: string;
   documentType: TrainingCommercialDocumentType;
   title: string;
   trainingSummary: string;
@@ -93,7 +97,7 @@ const emptyFunder: FunderForm = {
   funderType: 'opco', name: '', contactName: '', email: '', phone: '', billingAddress: '', postalCode: '', city: '', referenceCode: '', notes: ''
 };
 const emptyDocument: DocumentForm = {
-  documentType: 'quote', title: '', trainingSummary: '', customerId: '', funderId: '', sessionId: '', traineeId: '', programId: '', participantCount: '1', issueDate: today(), validUntil: inThirtyDays(), amountExclTax: '0', vatRate: '20', notes: '', terms: 'Conditions de règlement et modalités d’exécution à convenir entre les parties.', siteId: ''
+  opportunityId: '', documentType: 'quote', title: '', trainingSummary: '', customerId: '', funderId: '', sessionId: '', traineeId: '', programId: '', participantCount: '1', issueDate: today(), validUntil: inThirtyDays(), amountExclTax: '0', vatRate: '20', notes: '', terms: 'Conditions de règlement et modalités d’exécution à convenir entre les parties.', siteId: ''
 };
 
 function moneyToCents(value: string) {
@@ -121,7 +125,7 @@ export function TrainingCommercialPage() {
   const { user, demoMode } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState<Tab>('documents');
+  const [tab, setTab] = useState<Tab>('crm');
   const [editor, setEditor] = useState<Editor>(searchParams.get('new') === '1' ? 'document' : null);
   const [customers, setCustomers] = useState<TrainingCustomerRecord[]>([]);
   const [funders, setFunders] = useState<TrainingFunderRecord[]>([]);
@@ -165,7 +169,7 @@ export function TrainingCommercialPage() {
         return;
       }
       let customerRequest = supabase.from('training_customers').select('id,organization_id,site_id,customer_type,legal_name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,notes,status,created_at,updated_at').eq('organization_id', organizationId).neq('status', 'archived').order('legal_name');
-      let documentRequest = supabase.from('training_commercial_documents').select('id,organization_id,site_id,customer_id,funder_id,session_id,trainee_id,program_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,signed_document_path,signed_document_received_at,signed_document_received_by,generated_document_path,generated_document_name,generated_at,email_queued_at,emailed_at,last_email_recipient,last_email_outbox_id,created_at,updated_at').eq('organization_id', organizationId).order('created_at', { ascending: false });
+      let documentRequest = supabase.from('training_commercial_documents').select('id,organization_id,site_id,opportunity_id,customer_id,funder_id,session_id,trainee_id,program_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,signed_document_path,signed_document_received_at,signed_document_received_by,generated_document_path,generated_document_name,generated_at,email_queued_at,emailed_at,last_email_recipient,last_email_outbox_id,created_at,updated_at').eq('organization_id', organizationId).order('created_at', { ascending: false });
       let sessionRequest = supabase.from('training_sessions').select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,source_commercial_document_id,validated_at,validated_by,created_at').eq('organization_id', organizationId).neq('status', 'canceled').order('starts_at', { ascending: false });
       if (activeSiteId) {
         const siteScope = `site_id.is.null,site_id.eq.${activeSiteId}`;
@@ -276,6 +280,75 @@ export function TrainingCommercialPage() {
     if (next === 'funder') setFunderForm(emptyFunder);
   }
 
+  function createDocumentFromOpportunity(opportunity: TrainingCrmOpportunityRecord) {
+    const program = programById.get(opportunity.program_id ?? '');
+    setTab('documents');
+    setEditor('document');
+    setError('');
+    setSuccess('');
+    setDocumentForm({
+      ...emptyDocument,
+      opportunityId: opportunity.id,
+      customerId: opportunity.customer_id ?? '',
+      programId: opportunity.program_id ?? '',
+      title: opportunity.title,
+      trainingSummary: program?.description || program?.objectives || opportunity.notes || '',
+      participantCount: program ? String(program.default_capacity) : '1',
+      amountExclTax: String(opportunity.estimated_value_cents / 100).replace('.', ','),
+      vatRate: program ? String(program.vat_rate_basis_points / 100).replace('.', ',') : '20',
+      siteId: opportunity.site_id || activeSiteId || sites[0]?.id || '',
+      terms: organization?.training_default_terms || emptyDocument.terms
+    });
+  }
+
+  function addCrmCustomer(customer: TrainingCustomerRecord) {
+    setCustomers((current) => current.some((row) => row.id === customer.id)
+      ? current
+      : [...current, customer].sort((a, b) => a.legal_name.localeCompare(b.legal_name, 'fr')));
+  }
+
+  function syncDemoCrmFromDocument(opportunityId: string | null, status: TrainingCommercialDocumentStatus, reference: string, title: string) {
+    if (!organization || !opportunityId) return;
+    const targetStage = ['accepted', 'signed', 'completed'].includes(status) ? 'won' : ['draft', 'sent'].includes(status) ? 'proposal' : null;
+    if (!targetStage) return;
+    const opportunityKey = `ncr-suite-training-crm-opportunities-${organization.id}`;
+    const activityKey = `ncr-suite-training-crm-activities-${organization.id}`;
+    const storedOpportunities = readRows<TrainingCrmOpportunityRecord>(opportunityKey);
+    let changed = false;
+    const now = new Date().toISOString();
+    const nextOpportunities = storedOpportunities.map((opportunity) => {
+      if (opportunity.id !== opportunityId || ['won', 'lost'].includes(opportunity.stage) || opportunity.stage === targetStage) return opportunity;
+      changed = true;
+      return {
+        ...opportunity,
+        stage: targetStage,
+        probability: targetStage === 'won' ? 100 : Math.max(opportunity.probability, 60),
+        won_at: targetStage === 'won' ? now : null,
+        next_action_label: targetStage === 'won' ? null : opportunity.next_action_label,
+        next_action_at: targetStage === 'won' ? null : opportunity.next_action_at,
+        updated_at: now
+      };
+    });
+    if (!changed) return;
+    const storedActivities = readRows<TrainingCrmActivityRecord>(activityKey);
+    const activity: TrainingCrmActivityRecord = {
+      id: crypto.randomUUID(),
+      organization_id: organization.id,
+      opportunity_id: opportunityId,
+      activity_type: 'note',
+      subject: targetStage === 'won' ? 'Vente gagnée' : 'Proposition commerciale créée',
+      details: `${reference} - ${title}`,
+      due_at: null,
+      status: 'completed',
+      completed_at: now,
+      created_by: user?.id ?? null,
+      created_at: now,
+      updated_at: now
+    };
+    writeJsonStorage(opportunityKey, nextOpportunities);
+    writeJsonStorage(activityKey, [activity, ...storedActivities]);
+  }
+
   async function saveCustomer(event: FormEvent) {
     event.preventDefault();
     if (!organization || !user || !canManage) return;
@@ -354,6 +427,7 @@ export function TrainingCommercialPage() {
     const payload = {
       organization_id: organization.id,
       site_id: multiSiteEnabled ? nullableText(documentForm.siteId) : null,
+      opportunity_id: nullableText(documentForm.opportunityId),
       customer_id: nullableText(documentForm.customerId), funder_id: nullableText(documentForm.funderId), session_id: nullableText(documentForm.sessionId), trainee_id: nullableText(documentForm.traineeId), program_id: documentForm.programId,
       document_type: documentForm.documentType, title: documentForm.title.trim(), training_summary: nullableText(documentForm.trainingSummary), participant_count: participantCount,
       issue_date: documentForm.issueDate, valid_until: nullableText(documentForm.validUntil), amount_excl_tax_cents: amount, vat_rate_basis_points: Math.round(vatRate * 100),
@@ -365,8 +439,9 @@ export function TrainingCommercialPage() {
         const tax = Math.round(amount * Math.round(vatRate * 100) / 10000);
         created = { id: crypto.randomUUID(), ...payload, reference: `${documentForm.documentType === 'quote' ? 'DEV' : documentForm.documentType === 'agreement' ? 'CONV' : 'CTR'}-${new Date().getFullYear()}-${String(documents.length + 1).padStart(4, '0')}`, status: 'draft', tax_cents: tax, amount_incl_tax_cents: amount + tax, sent_at: null, accepted_at: null, signed_at: null, signed_document_path: null, signed_document_received_at: null, signed_document_received_by: null, generated_document_path: null, generated_document_name: null, generated_at: null, email_queued_at: null, emailed_at: null, last_email_recipient: null, last_email_outbox_id: null, created_at: new Date().toISOString() };
         writeJsonStorage(`ncr-suite-training-commercial-${organization.id}`, [created, ...documents]);
+        syncDemoCrmFromDocument(created.opportunity_id, created.status, created.reference, created.title);
       } else {
-        const { data, error: insertError } = await supabase.from('training_commercial_documents').insert(payload).select('id,organization_id,site_id,customer_id,funder_id,session_id,trainee_id,program_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,signed_document_path,signed_document_received_at,signed_document_received_by,generated_document_path,generated_document_name,generated_at,email_queued_at,emailed_at,last_email_recipient,last_email_outbox_id,created_at,updated_at').single();
+        const { data, error: insertError } = await supabase.from('training_commercial_documents').insert(payload).select('id,organization_id,site_id,opportunity_id,customer_id,funder_id,session_id,trainee_id,program_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,signed_document_path,signed_document_received_at,signed_document_received_by,generated_document_path,generated_document_name,generated_at,email_queued_at,emailed_at,last_email_recipient,last_email_outbox_id,created_at,updated_at').single();
         if (insertError) throw insertError;
         if (!data) throw new Error('Le dossier créé n’a pas été retourné par Supabase.');
         created = { ...(data as TrainingCommercialDocumentRecord), participant_count: Number(data.participant_count), amount_excl_tax_cents: Number(data.amount_excl_tax_cents), vat_rate_basis_points: Number(data.vat_rate_basis_points), tax_cents: Number(data.tax_cents), amount_incl_tax_cents: Number(data.amount_incl_tax_cents) };
@@ -389,6 +464,7 @@ export function TrainingCommercialPage() {
       if (demoMode || !supabase) {
         const next = documents.map((item) => item.id === row.id ? { ...item, ...patch } : item);
         writeJsonStorage(`ncr-suite-training-commercial-${organization.id}`, next);
+        syncDemoCrmFromDocument(row.opportunity_id, status, row.reference, row.title);
       } else {
         const { error: updateError } = await supabase.from('training_commercial_documents').update(patch).eq('organization_id', organization.id).eq('id', row.id);
         if (updateError) throw updateError;
@@ -558,18 +634,19 @@ export function TrainingCommercialPage() {
   return (
     <div className="page training-page training-commercial-page">
       <header className="page-header">
-        <div><p className="eyebrow">FORMATION · ADMINISTRATION COMMERCIALE</p><h1>Commercial & financeurs</h1><p>Centralisez les entreprises clientes, les prises en charge et les documents reliés aux sessions.</p></div>
-        {canManage && <button className="primary-button" type="button" onClick={() => openEditor(tab === 'customers' ? 'customer' : tab === 'funders' ? 'funder' : 'document')}><Icon name="plus" size={18} />{tab === 'customers' ? 'Ajouter un client' : tab === 'funders' ? 'Ajouter un financeur' : 'Créer un dossier'}</button>}
+        <div><p className="eyebrow">FORMATION · CRM & COMMERCIAL</p><h1>Prospects, clients et dossiers</h1><p>Suivez les opportunités, les relances, les financeurs et les documents commerciaux au même endroit.</p></div>
+        {canManage && tab !== 'crm' && <button className="primary-button" type="button" onClick={() => openEditor(tab === 'customers' ? 'customer' : tab === 'funders' ? 'funder' : 'document')}><Icon name="plus" size={18} />{tab === 'customers' ? 'Ajouter un client' : tab === 'funders' ? 'Ajouter un financeur' : 'Créer un dossier'}</button>}
       </header>
 
-      <section className="training-commercial-metrics">
+      {tab !== 'crm' && <section className="training-commercial-metrics">
         <article><span><Icon name="file" size={20} /></span><div><small>Dossiers ouverts</small><strong>{totals.open}</strong></div></article>
         <article><span><Icon name="check" size={20} /></span><div><small>Acceptés ou signés</small><strong>{totals.accepted}</strong></div></article>
         <article><span><Icon name="creditCard" size={20} /></span><div><small>Montant HT suivi</small><strong>{formatTrainingMoney(totals.value)}</strong></div></article>
         <article><span><Icon name="building" size={20} /></span><div><small>Clients / financeurs</small><strong>{customers.length} / {funders.length}</strong></div></article>
-      </section>
+      </section>}
 
       <div className="training-commercial-tabs" role="tablist" aria-label="Administration commerciale">
+        <button type="button" className={tab === 'crm' ? 'active' : ''} onClick={() => { setTab('crm'); setQuery(''); setEditor(null); }}><Icon name="chart" size={17} />Pipeline CRM</button>
         <button type="button" className={tab === 'documents' ? 'active' : ''} onClick={() => { setTab('documents'); setQuery(''); }}><Icon name="file" size={17} />Dossiers</button>
         <button type="button" className={tab === 'customers' ? 'active' : ''} onClick={() => { setTab('customers'); setQuery(''); }}><Icon name="building" size={17} />Entreprises</button>
         <button type="button" className={tab === 'funders' ? 'active' : ''} onClick={() => { setTab('funders'); setQuery(''); }}><Icon name="creditCard" size={17} />Financeurs</button>
@@ -631,7 +708,14 @@ export function TrainingCommercialPage() {
       {error && <div className="error-message page-message" role="alert">{error}</div>}
       {success && <div className="success-message page-message" role="status">{success}</div>}
 
-      <section className="panel training-commercial-list">
+      {tab === 'crm' ? (
+        <TrainingCrmPipeline
+          customers={customers}
+          programs={programs}
+          onCustomerCreated={addCrmCustomer}
+          onCreateDocument={createDocumentFromOpportunity}
+        />
+      ) : <section className="panel training-commercial-list">
         <div className="training-toolbar"><div><p className="eyebrow">{tab === 'documents' ? 'SUIVI COMMERCIAL' : tab === 'customers' ? 'PORTEFEUILLE CLIENTS' : 'PRISES EN CHARGE'}</p><h2>{tab === 'documents' ? `${documents.length} dossier${documents.length > 1 ? 's' : ''}` : tab === 'customers' ? `${customers.length} client${customers.length > 1 ? 's' : ''}` : `${funders.length} financeur${funders.length > 1 ? 's' : ''}`}</h2></div><label className="search-field"><span className="sr-only">Rechercher</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher…" /></label></div>
         {loading ? <div className="training-empty">Chargement…</div> : tab === 'documents' ? (
           filteredDocuments.length === 0 ? <div className="training-empty"><Icon name="file" size={30} /><strong>Aucun dossier commercial</strong><span>Crée le premier devis, la première convention ou le premier contrat.</span></div> :
@@ -651,7 +735,7 @@ export function TrainingCommercialPage() {
           filteredFunders.length === 0 ? <div className="training-empty"><Icon name="creditCard" size={30} /><strong>Aucun financeur</strong><span>Ajoute un OPCO, un employeur ou un autre organisme de prise en charge.</span></div> :
           <div className="training-commercial-entity-grid">{filteredFunders.map((row) => <article key={row.id}><span><Icon name="creditCard" size={22} /></span><div><small>{trainingFunderTypeLabels[row.funder_type]}</small><strong>{row.name}</strong><p>{row.contact_name || row.reference_code || 'Référence non renseignée'}</p><em>{[row.email, row.phone, row.city].filter(Boolean).join(' · ') || 'Coordonnées à compléter'}</em></div>{canManage && <button type="button" className="danger-text-button" disabled={busyId === row.id} onClick={() => void archiveEntity('funder', row.id, row.name)}>Archiver</button>}</article>)}</div>
         )}
-      </section>
+      </section>}
     </div>
   );
 }
