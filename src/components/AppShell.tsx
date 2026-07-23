@@ -45,6 +45,73 @@ export function AppShell() {
   }, [mobileMenuOpen, mobileAccountOpen]);
 
   useEffect(() => {
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+    let animationFrame = 0;
+    let delayedTimers: number[] = [];
+
+    const editableSelector = 'input, textarea, select, [contenteditable="true"]';
+
+    function editableFieldIsFocused() {
+      const activeElement = document.activeElement;
+      return activeElement instanceof HTMLElement && Boolean(activeElement.closest(editableSelector));
+    }
+
+    function synchronizeMobileNavigation() {
+      if (window.matchMedia('(min-width: 901px)').matches) {
+        root.style.removeProperty('--mobile-nav-y-compensation');
+        return;
+      }
+
+      const layoutViewportHeight = Math.max(window.innerHeight, root.clientHeight);
+      const visualViewportBottom = viewport
+        ? viewport.offsetTop + viewport.height
+        : layoutViewportHeight;
+      const concealedViewportHeight = Math.max(0, layoutViewportHeight - visualViewportBottom);
+      const compensation = !editableFieldIsFocused() && concealedViewportHeight > 120
+        ? concealedViewportHeight
+        : 0;
+
+      root.style.setProperty('--mobile-nav-y-compensation', `${Math.round(compensation)}px`);
+    }
+
+    function scheduleSynchronization() {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(synchronizeMobileNavigation);
+    }
+
+    function scheduleDelayedSynchronizations() {
+      scheduleSynchronization();
+      delayedTimers.forEach((timer) => window.clearTimeout(timer));
+      delayedTimers = [80, 260, 650].map((delay) => window.setTimeout(scheduleSynchronization, delay));
+    }
+
+    scheduleDelayedSynchronizations();
+    viewport?.addEventListener('resize', scheduleDelayedSynchronizations);
+    viewport?.addEventListener('scroll', scheduleSynchronization);
+    window.addEventListener('resize', scheduleDelayedSynchronizations);
+    window.addEventListener('orientationchange', scheduleDelayedSynchronizations);
+    window.addEventListener('pageshow', scheduleDelayedSynchronizations);
+    document.addEventListener('focusin', scheduleDelayedSynchronizations);
+    document.addEventListener('focusout', scheduleDelayedSynchronizations);
+    document.addEventListener('visibilitychange', scheduleDelayedSynchronizations);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      delayedTimers.forEach((timer) => window.clearTimeout(timer));
+      viewport?.removeEventListener('resize', scheduleDelayedSynchronizations);
+      viewport?.removeEventListener('scroll', scheduleSynchronization);
+      window.removeEventListener('resize', scheduleDelayedSynchronizations);
+      window.removeEventListener('orientationchange', scheduleDelayedSynchronizations);
+      window.removeEventListener('pageshow', scheduleDelayedSynchronizations);
+      document.removeEventListener('focusin', scheduleDelayedSynchronizations);
+      document.removeEventListener('focusout', scheduleDelayedSynchronizations);
+      document.removeEventListener('visibilitychange', scheduleDelayedSynchronizations);
+      root.style.removeProperty('--mobile-nav-y-compensation');
+    };
+  }, []);
+
+  useEffect(() => {
     if (!organization || !user || !supabase) {
       setNotificationUnread(0);
       return;
