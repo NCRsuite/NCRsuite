@@ -101,7 +101,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -227,14 +227,17 @@ requireText('src/pages/RestaurantCommercialBrandingPage.tsx', [
   "organization-branding",
   "restaurant-theme-grid",
   "showDishImages",
-  "showBookingButton"
+  "showBookingButton",
+  "update_restaurant_public_menu_translations"
 ]);
 requireText('src/pages/PublicRestaurantMenuPage.tsx', [
   "get_public_restaurant_menu",
   "restaurant-theme-",
   "image_url",
   "restaurant-public-category-nav",
-  "/reserver"
+  "/reserver",
+  "hero_eyebrow_en",
+  "booking_button_label_it"
 ]);
 requireText('src/pages/RestaurantMenuPage.tsx', [
   "restaurant-dish-photo-field",
@@ -258,6 +261,24 @@ requireText('supabase/migrations/065_restaurant_public_menu_premium.sql', [
   "o.business_type = 'securite'",
   "'image_url', i.image_url",
   "'2.13.0'",
+  'ncr-suite-shell-v2.13.0-restaurant-premium',
+  'set search_path = public'
+]);
+
+
+requireText('src/pages/PublicRestaurantBookingPage.tsx', [
+  "booking_welcome_text_en",
+  "restaurant-public-languages",
+  "ONLINE BOOKING",
+  "RESERVA EN LÍNEA",
+  "PRENOTAZIONE ONLINE"
+]);
+requireText('supabase/migrations/066_restaurant_public_translations_complete.sql', [
+  'update_restaurant_public_menu_translations',
+  'hero_description_en',
+  'booking_welcome_text_it',
+  'create or replace function public.get_public_restaurant_booking_config',
+  "'2.13.1'",
   expectedCache,
   'set search_path = public'
 ]);

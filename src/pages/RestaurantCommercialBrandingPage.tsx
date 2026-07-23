@@ -10,6 +10,12 @@ const allowedImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
 
 type RestaurantTheme = 'signature' | 'bistro' | 'gastronomique' | 'street' | 'mediterraneen' | 'minimal';
 type RestaurantLayout = 'gallery' | 'editorial';
+type TranslationLanguage = 'en' | 'es' | 'it';
+
+type TranslationPayload = {
+  provider: string;
+  translations: Record<TranslationLanguage, Record<string, string>>;
+};
 
 type RestaurantMenuSettings = {
   organization_id: string;
@@ -93,6 +99,7 @@ export function RestaurantCommercialBrandingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [translationWarning, setTranslationWarning] = useState('');
   const [error, setError] = useState('');
 
   const logoPreview = useMemo(() => logoFile ? URL.createObjectURL(logoFile) : logoUrl, [logoFile, logoUrl]);
@@ -192,10 +199,58 @@ export function RestaurantCommercialBrandingPage() {
     return supabase.storage.from('organization-branding').getPublicUrl(path).data.publicUrl;
   }
 
+
+  async function requestTranslation(segments: Record<string, string>): Promise<TranslationPayload> {
+    if (!supabase || demoMode) throw new Error('La traduction automatique nécessite Supabase.');
+    const { data, error: functionError } = await supabase.functions.invoke('translate-restaurant-menu', {
+      body: { organization_id: currentOrganization.id, segments },
+    });
+    if (functionError) throw new Error(functionError.message || 'La fonction de traduction est indisponible.');
+    if (data?.error) throw new Error(String(data.error));
+    if (!data?.translations) throw new Error('Réponse de traduction incomplète.');
+    return data as TranslationPayload;
+  }
+
+  async function translatePublicTexts() {
+    const sources: Record<string, string> = {
+      hero_eyebrow: heroEyebrow.trim(),
+      hero_title: heroTitle.trim(),
+      hero_description: heroDescription.trim(),
+      hours_text: hoursText.trim(),
+      practical_info: practicalInfo.trim(),
+      booking_button_label: bookingButtonLabel.trim(),
+      booking_welcome_text: currentOrganization.booking_welcome_text?.trim() || '',
+    };
+    const entries = Object.entries(sources).filter(([, value]) => Boolean(value));
+    const translations: Record<TranslationLanguage, Record<string, string>> = { en: {}, es: {}, it: {} };
+    for (const language of ['en', 'es', 'it'] as TranslationLanguage[]) {
+      for (const key of Object.keys(sources)) translations[language][key] = '';
+    }
+
+    let provider = '';
+    for (let index = 0; index < entries.length; index += 6) {
+      const chunk = Object.fromEntries(entries.slice(index, index + 6));
+      const result = await requestTranslation(chunk);
+      provider = provider || result.provider;
+      for (const language of ['en', 'es', 'it'] as TranslationLanguage[]) {
+        Object.assign(translations[language], result.translations[language]);
+      }
+    }
+
+    if (!supabase) return false;
+    const { error: translationError } = await supabase.rpc('update_restaurant_public_menu_translations', {
+      p_organization_id: currentOrganization.id,
+      p_translations: translations,
+      p_provider: provider || null,
+    });
+    if (translationError) throw translationError;
+    return entries.length > 0;
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!canManage || !hasBranding) return;
-    setSaving(true); setError(''); setMessage('');
+    setSaving(true); setError(''); setMessage(''); setTranslationWarning('');
     try {
       if (publicName.trim().length < 2) throw new Error('Indique un nom d’enseigne valide.');
       if (!slug || slug !== normalizeSlug(slug)) throw new Error('Le lien public contient des caractères non autorisés.');
@@ -230,6 +285,7 @@ export function RestaurantCommercialBrandingPage() {
         booking_button_label: bookingButtonLabel.trim() || null,
       };
 
+      let translationsGenerated = false;
       if (demoMode || !supabase) {
         writeJsonStorage(`ncr-restaurant-public-branding-${currentOrganization.id}`, settings);
       } else {
@@ -250,10 +306,15 @@ export function RestaurantCommercialBrandingPage() {
           p_booking_button_label: settings.booking_button_label,
         });
         if (rpcError) throw rpcError;
+        try {
+          translationsGenerated = await translatePublicTexts();
+        } catch (translationCaught) {
+          setTranslationWarning(`L’identité est publiée, mais les traductions personnalisées n’ont pas été mises à jour : ${translationCaught instanceof Error ? translationCaught.message : 'service indisponible'}`);
+        }
       }
 
       setLogoUrl(nextLogoUrl); setCoverUrl(nextCoverUrl); setLogoFile(null); setCoverFile(null);
-      setMessage('L’identité du menu public a été enregistrée.');
+      setMessage(translationsGenerated ? 'L’identité et ses traductions publiques ont été enregistrées.' : 'L’identité du menu public a été enregistrée.');
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
     } finally { setSaving(false); }
@@ -264,6 +325,7 @@ export function RestaurantCommercialBrandingPage() {
   return <div className="page restaurant-page restaurant-branding-page restaurant-premium-workspace">
     <header className="page-header restaurant-branding-admin-header"><div><p className="eyebrow">RESTAURATION · IDENTITÉ PUBLIQUE</p><h1>Menu à l’image de l’enseigne</h1><p>Compose une expérience QR moderne, gourmande et immédiatement reconnaissable par les clients.</p></div><a className="secondary-button" href={publicUrl} target="_blank" rel="noreferrer"><Icon name="eye" size={18}/>Ouvrir le menu public</a></header>
     {error && <div className="error-message page-message" role="alert">{error}</div>}
+    {translationWarning && <div className="warning-message page-message" role="status">{translationWarning}</div>}
     {message && <div className="success-message page-message" role="status">{message}</div>}
 
     <div className="restaurant-branding-layout">
@@ -283,7 +345,7 @@ export function RestaurantCommercialBrandingPage() {
 
         <section className="restaurant-branding-section"><div><p className="eyebrow">AMBIANCE</p><h2>Choisir un univers</h2><p>Chaque thème conserve les couleurs et l’enseigne du restaurant.</p></div><div className="restaurant-theme-grid">{themeChoices.map((choice) => <button key={choice.id} type="button" className={theme === choice.id ? 'active' : ''} onClick={() => setTheme(choice.id)} disabled={!canManage}><span>{choice.icon}</span><strong>{choice.label}</strong><small>{choice.description}</small></button>)}</div><div className="restaurant-layout-choice"><label><input type="radio" name="restaurant-layout" checked={layout === 'gallery'} onChange={() => setLayout('gallery')}/>Cartes visuelles</label><label><input type="radio" name="restaurant-layout" checked={layout === 'editorial'} onChange={() => setLayout('editorial')}/>Carte éditoriale</label></div></section>
 
-        <section className="restaurant-branding-section"><div><p className="eyebrow">ACCUEIL</p><h2>Texte du menu</h2></div><div className="branding-form-grid">
+        <section className="restaurant-branding-section"><div><p className="eyebrow">ACCUEIL</p><h2>Texte du menu</h2><p>À chaque publication, ces textes sont automatiquement générés en anglais, espagnol et italien.</p></div><div className="branding-form-grid">
           <label>Surtitre<input maxLength={80} value={heroEyebrow} onChange={(event) => setHeroEyebrow(event.target.value)} disabled={!canManage} placeholder="La carte du moment"/></label>
           <label>Titre principal<input maxLength={140} value={heroTitle} onChange={(event) => setHeroTitle(event.target.value)} disabled={!canManage} placeholder="Bienvenue à table"/></label>
           <label className="full-field">Texte d’accueil<textarea rows={3} maxLength={420} value={heroDescription} onChange={(event) => setHeroDescription(event.target.value)} disabled={!canManage}/><small>{heroDescription.length}/420</small></label>

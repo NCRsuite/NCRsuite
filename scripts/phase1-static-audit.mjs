@@ -74,7 +74,7 @@ if (!/SecurityFeatureGate[\s\S]{0,350}security_client_portal/.test(app)) {
 }
 
 
-// V2.13.0 — le rendu public Restauration doit rester isolé et personnalisable.
+// V2.13.1 — le rendu public Restauration doit rester isolé, personnalisable et multilingue.
 const commercialBrandingPage = read('src/pages/CommercialBrandingPage.tsx');
 if (!commercialBrandingPage.includes("business_type === 'restauration'") || !commercialBrandingPage.includes('<RestaurantCommercialBrandingPage />')) {
   errors.push('La personnalisation Restauration premium n’est pas raccordée à la page centrale.');
@@ -83,8 +83,9 @@ const restaurantPremiumMigration = read('supabase/migrations/065_restaurant_publ
 if (!restaurantPremiumMigration.includes("o.business_type = 'securite'") || !restaurantPremiumMigration.includes("organization_has_plan_feature(o.id, 'commercial_branding')")) {
   errors.push('La règle Storage V2.13.0 doit préserver les logos Sécurité et la personnalisation par fonctionnalité.');
 }
-if (!restaurantPremiumMigration.includes("ncr-suite-shell-v2.13.0-restaurant-premium")) {
-  errors.push('La migration Restauration premium ne publie pas le cache attendu.');
+const restaurantTranslationsMigration = read('supabase/migrations/066_restaurant_public_translations_complete.sql');
+if (!restaurantTranslationsMigration.includes("ncr-suite-shell-v2.13.1-restaurant-premium") || !restaurantTranslationsMigration.includes('update_restaurant_public_menu_translations')) {
+  errors.push('La migration V2.13.1 des traductions publiques Restauration est incomplète.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

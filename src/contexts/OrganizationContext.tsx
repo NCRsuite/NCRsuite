@@ -512,6 +512,38 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
               p_welcome_text: welcomeText.trim() || null
             });
         if (error) throw error;
+
+        if (organization.business_type === 'restauration') {
+          try {
+            const sourceWelcome = welcomeText.trim();
+            const publicTranslations: Record<'en' | 'es' | 'it', Record<string, string>> = {
+              en: { booking_welcome_text: '' },
+              es: { booking_welcome_text: '' },
+              it: { booking_welcome_text: '' },
+            };
+            let provider: string | null = null;
+            if (sourceWelcome) {
+              const { data: translationData, error: translationFunctionError } = await supabase.functions.invoke('translate-restaurant-menu', {
+                body: { organization_id: organization.id, segments: { booking_welcome_text: sourceWelcome } },
+              });
+              if (translationFunctionError) throw translationFunctionError;
+              if (translationData?.error) throw new Error(String(translationData.error));
+              if (!translationData?.translations) throw new Error('Réponse de traduction incomplète.');
+              provider = String(translationData.provider || '') || null;
+              for (const language of ['en', 'es', 'it'] as const) {
+                publicTranslations[language].booking_welcome_text = String(translationData.translations[language]?.booking_welcome_text || '');
+              }
+            }
+            const { error: publicTranslationError } = await supabase.rpc('update_restaurant_public_menu_translations', {
+              p_organization_id: organization.id,
+              p_translations: publicTranslations,
+              p_provider: provider,
+            });
+            if (publicTranslationError) throw publicTranslationError;
+          } catch (translationCaught) {
+            console.warn('Traduction du texte public de réservation non mise à jour.', translationCaught);
+          }
+        }
       }
 
       setOrganizations((current) => current.map((org) => org.id === next.id ? next : org));

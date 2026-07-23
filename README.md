@@ -1,9 +1,13 @@
-# NCR Suite V2.13.0 — Restauration premium
+# NCR Suite V2.13.1 — Traductions publiques Restauration
 
-Patch différentiel à appliquer uniquement sur la **V2.12.3 stable**, correctif UI PC/mobile inclus.
+Patch différentiel à appliquer sur la V2.13.0.
 
-Cette version finalise l’expérience publique du métier Restauration : menu QR multilingue, identité visuelle de l’enseigne, thèmes premium, photos des plats, navigation par catégories et réservation publique.
+## Installation
 
-Consulte `A_LIRE_INSTALLATION_V2.13.0.txt` avant l’installation.
+1. Exécuter `supabase/migrations/066_restaurant_public_translations_complete.sql`.
+2. Ajouter les fichiers du patch sur GitHub en conservant les chemins.
+3. Vérifier le build Cloudflare.
+4. Fermer puis rouvrir la PWA.
+5. Dans **Restauration > Identité du menu public**, cliquer une fois sur **Publier cette identité** afin de générer les traductions des textes déjà enregistrés.
 
-NCR Academy est un projet distinct et ne doit pas être modifié.
+La fonction Supabase `translate-restaurant-menu` déjà utilisée par les plats est réutilisée. Aucun redéploiement d’Edge Function n’est nécessaire si elle est déjà en production.

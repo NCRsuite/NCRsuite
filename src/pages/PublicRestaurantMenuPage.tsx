@@ -1,5 +1,5 @@
 import { CSSProperties, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { formatRestaurantMoney } from '../features/restaurant/types';
 import { supabase } from '../lib/supabase';
 
@@ -41,17 +41,35 @@ interface PublicMenuPayload {
   theme_code: RestaurantTheme;
   layout_code: RestaurantLayout;
   hero_eyebrow: string;
+  hero_eyebrow_en: string | null;
+  hero_eyebrow_es: string | null;
+  hero_eyebrow_it: string | null;
   hero_title: string;
+  hero_title_en: string | null;
+  hero_title_es: string | null;
+  hero_title_it: string | null;
   hero_description: string;
+  hero_description_en: string | null;
+  hero_description_es: string | null;
+  hero_description_it: string | null;
   address: string | null;
   hours_text: string | null;
+  hours_text_en: string | null;
+  hours_text_es: string | null;
+  hours_text_it: string | null;
   practical_info: string | null;
+  practical_info_en: string | null;
+  practical_info_es: string | null;
+  practical_info_it: string | null;
   show_category_nav: boolean;
   show_dish_images: boolean;
   show_allergens: boolean;
   show_dietary_badges: boolean;
   booking_enabled: boolean;
   booking_button_label: string | null;
+  booking_button_label_en: string | null;
+  booking_button_label_es: string | null;
+  booking_button_label_it: string | null;
   show_ncr_branding: boolean;
   menu_enabled: boolean;
   items: PublicMenuItem[];
@@ -64,11 +82,12 @@ const ui: Record<Language, {
   unavailableTitle: string; unavailableMessage: string; languageNav: string;
   selection: string; featured: string; book: string; address: string; hours: string;
   practical: string; categories: string; empty: string; allergens: string; scrollTop: string;
+  defaultEyebrow: string; defaultTitle: string; defaultDescription: string;
 }> = {
-  fr: { menu: 'La carte', vegetarian: 'Végétarien', vegan: 'Végan', powered: 'Menu numérique propulsé par NCR Suite', loading: 'Préparation du menu…', unavailableTitle: 'Menu indisponible', unavailableMessage: 'Ce restaurant n’a pas activé son menu public.', languageNav: 'Choisir la langue', selection: 'Notre sélection', featured: 'Suggestion du chef', book: 'Réserver une table', address: 'Adresse', hours: 'Horaires', practical: 'À savoir', categories: 'Catégories', empty: 'La carte est en cours de préparation.', allergens: 'Allergènes', scrollTop: 'Revenir en haut' },
-  en: { menu: 'Menu', vegetarian: 'Vegetarian', vegan: 'Vegan', powered: 'Digital menu powered by NCR Suite', loading: 'Preparing the menu…', unavailableTitle: 'Menu unavailable', unavailableMessage: 'This restaurant has not enabled its public menu.', languageNav: 'Choose language', selection: 'Our selection', featured: "Chef's recommendation", book: 'Book a table', address: 'Address', hours: 'Opening hours', practical: 'Good to know', categories: 'Categories', empty: 'The menu is being prepared.', allergens: 'Allergens', scrollTop: 'Back to top' },
-  es: { menu: 'La carta', vegetarian: 'Vegetariano', vegan: 'Vegano', powered: 'Menú digital creado con NCR Suite', loading: 'Preparando el menú…', unavailableTitle: 'Menú no disponible', unavailableMessage: 'Este restaurante no ha activado su menú público.', languageNav: 'Elegir idioma', selection: 'Nuestra selección', featured: 'Sugerencia del chef', book: 'Reservar una mesa', address: 'Dirección', hours: 'Horarios', practical: 'Información', categories: 'Categorías', empty: 'La carta está en preparación.', allergens: 'Alérgenos', scrollTop: 'Volver arriba' },
-  it: { menu: 'Il menù', vegetarian: 'Vegetariano', vegan: 'Vegano', powered: 'Menù digitale creato con NCR Suite', loading: 'Preparazione del menù…', unavailableTitle: 'Menù non disponibile', unavailableMessage: 'Questo ristorante non ha attivato il menù pubblico.', languageNav: 'Scegli la lingua', selection: 'La nostra selezione', featured: 'Consiglio dello chef', book: 'Prenota un tavolo', address: 'Indirizzo', hours: 'Orari', practical: 'Informazioni', categories: 'Categorie', empty: 'Il menù è in preparazione.', allergens: 'Allergeni', scrollTop: 'Torna su' },
+  fr: { menu: 'La carte', vegetarian: 'Végétarien', vegan: 'Végan', powered: 'Menu numérique propulsé par NCR Suite', loading: 'Préparation du menu…', unavailableTitle: 'Menu indisponible', unavailableMessage: 'Ce restaurant n’a pas activé son menu public.', languageNav: 'Choisir la langue', selection: 'Notre sélection', featured: 'Suggestion du chef', book: 'Réserver une table', address: 'Adresse', hours: 'Horaires', practical: 'À savoir', categories: 'Catégories', empty: 'La carte est en cours de préparation.', allergens: 'Allergènes', scrollTop: 'Revenir en haut', defaultEyebrow: 'La carte du moment', defaultTitle: 'Bienvenue à table', defaultDescription: 'Découvrez notre sélection, préparée avec soin et présentée dans la langue de votre choix.' },
+  en: { menu: 'Menu', vegetarian: 'Vegetarian', vegan: 'Vegan', powered: 'Digital menu powered by NCR Suite', loading: 'Preparing the menu…', unavailableTitle: 'Menu unavailable', unavailableMessage: 'This restaurant has not enabled its public menu.', languageNav: 'Choose language', selection: 'Our selection', featured: "Chef's recommendation", book: 'Book a table', address: 'Address', hours: 'Opening hours', practical: 'Good to know', categories: 'Categories', empty: 'The menu is being prepared.', allergens: 'Allergens', scrollTop: 'Back to top', defaultEyebrow: 'The current menu', defaultTitle: 'Welcome to our table', defaultDescription: 'Discover our carefully prepared selection, available in the language of your choice.' },
+  es: { menu: 'La carta', vegetarian: 'Vegetariano', vegan: 'Vegano', powered: 'Menú digital creado con NCR Suite', loading: 'Preparando el menú…', unavailableTitle: 'Menú no disponible', unavailableMessage: 'Este restaurante no ha activado su menú público.', languageNav: 'Elegir idioma', selection: 'Nuestra selección', featured: 'Sugerencia del chef', book: 'Reservar una mesa', address: 'Dirección', hours: 'Horarios', practical: 'Información', categories: 'Categorías', empty: 'La carta está en preparación.', allergens: 'Alérgenos', scrollTop: 'Volver arriba', defaultEyebrow: 'La carta del momento', defaultTitle: 'Bienvenido a nuestra mesa', defaultDescription: 'Descubre nuestra selección, preparada con esmero y presentada en el idioma que elijas.' },
+  it: { menu: 'Il menù', vegetarian: 'Vegetariano', vegan: 'Vegano', powered: 'Menù digitale creato con NCR Suite', loading: 'Preparazione del menù…', unavailableTitle: 'Menù non disponibile', unavailableMessage: 'Questo ristorante non ha attivato il menù pubblico.', languageNav: 'Scegli la lingua', selection: 'La nostra selezione', featured: 'Consiglio dello chef', book: 'Prenota un tavolo', address: 'Indirizzo', hours: 'Orari', practical: 'Informazioni', categories: 'Categorie', empty: 'Il menù è in preparazione.', allergens: 'Allergeni', scrollTop: 'Torna su', defaultEyebrow: 'Il menù del momento', defaultTitle: 'Benvenuti a tavola', defaultDescription: 'Scopri la nostra selezione, preparata con cura e presentata nella lingua che preferisci.' },
 };
 
 const allergenTranslations: Record<string, Record<Language, string>> = {
@@ -88,51 +107,67 @@ const allergenTranslations: Record<string, Record<Language, string>> = {
   Mollusques: { fr: 'Mollusques', en: 'Molluscs', es: 'Moluscos', it: 'Molluschi' },
 };
 
-function detectInitialLanguage(): Language {
+function normalizeLanguage(value: string | null | undefined): Language | null {
+  return value === 'fr' || value === 'en' || value === 'es' || value === 'it' ? value : null;
+}
+
+function detectInitialLanguage(queryLanguage?: string | null): Language {
+  const selected = normalizeLanguage(queryLanguage);
+  if (selected) return selected;
   if (typeof navigator === 'undefined') return 'fr';
-  const browserLanguage = navigator.language.toLowerCase().slice(0, 2);
-  return browserLanguage === 'en' || browserLanguage === 'es' || browserLanguage === 'it' ? browserLanguage : 'fr';
+  return normalizeLanguage(navigator.language.toLowerCase().slice(0, 2)) ?? 'fr';
+}
+
+function localizedValue(
+  source: string | null | undefined,
+  translated: { en?: string | null; es?: string | null; it?: string | null },
+  language: Language,
+  fallback?: Record<Language, string>,
+) {
+  const base = source?.trim() ?? '';
+  if (language === 'fr') return base || fallback?.fr || '';
+  const value = translated[language]?.trim();
+  if (value) return value;
+  if (!base || (fallback && base === fallback.fr)) return fallback?.[language] || base;
+  return base;
 }
 
 function localizedName(item: PublicMenuItem, language: Language) {
-  if (language === 'en') return item.name_en || item.name;
-  if (language === 'es') return item.name_es || item.name;
-  if (language === 'it') return item.name_it || item.name;
-  return item.name;
+  return localizedValue(item.name, { en: item.name_en, es: item.name_es, it: item.name_it }, language);
 }
 
 function localizedCategory(item: PublicMenuItem, language: Language) {
-  if (language === 'en') return item.category_name_en || item.category_name;
-  if (language === 'es') return item.category_name_es || item.category_name;
-  if (language === 'it') return item.category_name_it || item.category_name;
-  return item.category_name;
+  return localizedValue(item.category_name, { en: item.category_name_en, es: item.category_name_es, it: item.category_name_it }, language);
 }
 
 function localizedDescription(item: PublicMenuItem, language: Language) {
-  if (language === 'en') return item.description_en || item.description_fr;
-  if (language === 'es') return item.description_es || item.description_fr;
-  if (language === 'it') return item.description_it || item.description_fr;
-  return item.description_fr;
+  return localizedValue(item.description_fr, { en: item.description_en, es: item.description_es, it: item.description_it }, language);
 }
 
 function categoryVisual(categoryName = '') {
   const value = categoryName.toLowerCase();
-  if (value.includes('boisson') || value.includes('drink') || value.includes('bebida') || value.includes('vino') || value.includes('cocktail')) return '🥂';
+  if (value.includes('boisson') || value.includes('drink') || value.includes('bebida') || value.includes('bevanda') || value.includes('vino') || value.includes('cocktail')) return '🥂';
   if (value.includes('entrée') || value.includes('starter') || value.includes('entrada') || value.includes('antipast') || value.includes('salade')) return '🥗';
   if (value.includes('dessert') || value.includes('postre') || value.includes('dolc') || value.includes('glace')) return '🍰';
   if (value.includes('pizza')) return '🍕';
   if (value.includes('burger')) return '🍔';
-  if (value.includes('poisson') || value.includes('fish') || value.includes('pesce')) return '🐟';
+  if (value.includes('poisson') || value.includes('fish') || value.includes('pescado') || value.includes('pesce')) return '🐟';
   return '🍽️';
 }
 
 export function PublicRestaurantMenuPage() {
   const { slug = '' } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [payload, setPayload] = useState<PublicMenuPayload | null>(null);
-  const [language, setLanguage] = useState<Language>(detectInitialLanguage);
+  const [language, setLanguage] = useState<Language>(() => detectInitialLanguage(searchParams.get('lang')));
   const [activeCategory, setActiveCategory] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const selected = normalizeLanguage(searchParams.get('lang'));
+    if (selected && selected !== language) setLanguage(selected);
+  }, [searchParams, language]);
 
   useEffect(() => {
     if (!supabase || !slug) { setLoading(false); return; }
@@ -162,8 +197,38 @@ export function PublicRestaurantMenuPage() {
 
   const copy = ui[language];
   const restaurantName = payload?.public_name || payload?.organization_name || '';
-  const customBookingLabel = payload?.booking_button_label?.trim();
-  const bookingLabel = !customBookingLabel || customBookingLabel === 'Réserver une table' ? copy.book : customBookingLabel;
+  const heroDefaults = {
+    fr: ui.fr.defaultEyebrow,
+    en: ui.en.defaultEyebrow,
+    es: ui.es.defaultEyebrow,
+    it: ui.it.defaultEyebrow,
+  };
+  const titleDefaults = {
+    fr: ui.fr.defaultTitle,
+    en: ui.en.defaultTitle,
+    es: ui.es.defaultTitle,
+    it: ui.it.defaultTitle,
+  };
+  const descriptionDefaults = {
+    fr: ui.fr.defaultDescription,
+    en: ui.en.defaultDescription,
+    es: ui.es.defaultDescription,
+    it: ui.it.defaultDescription,
+  };
+  const bookingDefaults = { fr: ui.fr.book, en: ui.en.book, es: ui.es.book, it: ui.it.book };
+  const heroEyebrow = payload ? localizedValue(payload.hero_eyebrow, { en: payload.hero_eyebrow_en, es: payload.hero_eyebrow_es, it: payload.hero_eyebrow_it }, language, heroDefaults) : copy.defaultEyebrow;
+  const heroTitle = payload ? localizedValue(payload.hero_title, { en: payload.hero_title_en, es: payload.hero_title_es, it: payload.hero_title_it }, language, titleDefaults) : restaurantName;
+  const heroDescription = payload ? localizedValue(payload.hero_description, { en: payload.hero_description_en, es: payload.hero_description_es, it: payload.hero_description_it }, language, descriptionDefaults) : copy.defaultDescription;
+  const hoursText = payload ? localizedValue(payload.hours_text, { en: payload.hours_text_en, es: payload.hours_text_es, it: payload.hours_text_it }, language) : '';
+  const practicalInfo = payload ? localizedValue(payload.practical_info, { en: payload.practical_info_en, es: payload.practical_info_es, it: payload.practical_info_it }, language) : '';
+  const bookingLabel = payload ? localizedValue(payload.booking_button_label, { en: payload.booking_button_label_en, es: payload.booking_button_label_es, it: payload.booking_button_label_it }, language, bookingDefaults) : copy.book;
+
+  function chooseLanguage(value: Language) {
+    setLanguage(value);
+    const next = new URLSearchParams(searchParams);
+    next.set('lang', value);
+    setSearchParams(next, { replace: true });
+  }
 
   function scrollToCategory(id: string) {
     setActiveCategory(id);
@@ -178,6 +243,7 @@ export function PublicRestaurantMenuPage() {
     '--restaurant-secondary': payload.secondary_color || '#d6a15d',
     '--restaurant-cover-image': payload.cover_url ? `url("${payload.cover_url}")` : 'none',
   } as CSSProperties;
+  const bookingHref = `/r/${slug}/reserver?lang=${language}`;
 
   return <div className={`public-restaurant-page restaurant-public-v213 restaurant-theme-${payload.theme_code || 'signature'} restaurant-layout-${payload.layout_code || 'gallery'}`} lang={language} style={pageStyle}>
     <header className="restaurant-public-topbar">
@@ -185,24 +251,24 @@ export function PublicRestaurantMenuPage() {
         {payload.logo_url ? <img src={payload.logo_url} alt=""/> : <span>{restaurantName.slice(0, 1).toUpperCase() || 'R'}</span>}
         <div><small>{copy.menu}</small><strong>{restaurantName}</strong></div>
       </a>
-      <nav className="restaurant-public-languages" aria-label={copy.languageNav}>{(Object.keys(languageLabels) as Language[]).map((value) => <button key={value} className={language === value ? 'active' : ''} onClick={() => setLanguage(value)} aria-pressed={language === value}>{languageLabels[value]}</button>)}</nav>
+      <nav className="restaurant-public-languages" aria-label={copy.languageNav}>{(Object.keys(languageLabels) as Language[]).map((value) => <button key={value} className={language === value ? 'active' : ''} onClick={() => chooseLanguage(value)} aria-pressed={language === value}>{languageLabels[value]}</button>)}</nav>
     </header>
 
     <section id="restaurant-menu-top" className="restaurant-public-hero">
       <div className="restaurant-public-hero-overlay"/>
       <div className="restaurant-public-hero-content">
-        <span>{payload.hero_eyebrow || copy.selection}</span>
-        <h1>{payload.hero_title || restaurantName}</h1>
-        <p>{payload.hero_description}</p>
-        {payload.booking_enabled && <a href={`/r/${slug}/reserver`} className="restaurant-public-book-button">{bookingLabel}<b>→</b></a>}
+        <span>{heroEyebrow || copy.selection}</span>
+        <h1>{heroTitle || restaurantName}</h1>
+        {heroDescription && <p>{heroDescription}</p>}
+        {payload.booking_enabled && <a href={bookingHref} className="restaurant-public-book-button">{bookingLabel}<b>→</b></a>}
       </div>
       <div className="restaurant-public-hero-mark">{payload.logo_url ? <img src={payload.logo_url} alt=""/> : <span>{restaurantName.slice(0, 1).toUpperCase()}</span>}</div>
     </section>
 
-    {(payload.address || payload.hours_text || payload.practical_info) && <section className="restaurant-public-info-strip">
+    {(payload.address || hoursText || practicalInfo) && <section className="restaurant-public-info-strip">
       {payload.address && <article><span>⌖</span><div><small>{copy.address}</small><p>{payload.address}</p></div></article>}
-      {payload.hours_text && <article><span>◷</span><div><small>{copy.hours}</small><p>{payload.hours_text}</p></div></article>}
-      {payload.practical_info && <article><span>i</span><div><small>{copy.practical}</small><p>{payload.practical_info}</p></div></article>}
+      {hoursText && <article><span>◷</span><div><small>{copy.hours}</small><p>{hoursText}</p></div></article>}
+      {practicalInfo && <article><span>i</span><div><small>{copy.practical}</small><p>{practicalInfo}</p></div></article>}
     </section>}
 
     {payload.show_category_nav && groups.length > 1 && <nav className="restaurant-public-category-nav" aria-label={copy.categories}><div>{groups.map((group) => <button key={group.id} className={activeCategory === group.id ? 'active' : ''} onClick={() => scrollToCategory(group.id)}><span>{categoryVisual(group.name)}</span>{group.name}</button>)}</div></nav>}
@@ -231,8 +297,8 @@ export function PublicRestaurantMenuPage() {
     </main>
 
     <section className="restaurant-public-closing">
-      <div><span>✦</span><h2>{restaurantName}</h2><p>{payload.hero_description}</p></div>
-      {payload.booking_enabled && <a href={`/r/${slug}/reserver`}>{bookingLabel}<b>→</b></a>}
+      <div><span>✦</span><h2>{restaurantName}</h2>{heroDescription && <p>{heroDescription}</p>}</div>
+      {payload.booking_enabled && <a href={bookingHref}>{bookingLabel}<b>→</b></a>}
     </section>
 
     <footer className="restaurant-public-footer">

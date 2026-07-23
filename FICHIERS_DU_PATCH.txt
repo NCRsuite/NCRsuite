@@ -1,0 +1,23 @@
+NCR SUITE V2.13.1 — FICHIERS DU PATCH TRADUCTIONS RESTAURATION
+
+Nouveaux fichiers :
+- A_LIRE_INSTALLATION_V2.13.1.txt
+- FICHIERS_DU_PATCH.txt
+- supabase/migrations/066_restaurant_public_translations_complete.sql
+
+Fichiers modifiés :
+- CHANGELOG.md
+- README.md
+- package.json
+- package-lock.json
+- public/sw.js
+- scripts/phase1-static-audit.mjs
+- scripts/phase1-critical-flows.mjs
+- src/config/runtime.ts
+- src/contexts/OrganizationContext.tsx
+- src/pages/PublicRestaurantBookingPage.tsx
+- src/pages/PublicRestaurantMenuPage.tsx
+- src/pages/RestaurantCommercialBrandingPage.tsx
+- src/styles.css
+
+Aucun fichier à supprimer.

@@ -1,0 +1,20 @@
+NCR SUITE V2.13.1 — PATCH TRADUCTIONS RESTAURATION
+
+BASE REQUISE
+- V2.13.0 installée avec le dernier correctif de build.
+
+ORDRE
+1. Exécuter : supabase/migrations/066_restaurant_public_translations_complete.sql
+2. Ajouter tous les fichiers du patch dans GitHub en conservant les chemins.
+3. Attendre le build Cloudflare vert.
+4. Fermer complètement la PWA puis la rouvrir.
+5. Ouvrir Restauration > Identité du menu public et cliquer sur Publier cette identité.
+
+TESTS
+- Changer FR / EN / ES / IT sur le menu public.
+- Vérifier le titre, le texte d’accueil, les horaires, les informations pratiques et le bouton.
+- Ouvrir la réservation depuis le menu et vérifier que la langue est conservée.
+- Modifier le texte d’accueil de réservation puis enregistrer : ses traductions doivent être régénérées.
+
+EDGE FUNCTION
+- Aucun redéploiement nécessaire si translate-restaurant-menu fonctionne déjà pour les plats.
