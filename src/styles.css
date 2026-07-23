@@ -11674,3 +11674,67 @@ button { max-width: 100%; }
     margin-left: 0;
   }
 }
+
+/* V2.14.0 — Formation : administration commerciale */
+.training-commercial-page { --commercial-soft: color-mix(in srgb, var(--accent) 7%, #fff); }
+.training-commercial-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.training-commercial-metrics article { display: flex; align-items: center; gap: 13px; min-width: 0; padding: 18px; border: 1px solid rgba(20,24,32,.08); border-radius: 22px; background: #fff; box-shadow: 0 10px 30px rgba(20,24,32,.045); }
+.training-commercial-metrics article > span { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; border-radius: 14px; color: var(--accent); background: var(--commercial-soft); }
+.training-commercial-metrics small, .training-commercial-metrics strong { display: block; min-width: 0; }
+.training-commercial-metrics small { color: #858992; font-size: 11px; }
+.training-commercial-metrics strong { margin-top: 4px; overflow: hidden; color: #181b22; font-size: 20px; text-overflow: ellipsis; white-space: nowrap; }
+.training-commercial-tabs { display: inline-flex; gap: 5px; max-width: 100%; margin: 0 0 18px; padding: 5px; border: 1px solid rgba(20,24,32,.08); border-radius: 17px; background: #fff; }
+.training-commercial-tabs button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 17px; border: 0; border-radius: 13px; color: #656a75; background: transparent; font-weight: 750; cursor: pointer; }
+.training-commercial-tabs button.active { color: #fff; background: #191d26; box-shadow: 0 8px 20px rgba(20,24,32,.16); }
+.training-commercial-editor { margin-bottom: 18px; }
+.training-commercial-list { min-width: 0; }
+.training-commercial-document-list { display: grid; gap: 11px; }
+.training-commercial-document-list > article { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto minmax(170px, auto); gap: 14px; align-items: center; min-width: 0; padding: 16px; border: 1px solid rgba(20,24,32,.08); border-radius: 20px; background: linear-gradient(145deg, #fff, #fbfbfc); }
+.training-commercial-document-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 15px; color: var(--accent); background: var(--commercial-soft); }
+.training-commercial-document-main { min-width: 0; }
+.training-commercial-document-main > div { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.training-commercial-document-main strong { overflow: hidden; color: #1a1d24; text-overflow: ellipsis; white-space: nowrap; }
+.training-commercial-document-main p { margin: 6px 0 0; overflow: hidden; color: #676c76; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.training-commercial-document-main small { display: block; margin-top: 4px; color: #92969e; font-size: 11px; }
+.training-commercial-type { flex: 0 0 auto; padding: 4px 8px; border-radius: 999px; color: var(--accent); background: var(--commercial-soft); font-size: 9px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
+.training-commercial-document-value { display: grid; justify-items: end; gap: 7px; min-width: 112px; }
+.training-commercial-document-value > strong { color: #171a20; font-size: 16px; }
+.training-commercial-document-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+.training-commercial-document-actions select { min-width: 116px; min-height: 38px; padding: 0 30px 0 10px; border: 1px solid rgba(20,24,32,.11); border-radius: 11px; background-color: #fff; font-size: 12px; font-weight: 700; }
+.training-commercial-entity-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.training-commercial-entity-grid > article { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 13px; align-items: center; min-width: 0; padding: 17px; border: 1px solid rgba(20,24,32,.08); border-radius: 20px; background: linear-gradient(145deg, #fff, #fbfbfc); }
+.training-commercial-entity-grid > article > span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; color: var(--accent); background: var(--commercial-soft); }
+.training-commercial-entity-grid > article > div { min-width: 0; }
+.training-commercial-entity-grid small, .training-commercial-entity-grid strong, .training-commercial-entity-grid p, .training-commercial-entity-grid em { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-commercial-entity-grid small { color: var(--accent); font-size: 9px; font-style: normal; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
+.training-commercial-entity-grid strong { margin-top: 4px; color: #1b1e25; }
+.training-commercial-entity-grid p { margin: 5px 0 0; color: #686d77; font-size: 12px; }
+.training-commercial-entity-grid em { margin-top: 4px; color: #92969f; font-size: 11px; font-style: normal; }
+
+@media (max-width: 1180px) {
+  .training-commercial-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .training-commercial-document-list > article { grid-template-columns: 46px minmax(0, 1fr) auto; }
+  .training-commercial-document-actions { grid-column: 2 / -1; justify-content: flex-start; }
+}
+@media (max-width: 760px) {
+  .training-commercial-metrics { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .training-commercial-metrics article { padding: 14px; border-radius: 18px; }
+  .training-commercial-metrics article > span { width: 38px; height: 38px; flex-basis: 38px; }
+  .training-commercial-metrics strong { font-size: 16px; }
+  .training-commercial-tabs { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
+  .training-commercial-tabs button { min-width: 0; padding: 0 8px; font-size: 12px; }
+  .training-commercial-document-list > article { grid-template-columns: 42px minmax(0, 1fr); padding: 14px; }
+  .training-commercial-document-icon { width: 40px; height: 40px; }
+  .training-commercial-document-main > div { align-items: flex-start; flex-direction: column; gap: 5px; }
+  .training-commercial-document-main strong, .training-commercial-document-main p { white-space: normal; overflow-wrap: anywhere; }
+  .training-commercial-document-value { grid-column: 2; justify-items: start; }
+  .training-commercial-document-actions { grid-column: 1 / -1; width: 100%; }
+  .training-commercial-document-actions button, .training-commercial-document-actions select { flex: 1; }
+  .training-commercial-entity-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 470px) {
+  .training-commercial-metrics { grid-template-columns: 1fr; }
+  .training-commercial-tabs button { flex-direction: column; gap: 3px; min-height: 52px; font-size: 10px; }
+  .training-commercial-entity-grid > article { grid-template-columns: 42px minmax(0, 1fr); }
+  .training-commercial-entity-grid > article .danger-text-button { grid-column: 2; justify-self: start; }
+}

@@ -227,3 +227,109 @@ export interface TrainingSatisfactionSummary {
   average_rating: number | null;
   recommendation_rate: number;
 }
+
+export type TrainingCustomerType = 'company' | 'individual';
+export type TrainingFunderType = 'opco' | 'employer' | 'cpf' | 'public' | 'self' | 'other';
+export type TrainingCommercialDocumentType = 'quote' | 'agreement' | 'contract';
+export type TrainingCommercialDocumentStatus = 'draft' | 'sent' | 'accepted' | 'signed' | 'refused' | 'canceled' | 'completed';
+
+export interface TrainingCustomerRecord {
+  id: string;
+  organization_id: string;
+  site_id: string | null;
+  customer_type: TrainingCustomerType;
+  legal_name: string;
+  contact_name: string | null;
+  email: string | null;
+  phone: string | null;
+  billing_address: string | null;
+  postal_code: string | null;
+  city: string | null;
+  siret: string | null;
+  vat_number: string | null;
+  notes: string | null;
+  status: TrainingEntityStatus;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface TrainingFunderRecord {
+  id: string;
+  organization_id: string;
+  funder_type: TrainingFunderType;
+  name: string;
+  contact_name: string | null;
+  email: string | null;
+  phone: string | null;
+  billing_address: string | null;
+  postal_code: string | null;
+  city: string | null;
+  reference_code: string | null;
+  notes: string | null;
+  status: TrainingEntityStatus;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface TrainingCommercialDocumentRecord {
+  id: string;
+  organization_id: string;
+  site_id: string | null;
+  customer_id: string | null;
+  funder_id: string | null;
+  session_id: string | null;
+  trainee_id: string | null;
+  document_type: TrainingCommercialDocumentType;
+  reference: string;
+  title: string;
+  training_summary: string | null;
+  participant_count: number;
+  issue_date: string;
+  valid_until: string | null;
+  status: TrainingCommercialDocumentStatus;
+  amount_excl_tax_cents: number;
+  vat_rate_basis_points: number;
+  tax_cents: number;
+  amount_incl_tax_cents: number;
+  notes: string | null;
+  terms: string | null;
+  sent_at: string | null;
+  accepted_at: string | null;
+  signed_at: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
+export const trainingCustomerTypeLabels: Record<TrainingCustomerType, string> = {
+  company: 'Entreprise',
+  individual: 'Particulier'
+};
+
+export const trainingFunderTypeLabels: Record<TrainingFunderType, string> = {
+  opco: 'OPCO',
+  employer: 'Employeur',
+  cpf: 'CPF',
+  public: 'Financeur public',
+  self: 'Autofinancement',
+  other: 'Autre'
+};
+
+export const trainingCommercialDocumentTypeLabels: Record<TrainingCommercialDocumentType, string> = {
+  quote: 'Devis',
+  agreement: 'Convention',
+  contract: 'Contrat'
+};
+
+export const trainingCommercialDocumentStatusLabels: Record<TrainingCommercialDocumentStatus, string> = {
+  draft: 'Brouillon',
+  sent: 'Envoyé',
+  accepted: 'Accepté',
+  signed: 'Signé',
+  refused: 'Refusé',
+  canceled: 'Annulé',
+  completed: 'Terminé'
+};
+
+export function formatTrainingMoney(cents: number) {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
+}

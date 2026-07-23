@@ -1,9 +1,14 @@
-# V2.13.2 — Finitions Restauration
+# V2.14.0 — Formation · Administration commerciale
 
-- Remplacement de l’ancien libellé statique « RESTAURATION · V2.8.2 » par « RESTAURATION · PLAN DE SALLE ».
-- Messages d’erreur du menu public traduits en français, anglais, espagnol et italien, sans exposition d’erreurs techniques Supabase.
-- Format des prix adapté à la langue du menu public, en conservant l’euro.
-- Fallback multilingue corrigé pour le texte d’accueil de la réservation.
-- Titre de page, langue HTML et description publique adaptés à l’enseigne et à la langue sélectionnée.
-- Synchronisation de la release Supabase, du frontend et du cache PWA en V2.13.2.
-- Cache PWA : `ncr-suite-shell-v2.13.2-restaurant-premium`.
+- Audit de la V2.13.2 : onboarding, imports guidés et diagnostic SaaS déjà présents, sans duplication.
+- Nouvelle rubrique Formation « Commercial » réservée aux offres Professionnelle et Métier.
+- Gestion des entreprises clientes et des particuliers commanditaires.
+- Gestion des financeurs : OPCO, employeurs, CPF, financeurs publics, autofinancement et autres.
+- Création de devis, conventions et contrats reliés aux sessions et aux stagiaires.
+- Numérotation automatique par type de document et par année.
+- Suivi des statuts : brouillon, envoyé, accepté, signé, refusé, annulé et terminé.
+- Montants HT, TVA et TTC calculés et tracés.
+- Génération de PDF personnalisés avec l’identité de l’organisme.
+- Interface responsive ordinateur et mobile.
+- Synchronisation frontend, Supabase et cache PWA en V2.14.0.
+- Cache PWA : `ncr-suite-shell-v2.14.0-training-commercial`.

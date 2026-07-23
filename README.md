@@ -1,9 +1,5 @@
-# NCR Suite V2.13.2 — Finitions Restauration
+# NCR Suite V2.14.0 — Formation · Administration commerciale
 
-Patch différentiel à appliquer sur la V2.13.1.
+Cette version ajoute le premier lot d’approfondissement du métier Formation : entreprises clientes, financeurs, devis, conventions et contrats reliés aux sessions.
 
-Cette version termine les finitions du parcours public Restauration : cohérence du plan de salle, localisation complète des états publics, formatage localisé des prix, métadonnées adaptées à l’enseigne et synchronisation de version.
-
-## Installation
-
-Consulter `A_LIRE_INSTALLATION_V2.13.2.txt`.
+Installation : consulter `A_LIRE_INSTALLATION_V2.14.0.txt`.

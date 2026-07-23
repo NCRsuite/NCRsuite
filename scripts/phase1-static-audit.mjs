@@ -100,6 +100,26 @@ if (!publicRestaurantMenuPage.includes('localeByLanguage') || !publicRestaurantM
   errors.push('Le menu public Restauration doit conserver la localisation des prix et des erreurs publiques.');
 }
 
+// V2.14.0 — le module commercial Formation doit rester isolé au métier et audité.
+const trainingCommercialPage = read('src/pages/TrainingCommercialPage.tsx');
+const trainingCommercialMigration = read('supabase/migrations/068_training_commercial_administration.sql');
+if (!trainingCommercialPage.includes('Commercial & financeurs') || !trainingCommercialPage.includes('generateTrainingCommercialPdf')) {
+  errors.push('La page commerciale Formation V2.14.0 est incomplète.');
+}
+if (!trainingCommercialMigration.includes('create table if not exists public.training_commercial_documents') || !trainingCommercialMigration.includes("ncr-suite-shell-v2.14.0-training-commercial") || !trainingCommercialMigration.includes("'2.14.0'")) {
+  errors.push('La migration V2.14.0 du commercial Formation est incomplète.');
+}
+if (!trainingCommercialMigration.includes("when 'training_commercial' then 'training_commercial'") || !trainingCommercialMigration.includes("organization_has_plan_feature(organization_id, 'training_commercial')")) {
+  errors.push('Le commercial Formation doit rester protégé par l’offre et la configuration Métier.');
+}
+if (!trainingCommercialMigration.includes("not (o.plan = 'metier'") && !trainingCommercialMigration.includes("o.plan <> 'metier' or not coalesce(o.metier_modules_configured, false)")) {
+  errors.push('La migration commerciale ne doit pas écraser une offre Métier déjà configurée à la carte.');
+}
+if (!trainingCommercialPage.includes("organizationHasFeature(organization, 'multi_site')") || !trainingCommercialPage.includes('readJsonStorage')) {
+  errors.push('La page commerciale doit respecter le multi-site et le stockage résilient.');
+}
+if (!accessMatrix.includes("'/commercial'")) errors.push('La route commerciale Formation est absente de la matrice d’accès.');
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

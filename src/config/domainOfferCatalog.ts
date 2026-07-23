@@ -31,6 +31,7 @@ export type OfferFeatureKey =
   | 'training_email_branding'
   | 'training_satisfaction'
   | 'training_session_dossier'
+  | 'training_commercial'
   | 'security_planning'
   | 'security_clients_sites'
   | 'security_site_rates'
@@ -159,6 +160,7 @@ const formationProfessionnelle: OfferFeatureKey[] = [
   ...formationEssentielle,
   'training_satisfaction',
   'training_session_dossier',
+  'training_commercial',
   'multi_site',
   'team_access',
   'manager_role'
@@ -330,7 +332,7 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       professionnelle: {
         label: 'Professionnelle', monthlyPriceCents: 9990, memberLimit: 10,
         detail: 'Ajoute les évaluations, le dossier complet, le multi-site et les accès employés avec rôles.',
-        additions: ['Passe à 10 accès', 'Évaluations de satisfaction', 'Dossier complet de session', 'Multi-site', 'Accès employés avec rôles'],
+        additions: ['Passe à 10 accès', 'Évaluations de satisfaction', 'Dossier complet de session', 'Commercial : clients, financeurs, devis et conventions', 'Multi-site', 'Accès employés avec rôles'],
         features: formationProfessionnelle
       },
       metier: {
@@ -484,6 +486,7 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   training_email_branding: 'Personnalisation des e-mails',
   training_satisfaction: 'Évaluations de satisfaction',
   training_session_dossier: 'Dossier complet de session',
+  training_commercial: 'Entreprises, financeurs, devis, conventions et contrats',
   security_planning: 'Planning des agents',
   security_clients_sites: 'Clients et sites',
   security_site_rates: 'Tarif défini par site',

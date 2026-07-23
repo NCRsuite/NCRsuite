@@ -1,0 +1,21 @@
+NCR Suite V2.14.0 — Formation · Administration commerciale
+
+BASE REQUISE
+- V2.13.2 validée.
+
+INSTALLATION
+1. Exécuter dans Supabase : supabase/migrations/068_training_commercial_administration.sql
+2. Ajouter les fichiers du patch sur GitHub en conservant leurs chemins.
+3. Vérifier que le build Cloudflare termine en vert.
+4. Fermer complètement la PWA puis la rouvrir.
+
+AUCUNE EDGE FUNCTION À REDÉPLOYER.
+
+TESTS CONSEILLÉS
+- Ouvrir une entreprise Formation en offre Professionnelle ou Métier.
+- Vérifier la nouvelle rubrique Commercial.
+- Ajouter une entreprise cliente et un financeur.
+- Créer un devis relié à une session ou à un stagiaire.
+- Télécharger le PDF.
+- Modifier le statut du dossier.
+- Vérifier qu’une offre Découverte ou Essentielle n’accède pas à la rubrique.

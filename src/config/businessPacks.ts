@@ -144,6 +144,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Stagiaires', path: '/stagiaires', icon: 'users' },
       { label: 'Formateurs', path: '/formateurs', icon: 'briefcase' },
       { label: 'Sessions', path: '/sessions', icon: 'calendar' },
+      { label: 'Commercial', path: '/commercial', icon: 'creditCard' },
       { label: 'Documents', path: '/documents', icon: 'file' },
       { label: 'Émargements', path: '/emargements', icon: 'signature' },
       { label: 'Évaluations', path: '/evaluations', icon: 'chart' },
@@ -164,6 +165,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
     ],
     quickActions: [
       { label: 'Créer une session', path: '/sessions?new=1', icon: 'calendar' },
+      { label: 'Créer un dossier commercial', path: '/commercial?new=1', icon: 'creditCard' },
       { label: 'Ajouter un stagiaire', path: '/stagiaires?new=1', icon: 'users' },
       { label: 'Créer une formation', path: '/formations?new=1', icon: 'graduation' }
     ]

@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-restaurant-premium`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-commercial`;
 const coiffureCache = 'ncr-suite-shell-v2.12.3-coiffure-loyalty-portal';
 const cleaningCache = 'ncr-suite-shell-v2.12.2-cleaning-client-portal';
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version frontend ne correspond pas à package.json.');
@@ -291,8 +291,27 @@ requireText('src/pages/RestaurantFloorPlanPage.tsx', [
 ]);
 requireText('supabase/migrations/067_restaurant_finalization_release.sql', [
   "'2.13.2'",
-  expectedCache,
+  'ncr-suite-shell-v2.13.2-restaurant-premium',
   'on conflict(singleton) do update set'
+]);
+
+requireText('src/pages/TrainingCommercialPage.tsx', [
+  'training_customers',
+  'training_funders',
+  'training_commercial_documents',
+  'generateTrainingCommercialPdf',
+  'Commercial & financeurs'
+]);
+requireText('supabase/migrations/068_training_commercial_administration.sql', [
+  'create table if not exists public.training_customers',
+  'create table if not exists public.training_funders',
+  'create table if not exists public.training_commercial_documents',
+  'next_training_commercial_reference',
+  "when 'training_commercial' then 'training_commercial'",
+  "organization_has_plan_feature(organization_id, 'training_commercial')",
+  "'2.14.0'",
+  expectedCache,
+  'set search_path = public'
 ]);
 
 requireText('supabase/functions/process-email-queue/index.ts', [

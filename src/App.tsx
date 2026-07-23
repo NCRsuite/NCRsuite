@@ -39,6 +39,7 @@ const TrainingDocumentsPage = lazy(() => import('./pages/TrainingDocumentsPage')
 const TrainingAttendancePage = lazy(() => import('./pages/TrainingAttendancePage').then((module) => ({ default: module.TrainingAttendancePage })));
 const TrainingEvaluationsPage = lazy(() => import('./pages/TrainingEvaluationsPage').then((module) => ({ default: module.TrainingEvaluationsPage })));
 const TrainingSitesPage = lazy(() => import('./pages/TrainingSitesPage').then((module) => ({ default: module.TrainingSitesPage })));
+const TrainingCommercialPage = lazy(() => import('./pages/TrainingCommercialPage').then((module) => ({ default: module.TrainingCommercialPage })));
 const PublicTrainingSatisfactionPage = lazy(() => import('./pages/PublicTrainingSatisfactionPage').then((module) => ({ default: module.PublicTrainingSatisfactionPage })));
 const SecurityClientsPage = lazy(() => import('./pages/SecurityClientsPage').then((module) => ({ default: module.SecurityClientsPage })));
 const SecurityAgentsPage = lazy(() => import('./pages/SecurityAgentsPage').then((module) => ({ default: module.SecurityAgentsPage })));
@@ -292,6 +293,7 @@ export default function App() {
         <Route path="emargements" element={<ModuleAccessGuard moduleKey="attendance"><TrainingAttendancePage /></ModuleAccessGuard>} />
         <Route path="evaluations" element={<ModuleAccessGuard moduleKey="evaluations"><TrainingEvaluationsPage /></ModuleAccessGuard>} />
         <Route path="etablissements" element={<ModuleAccessGuard moduleKey="sites"><TrainingSitesPage /></ModuleAccessGuard>} />
+        <Route path="commercial" element={<ModuleAccessGuard moduleKey="training_commercial"><TrainingCommercialPage /></ModuleAccessGuard>} />
         <Route path="terrain" element={<FieldTerrainArea />} />
         <Route path="planning" element={<PlanningArea />} />
         <Route path="agents" element={<AgentsArea />} />

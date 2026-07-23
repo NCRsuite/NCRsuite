@@ -1,0 +1,21 @@
+NCR Suite V2.14.0 — Patch différentiel Formation · Administration commerciale
+
+Base obligatoire : V2.13.2 validée.
+
+CONTENU
+- Rubrique Formation « Commercial » pour les offres Professionnelle et Métier.
+- Entreprises clientes et particuliers commanditaires.
+- Financeurs OPCO, employeurs, CPF, publics, autofinancement et autres.
+- Devis, conventions et contrats reliés aux sessions ou aux stagiaires.
+- Numérotation annuelle automatique, statuts et montants HT / TVA / TTC.
+- PDF personnalisé à l’identité de l’organisme.
+- Multi-site respecté pour l’offre Professionnelle et les configurations Métier compatibles.
+- RLS et contrôle d’offre côté Supabase ; aucune activation forcée sur un Métier déjà configuré à la carte.
+
+INSTALLATION
+1. Exécuter supabase/migrations/068_training_commercial_administration.sql.
+2. Copier les fichiers du patch sur GitHub en conservant l’arborescence.
+3. Valider le build Cloudflare.
+4. Fermer puis rouvrir complètement la PWA.
+
+Aucune Edge Function à redéployer.
