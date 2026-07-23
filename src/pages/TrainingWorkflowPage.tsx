@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import {
@@ -25,6 +26,7 @@ import { supabase } from '../lib/supabase';
 
 type ConvertForm = {
   documentId: string;
+  siteId: string;
   startDate: string;
   startTime: string;
   endDate: string;
@@ -70,6 +72,15 @@ function readRows<T>(key: string) {
   return readJsonStorage<T[]>(key, []);
 }
 
+function workflowErrorMessage(caught: unknown) {
+  if (caught instanceof Error && caught.message) return caught.message;
+  if (caught && typeof caught === 'object' && 'message' in caught) {
+    const message = String((caught as { message?: unknown }).message ?? '').trim();
+    if (message) return message;
+  }
+  return 'erreur inconnue';
+}
+
 function statusTone(status: TrainingSessionRecord['status']) {
   if (status === 'completed') return 'complete';
   if (status === 'in_progress') return 'live';
@@ -79,7 +90,7 @@ function statusTone(status: TrainingSessionRecord['status']) {
 }
 
 export function TrainingWorkflowPage() {
-  const { organization } = useOrganization();
+  const { organization, sites, activeSiteId } = useOrganization();
   const { demoMode } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [programs, setPrograms] = useState<TrainingProgramRecord[]>([]);
@@ -101,6 +112,7 @@ export function TrainingWorkflowPage() {
   const selectedSessionId = searchParams.get('session');
   const convertDocumentId = searchParams.get('convert');
   const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
+  const usesSites = organization ? organizationHasFeature(organization, 'multi_site') : false;
 
   async function loadData() {
     if (!organization) return;
@@ -178,6 +190,7 @@ export function TrainingWorkflowPage() {
     const endParts = toLocalParts(end);
     setConvertForm({
       documentId: document.id,
+      siteId: document.site_id ?? program.site_id ?? activeSiteId ?? sites.find((site) => site.status === 'active')?.id ?? '',
       startDate: startParts.date,
       startTime: startParts.time,
       endDate: endParts.date,
@@ -189,7 +202,7 @@ export function TrainingWorkflowPage() {
       location: program.default_location ?? '',
       traineeIds: document.trainee_id ? [document.trainee_id] : []
     });
-  }, [convertDocumentId, commercials, programById, programTrainers]);
+  }, [convertDocumentId, commercials, programById, programTrainers, activeSiteId, sites]);
 
   const pipeline = useMemo(() => ({
     programsReady: programs.filter((row) => trainingProgramCompletion(row).ready).length,
@@ -239,6 +252,7 @@ export function TrainingWorkflowPage() {
     const startsAt = new Date(`${convertForm.startDate}T${convertForm.startTime}:00`);
     const endsAt = new Date(`${convertForm.endDate}T${convertForm.endTime}:00`);
     const capacity = Number(convertForm.capacity);
+    if (usesSites && !convertForm.siteId) { setError('Sélectionne un établissement actif.'); return; }
     if (!convertForm.trainerId) { setError('Sélectionne un formateur.'); return; }
     if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) { setError('Les dates de session sont invalides.'); return; }
     if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) { setError('La capacité est invalide.'); return; }
@@ -251,7 +265,7 @@ export function TrainingWorkflowPage() {
         if (!program) throw new Error('Formation introuvable.');
         sessionId = crypto.randomUUID();
         const created: TrainingSessionRecord = {
-          id: sessionId, organization_id: organization.id, site_id: document.site_id, program_id: program.id, trainer_id: convertForm.trainerId,
+          id: sessionId, organization_id: organization.id, site_id: usesSites ? convertForm.siteId : null, program_id: program.id, trainer_id: convertForm.trainerId,
           title: program.title, starts_at: startsAt.toISOString(), ends_at: endsAt.toISOString(), capacity, location: convertForm.location || program.default_location,
           modality: program.modality, status: 'draft', notes: `Créée depuis ${document.reference}`, source_commercial_document_id: document.id,
           validated_at: null, validated_by: null, created_at: new Date().toISOString()
@@ -267,6 +281,7 @@ export function TrainingWorkflowPage() {
         const { data, error: rpcError } = await supabase.rpc('create_training_session_from_commercial', {
           p_organization_id: organization.id,
           p_document_id: document.id,
+          p_site_id: usesSites ? convertForm.siteId : null,
           p_starts_at: startsAt.toISOString(),
           p_ends_at: endsAt.toISOString(),
           p_trainer_id: convertForm.trainerId,
@@ -282,7 +297,7 @@ export function TrainingWorkflowPage() {
       setConvertForm(null);
       setSearchParams({ session: sessionId });
       setSuccess('La proposition signée a été transformée en session en préparation.');
-    } catch (caught) { setError(`Création impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+    } catch (caught) { setError(`Création impossible : ${workflowErrorMessage(caught)}`); }
     finally { setSaving(false); }
   }
 
@@ -333,6 +348,7 @@ export function TrainingWorkflowPage() {
           <label>Heure de début<input type="time" required value={convertForm.startTime} onChange={(event) => setConvertForm({ ...convertForm, startTime: event.target.value })} /></label>
           <label>Date de fin<input type="date" required value={convertForm.endDate} onChange={(event) => setConvertForm({ ...convertForm, endDate: event.target.value })} /></label>
           <label>Heure de fin<input type="time" required value={convertForm.endTime} onChange={(event) => setConvertForm({ ...convertForm, endTime: event.target.value })} /></label>
+          {usesSites && <label>Établissement *<select required value={convertForm.siteId} onChange={(event) => setConvertForm({ ...convertForm, siteId: event.target.value })}><option value="">Sélectionner</option>{sites.filter((site) => site.status === 'active').map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>}
           <label>Formateur *<select required value={convertForm.trainerId} onChange={(event) => setConvertForm({ ...convertForm, trainerId: event.target.value })}><option value="">Sélectionner</option>{trainers.map((trainer) => <option key={trainer.id} value={trainer.id}>{personName(trainer.first_name, trainer.last_name)}</option>)}</select></label>
           <label>Capacité<input type="number" min="1" max="500" value={convertForm.capacity} onChange={(event) => setConvertForm({ ...convertForm, capacity: event.target.value })} /></label>
           <label className="full-field">Lieu / accès<input value={convertForm.location} onChange={(event) => setConvertForm({ ...convertForm, location: event.target.value })} /></label>
