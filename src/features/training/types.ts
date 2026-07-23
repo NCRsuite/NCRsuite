@@ -1,6 +1,11 @@
 export type TrainingModality = 'presentiel' | 'distanciel' | 'hybride';
 export type TrainingEntityStatus = 'active' | 'inactive' | 'archived';
 export type TrainingSessionStatus = 'draft' | 'scheduled' | 'in_progress' | 'completed' | 'canceled';
+export type TrainingBpfObjective = 'rncp' | 'rs' | 'cqp_unregistered' | 'other_professional' | 'skills_assessment' | 'vae';
+export type TrainingBpfRncpLevel = 'level_6_8' | 'level_5' | 'level_4' | 'level_3' | 'level_2' | 'cqp_no_level';
+export type TrainingBpfTrainerRelationship = 'internal' | 'external';
+export type TrainingBpfDeliveryMode = 'direct' | 'outsourced_by_us' | 'subcontracted_for_other';
+export type TrainingBpfTraineeType = 'private_employee' | 'apprentice' | 'jobseeker' | 'individual' | 'other';
 
 export interface TrainingProgramRecord {
   id: string;
@@ -24,6 +29,10 @@ export interface TrainingProgramRecord {
   default_capacity: number;
   default_location: string | null;
   completion_status: 'draft' | 'ready';
+  bpf_objective?: TrainingBpfObjective;
+  bpf_rncp_level?: TrainingBpfRncpLevel | null;
+  bpf_specialty_code?: string | null;
+  bpf_specialty_name?: string | null;
   status: TrainingEntityStatus;
   created_at: string;
   updated_at?: string;
@@ -59,6 +68,7 @@ export interface TrainingTrainerRecord {
   phone: string | null;
   specialties: string[];
   notes: string | null;
+  bpf_relationship?: TrainingBpfTrainerRelationship;
   status: TrainingEntityStatus;
   created_at: string;
 }
@@ -94,6 +104,7 @@ export interface TrainingSessionRecord {
   training_dossier_notes?: string | null;
   training_dossier_reviewed_at?: string | null;
   training_dossier_reviewed_by?: string | null;
+  bpf_delivery_mode?: TrainingBpfDeliveryMode;
   created_at: string;
 }
 
@@ -102,6 +113,8 @@ export interface TrainingEnrollmentRecord {
   session_id: string;
   trainee_id: string;
   status: 'registered' | 'confirmed' | 'completed' | 'absent' | 'canceled';
+  bpf_trainee_type?: TrainingBpfTraineeType | null;
+  bpf_attended_hours?: number | null;
 }
 
 
@@ -295,6 +308,25 @@ export type TrainingCustomerType = 'company' | 'individual';
 export type TrainingFunderType = 'opco' | 'employer' | 'cpf' | 'public' | 'self' | 'other';
 export type TrainingCommercialDocumentType = 'quote' | 'agreement' | 'contract';
 export type TrainingCommercialDocumentStatus = 'draft' | 'sent' | 'accepted' | 'signed' | 'refused' | 'canceled' | 'completed';
+export type TrainingBpfRevenueCategory =
+  | 'companies'
+  | 'apprenticeship'
+  | 'professionalization'
+  | 'pro_a'
+  | 'transition'
+  | 'cpf'
+  | 'jobseekers_funds'
+  | 'self_employed_funds'
+  | 'skills_plan'
+  | 'public_agents'
+  | 'eu'
+  | 'state'
+  | 'regions'
+  | 'france_travail'
+  | 'other_public'
+  | 'individuals'
+  | 'training_organizations'
+  | 'other_training';
 export type TrainingCrmStage = 'new' | 'qualified' | 'proposal' | 'negotiation' | 'won' | 'lost';
 export type TrainingCrmSource = 'website' | 'referral' | 'outbound' | 'event' | 'partner' | 'existing_customer' | 'other';
 export type TrainingCrmActivityType = 'note' | 'call' | 'email' | 'meeting' | 'task';
@@ -375,6 +407,9 @@ export interface TrainingCommercialDocumentRecord {
   emailed_at?: string | null;
   last_email_recipient?: string | null;
   last_email_outbox_id?: string | null;
+  bpf_revenue_category?: TrainingBpfRevenueCategory | null;
+  bpf_revenue_recognized_at?: string | null;
+  bpf_included?: boolean;
   created_at: string;
   updated_at?: string;
 }

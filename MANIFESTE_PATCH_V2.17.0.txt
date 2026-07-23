@@ -1,0 +1,46 @@
+NCR Suite V2.17.0 - Patch differentiel Formation · BPF automatique
+Base obligatoire : V2.16.0 deployee et validee
+
+Aucun fichier supprime.
+Aucune fonction CRM, commerciale ou Formation existante supprimee.
+
+Fichiers ajoutes :
+- A_LIRE_INSTALLATION_V2.17.0.txt
+- MANIFESTE_PATCH_V2.17.0.txt
+- VALIDATION_V2.17.0.txt
+- docs/V2.17.0_INSTALLATION.md
+- src/features/training/bpf.ts
+- src/features/training/bpfCsv.ts
+- src/features/training/bpfPdf.ts
+- src/pages/TrainingBpfPage.tsx
+- supabase/migrations/077_training_bpf_automation.sql
+
+Fichiers modifies :
+- CHANGELOG.md
+- README.md
+- package-lock.json
+- package.json
+- public/sw.js
+- scripts/phase1-critical-flows.mjs
+- scripts/phase1-static-audit.mjs
+- src/App.tsx
+- src/config/accessMatrix.ts
+- src/config/businessPacks.ts
+- src/config/domainOfferCatalog.ts
+- src/config/moduleAccess.ts
+- src/config/planEntitlements.ts
+- src/config/runtime.ts
+- src/features/training/commercialPdf.ts
+- src/features/training/programPdf.ts
+- src/features/training/sessionDossierPdf.ts
+- src/features/training/types.ts
+- src/styles.css
+- supabase/functions/process-email-queue/index.ts
+
+Ordre recommande :
+1. SQL Supabase : 077_training_bpf_automation.sql
+2. Patch GitHub V2.17.0
+3. Edge Function process-email-queue si necessaire
+4. Build Cloudflare V2.17.0
+5. Cache PWA V2.17.0
+6. Tests du calcul, des classifications, des exports et du verrouillage

@@ -1,0 +1,32 @@
+VALIDATION V2.17.0
+
+Date : 2026-07-23
+Base analysee : NCR Suite V2.16.0 locale
+Version cible : ncr-suite@2.17.0
+
+Controles executes :
+- npm run audit:phase1 : OK
+- npm run test:critical : OK
+- npx tsc -b --pretty false : OK
+- npm run build : OK
+- Vite 8.1.4 : 419 modules transformes, build termine en 1,72 s.
+
+Points verifies :
+- Migration 077 presente apres la migration 076.
+- Table training_bpf_reports protegee par RLS.
+- Fonctions BPF protegees par le role et le module.
+- Calcul des cadres C, D, E, F1, F2, F3, F4 et G.
+- Coherence des totaux de stagiaires et d'heures-stagiaires.
+- Preclassement prudent et correction des donnees ambigues.
+- Verrouillage refuse en presence d'un controle bloquant.
+- Reouverture reservee aux proprietaires et administrateurs.
+- Exports PDF et CSV preparatoires.
+- Mode demonstration et stockage local.
+- Regles responsives ordinateur, tablette et mobile presentes.
+- APP_VERSION, cache PWA, producteurs PDF et processeur e-mail synchronises en V2.17.0.
+
+Limites de validation locale :
+- La migration 077 n'a pas ete executee contre la base Supabase de production.
+- Le navigateur de controle interdit les URL file:// et le serveur local est bloque
+  par l'environnement. La verification visuelle en conditions reelles doit donc
+  etre faite apres le build Cloudflare.

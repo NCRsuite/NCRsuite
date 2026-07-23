@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-crm-pipeline`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-bpf-automation`;
+const trainingCrmCache = 'ncr-suite-shell-v2.16.0-training-crm-pipeline';
 const trainingSavCache = 'ncr-suite-shell-v2.15.4-training-sav-admin';
 const trainingIntegrityCache = 'ncr-suite-shell-v2.15.3-training-automation-integrity';
 const trainingClosureCache = 'ncr-suite-shell-v2.15.2-training-closure';
@@ -385,7 +386,7 @@ requireText('src/features/training/programPdf.ts', [
   'Organisation pratique'
 ]);
 requireText('src/features/training/commercialPdf.ts', [
-  'NCR Suite V2.16.0',
+  'NCR Suite V2.17.0',
   'Acceptation et signatures',
   'Programme détaillé'
 ]);
@@ -411,7 +412,7 @@ requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'training_commercial_document'",
   "item.template_key === 'training_commercial_document'",
   'Convocation à une formation',
-  'NCR Suite V2.16.0'
+  'NCR Suite V2.17.0'
 ]);
 requireText('supabase/migrations/073_training_delivery_closure_automation.sql', [
   'update_training_evaluation_settings',
@@ -492,7 +493,7 @@ requireText('supabase/migrations/076_training_crm_pipeline.sql', [
   'alter table public.training_crm_opportunities enable row level security',
   'alter table public.training_crm_activities enable row level security',
   "'2.16.0'",
-  expectedCache,
+  trainingCrmCache,
   'set search_path = public'
 ]);
 requireText('src/components/TrainingCrmPipeline.tsx', [
@@ -512,6 +513,43 @@ requireText('src/pages/TrainingCommercialPage.tsx', [
   'createDocumentFromOpportunity',
   'CRM & COMMERCIAL'
 ]);
+
+requireText('supabase/migrations/077_training_bpf_automation.sql', [
+  'create table if not exists public.training_bpf_reports',
+  'create or replace function public.create_training_bpf_report',
+  'create or replace function public.refresh_training_bpf_report',
+  'create or replace function public.set_training_bpf_report_status',
+  'create or replace function public.reopen_training_bpf_report',
+  'create or replace function public.training_bpf_participant_rows',
+  'alter table public.training_bpf_reports enable row level security',
+  "'2.17.0'",
+  expectedCache,
+  'set search_path = public'
+]);
+requireText('src/pages/TrainingBpfPage.tsx', [
+  "supabase.rpc('create_training_bpf_report'",
+  "supabase.rpc('refresh_training_bpf_report'",
+  "supabase.rpc('set_training_bpf_report_status'",
+  "supabase.rpc('reopen_training_bpf_report'",
+  'Bilan pédagogique et financier',
+  'Origine des produits hors taxes',
+  'Type de stagiaires',
+  'Principales spécialités de formation',
+  'Verrouiller le BPF'
+]);
+requireText('src/features/training/bpfPdf.ts', [
+  'NCR Suite V2.17.0',
+  'Cerfa 10443*17',
+  'BPF PREPARATOIRE'
+]);
+requireText('src/features/training/bpfCsv.ts', [
+  'generateTrainingBpfCsv',
+  'Total des produits de formation',
+  'Heures-stagiaires'
+]);
+if (!app.includes('path="bpf"') || !access.includes("'/bpf'")) {
+  failures.push('Le BPF Formation V2.17.0 doit rester raccordé aux routes et à la matrice d’accès.');
+}
 
 requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'security_client_portal_invitation'",

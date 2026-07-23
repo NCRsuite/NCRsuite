@@ -221,8 +221,8 @@ if (!trainingSessionsV2153.includes("status: 'draft' as TrainingSessionStatus")
     || !trainingSessionsV2153.includes('evaluation_type,status,scheduled_for')) {
   errors.push('La page Sessions Formation doit passer par la validation officielle et lire les champs d’évaluation V2.15.2.');
 }
-if (!trainingEmailProcessor.includes('NCR Suite V2.16.0')) {
-  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.16.0.');
+if (!trainingEmailProcessor.includes('NCR Suite V2.17.0')) {
+  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.17.0.');
 }
 
 // V2.15.4 — SAV Formation réservé au super administrateur NCR.
@@ -282,6 +282,39 @@ if (!trainingCommercialPage.includes('<TrainingCrmPipeline')
     || !trainingCommercialPage.includes('opportunity_id')
     || !trainingCommercialPage.includes('Pipeline CRM')) {
   errors.push('Le CRM doit rester intégré au module commercial Formation.');
+}
+
+// V2.17.0 — préparation automatique du BPF Formation.
+const trainingBpfMigration = read('supabase/migrations/077_training_bpf_automation.sql');
+const trainingBpfPage = read('src/pages/TrainingBpfPage.tsx');
+const trainingBpfLogic = read('src/features/training/bpf.ts');
+const trainingBpfPdf = read('src/features/training/bpfPdf.ts');
+if (!trainingBpfMigration.includes('create table if not exists public.training_bpf_reports')
+    || !trainingBpfMigration.includes('create or replace function public.training_bpf_participant_rows')
+    || !trainingBpfMigration.includes('create or replace function public.refresh_training_bpf_report')
+    || !trainingBpfMigration.includes('create or replace function public.set_training_bpf_report_status')
+    || !trainingBpfMigration.includes('create or replace function public.reopen_training_bpf_report')
+    || !trainingBpfMigration.includes('alter table public.training_bpf_reports enable row level security')
+    || !trainingBpfMigration.includes("ncr-suite-shell-v2.17.0-training-bpf-automation")
+    || !trainingBpfMigration.includes("'2.17.0'")) {
+  errors.push('La migration V2.17.0 du BPF Formation est incomplète.');
+}
+if (!trainingBpfPage.includes("supabase.rpc('refresh_training_bpf_report'")
+    || !trainingBpfPage.includes("supabase.rpc('set_training_bpf_report_status'")
+    || !trainingBpfPage.includes('generateTrainingBpfPdf')
+    || !trainingBpfPage.includes('generateTrainingBpfCsv')
+    || !trainingBpfPage.includes('CADRE F1')
+    || !trainingBpfPage.includes('Verrouiller le BPF')) {
+  errors.push('La page BPF Formation V2.17.0 est incomplète.');
+}
+if (!trainingBpfPdf.includes('NCR Suite V2.17.0')
+    || !trainingBpfPdf.includes('Cerfa 10443*17')
+    || !trainingBpfPdf.includes('Document préparatoire')) {
+  errors.push('L’export PDF préparatoire du BPF V2.17.0 est incomplet.');
+}
+if (trainingBpfMigration.includes("v_funder_type = 'opco' then 'skills_plan'")
+    || trainingBpfLogic.includes("funderType === 'opco'")) {
+  errors.push('Un financement OPCO ambigu ne doit pas être classé automatiquement dans le BPF.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

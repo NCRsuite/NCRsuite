@@ -76,6 +76,7 @@ const FORMATION_FEATURE_MODULES: Partial<Record<PlanFeature, string>> = {
   training_satisfaction: 'evaluations',
   training_session_dossier: 'documents',
   training_commercial: 'training_commercial',
+  training_bpf: 'training_bpf',
   multi_site: 'sites',
   team_access: 'team_access',
   manager_role: 'team_access'

@@ -1,5 +1,20 @@
 # Changelog NCR Suite
 
+## V2.17.0 — Formation · BPF automatique
+
+- Nouveau module annuel `BPF automatique`.
+- Calcul des produits HT selon les rubriques du cadre C du Cerfa 10443*17.
+- Saisie contrôlée du chiffre d’affaires et des charges du cadre D.
+- Calcul des formateurs, stagiaires, heures-stagiaires, objectifs et spécialités des cadres E, F1 à F4 et G.
+- Proratisation des heures à partir des émargements, avec possibilité de correction explicite.
+- Classification centrale des publics, programmes, formateurs, modes de réalisation et produits commerciaux.
+- Préclassement automatique uniquement lorsque les données permettent une déduction fiable.
+- Contrôles bloquants et points de vigilance avant validation.
+- Brouillon annuel, statut vérifié, verrouillage et réouverture réservée aux responsables.
+- Exports préparatoires PDF et CSV.
+- Cloisonnement multi-entreprises, rôles et RLS Supabase.
+- Cache PWA, producteurs PDF, processeur e-mail et audits synchronisés en V2.17.0.
+
 ## V2.16.0 — Formation · CRM et pipeline commercial
 
 - Nouveau pipeline CRM intégré au module commercial Formation.
