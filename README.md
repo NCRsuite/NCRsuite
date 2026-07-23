@@ -1,7 +1,7 @@
-# NCR Suite V2.15.3
+# NCR Suite V2.15.4
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version consolide les automatisations Formation déjà validées : file documentaire autoportante, garde anti-contournement de validation, cache PWA synchronisé et rapport d’intégrité des évaluations/documents.
+Cette version ajoute un SAV Formation réservé au super administrateur NCR. Il centralise le diagnostic des évaluations, attestations, documents et e-mails automatiques, avec des actions guidées de relance et de réparation.
 
-Consulter `A_LIRE_INSTALLATION_V2.15.3.txt` avant déploiement.
+Consulter `A_LIRE_INSTALLATION_V2.15.4.txt` avant déploiement.

@@ -1,4 +1,4 @@
-const CACHE = 'ncr-suite-shell-v2.15.3-training-automation-integrity';
+const CACHE = 'ncr-suite-shell-v2.15.4-training-sav-admin';
 const SHELL = [
   '/',
   '/index.html',

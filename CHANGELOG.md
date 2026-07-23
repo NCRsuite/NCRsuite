@@ -1,5 +1,16 @@
 # Changelog NCR Suite
 
+## V2.15.4 — Super administration · SAV Formation
+
+- Nouvelle console `SAV Formation` dans l’administration centrale, visible uniquement par les super administrateurs NCR.
+- Vue globale des organismes Formation et des automatisations nécessitant une intervention.
+- Diagnostic par session des évaluations initiales/finales, attestations, dossiers documentaires et e-mails en échec.
+- Relance guidée des jobs documentaires et des e-mails Formation.
+- Réparation contrôlée d’une session en réutilisant les automatisations validées en V2.15.2 et V2.15.3.
+- Migration 075 sécurisée par le contrôle `is_platform_super_admin`.
+- Cache PWA, producteurs PDF, processeur e-mail et monitoring synchronisés en V2.15.4.
+- NCR Academy n’est pas modifié.
+
 ## V2.15.3 — Formation · Intégrité des automatisations
 
 - Ajout de la migration 074 pour rendre la file `training_document_jobs` autoportante dans le dépôt.

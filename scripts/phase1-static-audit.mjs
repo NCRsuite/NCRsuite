@@ -221,8 +221,36 @@ if (!trainingSessionsV2153.includes("status: 'draft' as TrainingSessionStatus")
     || !trainingSessionsV2153.includes('evaluation_type,status,scheduled_for')) {
   errors.push('La page Sessions Formation doit passer par la validation officielle et lire les champs d’évaluation V2.15.2.');
 }
-if (!trainingEmailProcessor.includes('NCR Suite V2.15.3')) {
-  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.15.3.');
+if (!trainingEmailProcessor.includes('NCR Suite V2.15.4')) {
+  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.15.4.');
+}
+
+// V2.15.4 — SAV Formation réservé au super administrateur NCR.
+const trainingSavMigration = read('supabase/migrations/075_admin_training_sav_supervision.sql');
+const trainingSavPanel = read('src/components/AdminTrainingSavPanel.tsx');
+const platformAdminPage = read('src/pages/PlatformAdminPage.tsx');
+if (!trainingSavMigration.includes('create or replace function public.admin_training_sav_overview')
+    || !trainingSavMigration.includes('create or replace function public.admin_training_sav_organization_report')
+    || !trainingSavMigration.includes('create or replace function public.admin_training_sav_retry_document_job')
+    || !trainingSavMigration.includes('create or replace function public.admin_training_sav_retry_training_emails')
+    || !trainingSavMigration.includes('create or replace function public.admin_training_sav_repair_session')
+    || !trainingSavMigration.includes('public.is_platform_super_admin()')
+    || !trainingSavMigration.includes("ncr-suite-shell-v2.15.4-training-sav-admin")
+    || !trainingSavMigration.includes("'2.15.4'")) {
+  errors.push('La migration V2.15.4 du SAV Formation super-admin est incomplète.');
+}
+if (!trainingSavPanel.includes("supabase.rpc('admin_training_sav_overview'")
+    || !trainingSavPanel.includes("supabase.rpc('admin_training_sav_organization_report'")
+    || !trainingSavPanel.includes("supabase.rpc('admin_training_sav_repair_session'")
+    || !trainingSavPanel.includes("supabase.rpc('admin_training_sav_retry_document_job'")
+    || !trainingSavPanel.includes("supabase.rpc('admin_training_sav_retry_training_emails'")
+    || !trainingSavPanel.includes('SAV FORMATION')) {
+  errors.push('Le panneau SAV Formation super-admin est incomplet.');
+}
+if (!platformAdminPage.includes('AdminTrainingSavPanel')
+    || !platformAdminPage.includes("activeSection === 'trainingSav'")
+    || !platformAdminPage.includes('SAV Formation')) {
+  errors.push('Le SAV Formation doit rester raccordé à l’administration centrale.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

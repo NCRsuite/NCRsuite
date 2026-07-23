@@ -1,0 +1,38 @@
+NCR Suite V2.15.4 - Patch differentiel Super administration · SAV Formation
+Base obligatoire : V2.15.3 deployee et validee
+
+Aucun fichier supprime.
+Aucune fonction Formation validee supprimee ou reecrite.
+NCR Academy non modifie.
+
+Fichiers ajoutes :
+- A_LIRE_INSTALLATION_V2.15.4.txt
+- MANIFESTE_PATCH_V2.15.4.txt
+- VALIDATION_V2.15.4.txt
+- docs/V2.15.4_INSTALLATION.md
+- src/components/AdminTrainingSavPanel.tsx
+- supabase/migrations/075_admin_training_sav_supervision.sql
+
+Fichiers modifies :
+- CHANGELOG.md
+- README.md
+- package-lock.json
+- package.json
+- public/sw.js
+- scripts/phase1-critical-flows.mjs
+- scripts/phase1-static-audit.mjs
+- src/config/runtime.ts
+- src/features/training/commercialPdf.ts
+- src/features/training/programPdf.ts
+- src/features/training/sessionDossierPdf.ts
+- src/pages/PlatformAdminPage.tsx
+- src/styles.css
+- supabase/functions/process-email-queue/index.ts
+
+Ordre recommande :
+1. SQL Supabase : 075_admin_training_sav_supervision.sql
+2. Patch GitHub V2.15.4
+3. Edge Function process-email-queue si necessaire
+4. Build Cloudflare V2.15.4
+5. Cache PWA V2.15.4
+6. Tests et verification du SAV Formation

@@ -1,0 +1,36 @@
+VALIDATION V2.15.4
+
+Date : 2026-07-23
+Base analysee : NCR Suite V2.15.3 locale
+Version cible : ncr-suite@2.15.4
+
+Controles executes localement :
+- npm run audit:phase1 : OK
+- npm run test:critical : OK
+- npm run build : OK
+
+Resultat build :
+- TypeScript : OK
+- Vite build : OK
+- 414 modules transformes
+- Service worker synchronise avec le cache ncr-suite-shell-v2.15.4-training-sav-admin
+
+Points verifies :
+- Migration 075 presente apres la migration 074.
+- Acces des cinq fonctions SAV protege par is_platform_super_admin().
+- Console SAV Formation integree a l'administration centrale.
+- Vue globale des organismes Formation et rapport detaille par organisme.
+- Diagnostic des evaluations initiales et finales manquantes.
+- Diagnostic des attestations et jobs documentaires.
+- Diagnostic des e-mails Formation en echec.
+- Relance controlee des jobs documentaires.
+- Relance controlee des e-mails Formation.
+- Reparation de session fondee sur les fonctions internes deja validees.
+- APP_VERSION, cache PWA, producteurs PDF et processeur e-mail synchronises en V2.15.4.
+
+NCR Academy :
+- Non modifie.
+
+Note de deploiement :
+- Les migrations 001 a 074 etant deja deployees cote Supabase d'apres l'utilisateur, seul le SQL 075 doit etre execute pour cette version.
+- L'Edge Function process-email-queue doit etre redeployee uniquement si sa publication n'est pas automatique depuis GitHub.
