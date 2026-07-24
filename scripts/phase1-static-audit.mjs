@@ -540,6 +540,19 @@ if (productionValidationMigration.includes("coalesce((v_readiness->>'ready')::bo
   errors.push('Le rapport V2.21.2 ne doit plus transformer une autre anomalie V2.20 en demande de module Formation.');
 }
 
+// Correctif final V2.21.2 - search_path des fonctions historiques.
+const securityDefinerPathCorrection = read('supabase/migrations/086_security_definer_search_path_hardening.sql');
+if (!securityDefinerPathCorrection.includes('create temporary table ncr_security_definer_path_snapshot on commit drop')
+    || !securityDefinerPathCorrection.includes('revoke create on schema public from public,anon,authenticated')
+    || !securityDefinerPathCorrection.includes("and p.prokind in ('f','p','w')")
+    || !securityDefinerPathCorrection.includes("where setting like 'search_path=%'")
+    || !securityDefinerPathCorrection.includes('alter procedure %s set search_path = pg_catalog, public, extensions, pg_temp')
+    || !securityDefinerPathCorrection.includes('alter function %s set search_path = pg_catalog, public, extensions, pg_temp')
+    || !securityDefinerPathCorrection.includes('platform.security_definer_search_path_hardened')
+    || !securityDefinerPathCorrection.includes("'migration','086'")) {
+  errors.push('Le correctif final V2.21.2 du search_path des fonctions historiques est incomplet.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

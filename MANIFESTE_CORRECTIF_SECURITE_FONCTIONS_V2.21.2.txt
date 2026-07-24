@@ -1,0 +1,11 @@
+CORRECTIF SECURITE FONCTIONS NCR SUITE V2.21.2
+
+A_LIRE_CORRECTIF_SECURITE_FONCTIONS_V2.21.2.txt
+CHANGELOG.md
+MANIFESTE_CORRECTIF_SECURITE_FONCTIONS_V2.21.2.txt
+VALIDATION_CORRECTIF_SECURITE_FONCTIONS_V2.21.2.txt
+docs/V2.21.2_CORRECTIF_SECURITE_FONCTIONS.md
+scripts/phase1-critical-flows.mjs
+scripts/phase1-release-readiness.mjs
+scripts/phase1-static-audit.mjs
+supabase/migrations/086_security_definer_search_path_hardening.sql

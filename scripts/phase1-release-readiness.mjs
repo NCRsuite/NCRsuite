@@ -105,6 +105,18 @@ requireText('supabase/migrations/085_production_validation_security_correction.s
   'set search_path = public'
 ]);
 
+requireText('supabase/migrations/086_security_definer_search_path_hardening.sql', [
+  'create temporary table ncr_security_definer_path_snapshot on commit drop',
+  'revoke create on schema public from public,anon,authenticated',
+  "and p.prokind in ('f','p','w')",
+  "where setting like 'search_path=%'",
+  'alter procedure %s set search_path = pg_catalog, public, extensions, pg_temp',
+  'alter function %s set search_path = pg_catalog, public, extensions, pg_temp',
+  'platform.security_definer_search_path_hardened',
+  "'migration','086'",
+  'set search_path = pg_catalog, public, extensions, pg_temp'
+]);
+
 requireText('src/components/AdminProductionValidationPanel.tsx', [
   "supabase.rpc('platform_production_validation_report'",
   "supabase.rpc('platform_production_validation_history'",
@@ -249,7 +261,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }

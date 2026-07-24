@@ -749,6 +749,16 @@ requireText('supabase/migrations/085_production_validation_security_correction.s
   'platform_production_validation_report_v212',
   "'platform.production_validation_security_corrected'"
 ]);
+requireText('supabase/migrations/086_security_definer_search_path_hardening.sql', [
+  'create temporary table ncr_security_definer_path_snapshot on commit drop',
+  'revoke create on schema public from public,anon,authenticated',
+  "and p.prokind in ('f','p','w')",
+  "where setting like 'search_path=%'",
+  'alter procedure %s set search_path = pg_catalog, public, extensions, pg_temp',
+  'alter function %s set search_path = pg_catalog, public, extensions, pg_temp',
+  'platform.security_definer_search_path_hardened',
+  "'migration','086'"
+]);
 requireText('src/components/AdminProductionValidationPanel.tsx', [
   "supabase.rpc('platform_production_validation_report'",
   "supabase.rpc('platform_production_validation_history'",

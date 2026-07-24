@@ -2,6 +2,10 @@
 
 ## V2.21.2 — Validation production finale
 
+- Durcissement final des anciennes fonctions `SECURITY DEFINER` déjà présentes dans Supabase.
+- Ajout automatique d'un chemin de recherche sûr sans recréer les traitements existants.
+- Interdiction de créer des objets dans le schéma public pour les rôles applicatifs.
+- Contrôle transactionnel empêchant une installation partielle du correctif de sécurité.
 - Correctif de production : suppression des droits anonymes hérités sur les fonctions internes.
 - Conservation exacte des accès déjà disponibles pour les utilisateurs connectés et les traitements de service.
 - Liste explicite des 22 fonctions nécessaires aux réservations, questionnaires et invitations publiques.
