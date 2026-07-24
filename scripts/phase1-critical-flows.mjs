@@ -759,6 +759,19 @@ requireText('supabase/migrations/086_security_definer_search_path_hardening.sql'
   'platform.security_definer_search_path_hardened',
   "'migration','086'"
 ]);
+requireText('supabase/migrations/087_final_public_function_acl_cleanup.sql', [
+  'create or replace function public.platform_access_security_report',
+  "d.classid='pg_proc'::regclass",
+  "d.refclassid='pg_extension'::regclass",
+  "d.deptype='e'",
+  "'extension_public_functions',v_extension_functions",
+  "'policyless',0",
+  "'sealed_by_rls_tables',v_sealed_tables",
+  'fonction(s) applicative(s) reste(nt) accessible(s) au role anon.',
+  'platform.extension_access_classification_corrected',
+  "'extension_objects','inventoried_not_modified'",
+  "'migration','087'"
+]);
 requireText('src/components/AdminProductionValidationPanel.tsx', [
   "supabase.rpc('platform_production_validation_report'",
   "supabase.rpc('platform_production_validation_history'",

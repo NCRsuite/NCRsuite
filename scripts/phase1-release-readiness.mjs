@@ -117,6 +117,21 @@ requireText('supabase/migrations/086_security_definer_search_path_hardening.sql'
   'set search_path = pg_catalog, public, extensions, pg_temp'
 ]);
 
+requireText('supabase/migrations/087_final_public_function_acl_cleanup.sql', [
+  'create or replace function public.platform_access_security_report',
+  "d.classid='pg_proc'::regclass",
+  "d.refclassid='pg_extension'::regclass",
+  "d.deptype='e'",
+  "'extension_public_functions',v_extension_functions",
+  "'policyless',0",
+  "'sealed_by_rls_tables',v_sealed_tables",
+  'fonction(s) applicative(s) reste(nt) accessible(s) au role anon.',
+  'platform.extension_access_classification_corrected',
+  "'extension_objects','inventoried_not_modified'",
+  "'migration','087'",
+  'set search_path = public,pg_catalog'
+]);
+
 requireText('src/components/AdminProductionValidationPanel.tsx', [
   "supabase.rpc('platform_production_validation_report'",
   "supabase.rpc('platform_production_validation_history'",
@@ -261,7 +276,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086','087']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }

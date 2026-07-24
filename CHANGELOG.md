@@ -2,6 +2,11 @@
 
 ## V2.21.2 — Validation production finale
 
+- Identification des 188 fonctions publiques comme objets d'extensions PostgreSQL gérés par Supabase.
+- Inventaire séparé des fonctions d'extensions sans changement de propriétaire, de rôle ou d'ACL.
+- Maintien du blocage pour toute véritable fonction applicative publique hors liste autorisée.
+- Reclassement des tables internes fermées par RLS comme inventaire non bloquant.
+- Prévention des droits publics par défaut sur les prochaines fonctions créées par `postgres`.
 - Durcissement final des anciennes fonctions `SECURITY DEFINER` déjà présentes dans Supabase.
 - Ajout automatique d'un chemin de recherche sûr sans recréer les traitements existants.
 - Interdiction de créer des objets dans le schéma public pour les rôles applicatifs.

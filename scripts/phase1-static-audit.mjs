@@ -553,6 +553,27 @@ if (!securityDefinerPathCorrection.includes('create temporary table ncr_security
   errors.push('Le correctif final V2.21.2 du search_path des fonctions historiques est incomplet.');
 }
 
+// Correctif final V2.21.2 - extensions publiques et tables fermees par RLS.
+const finalPublicAclCorrection = read('supabase/migrations/087_final_public_function_acl_cleanup.sql');
+if (!finalPublicAclCorrection.includes('create or replace function public.platform_access_security_report')
+    || !finalPublicAclCorrection.includes("d.classid='pg_proc'::regclass")
+    || !finalPublicAclCorrection.includes("d.refclassid='pg_extension'::regclass")
+    || !finalPublicAclCorrection.includes("d.deptype='e'")
+    || !finalPublicAclCorrection.includes("'extension_public_functions',v_extension_functions")
+    || !finalPublicAclCorrection.includes("'policyless',0")
+    || !finalPublicAclCorrection.includes("'sealed_by_rls_tables',v_sealed_tables")
+    || !finalPublicAclCorrection.includes('fonction(s) applicative(s) reste(nt) accessible(s) au role anon.')
+    || !finalPublicAclCorrection.includes('platform.extension_access_classification_corrected')
+    || !finalPublicAclCorrection.includes("'extension_objects','inventoried_not_modified'")
+    || !finalPublicAclCorrection.includes("'migration','087'")) {
+  errors.push('Le correctif final V2.21.2 de classification des extensions et des tables RLS fermees est incomplet.');
+}
+if (finalPublicAclCorrection.includes('set local role supabase_admin')
+    || finalPublicAclCorrection.includes('owner to postgres')
+    || finalPublicAclCorrection.includes('revoke execute on all functions in schema public')) {
+  errors.push('Le correctif final V2.21.2 ne doit modifier aucun objet ou role gere par Supabase.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {
