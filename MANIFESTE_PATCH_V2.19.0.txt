@@ -1,0 +1,44 @@
+NCR Suite V2.19.0 - Patch differentiel Formation · Qualiopi, conformite et preuves
+
+BASE REQUISE
+
+- NCR Suite V2.18.0 deja deployee
+- Migrations 001 a 078 deja appliquees
+
+FICHIERS DU PATCH
+
+- A_LIRE_INSTALLATION_V2.19.0.txt
+- CHANGELOG.md
+- MANIFESTE_PATCH_V2.19.0.txt
+- README.md
+- VALIDATION_V2.19.0.txt
+- docs/V2.19.0_INSTALLATION.md
+- package.json
+- package-lock.json
+- public/sw.js
+- scripts/phase1-critical-flows.mjs
+- scripts/phase1-static-audit.mjs
+- src/App.tsx
+- src/config/accessMatrix.ts
+- src/config/businessPacks.ts
+- src/config/domainOfferCatalog.ts
+- src/config/moduleAccess.ts
+- src/config/planEntitlements.ts
+- src/config/runtime.ts
+- src/features/training/qualityCompliance.ts
+- src/features/training/qualityComplianceCsv.ts
+- src/features/training/qualityCompliancePdf.ts
+- src/features/training/types.ts
+- src/pages/TrainingQualityCompliancePage.tsx
+- src/styles.css
+- supabase/migrations/079_training_quality_compliance.sql
+
+ORDRE DE DEPLOIEMENT
+
+1. SQL Supabase : 079_training_quality_compliance.sql
+2. Patch GitHub V2.19.0
+3. Build Cloudflare V2.19.0
+4. Cache PWA V2.19.0
+5. Tests indicateurs, preuves, audits, exports et droits
+
+AUCUNE FONCTION EDGE A REDEPLOYER.

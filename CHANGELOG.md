@@ -1,5 +1,19 @@
 # Changelog NCR Suite
 
+## V2.19.0 — Formation · Qualiopi, conformité et preuves
+
+- Nouveau module `Qualiopi & conformité` réservé aux responsables Formation.
+- Référentiel interne structuré en 7 critères et 32 indicateurs.
+- Statut, applicabilité, responsable, échéance, constat et actions par indicateur.
+- Réutilisation automatique des programmes, convocations, supports, attestations et évaluations déjà présents.
+- Dépôt de preuves complémentaires avec date, expiration et session liée.
+- Détection des indicateurs sans preuve et des preuves à renouveler.
+- Calendrier des audits initial, surveillance, renouvellement et interne.
+- Résultat d’audit et photographie des indicateurs et preuves lors de la clôture.
+- Exports de préparation PDF et CSV.
+- Cloisonnement multi-entreprises, rôles, fonctions contrôlées et RLS Supabase.
+- Cache PWA et audits techniques synchronisés en V2.19.0.
+
 ## V2.18.0 — Formation · Facturation et encaissements
 
 - Création de factures depuis les dossiers commerciaux acceptés, signés ou réalisés.

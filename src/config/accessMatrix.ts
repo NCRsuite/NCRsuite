@@ -27,7 +27,7 @@ export const BUSINESS_ROUTE_PATHS: Record<BusinessType, Set<string>> = {
   ]),
   formation: new Set([
     ...common(),
-    '/parcours-formation', '/profil-organisme', '/formations', '/stagiaires', '/formateurs', '/sessions', '/commercial', '/facturation-formation', '/bpf', '/dossiers-formation', '/documents', '/emargements', '/evaluations', '/attestations', '/etablissements', '/acces-equipe', '/personnalisation'
+    '/parcours-formation', '/profil-organisme', '/formations', '/stagiaires', '/formateurs', '/sessions', '/commercial', '/facturation-formation', '/bpf', '/qualite-formation', '/dossiers-formation', '/documents', '/emargements', '/evaluations', '/attestations', '/etablissements', '/acces-equipe', '/personnalisation'
   ]),
   securite: new Set([
     ...common(),

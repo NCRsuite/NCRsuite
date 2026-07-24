@@ -34,6 +34,7 @@ export type OfferFeatureKey =
   | 'training_commercial'
   | 'training_billing'
   | 'training_bpf'
+  | 'training_quality'
   | 'security_planning'
   | 'security_clients_sites'
   | 'security_site_rates'
@@ -165,6 +166,7 @@ const formationProfessionnelle: OfferFeatureKey[] = [
   'training_commercial',
   'training_billing',
   'training_bpf',
+  'training_quality',
   'multi_site',
   'team_access',
   'manager_role'
@@ -335,8 +337,8 @@ export const DOMAIN_OFFER_CATALOG: Record<BusinessType, DomainOfferDefinition> =
       },
       professionnelle: {
         label: 'Professionnelle', monthlyPriceCents: 9990, memberLimit: 10,
-        detail: 'Ajoute les évaluations, le dossier complet, le multi-site et les accès employés avec rôles.',
-        additions: ['Passe à 10 accès', 'Évaluations de satisfaction', 'Dossier complet de session', 'CRM, relances, clients, financeurs et documents commerciaux', 'Multi-site', 'Accès employés avec rôles'],
+        detail: 'Ajoute le cycle commercial, le BPF, la conformité, le multi-site et les accès employés avec rôles.',
+        additions: ['Passe à 10 accès', 'Évaluations de satisfaction', 'Dossier complet de session', 'CRM, facturation et BPF', 'Qualiopi, preuves et audits', 'Multi-site', 'Accès employés avec rôles'],
         features: formationProfessionnelle
       },
       metier: {
@@ -493,6 +495,7 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   training_commercial: 'CRM, relances, entreprises, financeurs et documents commerciaux',
   training_billing: 'Factures, avoirs, encaissements, échéances et relances',
   training_bpf: 'BPF automatique, contrôles annuels et exports préparatoires',
+  training_quality: 'Qualiopi, conformité, preuves, échéances et audits',
   security_planning: 'Planning des agents',
   security_clients_sites: 'Clients et sites',
   security_site_rates: 'Tarif défini par site',

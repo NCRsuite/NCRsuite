@@ -6,6 +6,12 @@ export type TrainingBpfRncpLevel = 'level_6_8' | 'level_5' | 'level_4' | 'level_
 export type TrainingBpfTrainerRelationship = 'internal' | 'external';
 export type TrainingBpfDeliveryMode = 'direct' | 'outsourced_by_us' | 'subcontracted_for_other';
 export type TrainingBpfTraineeType = 'private_employee' | 'apprentice' | 'jobseeker' | 'individual' | 'other';
+export type TrainingQualityControlStatus = 'not_started' | 'in_progress' | 'ready' | 'attention' | 'not_applicable';
+export type TrainingQualityEvidenceStatus = 'current' | 'expired' | 'archived';
+export type TrainingQualityEvidenceSource = 'upload' | 'document' | 'system';
+export type TrainingQualityAuditType = 'initial' | 'surveillance' | 'renewal' | 'internal';
+export type TrainingQualityAuditStatus = 'planned' | 'preparing' | 'completed';
+export type TrainingQualityAuditResult = 'conform' | 'minor_nonconformity' | 'major_nonconformity' | null;
 
 export interface TrainingProgramRecord {
   id: string;
@@ -142,6 +148,64 @@ export interface TrainingDocumentRecord {
   generated_at?: string | null;
   emailed_at?: string | null;
   created_at: string;
+}
+
+export interface TrainingQualityControlRecord {
+  id: string;
+  organization_id: string;
+  criterion_number: number;
+  indicator_number: number;
+  title: string;
+  objective: string | null;
+  applicable: boolean;
+  status: TrainingQualityControlStatus;
+  owner_name: string | null;
+  due_date: string | null;
+  notes: string | null;
+  reviewed_at: string | null;
+  evidence_count?: number;
+  active_evidence_count?: number;
+  expiring_evidence_count?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrainingQualityEvidenceRecord {
+  id: string;
+  organization_id: string;
+  control_id: string;
+  session_id: string | null;
+  training_document_id: string | null;
+  label: string;
+  description: string | null;
+  source_kind: TrainingQualityEvidenceSource;
+  source_reference: string | null;
+  action_path: string | null;
+  storage_path: string | null;
+  file_name: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  evidence_date: string;
+  expires_at: string | null;
+  status: TrainingQualityEvidenceStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrainingQualityAuditRecord {
+  id: string;
+  organization_id: string;
+  audit_type: TrainingQualityAuditType;
+  status: TrainingQualityAuditStatus;
+  planned_date: string;
+  completed_date: string | null;
+  auditor_name: string | null;
+  scope: string | null;
+  notes: string | null;
+  result: TrainingQualityAuditResult;
+  summary_snapshot: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
 }
 
 export type TrainingDocumentJobKind = 'convocation' | 'attestation';

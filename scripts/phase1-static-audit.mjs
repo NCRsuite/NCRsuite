@@ -349,6 +349,41 @@ if (!trainingEmailProcessor.includes("case 'training_invoice'")
   errors.push('Les e-mails et relances de facturation Formation V2.18.0 sont incomplets.');
 }
 
+// V2.19.0 — dossier Qualiopi, conformité, preuves et audits Formation.
+const trainingQualityMigration = read('supabase/migrations/079_training_quality_compliance.sql');
+const trainingQualityPage = read('src/pages/TrainingQualityCompliancePage.tsx');
+const trainingQualityLogic = read('src/features/training/qualityCompliance.ts');
+const trainingQualityPdf = read('src/features/training/qualityCompliancePdf.ts');
+if (!trainingQualityMigration.includes('create table if not exists public.training_quality_controls')
+    || !trainingQualityMigration.includes('create table if not exists public.training_quality_evidence')
+    || !trainingQualityMigration.includes('create table if not exists public.training_quality_audits')
+    || !trainingQualityMigration.includes('create or replace function public.initialize_training_quality_framework')
+    || !trainingQualityMigration.includes('create or replace function public.sync_training_quality_automatic_evidence')
+    || !trainingQualityMigration.includes('create or replace function public.update_training_quality_control')
+    || !trainingQualityMigration.includes('create or replace function public.add_training_quality_evidence')
+    || !trainingQualityMigration.includes('alter table public.training_quality_controls enable row level security')
+    || !trainingQualityMigration.includes("ncr-suite-shell-v2.19.0-training-quality-compliance")
+    || !trainingQualityMigration.includes("'2.19.0'")) {
+  errors.push('La migration V2.19.0 Qualiopi et conformité est incomplète.');
+}
+if (!trainingQualityPage.includes("supabase.rpc('initialize_training_quality_framework'")
+    || !trainingQualityPage.includes("supabase.rpc('sync_training_quality_automatic_evidence'")
+    || !trainingQualityPage.includes("supabase.rpc('update_training_quality_control'")
+    || !trainingQualityPage.includes("supabase.rpc('add_training_quality_evidence'")
+    || !trainingQualityPage.includes("supabase.rpc('create_training_quality_audit'")
+    || !trainingQualityPage.includes('Qualiopi & conformité')) {
+  errors.push('La page Qualiopi et conformité V2.19.0 est incomplète.');
+}
+if (!trainingQualityLogic.includes('trainingQualityIndicatorSeeds')
+    || !trainingQualityLogic.includes('[7, 32')
+    || !trainingQualityPdf.includes('NCR Suite V2.19.0')
+    || !trainingQualityPdf.includes('Dossier de préparation qualité')) {
+  errors.push('Le référentiel ou l’export qualité V2.19.0 est incomplet.');
+}
+if (!accessMatrix.includes("'/qualite-formation'")) {
+  errors.push('La route Qualiopi Formation est absente de la matrice d’accès.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

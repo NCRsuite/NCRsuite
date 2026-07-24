@@ -43,6 +43,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/commercial': 'training_commercial',
   '/facturation-formation': 'training_billing',
   '/bpf': 'training_bpf',
+  '/qualite-formation': 'training_quality',
   '/dossiers-formation': 'documents',
   '/emargements': 'attendance',
   '/evaluations': 'evaluations',
@@ -69,6 +70,7 @@ const GENERIC_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/commercial': 'training_commercial',
   '/facturation-formation': 'training_billing',
   '/bpf': 'training_bpf',
+  '/qualite-formation': 'training_quality',
   '/parcours-formation': 'training_session_dossier',
   '/profil-organisme': 'training_commercial',
   '/dossiers-formation': 'training_session_dossier'

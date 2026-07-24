@@ -1,0 +1,40 @@
+VALIDATION V2.19.0
+FORMATION · QUALIOPI, CONFORMITE ET PREUVES
+
+Version cible : ncr-suite@2.19.0
+Migration cible : 079_training_quality_compliance.sql
+
+CONTROLES TECHNIQUES
+
+- npm run audit:phase1 : OK
+- npm run test:critical : OK
+- npx tsc -b : OK
+- npx vite build : OK
+- Vite 8.1.4 : 425 modules transformes
+- Cache PWA : ncr-suite-shell-v2.19.0-training-quality-compliance
+
+BASE ET SECURITE
+
+- Tables training_quality_controls, training_quality_evidence et training_quality_audits protegees par RLS.
+- Fonctions d'ecriture protegees par role et fonctionnalite training_quality.
+- Cloisonnement par organization_id et cles etrangeres composites.
+- Validation des tailles, chemins de stockage, dates et statuts.
+- Cloture d'audit reservee aux proprietaires et administrateurs.
+- Offres Metier deja configurees a la carte non ecrasees.
+
+PARCOURS FONCTIONNELS
+
+- Initialisation idempotente des 7 criteres et 32 indicateurs.
+- Synchronisation dedupliquee des preuves Formation existantes.
+- Depot, ouverture, expiration et archivage des preuves.
+- Statuts, responsables, echeances et plans d'action.
+- Blocage du statut Maitrise sans preuve active.
+- Audits initial, surveillance, renouvellement et interne.
+- Photographie JSON du dossier lors de la cloture d'un audit.
+- Exports de preparation PDF et CSV.
+
+LIMITE DE L'ENVIRONNEMENT LOCAL
+
+- Le serveur local ne peut pas ecouter un port dans le bac a sable (EPERM).
+- La navigation file:// est bloquee par la politique du navigateur.
+- La recette visuelle desktop/mobile est donc a effectuer sur le build Cloudflare.

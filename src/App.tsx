@@ -45,6 +45,7 @@ const TrainingWorkflowPage = lazy(() => import('./pages/TrainingWorkflowPage').t
 const TrainingOrganizationProfilePage = lazy(() => import('./pages/TrainingOrganizationProfilePage').then((module) => ({ default: module.TrainingOrganizationProfilePage })));
 const TrainingBillingPage = lazy(() => import('./pages/TrainingBillingPage').then((module) => ({ default: module.TrainingBillingPage })));
 const TrainingBpfPage = lazy(() => import('./pages/TrainingBpfPage').then((module) => ({ default: module.TrainingBpfPage })));
+const TrainingQualityCompliancePage = lazy(() => import('./pages/TrainingQualityCompliancePage').then((module) => ({ default: module.TrainingQualityCompliancePage })));
 const PublicTrainingSatisfactionPage = lazy(() => import('./pages/PublicTrainingSatisfactionPage').then((module) => ({ default: module.PublicTrainingSatisfactionPage })));
 const SecurityClientsPage = lazy(() => import('./pages/SecurityClientsPage').then((module) => ({ default: module.SecurityClientsPage })));
 const SecurityAgentsPage = lazy(() => import('./pages/SecurityAgentsPage').then((module) => ({ default: module.SecurityAgentsPage })));
@@ -303,6 +304,7 @@ export default function App() {
         <Route path="commercial" element={<ModuleAccessGuard moduleKey="training_commercial"><TrainingCommercialPage /></ModuleAccessGuard>} />
         <Route path="facturation-formation" element={<ModuleAccessGuard moduleKey="training_billing"><TrainingBillingPage /></ModuleAccessGuard>} />
         <Route path="bpf" element={<ModuleAccessGuard moduleKey="training_bpf"><TrainingBpfPage /></ModuleAccessGuard>} />
+        <Route path="qualite-formation" element={<ModuleAccessGuard moduleKey="training_quality"><TrainingQualityCompliancePage /></ModuleAccessGuard>} />
         <Route path="dossiers-formation" element={<ModuleAccessGuard moduleKey="documents"><TrainingDossiersPage /></ModuleAccessGuard>} />
         <Route path="terrain" element={<FieldTerrainArea />} />
         <Route path="planning" element={<PlanningArea />} />

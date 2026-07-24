@@ -148,6 +148,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'CRM & commercial', path: '/commercial', icon: 'creditCard' },
       { label: 'Facturation', path: '/facturation-formation', icon: 'file' },
       { label: 'BPF automatique', path: '/bpf', icon: 'chart' },
+      { label: 'Qualiopi & conformité', path: '/qualite-formation', icon: 'shield' },
       { label: 'Dossiers de formation', path: '/dossiers-formation', icon: 'clipboard' },
       { label: 'Documents', path: '/documents', icon: 'file' },
       { label: 'Émargements', path: '/emargements', icon: 'signature' },

@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-billing-collections`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-quality-compliance`;
+const trainingBillingCache = 'ncr-suite-shell-v2.18.0-training-billing-collections';
 const trainingBpfCache = 'ncr-suite-shell-v2.17.0-training-bpf-automation';
 const trainingCrmCache = 'ncr-suite-shell-v2.16.0-training-crm-pipeline';
 const trainingSavCache = 'ncr-suite-shell-v2.15.4-training-sav-admin';
@@ -110,7 +111,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -565,7 +566,7 @@ requireText('supabase/migrations/078_training_billing_collections.sql', [
   'refresh_training_bpf_report_commercial_legacy',
   'alter table public.training_invoices enable row level security',
   "'2.18.0'",
-  expectedCache,
+  trainingBillingCache,
   'set search_path = public'
 ]);
 requireText('src/pages/TrainingBillingPage.tsx', [
@@ -589,6 +590,55 @@ requireText('supabase/functions/process-email-queue/index.ts', [
 ]);
 if (!app.includes('path="facturation-formation"') || !access.includes("'/facturation-formation'")) {
   failures.push('La facturation Formation V2.18.0 doit rester raccordée aux routes et à la matrice d’accès.');
+}
+
+requireText('supabase/migrations/079_training_quality_compliance.sql', [
+  'create table if not exists public.training_quality_controls',
+  'create table if not exists public.training_quality_evidence',
+  'create table if not exists public.training_quality_audits',
+  'create or replace function public.initialize_training_quality_framework',
+  'create or replace function public.sync_training_quality_automatic_evidence',
+  'create or replace function public.update_training_quality_control',
+  'create or replace function public.add_training_quality_evidence',
+  'create or replace function public.archive_training_quality_evidence',
+  'create or replace function public.create_training_quality_audit',
+  'create or replace function public.update_training_quality_audit',
+  "when 'training_quality' then 'training_quality'",
+  'alter table public.training_quality_controls enable row level security',
+  "'2.19.0'",
+  expectedCache,
+  'set search_path = public'
+]);
+requireText('src/pages/TrainingQualityCompliancePage.tsx', [
+  "supabase.rpc('initialize_training_quality_framework'",
+  "supabase.rpc('sync_training_quality_automatic_evidence'",
+  "supabase.rpc('update_training_quality_control'",
+  "supabase.rpc('add_training_quality_evidence'",
+  "supabase.rpc('create_training_quality_audit'",
+  "supabase.rpc('update_training_quality_audit'",
+  'Qualiopi & conformité',
+  '32 indicateurs',
+  'Dossier PDF'
+]);
+requireText('src/features/training/qualityCompliance.ts', [
+  'trainingQualityIndicatorSeeds',
+  '[1, 1',
+  '[7, 32',
+  'buildTrainingQualitySummary'
+]);
+requireText('src/features/training/qualityCompliancePdf.ts', [
+  'NCR Suite V2.19.0',
+  'Dossier de préparation qualité',
+  'Ce dossier facilite la préparation'
+]);
+requireText('src/features/training/qualityComplianceCsv.ts', [
+  'NCR Suite V2.19.0',
+  'INDICATEURS',
+  'PREUVES',
+  'AUDITS'
+]);
+if (!app.includes('path="qualite-formation"') || !access.includes("'/qualite-formation'")) {
+  failures.push('Le module Qualiopi Formation V2.19.0 doit rester raccordé aux routes et à la matrice d’accès.');
 }
 
 requireText('supabase/functions/process-email-queue/index.ts', [
