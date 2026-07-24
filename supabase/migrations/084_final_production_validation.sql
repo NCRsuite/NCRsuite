@@ -307,8 +307,7 @@ begin
     ),
     jsonb_build_object(
       'key','training_modules','category','Abonnements','label','Demandes de modules Formation',
-      'status',case when coalesce((v_readiness->>'ready')::boolean,false)=false then 'error'
-                    when v_old_module_requests>0 then 'warning' else 'ok' end,
+      'status',case when v_old_module_requests>0 then 'warning' else 'ok' end,
       'detail',v_old_module_requests||' demande(s) de plus de 7 jours.',
       'action','Traiter les demandes en attente depuis Abonnements.'
     )

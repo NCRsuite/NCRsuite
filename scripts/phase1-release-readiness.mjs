@@ -90,6 +90,21 @@ requireText('supabase/migrations/084_final_production_validation.sql', [
   'set search_path = public'
 ]);
 
+requireText('supabase/migrations/085_production_validation_security_correction.sql', [
+  'create temporary table ncr_function_access_snapshot on commit drop',
+  "has_function_privilege('authenticated',p.oid,'EXECUTE')",
+  "has_function_privilege('service_role',p.oid,'EXECUTE')",
+  'revoke execute on all functions in schema public from public,anon',
+  "where authenticated_execute",
+  "where service_execute",
+  'alter default privileges in schema public revoke execute on functions from public',
+  'create or replace function public.platform_access_security_report',
+  'platform_production_validation_report_v212',
+  "'platform.production_validation_security_corrected'",
+  "'migration','085'",
+  'set search_path = public'
+]);
+
 requireText('src/components/AdminProductionValidationPanel.tsx', [
   "supabase.rpc('platform_production_validation_report'",
   "supabase.rpc('platform_production_validation_history'",
@@ -234,7 +249,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }
@@ -246,4 +261,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Préparation release NCR Suite : validation production finale et historique vérifiés.');
+console.log('Préparation release NCR Suite : validation finale et correctif de sécurité vérifiés.');

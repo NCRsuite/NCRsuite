@@ -521,6 +521,25 @@ if (!productionValidationPanel.includes("supabase.rpc('platform_production_valid
   errors.push('La console V2.21.2 de validation production finale est incomplète ou mal protégée.');
 }
 
+// Correctif V2.21.2 - permissions anonymes et verdict des modules Formation.
+const productionValidationCorrection = read('supabase/migrations/085_production_validation_security_correction.sql');
+if (!productionValidationCorrection.includes('create temporary table ncr_function_access_snapshot on commit drop')
+    || !productionValidationCorrection.includes("has_function_privilege('authenticated',p.oid,'EXECUTE')")
+    || !productionValidationCorrection.includes("has_function_privilege('service_role',p.oid,'EXECUTE')")
+    || !productionValidationCorrection.includes('revoke execute on all functions in schema public from public,anon')
+    || !productionValidationCorrection.includes('where authenticated_execute')
+    || !productionValidationCorrection.includes('where service_execute')
+    || !productionValidationCorrection.includes('alter default privileges in schema public revoke execute on functions from public')
+    || !productionValidationCorrection.includes('create or replace function public.platform_access_security_report')
+    || !productionValidationCorrection.includes('platform_production_validation_report_v212')
+    || !productionValidationCorrection.includes("'platform.production_validation_security_corrected'")
+    || !productionValidationCorrection.includes("'migration','085'")) {
+  errors.push('Le correctif V2.21.2 des permissions anonymes et du verdict Formation est incomplet.');
+}
+if (productionValidationMigration.includes("coalesce((v_readiness->>'ready')::boolean,false)=false")) {
+  errors.push('Le rapport V2.21.2 ne doit plus transformer une autre anomalie V2.20 en demande de module Formation.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

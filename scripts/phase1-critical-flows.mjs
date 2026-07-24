@@ -118,7 +118,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080', '081', '082', '083', '084']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080', '081', '082', '083', '084', '085']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -735,6 +735,19 @@ requireText('supabase/migrations/084_final_production_validation.sql', [
   "'2.21.2'",
   expectedCache,
   'set search_path = public'
+]);
+requireText('supabase/migrations/085_production_validation_security_correction.sql', [
+  'create temporary table ncr_function_access_snapshot on commit drop',
+  "has_function_privilege('authenticated',p.oid,'EXECUTE')",
+  "has_function_privilege('service_role',p.oid,'EXECUTE')",
+  'revoke execute on all functions in schema public from public,anon',
+  "where authenticated_execute",
+  "where service_execute",
+  'get_training_portal_invitation',
+  'submit_public_training_evaluation',
+  'create or replace function public.platform_access_security_report',
+  'platform_production_validation_report_v212',
+  "'platform.production_validation_security_corrected'"
 ]);
 requireText('src/components/AdminProductionValidationPanel.tsx', [
   "supabase.rpc('platform_production_validation_report'",

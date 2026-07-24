@@ -2,6 +2,10 @@
 
 ## V2.21.2 — Validation production finale
 
+- Correctif de production : suppression des droits anonymes hérités sur les fonctions internes.
+- Conservation exacte des accès déjà disponibles pour les utilisateurs connectés et les traitements de service.
+- Liste explicite des 22 fonctions nécessaires aux réservations, questionnaires et invitations publiques.
+- Correction du faux blocage « Demandes de modules Formation » lorsque le compteur vaut zéro.
 - Nouveau verdict de production réservé au super-administrateur NCR.
 - Contrôles automatiques des versions, droits, abonnements, files d’envoi et erreurs navigateur.
 - Vérification des automatisations Formation, imports, sessions, portails et signatures.
