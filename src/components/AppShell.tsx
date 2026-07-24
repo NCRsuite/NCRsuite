@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
 import { organizationHasFeature, planLabel } from '../config/planEntitlements';
-import { cleaningPathIsLocked, cleaningRequiredPlanForPath, filterNavigationForOrganization, restaurantPathIsLocked, restaurantRequiredPlanForPath, securityPathIsLocked, securityRequiredPlanForPath } from '../config/moduleAccess';
+import { cleaningPathIsLocked, cleaningRequiredPlanForPath, filterNavigationForOrganization, formationPathIsLocked, formationRequiredPlanForPath, restaurantPathIsLocked, restaurantRequiredPlanForPath, securityPathIsLocked, securityRequiredPlanForPath } from '../config/moduleAccess';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { Icon } from './Icon';
@@ -244,8 +244,8 @@ export function AppShell() {
 
         <nav className="main-nav" aria-label="Navigation principale">
           {navigation.map((item) => {
-            const locked = securityPathIsLocked(organization, item.path) || cleaningPathIsLocked(organization, item.path) || restaurantPathIsLocked(organization, item.path);
-            const requiredPlan = organization.business_type === 'nettoyage' ? cleaningRequiredPlanForPath(item.path) : organization.business_type === 'restauration' ? restaurantRequiredPlanForPath(item.path) : securityRequiredPlanForPath(item.path);
+            const locked = formationPathIsLocked(organization, item.path) || securityPathIsLocked(organization, item.path) || cleaningPathIsLocked(organization, item.path) || restaurantPathIsLocked(organization, item.path);
+            const requiredPlan = organization.business_type === 'formation' ? formationRequiredPlanForPath(item.path) : organization.business_type === 'nettoyage' ? cleaningRequiredPlanForPath(item.path) : organization.business_type === 'restauration' ? restaurantRequiredPlanForPath(item.path) : securityRequiredPlanForPath(item.path);
             return <NavLink key={item.path} to={item.path} end={item.path === '/'} className={({ isActive }) => `${isActive ? 'active' : ''}${locked ? ' premium-locked' : ''}`}>
               <Icon name={item.icon} size={20} />
               <span>{item.label}</span>
@@ -383,8 +383,8 @@ export function AppShell() {
             <div className="mobile-drawer-section-title">Navigation</div>
             <nav className="mobile-drawer-nav" aria-label="Toutes les rubriques">
               {navigation.map((item) => {
-                const locked = securityPathIsLocked(organization, item.path) || cleaningPathIsLocked(organization, item.path) || restaurantPathIsLocked(organization, item.path);
-                const requiredPlan = organization.business_type === 'nettoyage' ? cleaningRequiredPlanForPath(item.path) : organization.business_type === 'restauration' ? restaurantRequiredPlanForPath(item.path) : securityRequiredPlanForPath(item.path);
+                const locked = formationPathIsLocked(organization, item.path) || securityPathIsLocked(organization, item.path) || cleaningPathIsLocked(organization, item.path) || restaurantPathIsLocked(organization, item.path);
+                const requiredPlan = organization.business_type === 'formation' ? formationRequiredPlanForPath(item.path) : organization.business_type === 'nettoyage' ? cleaningRequiredPlanForPath(item.path) : organization.business_type === 'restauration' ? restaurantRequiredPlanForPath(item.path) : securityRequiredPlanForPath(item.path);
                 return <NavLink key={item.path} to={item.path} end={item.path === '/'} onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => `${isActive ? 'active' : ''}${locked ? ' premium-locked' : ''}`}>
                   <span className="mobile-drawer-nav-icon"><Icon name={item.icon} size={20} /></span>
                   <span>{item.label}</span>

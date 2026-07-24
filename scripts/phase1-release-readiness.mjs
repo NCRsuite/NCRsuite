@@ -11,19 +11,20 @@ const requireText = (file, snippets) => {
   }
   const source = read(file);
   for (const snippet of snippets) {
-    if (!source.includes(snippet)) failures.push(`Contrôle V2.20.0 absent dans ${file} : ${snippet}`);
+    if (!source.includes(snippet)) failures.push(`Contrôle V2.20.1 absent dans ${file} : ${snippet}`);
   }
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-final-stabilization`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-locked-navigation`;
+const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.20.0') failures.push('package.json doit annoncer la V2.20.0.');
+if (pkg.version !== '2.20.1') failures.push('package.json doit annoncer la V2.20.1.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.20.0 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.20.0 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.20.1 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.20.1 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 
@@ -37,8 +38,39 @@ requireText('supabase/migrations/080_final_stabilization_training_modules.sql', 
   'create or replace function public.reconcile_training_modules_after_plan_change',
   'create or replace function public.platform_release_readiness_report',
   "'2.20.0'",
-  expectedCache,
+  finalStabilizationCache,
   'set search_path = public'
+]);
+
+requireText('supabase/migrations/081_training_locked_module_navigation.sql', [
+  "'2.20.1'",
+  expectedCache,
+  'platform_release_state'
+]);
+
+requireText('src/components/TrainingFeatureGate.tsx', [
+  'organizationHasFeature',
+  'Module non inclus dans votre configuration',
+  '#training-modules',
+  'Voir ce module dans mon abonnement'
+]);
+
+requireText('src/components/AppShell.tsx', [
+  'formationPathIsLocked',
+  'formationRequiredPlanForPath',
+  'premium-locked'
+]);
+
+requireText('src/config/moduleAccess.ts', [
+  'FORMATION_UPSELL_PATHS',
+  'formationPathIsLocked',
+  'formationRequiredPlanForPath'
+]);
+
+requireText('src/components/TrainingModulesPanel.tsx', [
+  'id="training-modules"',
+  'requestedFeature',
+  "item.feature_keys.includes(requestedFeature)"
 ]);
 
 requireText('src/components/TrainingModulesPanel.tsx', [
@@ -121,7 +153,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }
@@ -133,4 +165,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Préparation release NCR Suite : cohérence multi-métiers validée.');
+console.log('Préparation release NCR Suite : navigation Formation verrouillée et cohérence multi-métiers validées.');

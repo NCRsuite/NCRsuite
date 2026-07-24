@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { SecurityAddonsPanel } from '../components/SecurityAddonsPanel';
 import { TrainingModulesPanel } from '../components/TrainingModulesPanel';
@@ -140,6 +141,7 @@ function requestStatusLabel(request: OpenRequest) {
 
 export function SubscriptionPage() {
   const { organization, organizations, selectOrganization } = useOrganization();
+  const location = useLocation();
   const [data, setData] = useState<BillingPortalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [portfolioLoading, setPortfolioLoading] = useState(false);
@@ -189,6 +191,14 @@ export function SubscriptionPage() {
   useEffect(() => {
     void load();
   }, [organization?.id]);
+
+  useEffect(() => {
+    if (loading || !data || location.hash !== '#training-modules') return;
+    const timer = window.setTimeout(() => {
+      document.getElementById('training-modules')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [data, loading, location.hash, location.search]);
 
   useEffect(() => {
     void loadPortfolio();

@@ -420,6 +420,30 @@ if (!planEntitlements.includes("training_digital_attendance: 'training_digital_a
   errors.push('Les droits distincts des modules Formation V2.20.0 sont incomplets.');
 }
 
+// V2.20.1 — modules Formation verrouilles visibles et montee en gamme ciblee.
+const trainingLockedNavigationMigration = read('supabase/migrations/081_training_locked_module_navigation.sql');
+const trainingFeatureGate = read('src/components/TrainingFeatureGate.tsx');
+const appShell = read('src/components/AppShell.tsx');
+if (!trainingLockedNavigationMigration.includes("'2.20.1'")
+    || !trainingLockedNavigationMigration.includes('ncr-suite-shell-v2.20.1-training-locked-navigation')
+    || !trainingLockedNavigationMigration.includes('platform_release_state')) {
+  errors.push('La migration de synchronisation V2.20.1 est incomplète.');
+}
+if (!moduleAccess.includes('FORMATION_UPSELL_PATHS')
+    || !moduleAccess.includes('formationPathIsLocked')
+    || !moduleAccess.includes('formationRequiredPlanForPath')
+    || !appShell.includes('formationPathIsLocked')
+    || !appShell.includes('formationRequiredPlanForPath')) {
+  errors.push('La navigation sous cadenas des modules Formation V2.20.1 est incomplète.');
+}
+if (!trainingFeatureGate.includes('organizationHasFeature')
+    || !trainingFeatureGate.includes('#training-modules')
+    || !trainingFeatureGate.includes('Voir ce module dans mon abonnement')
+    || !trainingModulesPanel.includes('id="training-modules"')
+    || !trainingModulesPanel.includes('requestedFeature')) {
+  errors.push('La montée en gamme ciblée des modules Formation V2.20.1 est incomplète.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

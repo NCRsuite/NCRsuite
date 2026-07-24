@@ -1,5 +1,16 @@
 # Changelog NCR Suite
 
+## V2.20.1 — Modules Formation visibles sous cadenas
+
+- Conservation des modules Formation non inclus dans les menus ordinateur et mobile.
+- Cadenas et badge de l’offre nécessaire sur chaque rubrique concernée.
+- Écran de présentation dédié sans accès aux données du module verrouillé.
+- Bouton de montée en gamme ouvrant directement le bon module dans `Mon abonnement`.
+- Mise en évidence automatique de la carte correspondant au module demandé.
+- Redirection des configurations Métier vers leur espace contractuel.
+- Accès inchangé pour les modules déjà inclus ou activés à la carte.
+- Contrôles automatisés des routes Formation, des droits, de la migration et du cache PWA.
+
 ## V2.20.0 — Stabilisation finale et modules Formation à la carte
 
 - Ajout de dix modules Formation sélectionnables depuis `Mon abonnement`.

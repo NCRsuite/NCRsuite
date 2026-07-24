@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-final-stabilization`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-locked-navigation`;
+const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const trainingQualityCache = 'ncr-suite-shell-v2.19.0-training-quality-compliance';
 const trainingBillingCache = 'ncr-suite-shell-v2.18.0-training-billing-collections';
 const trainingBpfCache = 'ncr-suite-shell-v2.17.0-training-bpf-automation';
@@ -112,7 +113,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080', '081']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -652,9 +653,46 @@ requireText('supabase/migrations/080_final_stabilization_training_modules.sql', 
   'create or replace function public.reconcile_training_modules_after_plan_change',
   'create or replace function public.platform_release_readiness_report',
   "'2.20.0'",
-  expectedCache,
+  finalStabilizationCache,
   'set search_path = public'
 ]);
+requireText('supabase/migrations/081_training_locked_module_navigation.sql', [
+  "'2.20.1'",
+  expectedCache,
+  'platform_release_state'
+]);
+requireText('src/components/TrainingFeatureGate.tsx', [
+  'organizationHasFeature',
+  'Module non inclus dans votre configuration',
+  '#training-modules',
+  'Voir ce module dans mon abonnement'
+]);
+requireText('src/components/AppShell.tsx', [
+  'formationPathIsLocked',
+  'formationRequiredPlanForPath'
+]);
+requireText('src/config/moduleAccess.ts', [
+  'FORMATION_UPSELL_PATHS',
+  'formationPathIsLocked',
+  'formationRequiredPlanForPath'
+]);
+requireText('src/components/TrainingModulesPanel.tsx', [
+  'id="training-modules"',
+  'requestedFeature',
+  "item.feature_keys.includes(requestedFeature)"
+]);
+for (const [route, feature] of [
+  ['parcours-formation', 'training_session_dossier'],
+  ['commercial', 'training_commercial'],
+  ['facturation-formation', 'training_billing'],
+  ['bpf', 'training_bpf'],
+  ['qualite-formation', 'training_quality'],
+  ['evaluations', 'training_satisfaction']
+]) {
+  if (!app.includes(`path="${route}"`) || !app.includes(`feature="${feature}"`)) {
+    failures.push(`Le verrou Formation V2.20.1 est absent ou incomplet : ${route}.`);
+  }
+}
 requireText('src/components/TrainingModulesPanel.tsx', [
   "supabase.rpc('training_module_portal'",
   "supabase.rpc('request_training_module_change'",

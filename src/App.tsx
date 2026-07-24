@@ -10,6 +10,7 @@ import { usePlatformAdmin } from './contexts/PlatformAdminContext';
 import { CleaningFeatureGate } from './components/CleaningFeatureGate';
 import { organizationCanAccessPath } from './config/moduleAccess';
 import { RestaurantFeatureGate } from './components/RestaurantFeatureGate';
+import { TrainingFeatureGate } from './components/TrainingFeatureGate';
 
 
 
@@ -137,6 +138,7 @@ function BrandingArea() {
   const { organization } = useOrganization();
   const moduleKey = organization?.business_type === 'securite' ? 'security_document_branding' : 'commercial_branding';
   if (organization?.business_type === 'restauration') return <RestaurantFeatureGate feature="commercial_branding" requiredPlan="Essentielle" description="Personnalisez le menu public, les documents et les communications du restaurant."><CommercialBrandingPage /></RestaurantFeatureGate>;
+  if (organization?.business_type === 'formation') return <TrainingFeatureGate feature="commercial_branding" requiredPlan="Essentielle" description="Personnalisez les documents, modèles et communications de votre organisme."><ModuleAccessGuard moduleKey={moduleKey}><CommercialBrandingPage /></ModuleAccessGuard></TrainingFeatureGate>;
   return <ModuleAccessGuard moduleKey={moduleKey}><CommercialBrandingPage /></ModuleAccessGuard>;
 }
 
@@ -151,6 +153,9 @@ function TeamAccessArea() {
   }
   if (organization?.business_type === 'restauration') {
     return <RestaurantFeatureGate feature="team_access" requiredPlan="Essentielle" description="Connectez jusqu’à 10 employés à leur planning, aux réservations, à la carte et aux outils d’hygiène. L’offre Professionnelle ajoute le rôle Manager."><TeamAccessPage /></RestaurantFeatureGate>;
+  }
+  if (organization?.business_type === 'formation') {
+    return <TrainingFeatureGate feature="team_access" requiredPlan="Professionnelle" description="Invitez votre équipe, attribuez les rôles et contrôlez les accès aux dossiers Formation."><ModuleAccessGuard moduleKey="team_access"><TeamAccessPage /></ModuleAccessGuard></TrainingFeatureGate>;
   }
   return <ModuleAccessGuard moduleKey="team_access"><TeamAccessPage /></ModuleAccessGuard>;
 }
@@ -290,8 +295,8 @@ export default function App() {
       <Route path="/administration-ncr" element={<PlatformAdminArea />} />
       <Route element={<ProtectedArea />}>
         <Route index element={<DashboardPage />} />
-        <Route path="parcours-formation" element={<ModuleAccessGuard moduleKey="sessions"><TrainingWorkflowPage /></ModuleAccessGuard>} />
-        <Route path="profil-organisme" element={<ModuleAccessGuard moduleKey="training_programs"><TrainingOrganizationProfilePage /></ModuleAccessGuard>} />
+        <Route path="parcours-formation" element={<TrainingFeatureGate feature="training_session_dossier" requiredPlan="Professionnelle" description="Pilotez chaque parcours, du dossier d’inscription jusqu’à la clôture administrative."><ModuleAccessGuard moduleKey="training_session_dossier"><TrainingWorkflowPage /></ModuleAccessGuard></TrainingFeatureGate>} />
+        <Route path="profil-organisme" element={<TrainingFeatureGate feature="training_commercial" requiredPlan="Professionnelle" description="Centralisez les informations commerciales et administratives de votre organisme."><ModuleAccessGuard moduleKey="training_commercial"><TrainingOrganizationProfilePage /></ModuleAccessGuard></TrainingFeatureGate>} />
         <Route path="formations" element={<ModuleAccessGuard moduleKey="training_programs"><TrainingProgramsPage /></ModuleAccessGuard>} />
         <Route path="stagiaires" element={<ModuleAccessGuard moduleKey="trainees"><TrainingTraineesPage /></ModuleAccessGuard>} />
         <Route path="formateurs" element={<ModuleAccessGuard moduleKey="trainers"><TrainingTrainersPage /></ModuleAccessGuard>} />
@@ -299,13 +304,13 @@ export default function App() {
         <Route path="documents" element={<ModuleAccessGuard moduleKey="documents"><DocumentsArea /></ModuleAccessGuard>} />
         <Route path="attestations" element={<ModuleAccessGuard moduleKey="certificates"><TrainingDocumentsPage /></ModuleAccessGuard>} />
         <Route path="emargements" element={<ModuleAccessGuard moduleKey="attendance"><TrainingAttendancePage /></ModuleAccessGuard>} />
-        <Route path="evaluations" element={<ModuleAccessGuard moduleKey="evaluations"><TrainingEvaluationsPage /></ModuleAccessGuard>} />
-        <Route path="etablissements" element={<ModuleAccessGuard moduleKey="sites"><TrainingSitesPage /></ModuleAccessGuard>} />
-        <Route path="commercial" element={<ModuleAccessGuard moduleKey="training_commercial"><TrainingCommercialPage /></ModuleAccessGuard>} />
-        <Route path="facturation-formation" element={<ModuleAccessGuard moduleKey="training_billing"><TrainingBillingPage /></ModuleAccessGuard>} />
-        <Route path="bpf" element={<ModuleAccessGuard moduleKey="training_bpf"><TrainingBpfPage /></ModuleAccessGuard>} />
-        <Route path="qualite-formation" element={<ModuleAccessGuard moduleKey="training_quality"><TrainingQualityCompliancePage /></ModuleAccessGuard>} />
-        <Route path="dossiers-formation" element={<ModuleAccessGuard moduleKey="training_session_dossier"><TrainingDossiersPage /></ModuleAccessGuard>} />
+        <Route path="evaluations" element={<TrainingFeatureGate feature="training_satisfaction" requiredPlan="Professionnelle" description="Automatisez l’envoi, les relances et le suivi des évaluations de satisfaction."><ModuleAccessGuard moduleKey="evaluations"><TrainingEvaluationsPage /></ModuleAccessGuard></TrainingFeatureGate>} />
+        <Route path="etablissements" element={<TrainingFeatureGate feature="multi_site" requiredPlan="Professionnelle" description="Gérez plusieurs établissements et consolidez leur activité dans un même espace."><ModuleAccessGuard moduleKey="sites"><TrainingSitesPage /></ModuleAccessGuard></TrainingFeatureGate>} />
+        <Route path="commercial" element={<TrainingFeatureGate feature="training_commercial" requiredPlan="Professionnelle" description="Suivez prospects, entreprises, financeurs, devis, conventions et relances commerciales."><ModuleAccessGuard moduleKey="training_commercial"><TrainingCommercialPage /></ModuleAccessGuard></TrainingFeatureGate>} />
+        <Route path="facturation-formation" element={<TrainingFeatureGate feature="training_billing" requiredPlan="Professionnelle" description="Gérez factures, paiements, avoirs, relances et exports comptables Formation."><ModuleAccessGuard moduleKey="training_billing"><TrainingBillingPage /></ModuleAccessGuard></TrainingFeatureGate>} />
+        <Route path="bpf" element={<TrainingFeatureGate feature="training_bpf" requiredPlan="Professionnelle" description="Préparez automatiquement votre BPF avec contrôles de cohérence et export d’aide à la saisie."><ModuleAccessGuard moduleKey="training_bpf"><TrainingBpfPage /></ModuleAccessGuard></TrainingFeatureGate>} />
+        <Route path="qualite-formation" element={<TrainingFeatureGate feature="training_quality" requiredPlan="Professionnelle" description="Structurez les preuves Qualiopi, audits, obligations et archives de conformité."><ModuleAccessGuard moduleKey="training_quality"><TrainingQualityCompliancePage /></ModuleAccessGuard></TrainingFeatureGate>} />
+        <Route path="dossiers-formation" element={<TrainingFeatureGate feature="training_session_dossier" requiredPlan="Professionnelle" description="Regroupez les pièces, signatures, présences et contrôles de chaque session."><ModuleAccessGuard moduleKey="training_session_dossier"><TrainingDossiersPage /></ModuleAccessGuard></TrainingFeatureGate>} />
         <Route path="terrain" element={<FieldTerrainArea />} />
         <Route path="planning" element={<PlanningArea />} />
         <Route path="agents" element={<AgentsArea />} />

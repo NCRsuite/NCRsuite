@@ -122,6 +122,11 @@ const CLEANING_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
 const SECURITY_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/rondes', '/main-courante', '/consignes', '/geolocalisation', '/pti', '/supervision', '/portail-clients']);
 const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/portail-clients', '/rapports', '/anomalies', '/qualite', '/stocks', '/rentabilite', '/acces-equipe']);
 const RESTAURANT_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/cuisine', '/personnalisation']);
+const FORMATION_UPSELL_PATHS = new Set([
+  '/parcours-formation', '/profil-organisme', '/commercial', '/facturation-formation',
+  '/bpf', '/qualite-formation', '/dossiers-formation', '/evaluations',
+  '/etablissements', '/acces-equipe', '/personnalisation'
+]);
 
 
 export function normalizedModulePath(pathname: string) {
@@ -183,6 +188,13 @@ export function restaurantRequiredPlanForPath(pathname: string): 'Essentielle' |
   return null;
 }
 
+export function formationRequiredPlanForPath(pathname: string): 'Essentielle' | 'Professionnelle' | null {
+  const normalized = normalizedModulePath(pathname);
+  if (normalized === '/personnalisation') return 'Essentielle';
+  if (FORMATION_UPSELL_PATHS.has(normalized)) return 'Professionnelle';
+  return null;
+}
+
 export function securityPathIsLocked(organization: Organization, pathname: string) {
   if (organization.business_type !== 'securite') return false;
   const feature = featureKeyForPath(pathname, 'securite');
@@ -201,6 +213,12 @@ export function cleaningPathIsLocked(organization: Organization, pathname: strin
   return Boolean(feature && !organizationHasFeature(organization, feature));
 }
 
+export function formationPathIsLocked(organization: Organization, pathname: string) {
+  if (organization.business_type !== 'formation') return false;
+  const feature = featureKeyForPath(pathname, 'formation');
+  return Boolean(feature && !organizationHasFeature(organization, feature));
+}
+
 export function organizationCanAccessPath(organization: Organization, pathname: string) {
   const normalized = normalizedModulePath(pathname);
 
@@ -214,6 +232,7 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
     if (organization.business_type === 'securite' && ['owner', 'admin'].includes(organization.role ?? 'viewer') && SECURITY_UPSELL_PATHS.has(normalized)) return true;
     if (organization.business_type === 'nettoyage' && ['owner', 'admin'].includes(organization.role ?? 'viewer') && CLEANING_UPSELL_PATHS.has(normalized)) return true;
     if (organization.business_type === 'restauration' && ['owner', 'admin'].includes(organization.role ?? 'viewer') && RESTAURANT_UPSELL_PATHS.has(normalized)) return true;
+    if (organization.business_type === 'formation' && ['owner', 'admin'].includes(organization.role ?? 'viewer') && FORMATION_UPSELL_PATHS.has(normalized)) return true;
     return false;
   }
 

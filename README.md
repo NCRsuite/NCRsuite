@@ -1,7 +1,7 @@
-# NCR Suite V2.20.0
+# NCR Suite V2.20.1
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version ajoute le dossier Qualiopi et conformité Formation : 32 indicateurs, preuves automatiques ou déposées, responsables, échéances, audits et exports de préparation PDF/CSV.
+Cette version laisse les modules Formation non inclus visibles sous cadenas dans les navigations ordinateur et mobile. Leur fiche présente la montée en gamme et ouvre directement le module concerné dans `Mon abonnement`.
 
-Consulter `A_LIRE_INSTALLATION_V2.20.0.txt` avant déploiement.
+Consulter `A_LIRE_INSTALLATION_V2.20.1.txt` avant déploiement.

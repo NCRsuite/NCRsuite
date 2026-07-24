@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
 import type { IconName, Plan } from '../types';
@@ -63,6 +64,8 @@ function requestStatusLabel(request: TrainingModuleRequest) {
 
 export function TrainingModulesPanel() {
   const { organization, refreshOrganizations } = useOrganization();
+  const location = useLocation();
+  const requestedFeature = new URLSearchParams(location.search).get('feature');
   const canManage = ['owner', 'admin'].includes(organization?.role ?? 'viewer');
   const [portal, setPortal] = useState<TrainingModulePortal | null>(null);
   const [loading, setLoading] = useState(true);
@@ -167,7 +170,7 @@ export function TrainingModulesPanel() {
   if (!organization || organization.business_type !== 'formation') return null;
 
   return (
-    <section className="security-addons-section training-modules-section">
+    <section id="training-modules" className="security-addons-section training-modules-section">
       <div className="security-addons-heading training-modules-heading">
         <div>
           <p className="eyebrow">MODULES FORMATION À LA CARTE</p>
@@ -220,7 +223,7 @@ export function TrainingModulesPanel() {
             );
 
             return (
-              <article key={item.module_key} className={`security-addon-card${item.active ? ' active' : ''}${item.included_by_plan ? ' included' : ''}${lockedForPlan ? ' locked' : ''}`}>
+              <article key={item.module_key} className={`security-addon-card${item.active ? ' active' : ''}${item.included_by_plan ? ' included' : ''}${lockedForPlan ? ' locked' : ''}${requestedFeature && item.feature_keys.includes(requestedFeature) ? ' requested' : ''}`}>
                 <div className="security-addon-card-top">
                   <span className="security-addon-icon"><Icon name={item.icon_key || 'graduation'} size={22} /></span>
                   <div>

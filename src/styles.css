@@ -10554,9 +10554,17 @@ button { max-width: 100%; }
 .security-addon-admin-request .admin-company-avatar { color:var(--accent); }
 .training-modules-heading { border-color:color-mix(in srgb,#087849 25%,var(--line));background:linear-gradient(135deg,#effaf4,#fff 58%); }
 .training-modules-heading h2 { max-width:680px; }
+.training-modules-section { scroll-margin-top:24px; }
+.security-addon-card.requested { border-color:#087849;box-shadow:0 0 0 3px rgba(8,120,73,.12),0 12px 28px rgba(20,28,42,.08);opacity:1; }
 .training-module-upgrade-hint { display:flex;align-items:flex-start;gap:7px;padding:9px 10px;border:1px solid #e8b44c;border-radius:11px;background:#fff8e8;color:#7a5100;font-size:.73rem;font-weight:800;line-height:1.4; }
 .training-module-upgrade-hint svg { flex:0 0 auto;margin-top:1px; }
 .training-module-admin-grid { margin-top:16px; }
+.training-locked-feature-page { min-height:calc(100vh - 110px);display:grid;place-items:center; }
+.training-locked-feature-card { width:min(610px,100%);display:grid;justify-items:center;gap:12px;padding:42px;text-align:center; }
+.training-locked-feature-card h1,.training-locked-feature-card p { margin:0; }
+.training-locked-feature-card > p:not(.eyebrow) { max-width:530px;color:var(--muted);line-height:1.65; }
+.training-locked-feature-icon { width:70px;height:70px;display:grid;place-items:center;border-radius:8px;background:#e9f7ef;color:#087849; }
+.training-locked-feature-badge { display:inline-flex;align-items:center;gap:7px;margin:4px 0 8px;padding:9px 13px;border-radius:999px;background:#e9f7ef;color:#087849;font-size:.76rem;font-weight:850; }
 .admin-release-readiness .admin-monitoring-object-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 
 @media (max-width: 780px) {
@@ -10566,6 +10574,7 @@ button { max-width: 100%; }
   .security-addons-recommendation { grid-template-columns:auto minmax(0,1fr); }
   .security-addons-recommendation .primary-button { grid-column:1/-1;width:100%; }
   .security-addons-grid { grid-template-columns:1fr; }
+  .training-locked-feature-card { padding:30px 20px; }
   .admin-release-readiness .admin-monitoring-object-grid { grid-template-columns:1fr; }
 }
 

@@ -1,0 +1,35 @@
+VALIDATION NCR SUITE V2.20.1
+
+VALIDATIONS AUTOMATIQUES
+
+- npx tsc -b : VALIDE
+- npm run audit:phase1 : VALIDE
+- npm run test:critical : VALIDE
+- npm run test:release : VALIDE
+- npm run build : VALIDE
+- Vite 8.1.4 : 427 modules transformes
+
+COUVERTURE
+
+- Versions frontend, base et cache PWA synchronisees.
+- Migration incrementale 081 controlee.
+- Modules Formation verrouilles conserves pour les responsables.
+- Cadenas et offre requise controles sur ordinateur et mobile.
+- Ecran verrouille protegeant le contenu du module.
+- Redirection ciblee vers le catalogue de modules Formation.
+- Mise en evidence de la carte demandee.
+- Configuration Metier conservee.
+- Acces des modules actifs ou inclus conserve.
+
+TEST VISUEL FINAL
+
+Le serveur local ne peut pas etre expose depuis l environnement isole Codex.
+Verifier apres le build Cloudflare :
+
+- le menu Formation sur ordinateur et mobile ;
+- CRM, Facturation, BPF, Qualiopi, Dossiers et Evaluations sous cadenas ;
+- la fiche de montee en gamme ;
+- le defilement vers le bon module dans Mon abonnement ;
+- un module active a la carte ;
+- une offre Professionnelle et une offre Metier ;
+- la reouverture de la PWA apres mise a jour.
