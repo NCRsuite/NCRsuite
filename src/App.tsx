@@ -305,7 +305,7 @@ export default function App() {
         <Route path="facturation-formation" element={<ModuleAccessGuard moduleKey="training_billing"><TrainingBillingPage /></ModuleAccessGuard>} />
         <Route path="bpf" element={<ModuleAccessGuard moduleKey="training_bpf"><TrainingBpfPage /></ModuleAccessGuard>} />
         <Route path="qualite-formation" element={<ModuleAccessGuard moduleKey="training_quality"><TrainingQualityCompliancePage /></ModuleAccessGuard>} />
-        <Route path="dossiers-formation" element={<ModuleAccessGuard moduleKey="documents"><TrainingDossiersPage /></ModuleAccessGuard>} />
+        <Route path="dossiers-formation" element={<ModuleAccessGuard moduleKey="training_session_dossier"><TrainingDossiersPage /></ModuleAccessGuard>} />
         <Route path="terrain" element={<FieldTerrainArea />} />
         <Route path="planning" element={<PlanningArea />} />
         <Route path="agents" element={<AgentsArea />} />

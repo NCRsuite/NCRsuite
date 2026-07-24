@@ -67,14 +67,14 @@ const FORMATION_FEATURE_MODULES: Partial<Record<PlanFeature, string>> = {
   training_sessions: 'sessions',
   training_documents: 'documents',
   training_blank_attendance: 'attendance',
-  training_digital_attendance: 'attendance',
-  training_attendance_pdf: 'attendance',
+  training_digital_attendance: 'training_digital_attendance',
+  training_attendance_pdf: 'training_digital_attendance',
   training_automatic_certificates: 'certificates',
   commercial_branding: 'commercial_branding',
   training_document_branding: 'commercial_branding',
   training_email_branding: 'commercial_branding',
   training_satisfaction: 'evaluations',
-  training_session_dossier: 'documents',
+  training_session_dossier: 'training_session_dossier',
   training_commercial: 'training_commercial',
   training_billing: 'training_billing',
   training_bpf: 'training_bpf',
@@ -87,6 +87,11 @@ const FORMATION_FEATURE_MODULES: Partial<Record<PlanFeature, string>> = {
 export function organizationHasFeature(organization: Organization, feature: PlanFeature) {
   if (organization.business_type === 'securite') {
     const addonModule = SECURITY_ADDON_FEATURE_MODULES[feature];
+    if (addonModule && (organization.enabled_modules ?? []).includes(addonModule)) return true;
+  }
+
+  if (organization.business_type === 'formation') {
+    const addonModule = FORMATION_FEATURE_MODULES[feature];
     if (addonModule && (organization.enabled_modules ?? []).includes(addonModule)) return true;
   }
 

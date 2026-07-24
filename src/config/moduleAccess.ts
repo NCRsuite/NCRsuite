@@ -44,7 +44,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/facturation-formation': 'training_billing',
   '/bpf': 'training_bpf',
   '/qualite-formation': 'training_quality',
-  '/dossiers-formation': 'documents',
+  '/dossiers-formation': 'training_session_dossier',
   '/emargements': 'attendance',
   '/evaluations': 'evaluations',
   '/attestations': 'certificates',

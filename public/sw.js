@@ -1,4 +1,5 @@
-const CACHE = 'ncr-suite-shell-v2.19.0-training-quality-compliance';
+const CACHE_PREFIX = 'ncr-suite-shell-';
+const CACHE = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const SHELL = [
   '/',
   '/index.html',
@@ -16,7 +17,9 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))
+    caches.keys().then((keys) => Promise.all(
+      keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE).map((key) => caches.delete(key))
+    ))
   );
   self.clients.claim();
 });

@@ -384,6 +384,42 @@ if (!accessMatrix.includes("'/qualite-formation'")) {
   errors.push('La route Qualiopi Formation est absente de la matrice d’accès.');
 }
 
+// V2.20.0 — stabilisation multi-métiers et modules Formation à la carte.
+const finalStabilizationMigration = read('supabase/migrations/080_final_stabilization_training_modules.sql');
+const trainingModulesPanel = read('src/components/TrainingModulesPanel.tsx');
+const billingAdminPanel = read('src/components/BillingAdminPanel.tsx');
+const adminMonitoringPanel = read('src/components/AdminMonitoringPanel.tsx');
+const subscriptionPage = read('src/pages/SubscriptionPage.tsx');
+const planEntitlements = read('src/config/planEntitlements.ts');
+const moduleAccess = read('src/config/moduleAccess.ts');
+if (!finalStabilizationMigration.includes('create table if not exists public.training_module_catalog')
+    || !finalStabilizationMigration.includes('create table if not exists public.organization_training_modules')
+    || !finalStabilizationMigration.includes('create table if not exists public.training_module_change_requests')
+    || !finalStabilizationMigration.includes('create or replace function public.training_module_portal')
+    || !finalStabilizationMigration.includes('create or replace function public.request_training_module_change')
+    || !finalStabilizationMigration.includes('create or replace function public.admin_review_training_module_request')
+    || !finalStabilizationMigration.includes('create or replace function public.platform_release_readiness_report')
+    || !finalStabilizationMigration.includes("ncr-suite-shell-v2.20.0-final-stabilization")
+    || !finalStabilizationMigration.includes("'2.20.0'")) {
+  errors.push('La migration V2.20.0 de stabilisation et des modules Formation est incomplète.');
+}
+if (!trainingModulesPanel.includes("supabase.rpc('training_module_portal'")
+    || !trainingModulesPanel.includes("supabase.rpc('request_training_module_change'")
+    || !trainingModulesPanel.includes('upgradeWouldBeCheaper')
+    || !subscriptionPage.includes('<TrainingModulesPanel />')) {
+  errors.push('La sélection et la comparaison tarifaire des modules Formation V2.20.0 sont incomplètes.');
+}
+if (!billingAdminPanel.includes("supabase.rpc('admin_training_module_configuration')")
+    || !billingAdminPanel.includes("supabase.rpc('admin_review_training_module_request'")
+    || !adminMonitoringPanel.includes("supabase.rpc('platform_release_readiness_report')")) {
+  errors.push('La supervision administrateur V2.20.0 est incomplète.');
+}
+if (!planEntitlements.includes("training_digital_attendance: 'training_digital_attendance'")
+    || !planEntitlements.includes("training_session_dossier: 'training_session_dossier'")
+    || !moduleAccess.includes("'/dossiers-formation': 'training_session_dossier'")) {
+  errors.push('Les droits distincts des modules Formation V2.20.0 sont incomplets.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

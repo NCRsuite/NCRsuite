@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-quality-compliance`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-final-stabilization`;
+const trainingQualityCache = 'ncr-suite-shell-v2.19.0-training-quality-compliance';
 const trainingBillingCache = 'ncr-suite-shell-v2.18.0-training-billing-collections';
 const trainingBpfCache = 'ncr-suite-shell-v2.17.0-training-bpf-automation';
 const trainingCrmCache = 'ncr-suite-shell-v2.16.0-training-crm-pipeline';
@@ -111,7 +112,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -606,7 +607,7 @@ requireText('supabase/migrations/079_training_quality_compliance.sql', [
   "when 'training_quality' then 'training_quality'",
   'alter table public.training_quality_controls enable row level security',
   "'2.19.0'",
-  expectedCache,
+  trainingQualityCache,
   'set search_path = public'
 ]);
 requireText('src/pages/TrainingQualityCompliancePage.tsx', [
@@ -640,6 +641,41 @@ requireText('src/features/training/qualityComplianceCsv.ts', [
 if (!app.includes('path="qualite-formation"') || !access.includes("'/qualite-formation'")) {
   failures.push('Le module Qualiopi Formation V2.19.0 doit rester raccordé aux routes et à la matrice d’accès.');
 }
+
+requireText('supabase/migrations/080_final_stabilization_training_modules.sql', [
+  'create table if not exists public.training_module_catalog',
+  'create table if not exists public.organization_training_modules',
+  'create table if not exists public.training_module_change_requests',
+  'create or replace function public.training_module_portal',
+  'create or replace function public.request_training_module_change',
+  'create or replace function public.admin_review_training_module_request',
+  'create or replace function public.reconcile_training_modules_after_plan_change',
+  'create or replace function public.platform_release_readiness_report',
+  "'2.20.0'",
+  expectedCache,
+  'set search_path = public'
+]);
+requireText('src/components/TrainingModulesPanel.tsx', [
+  "supabase.rpc('training_module_portal'",
+  "supabase.rpc('request_training_module_change'",
+  "supabase.rpc('cancel_training_module_request'",
+  'MODULES FORMATION À LA CARTE',
+  'upgradeWouldBeCheaper'
+]);
+requireText('src/pages/SubscriptionPage.tsx', [
+  "data.business_type === 'formation'",
+  '<TrainingModulesPanel />'
+]);
+requireText('src/components/BillingAdminPanel.tsx', [
+  "supabase.rpc('admin_training_module_configuration')",
+  "supabase.rpc('admin_list_training_module_requests'",
+  "supabase.rpc('admin_review_training_module_request'",
+  'MODULES FORMATION'
+]);
+requireText('src/components/AdminMonitoringPanel.tsx', [
+  "supabase.rpc('platform_release_readiness_report')",
+  'PRÉPARATION V2.20'
+]);
 
 requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'security_client_portal_invitation'",

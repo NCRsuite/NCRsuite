@@ -1,0 +1,33 @@
+VALIDATION NCR SUITE V2.20.0
+
+VALIDATIONS AUTOMATIQUES
+
+- npx tsc -b : VALIDE
+- npm run audit:phase1 : VALIDE
+- npm run test:critical : VALIDE
+- npm run test:release : VALIDE
+- npm run build : VALIDE
+- Vite 8.1.4 : 426 modules transformes
+
+COUVERTURE
+
+- Versions frontend, base et cache PWA synchronisees.
+- Routes, navigations et matrices multi-metiers controlees.
+- Migrations critiques 054 a 080 controlees.
+- Droits Formation distincts pour les modules premium.
+- Catalogue Formation, demandes, validation NCR et liens Qonto controles.
+- Calcul du total projete et recommandation de montee en gamme controles.
+- Reconciliation automatique apres changement de formule controlee.
+- Rapport de preparation super administrateur controle.
+
+TEST VISUEL FINAL
+
+Le serveur local ne peut pas etre expose depuis l environnement isole Codex.
+Verifier apres le build Cloudflare :
+
+- Mon abonnement Formation sur ordinateur et mobile ;
+- les cartes modules, leurs textes et leurs boutons ;
+- la recommandation de formule superieure ;
+- Administration NCR > Abonnements ;
+- Administration NCR > Surveillance globale ;
+- la reouverture de la PWA apres mise a jour.

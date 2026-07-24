@@ -66,6 +66,20 @@ type HealthReport = {
   };
 };
 
+type ReleaseReadinessReport = {
+  generated_at: string;
+  ready: boolean;
+  summary: {
+    active_organizations: number;
+    organizations_without_owner: number;
+    unknown_organization_modules: number;
+    duplicate_training_modules: number;
+    old_training_module_requests: number;
+  };
+  checks: HealthCheck[];
+  domains: Array<{ business_type: string; organizations: number }>;
+};
+
 function dateTime(value: string | null | undefined) {
   if (!value) return '—';
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
@@ -88,6 +102,7 @@ function sourceLabel(value: string) {
 export function AdminMonitoringPanel() {
   const [hours, setHours] = useState(24);
   const [report, setReport] = useState<HealthReport | null>(null);
+  const [readiness, setReadiness] = useState<ReleaseReadinessReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [resolving, setResolving] = useState('');
   const [showResolved, setShowResolved] = useState(false);
@@ -98,9 +113,14 @@ export function AdminMonitoringPanel() {
     if (!supabase) return;
     setLoading(true);
     setError('');
-    const { data, error: requestError } = await supabase.rpc('platform_global_health_report', { p_hours: hours });
-    if (requestError) setError(requestError.message);
-    else setReport(data as HealthReport);
+    const [healthResult, readinessResult] = await Promise.all([
+      supabase.rpc('platform_global_health_report', { p_hours: hours }),
+      supabase.rpc('platform_release_readiness_report')
+    ]);
+    if (healthResult.error) setError(healthResult.error.message);
+    else setReport(healthResult.data as HealthReport);
+    if (readinessResult.error) setError(readinessResult.error.message);
+    else setReadiness(readinessResult.data as ReleaseReadinessReport);
     setLoading(false);
   }
 
@@ -113,10 +133,11 @@ export function AdminMonitoringPanel() {
 
   const globalStatus = useMemo<HealthStatus>(() => {
     if (!report) return 'warning';
+    if (readiness && !readiness.ready) return 'error';
     if (report.checks.some((check) => check.status === 'error')) return 'error';
     if (report.checks.some((check) => check.status === 'warning')) return 'warning';
     return 'ok';
-  }, [report]);
+  }, [readiness, report]);
 
   async function resolveRuntimeError(row: RuntimeErrorRow) {
     if (!supabase) return;
@@ -202,6 +223,37 @@ export function AdminMonitoringPanel() {
             </div>
           </article>
         </section>
+
+        {readiness && (
+          <section className="admin-monitoring-grid admin-release-readiness">
+            <article className="panel admin-monitoring-checks">
+              <div className="panel-header"><div><p className="eyebrow">PRÉPARATION V2.20</p><h2>{readiness.ready ? 'Socle cohérent' : 'Corrections requises'}</h2><p>Contrôle transversal généré le {dateTime(readiness.generated_at)}.</p></div></div>
+              <div className="admin-monitoring-check-list">
+                {readiness.checks.map((check) => <div key={check.key} className={check.status}>
+                  <span><Icon name={check.status === 'ok' ? 'check' : 'alert'} size={17} /></span>
+                  <div><strong>{check.label}</strong><small>{check.detail}</small></div>
+                  <em>{check.status === 'ok' ? 'OK' : check.status === 'warning' ? 'Surveillance' : 'Action'}</em>
+                </div>)}
+              </div>
+            </article>
+            <article className="panel admin-monitoring-release">
+              <div className="panel-header"><div><p className="eyebrow">MULTI-MÉTIERS</p><h2>Espaces actifs</h2></div></div>
+              <div className="admin-monitoring-object-grid">
+                {readiness.domains.map((domain) => (
+                  <article key={domain.business_type} className="ok">
+                    <span><Icon name="building" size={17} /></span>
+                    <div><strong>{domain.business_type}</strong><small>{domain.organizations} entreprise(s)</small></div>
+                  </article>
+                ))}
+              </div>
+              <div className="admin-monitoring-cache">
+                <small>Demandes Formation de plus de 7 jours</small>
+                <strong>{readiness.summary.old_training_module_requests}</strong>
+                <small>Les avertissements n’interrompent pas l’application, mais doivent être traités depuis Abonnements.</small>
+              </div>
+            </article>
+          </section>
+        )}
 
         <section className="panel admin-monitoring-errors">
           <div className="panel-header admin-monitoring-errors-head">

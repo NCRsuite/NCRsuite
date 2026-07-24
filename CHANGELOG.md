@@ -1,5 +1,19 @@
 # Changelog NCR Suite
 
+## V2.20.0 — Stabilisation finale et modules Formation à la carte
+
+- Ajout de dix modules Formation sélectionnables depuis `Mon abonnement`.
+- Affichage du tarif de chaque module, du total actuel et du total après validation.
+- Recommandation automatique de l’offre supérieure dès qu’elle devient plus avantageuse.
+- Gestion des dépendances entre CRM, facturation et BPF.
+- Demandes d’ajout ou de retrait validées depuis l’administration NCR.
+- Liens Qonto facultatifs configurables séparément pour chaque module Formation.
+- Désactivation automatique des suppléments devenus inclus après une montée de formule.
+- Séparation des droits `Émargement numérique` et `Dossier complet de session`.
+- Rapport super administrateur de préparation et d’intégrité multi-métiers.
+- Nouveau test de release transversal pour les routes, droits, migrations et caches PWA.
+- Nettoyage du cache PWA limité aux caches NCR Suite.
+
 ## V2.19.0 — Formation · Qualiopi, conformité et preuves
 
 - Nouveau module `Qualiopi & conformité` réservé aux responsables Formation.

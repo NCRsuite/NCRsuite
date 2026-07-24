@@ -10552,6 +10552,12 @@ button { max-width: 100%; }
 .security-addon-terms { margin-top:2px; }
 .security-addon-admin-grid { margin-top:16px; }
 .security-addon-admin-request .admin-company-avatar { color:var(--accent); }
+.training-modules-heading { border-color:color-mix(in srgb,#087849 25%,var(--line));background:linear-gradient(135deg,#effaf4,#fff 58%); }
+.training-modules-heading h2 { max-width:680px; }
+.training-module-upgrade-hint { display:flex;align-items:flex-start;gap:7px;padding:9px 10px;border:1px solid #e8b44c;border-radius:11px;background:#fff8e8;color:#7a5100;font-size:.73rem;font-weight:800;line-height:1.4; }
+.training-module-upgrade-hint svg { flex:0 0 auto;margin-top:1px; }
+.training-module-admin-grid { margin-top:16px; }
+.admin-release-readiness .admin-monitoring-object-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
 
 @media (max-width: 780px) {
   .security-addons-heading { align-items:flex-start;flex-direction:column; }
@@ -10560,6 +10566,7 @@ button { max-width: 100%; }
   .security-addons-recommendation { grid-template-columns:auto minmax(0,1fr); }
   .security-addons-recommendation .primary-button { grid-column:1/-1;width:100%; }
   .security-addons-grid { grid-template-columns:1fr; }
+  .admin-release-readiness .admin-monitoring-object-grid { grid-template-columns:1fr; }
 }
 
 @media (max-width: 420px) {

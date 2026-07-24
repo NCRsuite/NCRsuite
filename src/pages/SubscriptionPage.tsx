@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { SecurityAddonsPanel } from '../components/SecurityAddonsPanel';
+import { TrainingModulesPanel } from '../components/TrainingModulesPanel';
 import { businessPacks } from '../config/businessPacks';
 import { planLabel } from '../config/planEntitlements';
 import { getDomainOffer, OFFER_FEATURE_LABELS } from '../config/domainOfferCatalog';
@@ -349,6 +350,7 @@ export function SubscriptionPage() {
           )}
 
           {data.business_type === 'securite' && <SecurityAddonsPanel />}
+          {data.business_type === 'formation' && ['decouverte', 'essentielle'].includes(data.subscription.plan) && <TrainingModulesPanel />}
 
           <section id="subscription-plans" className="subscription-plans-section">
             <div className="section-heading-row">

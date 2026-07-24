@@ -1,0 +1,24 @@
+PATCH NCR SUITE V2.20.0
+
+A_LIRE_INSTALLATION_V2.20.0.txt
+CHANGELOG.md
+MANIFESTE_PATCH_V2.20.0.txt
+README.md
+VALIDATION_V2.20.0.txt
+docs/V2.20.0_INSTALLATION.md
+package-lock.json
+package.json
+public/sw.js
+scripts/phase1-critical-flows.mjs
+scripts/phase1-release-readiness.mjs
+scripts/phase1-static-audit.mjs
+src/App.tsx
+src/components/AdminMonitoringPanel.tsx
+src/components/BillingAdminPanel.tsx
+src/components/TrainingModulesPanel.tsx
+src/config/moduleAccess.ts
+src/config/planEntitlements.ts
+src/config/runtime.ts
+src/pages/SubscriptionPage.tsx
+src/styles.css
+supabase/migrations/080_final_stabilization_training_modules.sql

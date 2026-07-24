@@ -84,6 +84,38 @@ interface SecurityAddonRequest {
   review_note: string | null;
 }
 
+interface TrainingModuleLink {
+  module_key: string;
+  display_name: string;
+  short_description: string;
+  monthly_price_cents: number;
+  available_plans: Plan[];
+  provider: 'manual' | 'qonto' | 'stripe';
+  checkout_url: string | null;
+  checkout_active: boolean;
+  sort_order: number;
+}
+
+interface TrainingModuleConfiguration {
+  modules: TrainingModuleLink[];
+}
+
+interface TrainingModuleRequest {
+  id: string;
+  organization_id: string;
+  organization_name: string;
+  owner_email: string | null;
+  module_key: string;
+  module_name: string;
+  action: 'add' | 'remove';
+  status: 'payment_pending' | 'pending_review' | 'approved' | 'rejected' | 'canceled';
+  provider: 'manual' | 'qonto' | 'stripe';
+  request_reference: string;
+  provider_payment_reference: string | null;
+  created_at: string;
+  review_note: string | null;
+}
+
 const planLabels: Record<Plan, string> = {
   decouverte: 'Découverte',
   essentielle: 'Essentielle',
@@ -104,6 +136,8 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
   const [requests, setRequests] = useState<SubscriptionRequest[]>([]);
   const [securityAddonConfiguration, setSecurityAddonConfiguration] = useState<SecurityAddonConfiguration>({ addons: [] });
   const [securityAddonRequests, setSecurityAddonRequests] = useState<SecurityAddonRequest[]>([]);
+  const [trainingModuleConfiguration, setTrainingModuleConfiguration] = useState<TrainingModuleConfiguration>({ modules: [] });
+  const [trainingModuleRequests, setTrainingModuleRequests] = useState<TrainingModuleRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState('');
   const [message, setMessage] = useState('');
@@ -122,6 +156,11 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     [securityAddonRequests]
   );
 
+  const openTrainingModuleRequests = useMemo(
+    () => trainingModuleRequests.filter((request) => ['payment_pending', 'pending_review'].includes(request.status)),
+    [trainingModuleRequests]
+  );
+
   const visiblePlans = useMemo(
     () => (configuration?.plans ?? [])
       .filter((plan) => plan.business_type === selectedBusinessType)
@@ -133,11 +172,20 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     if (!supabase) return;
     setLoading(true);
     setError('');
-    const [configurationResult, requestsResult, addonConfigurationResult, addonRequestsResult] = await Promise.all([
+    const [
+      configurationResult,
+      requestsResult,
+      addonConfigurationResult,
+      addonRequestsResult,
+      trainingConfigurationResult,
+      trainingRequestsResult
+    ] = await Promise.all([
       supabase.rpc('admin_billing_configuration'),
       supabase.rpc('admin_list_subscription_requests', { p_status: null }),
       supabase.rpc('admin_security_addon_configuration'),
-      supabase.rpc('admin_list_security_addon_requests', { p_status: null })
+      supabase.rpc('admin_list_security_addon_requests', { p_status: null }),
+      supabase.rpc('admin_training_module_configuration'),
+      supabase.rpc('admin_list_training_module_requests', { p_status: null })
     ]);
     if (configurationResult.error) setError(configurationResult.error.message);
     else {
@@ -153,6 +201,10 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     else setSecurityAddonConfiguration((addonConfigurationResult.data ?? { addons: [] }) as SecurityAddonConfiguration);
     if (addonRequestsResult.error) setError(addonRequestsResult.error.message);
     else setSecurityAddonRequests((addonRequestsResult.data ?? []) as SecurityAddonRequest[]);
+    if (trainingConfigurationResult.error) setError(trainingConfigurationResult.error.message);
+    else setTrainingModuleConfiguration((trainingConfigurationResult.data ?? { modules: [] }) as TrainingModuleConfiguration);
+    if (trainingRequestsResult.error) setError(trainingRequestsResult.error.message);
+    else setTrainingModuleRequests((trainingRequestsResult.data ?? []) as TrainingModuleRequest[]);
     setLoading(false);
   }
 
@@ -278,6 +330,54 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     }
   }
 
+  function updateTrainingModuleLocal(moduleKey: string, updates: Partial<TrainingModuleLink>) {
+    setTrainingModuleConfiguration((current) => ({
+      ...current,
+      modules: current.modules.map((module) => module.module_key === moduleKey ? { ...module, ...updates } : module)
+    }));
+  }
+
+  async function saveTrainingModuleLink(module: TrainingModuleLink) {
+    if (!supabase || !canManage) return;
+    setSaving(`training-module-link-${module.module_key}`);
+    setMessage('');
+    setError('');
+    const { error: requestError } = await supabase.rpc('admin_update_training_module_link', {
+      p_module_key: module.module_key,
+      p_provider: module.provider,
+      p_checkout_url: module.checkout_url || null,
+      p_active: module.checkout_active
+    });
+    setSaving('');
+    if (requestError) setError(requestError.message);
+    else {
+      setMessage(`Le paiement du module ${module.display_name} a été configuré.`);
+      await load();
+    }
+  }
+
+  async function reviewTrainingModuleRequest(request: TrainingModuleRequest, decision: 'approve' | 'reject') {
+    if (!supabase || !canManage) return;
+    setSaving(`training-module-request-${request.id}`);
+    setMessage('');
+    setError('');
+    const { error: requestError } = await supabase.rpc('admin_review_training_module_request', {
+      p_request_id: request.id,
+      p_decision: decision,
+      p_note: reviewNotes[request.id]?.trim() || null,
+      p_provider_payment_reference: paymentReferences[request.id]?.trim() || null
+    });
+    setSaving('');
+    if (requestError) setError(requestError.message);
+    else {
+      setMessage(decision === 'approve'
+        ? `${request.module_name} a été ${request.action === 'add' ? 'activé' : 'retiré'} pour ${request.organization_name}.`
+        : `La demande de module Formation de ${request.organization_name} a été refusée.`);
+      await load();
+      onChanged?.();
+    }
+  }
+
   if (loading) return <section className="panel billing-admin-loading">Chargement de la facturation…</section>;
   if (!configuration) return <section className="panel"><div className="error-message">Configuration de facturation indisponible.</div></section>;
 
@@ -383,6 +483,46 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
                 <input type="url" value={addon.checkout_url ?? ''} onChange={(event) => updateSecurityAddonLocal(addon.addon_key, { checkout_url: event.target.value })} placeholder="https://..." disabled={!canManage} />
                 <label className="compact-switch"><input type="checkbox" checked={addon.checkout_active} onChange={(event) => updateSecurityAddonLocal(addon.addon_key, { checkout_active: event.target.checked })} disabled={!canManage} /><span>{addon.checkout_active ? 'Actif' : 'Inactif'}</span></label>
                 {canManage && <button className="secondary-button compact-button" type="button" onClick={() => saveSecurityAddonLink(addon)} disabled={saving === `addon-link-${addon.addon_key}`}>{saving === `addon-link-${addon.addon_key}` ? '…' : 'Enregistrer'}</button>}
+              </div>
+            ))}
+          </div>
+        </article>
+      </div>
+
+      <div className="billing-admin-grid security-addon-admin-grid training-module-admin-grid">
+        <article className="panel billing-requests-panel">
+          <div className="panel-header"><div><p className="eyebrow">MODULES FORMATION</p><h3>Demandes à la carte</h3></div><span>{openTrainingModuleRequests.length}</span></div>
+          {openTrainingModuleRequests.length === 0 ? <div className="admin-empty-state">Aucune demande de module Formation en attente.</div> : (
+            <div className="billing-request-list">
+              {openTrainingModuleRequests.map((request) => (
+                <article key={request.id} className="billing-request-card security-addon-admin-request">
+                  <div className="billing-request-top">
+                    <span className="admin-company-avatar"><Icon name="graduation" size={19} /></span>
+                    <div><strong>{request.organization_name}</strong><small>{request.owner_email || 'E-mail propriétaire non disponible'}</small></div>
+                    <span className={`admin-status-pill ${request.status === 'payment_pending' ? 'warning' : 'positive'}`}>{request.status === 'payment_pending' ? 'Paiement à vérifier' : 'Validation manuelle'}</span>
+                  </div>
+                  <div className="billing-request-route"><b>{request.action === 'add' ? 'Ajouter' : 'Retirer'}</b><Icon name="chevronRight" size={18} /><b>{request.module_name}</b></div>
+                  <p>Référence <strong>{request.request_reference}</strong> · {request.provider === 'qonto' ? 'Qonto' : request.provider} · {dateLabel(request.created_at)}</p>
+                  {request.status === 'payment_pending' && <label>Référence du paiement Qonto (facultatif)<input value={paymentReferences[request.id] ?? ''} onChange={(event) => setPaymentReferences((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Identifiant visible dans Qonto" disabled={!canManage} /></label>}
+                  <label>Note interne<textarea rows={2} value={reviewNotes[request.id] ?? ''} onChange={(event) => setReviewNotes((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Contrôle ou échange avec le client…" disabled={!canManage} /></label>
+                  {canManage && <div className="billing-request-buttons"><button className="primary-button" type="button" onClick={() => reviewTrainingModuleRequest(request, 'approve')} disabled={saving === `training-module-request-${request.id}`}>{saving === `training-module-request-${request.id}` ? 'Traitement…' : request.action === 'add' ? 'Valider et activer' : 'Valider le retrait'}</button><button className="secondary-button danger" type="button" onClick={() => reviewTrainingModuleRequest(request, 'reject')} disabled={saving === `training-module-request-${request.id}`}>Refuser</button></div>}
+                </article>
+              ))}
+            </div>
+          )}
+        </article>
+
+        <article className="panel billing-links-panel">
+          <div className="panel-header"><div><p className="eyebrow">PAIEMENTS MODULES</p><h3>Liens Qonto Formation</h3></div></div>
+          <p className="muted">Chaque module peut disposer de son propre lien récurrent. Sans lien actif, la demande remonte en validation manuelle.</p>
+          <div className="billing-plan-link-list">
+            {trainingModuleConfiguration.modules.map((module) => (
+              <div className="billing-plan-link-row" key={module.module_key}>
+                <div><strong>{module.display_name}</strong><small>{money(module.monthly_price_cents)} HT / mois · {module.available_plans.map((plan) => planLabels[plan]).join(', ')}</small></div>
+                <select value={module.provider} onChange={(event) => updateTrainingModuleLocal(module.module_key, { provider: event.target.value as TrainingModuleLink['provider'] })} disabled={!canManage}><option value="qonto">Qonto</option><option value="manual">Manuel</option><option value="stripe">Stripe (plus tard)</option></select>
+                <input type="url" value={module.checkout_url ?? ''} onChange={(event) => updateTrainingModuleLocal(module.module_key, { checkout_url: event.target.value })} placeholder="https://..." disabled={!canManage} />
+                <label className="compact-switch"><input type="checkbox" checked={module.checkout_active} onChange={(event) => updateTrainingModuleLocal(module.module_key, { checkout_active: event.target.checked })} disabled={!canManage} /><span>{module.checkout_active ? 'Actif' : 'Inactif'}</span></label>
+                {canManage && <button className="secondary-button compact-button" type="button" onClick={() => saveTrainingModuleLink(module)} disabled={saving === `training-module-link-${module.module_key}`}>{saving === `training-module-link-${module.module_key}` ? '…' : 'Enregistrer'}</button>}
               </div>
             ))}
           </div>
