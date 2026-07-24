@@ -1,8 +1,0 @@
-NCR Suite V2.11.5
-
-1. Supabase : exécuter supabase/migrations/058_access_matrix_rls_public_hardening.sql
-2. GitHub : remplacer/ajouter les autres fichiers du patch.
-3. Cloudflare : vérifier que le build termine en vert.
-4. Fermer puis rouvrir la PWA.
-
-Aucune donnée métier n'est supprimée.
