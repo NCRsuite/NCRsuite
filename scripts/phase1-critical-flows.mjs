@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-portals-signatures`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-data-recovery`;
+const trainingPortalsCache = 'ncr-suite-shell-v2.21.0-training-portals-signatures';
 const lockedNavigationCache = 'ncr-suite-shell-v2.20.1-training-locked-navigation';
 const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const trainingQualityCache = 'ncr-suite-shell-v2.19.0-training-quality-compliance';
@@ -705,8 +706,28 @@ requireText('supabase/migrations/082_training_portals_signatures.sql', [
   'create or replace function public.complete_training_signature',
   'training_portals_signatures_addon',
   "'2.21.0'",
+  trainingPortalsCache,
+  'set search_path = public'
+]);
+requireText('supabase/migrations/083_training_data_recovery.sql', [
+  'create or replace function public.preview_training_recovery_import',
+  'create or replace function public.import_training_recovery_records',
+  "'training_customers'",
+  "'training_funders'",
+  "'training_opportunities'",
+  "'training_sessions'",
+  "'training_enrollments'",
+  "set_config('ncr.allow_training_history_import','1',true)",
+  'delete from public.notification_events',
+  "'2.21.1'",
   expectedCache,
   'set search_path = public'
+]);
+requireText('src/pages/SaasLaunchCenterPage.tsx', [
+  "supabase.rpc('preview_training_recovery_import'",
+  "'import_training_recovery_records'",
+  'trainingRecoveryImportTypes',
+  'downloadImportErrors'
 ]);
 requireText('src/pages/TrainingPortalAdminPage.tsx', [
   "supabase.rpc('training_portal_admin_overview'",

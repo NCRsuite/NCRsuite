@@ -10384,9 +10384,25 @@ button { max-width: 100%; }
 .launch-import-table-wrap th,
 .launch-import-table-wrap td { max-width: 150px; padding: 8px 10px; overflow: hidden; border-bottom: 1px solid #efeff2; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
 .launch-import-table-wrap th { color: #757983; background: #f7f7f9; font-weight: 800; }
+.launch-import-preflight { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; border: 1px solid #bde2cb; border-radius: 14px; background: #f1fbf5; }
+.launch-import-preflight.blocked { border-color: #efc2c2; background: #fff5f5; }
+.launch-import-preflight-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.launch-import-preflight-title > span { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 34px; border-radius: 10px; color: #187748; background: #dff3e7; }
+.launch-import-preflight.blocked .launch-import-preflight-title > span { color: #a72b2b; background: #ffe1e1; }
+.launch-import-preflight-title strong,
+.launch-import-preflight-title small { display: block; }
+.launch-import-preflight-title small { margin-top: 2px; color: var(--launch-muted); font-size: 11px; }
+.launch-import-preflight dl { display: flex; gap: 7px; margin: 0; }
+.launch-import-preflight dl div { min-width: 58px; padding: 6px 8px; border-radius: 9px; background: rgba(255,255,255,.75); text-align: center; }
+.launch-import-preflight dt { color: var(--launch-muted); font-size: 9px; }
+.launch-import-preflight dd { margin: 1px 0 0; font-size: 13px; font-weight: 850; }
+.launch-import-warnings { padding: 12px 14px; border: 1px solid #ead79d; border-radius: 14px; color: #765718; background: #fff9e8; }
+.launch-import-warnings strong { display: block; margin-bottom: 5px; }
+.launch-import-warnings p { margin: 3px 0; font-size: 12px; line-height: 1.4; }
 .launch-import-errors { padding: 14px; border-radius: 16px; color: #8c2020; background: #fff0f0; }
 .launch-import-errors strong { display: block; margin-bottom: 6px; }
 .launch-import-errors p { margin: 3px 0; font-size: 12px; }
+.launch-import-errors .secondary-button { margin-top: 9px; }
 
 .launch-history-panel { padding-bottom: 10px; }
 .launch-history-count { padding: 7px 11px; border-radius: 999px; color: #6e727b; background: #f1f2f4; font-size: 12px; font-weight: 800; }
@@ -10403,6 +10419,7 @@ button { max-width: 100%; }
 .launch-history-list dl div { min-width: 70px; padding: 8px 10px; border-radius: 12px; background: #f6f7f8; text-align: center; }
 .launch-history-list dt { color: #858991; font-size: 10px; }
 .launch-history-list dd { margin: 2px 0 0; font-size: 14px; font-weight: 850; }
+.launch-history-summary { display: flex; align-items: center; gap: 8px; }
 
 .admin-diagnostics-layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 20px; align-items: start; }
 .admin-diagnostics-organizations,
@@ -10470,7 +10487,8 @@ button { max-width: 100%; }
   .launch-step { grid-template-columns: 34px 40px minmax(0, 1fr); }
   .launch-step > :last-child { grid-column: 2 / -1; justify-self: start; }
   .launch-history-list article { grid-template-columns: 40px minmax(0, 1fr); }
-  .launch-history-list dl { grid-column: 2; width: 100%; }
+  .launch-history-summary { grid-column: 2; width: 100%; }
+  .launch-history-list dl { width: 100%; }
   .admin-diagnostics-layout { grid-template-columns: 1fr; }
   .admin-diagnostics-organizations { position: static; min-height: auto; }
   .admin-diagnostic-org-list { max-height: 320px; }
@@ -10495,7 +10513,11 @@ button { max-width: 100%; }
   .launch-step p { font-size: 12px; }
   .launch-import-template { align-items: flex-start; flex-direction: column; }
   .launch-import-template .secondary-button { width: 100%; }
+  .launch-import-preflight { align-items: stretch; flex-direction: column; }
+  .launch-import-preflight dl { width: 100%; }
+  .launch-import-preflight dl div { flex: 1; }
   .launch-history-list article { padding: 11px; }
+  .launch-history-summary { align-items: stretch; flex-direction: column; }
   .launch-history-list dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .launch-history-list dl div { min-width: 0; padding: 7px 5px; }
   .admin-diagnostic-header { align-items: flex-start; flex-direction: column; }

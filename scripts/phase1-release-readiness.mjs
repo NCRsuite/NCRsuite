@@ -11,21 +11,22 @@ const requireText = (file, snippets) => {
   }
   const source = read(file);
   for (const snippet of snippets) {
-    if (!source.includes(snippet)) failures.push(`Contrôle V2.21.0 absent dans ${file} : ${snippet}`);
+    if (!source.includes(snippet)) failures.push(`Contrôle V2.21.1 absent dans ${file} : ${snippet}`);
   }
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-portals-signatures`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-data-recovery`;
+const trainingPortalsCache = 'ncr-suite-shell-v2.21.0-training-portals-signatures';
 const lockedNavigationCache = 'ncr-suite-shell-v2.20.1-training-locked-navigation';
 const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.21.0') failures.push('package.json doit annoncer la V2.21.0.');
+if (pkg.version !== '2.21.1') failures.push('package.json doit annoncer la V2.21.1.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.21.0 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.21.0 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.21.1 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.21.1 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 
@@ -59,7 +60,30 @@ requireText('supabase/migrations/082_training_portals_signatures.sql', [
   'can_upload_training_portal_document_asset',
   'training_portals_signatures_addon',
   "'2.21.0'",
-  expectedCache
+  trainingPortalsCache
+]);
+
+requireText('supabase/migrations/083_training_data_recovery.sql', [
+  'create or replace function public.preview_training_recovery_import',
+  'create or replace function public.import_training_recovery_records',
+  "'training_customers'",
+  "'training_funders'",
+  "'training_opportunities'",
+  "'training_sessions'",
+  "'training_enrollments'",
+  "set_config('ncr.allow_training_history_import','1',true)",
+  'delete from public.notification_events',
+  "'2.21.1'",
+  expectedCache,
+  'set search_path = public'
+]);
+
+requireText('src/pages/SaasLaunchCenterPage.tsx', [
+  "supabase.rpc('preview_training_recovery_import'",
+  "'import_training_recovery_records'",
+  'trainingRecoveryImportTypes',
+  'Télécharger les erreurs',
+  'Aucune donnée n’est écrite pendant ce contrôle.'
 ]);
 
 requireText('src/pages/TrainingPortalAdminPage.tsx', [
@@ -188,7 +212,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }
@@ -200,4 +224,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Préparation release NCR Suite : portails Formation, signatures et cohérence multi-métiers validés.');
+console.log('Préparation release NCR Suite : reprise Formation et cohérence multi-métiers validées.');

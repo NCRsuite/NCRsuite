@@ -1,5 +1,17 @@
 # Changelog NCR Suite
 
+## V2.21.1 — Reprise de données Formation
+
+- Conservation des imports existants des stagiaires, formateurs et programmes.
+- Contrôle serveur du fichier avant toute écriture dans Supabase.
+- Reprise guidée des entreprises clientes, financeurs et prospects CRM.
+- Import des sessions à venir en brouillon pour éviter les envois automatiques.
+- Reprise des sessions historiques réalisées sans relancer les anciennes automatisations.
+- Import des inscriptions, catégories BPF et heures suivies.
+- Détection des doublons et validation des dépendances entre les fichiers.
+- Rapport d’erreurs CSV et historique détaillé de chaque opération.
+- Cache PWA et contrôles de livraison synchronisés.
+
 ## V2.21.0 — Espaces Formation et signatures traçables
 
 - Nouveaux espaces sécurisés pour les stagiaires, formateurs et clients.

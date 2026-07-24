@@ -42,22 +42,33 @@ type ImportJob = {
 };
 
 type ImportResult = {
-  job_id: string;
-  status: ImportJob['status'];
+  job_id: string | null;
+  status: ImportJob['status'] | 'ready' | 'blocked';
   total_rows: number;
+  ready_rows?: number;
   inserted_rows: number;
   skipped_rows: number;
   error_rows: number;
   errors: Array<{ line?: number; message?: string }>;
+  warnings?: Array<{ line?: number; message?: string }>;
 };
 
 type ImportDefinition = {
   key: string;
   label: string;
   description: string;
+  helper?: string;
   headers: string[];
   example: Record<string, string | number>;
 };
+
+const trainingRecoveryImportTypes = new Set([
+  'training_customers',
+  'training_funders',
+  'training_opportunities',
+  'training_sessions',
+  'training_enrollments'
+]);
 
 const importsByBusiness: Record<BusinessType, ImportDefinition[]> = {
   coiffure: [
@@ -68,7 +79,12 @@ const importsByBusiness: Record<BusinessType, ImportDefinition[]> = {
   formation: [
     { key: 'training_trainees', label: 'Stagiaires', description: 'Identité, entreprise et coordonnées.', headers: ['first_name','last_name','email','phone','company','notes'], example: { first_name: 'Enzo', last_name: 'Dumas', email: 'enzo@example.fr', phone: '0600000000', company: 'Entreprise Exemple', notes: '' } },
     { key: 'training_trainers', label: 'Formateurs', description: 'Formateurs et spécialités séparées par ;', headers: ['first_name','last_name','email','phone','specialties','notes'], example: { first_name: 'Sarah', last_name: 'Durand', email: 'sarah@example.fr', phone: '0600000000', specialties: 'SST;Bureautique', notes: '' } },
-    { key: 'training_programs', label: 'Programmes', description: 'Catalogue initial de formations.', headers: ['title','code','duration_hours','modality','objectives','description'], example: { title: 'Acteur SST', code: 'SST-01', duration_hours: 14, modality: 'presentiel', objectives: 'Intervenir face à un accident', description: 'Formation initiale SST' } }
+    { key: 'training_programs', label: 'Programmes', description: 'Catalogue initial de formations.', headers: ['title','code','duration_hours','modality','objectives','description'], example: { title: 'Acteur SST', code: 'SST-01', duration_hours: 14, modality: 'presentiel', objectives: 'Intervenir face à un accident', description: 'Formation initiale SST' } },
+    { key: 'training_customers', label: 'Entreprises clientes', description: 'Clients, contacts et adresses de facturation.', headers: ['customer_type','legal_name','contact_name','email','phone','billing_address','postal_code','city','siret','vat_number','notes'], example: { customer_type: 'company', legal_name: 'Entreprise Exemple', contact_name: 'Mme Martin', email: 'contact@example.fr', phone: '0494000000', billing_address: '1 avenue Exemple', postal_code: '83600', city: 'Fréjus', siret: '12345678900000', vat_number: '', notes: '' } },
+    { key: 'training_funders', label: 'Financeurs', description: 'OPCO, employeurs et organismes payeurs.', helper: 'Le module CRM et commercial Formation doit être actif.', headers: ['funder_type','name','contact_name','email','phone','billing_address','postal_code','city','siret','vat_number','reference_code','notes'], example: { funder_type: 'opco', name: 'Financeur Exemple', contact_name: 'Service formation', email: 'dossiers@example.fr', phone: '0140000000', billing_address: '10 rue Exemple', postal_code: '75001', city: 'Paris', siret: '', vat_number: '', reference_code: 'OPCO-001', notes: '' } },
+    { key: 'training_opportunities', label: 'Prospects CRM', description: 'Prospects, pipeline, montants et prochaines relances.', helper: 'Importez d’abord les programmes et les entreprises clientes. Le module CRM doit être actif.', headers: ['title','customer_name','company_name','contact_name','contact_email','contact_phone','program_code','source','stage','estimated_value_euros','probability','expected_close_date','next_action_label','next_action_at','notes'], example: { title: 'Formation SST équipe logistique', customer_name: 'Entreprise Exemple', company_name: 'Entreprise Exemple', contact_name: 'Mme Martin', contact_email: 'contact@example.fr', contact_phone: '0494000000', program_code: 'SST-01', source: 'existing_customer', stage: 'qualified', estimated_value_euros: '2800,00', probability: 50, expected_close_date: '2026-09-30', next_action_label: 'Relancer le devis', next_action_at: '2026-09-10 09:00+02', notes: '' } },
+    { key: 'training_sessions', label: 'Sessions', description: 'Sessions à venir et historique réalisé.', helper: 'Importez d’abord les programmes et les formateurs. Les sessions à venir restent en brouillon jusqu’à leur validation.', headers: ['title','program_code','program_title','trainer_email','site_name','starts_at','ends_at','capacity','location','modality','status','notes'], example: { title: 'SST septembre 2026', program_code: 'SST-01', program_title: 'Acteur SST', trainer_email: 'sarah@example.fr', site_name: '', starts_at: '2026-09-14 09:00+02', ends_at: '2026-09-15 17:00+02', capacity: 10, location: 'Salle 1', modality: 'presentiel', status: 'draft', notes: '' } },
+    { key: 'training_enrollments', label: 'Inscriptions', description: 'Rattachement des stagiaires aux sessions.', helper: 'Importez d’abord les stagiaires puis les sessions. Pour l’historique BPF, renseignez les heures suivies.', headers: ['session_title','session_starts_at','trainee_email','trainee_first_name','trainee_last_name','status','bpf_trainee_type','attended_hours'], example: { session_title: 'SST septembre 2026', session_starts_at: '2026-09-14 09:00+02', trainee_email: 'enzo@example.fr', trainee_first_name: 'Enzo', trainee_last_name: 'Dumas', status: 'confirmed', bpf_trainee_type: 'private_employee', attended_hours: 14 } }
   ],
   securite: [
     { key: 'security_clients', label: 'Clients', description: 'Entreprises clientes et facturation.', headers: ['company_name','contact_name','email','phone','billing_address','postal_code','city','siret','notes'], example: { company_name: 'Centre commercial Azur', contact_name: 'Mme Martin', email: 'contact@example.fr', phone: '0494000000', billing_address: '1 avenue Exemple', postal_code: '83600', city: 'Fréjus', siret: '12345678900000', notes: '' } },
@@ -92,7 +108,10 @@ const headerAliases: Record<string, string> = {
   prenom: 'first_name', prénom: 'first_name', nom: 'last_name', telephone: 'phone', téléphone: 'phone', mail: 'email', courriel: 'email',
   entreprise: 'company_name', societe: 'company_name', société: 'company_name', contact: 'contact_name', ville: 'city', adresse: 'billing_address',
   code_postal: 'postal_code', cp: 'postal_code', commentaire: 'notes', commentaires: 'notes', duree: 'duration_minutes', durée: 'duration_minutes',
-  prix: 'price_euros', tarif: 'price_euros', heures: 'weekly_hours', matricule: 'employee_number', poste: 'role_code', categorie: 'category', catégorie: 'category'
+  prix: 'price_euros', tarif: 'price_euros', heures: 'weekly_hours', matricule: 'employee_number', poste: 'role_code', categorie: 'category', catégorie: 'category',
+  raison_sociale: 'legal_name', type_client: 'customer_type', type_financeur: 'funder_type', numero_tva: 'vat_number',
+  code_programme: 'program_code', titre_programme: 'program_title', email_formateur: 'trainer_email', etablissement: 'site_name',
+  date_debut: 'starts_at', date_fin: 'ends_at', capacite: 'capacity', modalite: 'modality', statut: 'status'
 };
 
 function normalizeHeader(value: string) {
@@ -164,6 +183,17 @@ function dateLabel(value: string | null) {
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }
 
+function errorMessage(cause: unknown) {
+  if (cause instanceof Error) return cause.message;
+  if (cause && typeof cause === 'object' && 'message' in cause && typeof cause.message === 'string') return cause.message;
+  return 'Impossible de lire ou de vérifier ce fichier.';
+}
+
+function downloadImportErrors(filename: string, errors: Array<{ line?: number; message?: string }>) {
+  const rows = errors.map((item) => `${csvEscape(item.line ?? '')};${csvEscape(item.message ?? 'Erreur inconnue')}`);
+  downloadText(`erreurs-${filename.replace(/\.csv$/i, '')}.csv`, `\uFEFF"ligne";"erreur"\n${rows.join('\n')}\n`);
+}
+
 export function SaasLaunchCenterPage() {
   const { organization } = useOrganization();
   const [overview, setOverview] = useState<LaunchOverview | null>(null);
@@ -174,10 +204,12 @@ export function SaasLaunchCenterPage() {
   const [previewHeaders, setPreviewHeaders] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
+  const [validating, setValidating] = useState(false);
   const [savingTest, setSavingTest] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [lastResult, setLastResult] = useState<ImportResult | null>(null);
+  const [validation, setValidation] = useState<ImportResult | null>(null);
 
   const canImport = ['owner','admin'].includes(organization?.role ?? 'viewer');
   const canManage = ['owner','admin','manager'].includes(organization?.role ?? 'viewer');
@@ -206,6 +238,7 @@ export function SaasLaunchCenterPage() {
     setPreviewRows([]);
     setPreviewHeaders([]);
     setLastResult(null);
+    setValidation(null);
     void load();
   }, [organization?.id]);
 
@@ -215,16 +248,37 @@ export function SaasLaunchCenterPage() {
     setPreviewRows([]);
     setPreviewHeaders([]);
     setLastResult(null);
+    setValidation(null);
     setError('');
     if (!file) return;
     try {
+      if (file.size > 5 * 1024 * 1024) throw new Error('Le fichier dépasse 5 Mo. Découpe-le en plusieurs imports.');
       const parsed = parseCsv(await file.text());
       if (parsed.rows.length > 1000) throw new Error('Un import est limité à 1 000 lignes. Découpe le fichier en plusieurs imports.');
       setPreviewRows(parsed.rows);
       setPreviewHeaders(parsed.headers);
+      const missingHeaders = definition?.headers.filter((header) => !parsed.headers.includes(header)) ?? [];
+      if (missingHeaders.length > 0) {
+        throw new Error(`Colonnes manquantes : ${missingHeaders.join(', ')}. Télécharge le modèle pour conserver le bon format.`);
+      }
+      if (organization?.business_type === 'formation' && definition && supabase) {
+        setValidating(true);
+        const { data, error: validationError } = await supabase.rpc('preview_training_recovery_import', {
+          p_organization_id: organization.id,
+          p_import_type: definition.key,
+          p_rows: parsed.rows
+        });
+        if (validationError) throw validationError;
+        setValidation(data as ImportResult);
+        setValidating(false);
+      }
     } catch (cause) {
       setSelectedFile(null);
-      setError(cause instanceof Error ? cause.message : 'Impossible de lire ce fichier.');
+      setPreviewRows([]);
+      setPreviewHeaders([]);
+      setValidation(null);
+      setValidating(false);
+      setError(errorMessage(cause));
     }
   }
 
@@ -242,10 +296,17 @@ export function SaasLaunchCenterPage() {
       setError(`Colonnes manquantes : ${missingHeaders.join(', ')}. Télécharge le modèle pour conserver le bon format.`);
       return;
     }
+    if (validation && validation.error_rows > 0) {
+      setError('Corrige le fichier à partir du rapport d’erreurs avant de relancer l’import.');
+      return;
+    }
     setImporting(true);
     setError('');
     setMessage('');
-    const { data, error: requestError } = await supabase.rpc('import_organization_records', {
+    const rpcName = organization.business_type === 'formation' && trainingRecoveryImportTypes.has(definition.key)
+      ? 'import_training_recovery_records'
+      : 'import_organization_records';
+    const { data, error: requestError } = await supabase.rpc(rpcName, {
       p_organization_id: organization.id,
       p_import_type: definition.key,
       p_file_name: selectedFile.name,
@@ -255,11 +316,16 @@ export function SaasLaunchCenterPage() {
     else {
       const result = data as ImportResult;
       setLastResult(result);
-      setMessage(`${result.inserted_rows} ligne(s) importée(s), ${result.skipped_rows} doublon(s) ignoré(s), ${result.error_rows} erreur(s).`);
-      setSelectedFile(null);
-      setPreviewRows([]);
-      setPreviewHeaders([]);
-      await load();
+      if (result.error_rows > 0 || result.status === 'blocked') {
+        setError('Aucune donnée n’a été ajoutée. Corrige le fichier à partir du rapport puis recommence.');
+      } else {
+        setMessage(`${result.inserted_rows} ligne(s) importée(s), ${result.skipped_rows} doublon(s) ignoré(s).`);
+        setSelectedFile(null);
+        setPreviewRows([]);
+        setPreviewHeaders([]);
+        setValidation(null);
+        await load();
+      }
     }
     setImporting(false);
   }
@@ -346,7 +412,7 @@ export function SaasLaunchCenterPage() {
 
           <div className="launch-import-types">
             {definitions.map((item) => (
-              <button type="button" key={item.key} className={definition?.key === item.key ? 'active' : ''} onClick={() => { setSelectedType(item.key); setSelectedFile(null); setPreviewRows([]); setPreviewHeaders([]); setLastResult(null); }}>
+              <button type="button" key={item.key} disabled={validating || importing} className={definition?.key === item.key ? 'active' : ''} onClick={() => { setSelectedType(item.key); setSelectedFile(null); setPreviewRows([]); setPreviewHeaders([]); setLastResult(null); setValidation(null); setError(''); }}>
                 <span><Icon name="file" size={18} /></span><div><strong>{item.label}</strong><small>{item.description}</small></div><Icon name="chevronRight" size={16} />
               </button>
             ))}
@@ -355,14 +421,14 @@ export function SaasLaunchCenterPage() {
           {definition && (
             <div className="launch-import-workflow">
               <div className="launch-import-template">
-                <div><strong>1. Télécharge le modèle</strong><small>{definition.headers.length} colonnes attendues · séparateur ;</small></div>
+                <div><strong>1. Télécharge le modèle</strong><small>{definition.headers.length} colonnes attendues · séparateur ;{definition.helper ? ` ${definition.helper}` : ''}</small></div>
                 <button type="button" className="secondary-button compact" onClick={downloadTemplate}><Icon name="file" size={16} /> Modèle CSV</button>
               </div>
               <label className={`launch-file-drop${selectedFile ? ' selected' : ''}`}>
                 <input type="file" accept=".csv,text/csv" onChange={handleFile} disabled={!canImport || importing} />
                 <span><Icon name="clipboard" size={26} /></span>
                 <strong>{selectedFile ? selectedFile.name : '2. Choisis ton fichier CSV'}</strong>
-                <small>{selectedFile ? `${previewRows.length} ligne(s) détectée(s)` : 'Fichier CSV exporté depuis Excel · 1 000 lignes maximum'}</small>
+                <small>{selectedFile ? `${previewRows.length} ligne(s) détectée(s)` : 'Fichier CSV exporté depuis Excel · 5 Mo et 1 000 lignes maximum'}</small>
               </label>
 
               {previewRows.length > 0 && (
@@ -373,7 +439,41 @@ export function SaasLaunchCenterPage() {
                       <tbody>{previewRows.slice(0, 4).map((row, rowIndex) => <tr key={rowIndex}>{definition.headers.slice(0, 5).map((header) => <td key={header}>{row[header] || '—'}</td>)}</tr>)}</tbody>
                     </table>
                   </div>
-                  <button type="button" className="primary-button full" onClick={() => void runImport()} disabled={importing || !canImport}>{importing ? 'Import en cours…' : `Importer ${previewRows.length} ligne(s)`}</button>
+
+                  {organization.business_type === 'formation' && (
+                    <div className={`launch-import-preflight${validation?.error_rows ? ' blocked' : ''}`}>
+                      <div className="launch-import-preflight-title">
+                        <span><Icon name={validating ? 'activity' : validation?.error_rows ? 'alert' : 'check'} size={17} /></span>
+                        <div><strong>{validating ? 'Vérification en cours…' : validation?.error_rows ? 'Fichier à corriger' : 'Fichier contrôlé'}</strong><small>Aucune donnée n’est écrite pendant ce contrôle.</small></div>
+                      </div>
+                      {validation && (
+                        <dl>
+                          <div><dt>Prêtes</dt><dd>{validation.ready_rows ?? validation.total_rows}</dd></div>
+                          <div><dt>Doublons</dt><dd>{validation.skipped_rows}</dd></div>
+                          <div><dt>Erreurs</dt><dd>{validation.error_rows}</dd></div>
+                        </dl>
+                      )}
+                    </div>
+                  )}
+
+                  {validation && (validation.warnings?.length ?? 0) > 0 && (
+                    <div className="launch-import-warnings">
+                      <strong>À savoir avant l’import</strong>
+                      {validation.warnings?.slice(0, 4).map((item, index) => <p key={index}>Ligne {item.line ?? '—'} · {item.message ?? ''}</p>)}
+                    </div>
+                  )}
+
+                  {validation && validation.error_rows > 0 && (
+                    <div className="launch-import-errors">
+                      <strong>{validation.error_rows} ligne(s) à corriger</strong>
+                      {validation.errors.slice(0, 5).map((item, index) => <p key={index}>Ligne {item.line ?? '—'} · {item.message ?? 'Erreur inconnue'}</p>)}
+                      <button type="button" className="secondary-button compact" onClick={() => downloadImportErrors(selectedFile?.name ?? definition.key, validation.errors)}><Icon name="file" size={15} /> Télécharger les erreurs</button>
+                    </div>
+                  )}
+
+                  <button type="button" className="primary-button full" onClick={() => void runImport()} disabled={importing || validating || !canImport || Boolean(validation?.error_rows)}>
+                    {importing ? 'Import en cours…' : validating ? 'Vérification…' : `Importer ${validation?.ready_rows ?? previewRows.length} ligne(s)`}
+                  </button>
                 </div>
               )}
 
@@ -381,6 +481,7 @@ export function SaasLaunchCenterPage() {
                 <div className="launch-import-errors">
                   <strong>{lastResult.error_rows} ligne(s) à corriger</strong>
                   {lastResult.errors.slice(0, 5).map((item, index) => <p key={index}>Ligne {item.line ?? '—'} · {item.message ?? 'Erreur inconnue'}</p>)}
+                  <button type="button" className="secondary-button compact" onClick={() => downloadImportErrors(selectedFile?.name ?? definition.key, lastResult.errors)}><Icon name="file" size={15} /> Télécharger les erreurs</button>
                 </div>
               )}
             </div>
@@ -396,7 +497,10 @@ export function SaasLaunchCenterPage() {
               <article key={job.id}>
                 <span className={`launch-import-status ${job.status}`}><Icon name={job.status === 'completed' ? 'check' : job.status === 'failed' ? 'alert' : 'activity'} size={17} /></span>
                 <div><strong>{definitions.find((item) => item.key === job.import_type)?.label ?? job.import_type}</strong><small>{job.file_name || 'Fichier sans nom'} · {dateLabel(job.completed_at ?? job.created_at)}</small></div>
-                <dl><div><dt>Importées</dt><dd>{job.inserted_rows}</dd></div><div><dt>Doublons</dt><dd>{job.skipped_rows}</dd></div><div><dt>Erreurs</dt><dd>{job.error_rows}</dd></div></dl>
+                <div className="launch-history-summary">
+                  <dl><div><dt>Importées</dt><dd>{job.inserted_rows}</dd></div><div><dt>Doublons</dt><dd>{job.skipped_rows}</dd></div><div><dt>Erreurs</dt><dd>{job.error_rows}</dd></div></dl>
+                  {job.error_rows > 0 && <button type="button" className="secondary-button compact" onClick={() => downloadImportErrors(job.file_name ?? job.import_type, job.errors)}><Icon name="file" size={14} /> Rapport</button>}
+                </div>
               </article>
             ))}
           </div>

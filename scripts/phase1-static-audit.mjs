@@ -472,6 +472,29 @@ if (!moduleAccess.includes("'/portails-formation': 'training_portals_signatures'
   errors.push('Le droit à la carte et la navigation V2.21.0 sont incomplets.');
 }
 
+// V2.21.1 — reprise de donnees Formation controlee avant ecriture.
+const trainingRecoveryMigration = read('supabase/migrations/083_training_data_recovery.sql');
+const launchCenterPage = read('src/pages/SaasLaunchCenterPage.tsx');
+if (!trainingRecoveryMigration.includes('create or replace function public.preview_training_recovery_import')
+    || !trainingRecoveryMigration.includes('create or replace function public.import_training_recovery_records')
+    || !trainingRecoveryMigration.includes("'training_customers'")
+    || !trainingRecoveryMigration.includes("'training_funders'")
+    || !trainingRecoveryMigration.includes("'training_opportunities'")
+    || !trainingRecoveryMigration.includes("'training_sessions'")
+    || !trainingRecoveryMigration.includes("'training_enrollments'")
+    || !trainingRecoveryMigration.includes("set_config('ncr.allow_training_history_import','1',true)")
+    || !trainingRecoveryMigration.includes('delete from public.notification_events')
+    || !trainingRecoveryMigration.includes('ncr-suite-shell-v2.21.1-training-data-recovery')
+    || !trainingRecoveryMigration.includes("'2.21.1'")) {
+  errors.push('La migration V2.21.1 de reprise Formation est incomplète.');
+}
+if (!launchCenterPage.includes("supabase.rpc('preview_training_recovery_import'")
+    || !launchCenterPage.includes("'import_training_recovery_records'")
+    || !launchCenterPage.includes('trainingRecoveryImportTypes')
+    || !launchCenterPage.includes('downloadImportErrors')) {
+  errors.push('Le parcours V2.21.1 de contrôle et reprise Formation est incomplet.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

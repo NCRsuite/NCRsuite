@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.21.0-training-portals-signatures';
+const CACHE = 'ncr-suite-shell-v2.21.1-training-data-recovery';
 const SHELL = [
   '/',
   '/index.html',
