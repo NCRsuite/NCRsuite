@@ -1,5 +1,16 @@
 # Changelog NCR Suite
 
+## V2.21.2 — Validation production finale
+
+- Nouveau verdict de production réservé au super-administrateur NCR.
+- Contrôles automatiques des versions, droits, abonnements, files d’envoi et erreurs navigateur.
+- Vérification des automatisations Formation, imports, sessions, portails et signatures.
+- Liste manuelle de mise en production obligatoire avant l’enregistrement du contrôle.
+- Historique horodaté des validations avec auteur et résultats détaillés.
+- Exports JSON et CSV du rapport, plus export CSV de l’historique.
+- Conservation des contrôles de surveillance et de préparation V2.20 déjà validés.
+- Cache PWA, migration Supabase et tests Cloudflare synchronisés.
+
 ## V2.21.1 — Reprise de données Formation
 
 - Conservation des imports existants des stagiaires, formateurs et programmes.

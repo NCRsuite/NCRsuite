@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { APP_VERSION, PWA_CACHE_NAME } from '../config/runtime';
+import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
 import { supabase } from '../lib/supabase';
+import { AdminProductionValidationPanel } from './AdminProductionValidationPanel';
 import { Icon } from './Icon';
 
 type HealthStatus = 'ok' | 'warning' | 'error';
@@ -100,6 +102,7 @@ function sourceLabel(value: string) {
 }
 
 export function AdminMonitoringPanel() {
+  const { profile } = usePlatformAdmin();
   const [hours, setHours] = useState(24);
   const [report, setReport] = useState<HealthReport | null>(null);
   const [readiness, setReadiness] = useState<ReleaseReadinessReport | null>(null);
@@ -182,6 +185,8 @@ export function AdminMonitoringPanel() {
 
       {error && <div className="error-message" role="alert">{error}</div>}
       {message && <div className="success-message" role="status">{message}</div>}
+
+      {profile?.role === 'super_admin' && <AdminProductionValidationPanel />}
 
       {loading && !report ? <div className="panel admin-empty-state">Analyse de la plateforme en cours…</div> : report && <>
         <section className="admin-monitoring-metrics">

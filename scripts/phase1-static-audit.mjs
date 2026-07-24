@@ -495,6 +495,32 @@ if (!launchCenterPage.includes("supabase.rpc('preview_training_recovery_import'"
   errors.push('Le parcours V2.21.1 de contrôle et reprise Formation est incomplet.');
 }
 
+// V2.21.2 - validation production finale reservee au super administrateur.
+const productionValidationMigration = read('supabase/migrations/084_final_production_validation.sql');
+const productionValidationPanel = read('src/components/AdminProductionValidationPanel.tsx');
+const productionAdminMonitoringPanel = read('src/components/AdminMonitoringPanel.tsx');
+if (!productionValidationMigration.includes('create table if not exists public.platform_production_validation_runs')
+    || !productionValidationMigration.includes('create or replace function public.platform_production_validation_report')
+    || !productionValidationMigration.includes('create or replace function public.platform_production_validation_history')
+    || !productionValidationMigration.includes('public.is_platform_super_admin()')
+    || !productionValidationMigration.includes("'training_documents'")
+    || !productionValidationMigration.includes("'training_imports'")
+    || !productionValidationMigration.includes("'training_signatures'")
+    || !productionValidationMigration.includes("'manual_validation'")
+    || !productionValidationMigration.includes('ncr-suite-shell-v2.21.2-final-production-validation')
+    || !productionValidationMigration.includes("'2.21.2'")) {
+  errors.push('La migration V2.21.2 de validation production finale est incomplète.');
+}
+if (!productionValidationPanel.includes("supabase.rpc('platform_production_validation_report'")
+    || !productionValidationPanel.includes("supabase.rpc('platform_production_validation_history'")
+    || !productionValidationPanel.includes('p_manual_checks')
+    || !productionValidationPanel.includes('Enregistrer ce contrôle')
+    || !productionValidationPanel.includes('Exporter l’historique')
+    || !productionAdminMonitoringPanel.includes("profile?.role === 'super_admin'")
+    || !productionAdminMonitoringPanel.includes('<AdminProductionValidationPanel />')) {
+  errors.push('La console V2.21.2 de validation production finale est incomplète ou mal protégée.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

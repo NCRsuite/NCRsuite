@@ -11,22 +11,23 @@ const requireText = (file, snippets) => {
   }
   const source = read(file);
   for (const snippet of snippets) {
-    if (!source.includes(snippet)) failures.push(`Contrôle V2.21.1 absent dans ${file} : ${snippet}`);
+    if (!source.includes(snippet)) failures.push(`Contrôle V2.21.2 absent dans ${file} : ${snippet}`);
   }
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-data-recovery`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-final-production-validation`;
+const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
 const trainingPortalsCache = 'ncr-suite-shell-v2.21.0-training-portals-signatures';
 const lockedNavigationCache = 'ncr-suite-shell-v2.20.1-training-locked-navigation';
 const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.21.1') failures.push('package.json doit annoncer la V2.21.1.');
+if (pkg.version !== '2.21.2') failures.push('package.json doit annoncer la V2.21.2.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.21.1 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.21.1 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.21.2 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.21.2 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 
@@ -74,8 +75,27 @@ requireText('supabase/migrations/083_training_data_recovery.sql', [
   "set_config('ncr.allow_training_history_import','1',true)",
   'delete from public.notification_events',
   "'2.21.1'",
+  trainingDataRecoveryCache,
+  'set search_path = public'
+]);
+
+requireText('supabase/migrations/084_final_production_validation.sql', [
+  'create table if not exists public.platform_production_validation_runs',
+  'create or replace function public.platform_production_validation_report',
+  'create or replace function public.platform_production_validation_history',
+  'public.is_platform_super_admin()',
+  "'manual_validation'",
+  "'2.21.2'",
   expectedCache,
   'set search_path = public'
+]);
+
+requireText('src/components/AdminProductionValidationPanel.tsx', [
+  "supabase.rpc('platform_production_validation_report'",
+  "supabase.rpc('platform_production_validation_history'",
+  'Enregistrer ce contrôle',
+  'Exporter l’historique',
+  'manualChecks'
 ]);
 
 requireText('src/pages/SaasLaunchCenterPage.tsx', [
@@ -159,6 +179,8 @@ requireText('src/components/BillingAdminPanel.tsx', [
 
 requireText('src/components/AdminMonitoringPanel.tsx', [
   "supabase.rpc('platform_release_readiness_report')",
+  '<AdminProductionValidationPanel />',
+  "profile?.role === 'super_admin'",
   'PRÉPARATION V2.20',
   'MULTI-MÉTIERS'
 ]);
@@ -212,7 +234,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }
@@ -224,4 +246,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Préparation release NCR Suite : reprise Formation et cohérence multi-métiers validées.');
+console.log('Préparation release NCR Suite : validation production finale et historique vérifiés.');

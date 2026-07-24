@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-data-recovery`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-final-production-validation`;
+const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
 const trainingPortalsCache = 'ncr-suite-shell-v2.21.0-training-portals-signatures';
 const lockedNavigationCache = 'ncr-suite-shell-v2.20.1-training-locked-navigation';
 const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
@@ -117,7 +118,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080', '081', '082']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080', '081', '082', '083', '084']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -720,8 +721,27 @@ requireText('supabase/migrations/083_training_data_recovery.sql', [
   "set_config('ncr.allow_training_history_import','1',true)",
   'delete from public.notification_events',
   "'2.21.1'",
+  trainingDataRecoveryCache,
+  'set search_path = public'
+]);
+requireText('supabase/migrations/084_final_production_validation.sql', [
+  'create table if not exists public.platform_production_validation_runs',
+  'create or replace function public.platform_production_validation_report',
+  'create or replace function public.platform_production_validation_history',
+  "'training_documents'",
+  "'training_imports'",
+  "'training_signatures'",
+  "'manual_validation'",
+  "'2.21.2'",
   expectedCache,
   'set search_path = public'
+]);
+requireText('src/components/AdminProductionValidationPanel.tsx', [
+  "supabase.rpc('platform_production_validation_report'",
+  "supabase.rpc('platform_production_validation_history'",
+  'p_manual_checks',
+  'Enregistrer ce contrôle',
+  'Exporter l’historique'
 ]);
 requireText('src/pages/SaasLaunchCenterPage.tsx', [
   "supabase.rpc('preview_training_recovery_import'",
@@ -768,6 +788,7 @@ requireText('src/components/BillingAdminPanel.tsx', [
 ]);
 requireText('src/components/AdminMonitoringPanel.tsx', [
   "supabase.rpc('platform_release_readiness_report')",
+  '<AdminProductionValidationPanel />',
   'PRÉPARATION V2.20'
 ]);
 
