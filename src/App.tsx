@@ -48,6 +48,9 @@ const TrainingBillingPage = lazy(() => import('./pages/TrainingBillingPage').the
 const TrainingBpfPage = lazy(() => import('./pages/TrainingBpfPage').then((module) => ({ default: module.TrainingBpfPage })));
 const TrainingQualityCompliancePage = lazy(() => import('./pages/TrainingQualityCompliancePage').then((module) => ({ default: module.TrainingQualityCompliancePage })));
 const PublicTrainingSatisfactionPage = lazy(() => import('./pages/PublicTrainingSatisfactionPage').then((module) => ({ default: module.PublicTrainingSatisfactionPage })));
+const TrainingPortalAdminPage = lazy(() => import('./pages/TrainingPortalAdminPage').then((module) => ({ default: module.TrainingPortalAdminPage })));
+const TrainingPortalInvitationPage = lazy(() => import('./pages/TrainingPortalInvitationPage').then((module) => ({ default: module.TrainingPortalInvitationPage })));
+const TrainingPortalPage = lazy(() => import('./pages/TrainingPortalPage').then((module) => ({ default: module.TrainingPortalPage })));
 const SecurityClientsPage = lazy(() => import('./pages/SecurityClientsPage').then((module) => ({ default: module.SecurityClientsPage })));
 const SecurityAgentsPage = lazy(() => import('./pages/SecurityAgentsPage').then((module) => ({ default: module.SecurityAgentsPage })));
 const SecurityAgentDetailPage = lazy(() => import('./pages/SecurityAgentDetailPage').then((module) => ({ default: module.SecurityAgentDetailPage })));
@@ -284,6 +287,8 @@ export default function App() {
       <Route path="/reservation/:token" element={<PublicBookingManagePage />} />
       <Route path="/invitation/:token" element={<InvitationPage />} />
       <Route path="/evaluation/:token" element={<PublicTrainingSatisfactionPage />} />
+      <Route path="/formation/invitation/:token" element={<TrainingPortalInvitationPage />} />
+      <Route path="/espace-formation" element={<TrainingPortalPage />} />
       <Route path="/r/:slug/menu" element={<PublicRestaurantMenuPage />} />
       <Route path="/r/:slug/reserver" element={<PublicRestaurantBookingPage />} />
       <Route path="/client-securite/invitation/:token" element={<SecurityClientPortalInvitationPage />} />
@@ -310,6 +315,7 @@ export default function App() {
         <Route path="facturation-formation" element={<TrainingFeatureGate feature="training_billing" requiredPlan="Professionnelle" description="Gérez factures, paiements, avoirs, relances et exports comptables Formation."><ModuleAccessGuard moduleKey="training_billing"><TrainingBillingPage /></ModuleAccessGuard></TrainingFeatureGate>} />
         <Route path="bpf" element={<TrainingFeatureGate feature="training_bpf" requiredPlan="Professionnelle" description="Préparez automatiquement votre BPF avec contrôles de cohérence et export d’aide à la saisie."><ModuleAccessGuard moduleKey="training_bpf"><TrainingBpfPage /></ModuleAccessGuard></TrainingFeatureGate>} />
         <Route path="qualite-formation" element={<TrainingFeatureGate feature="training_quality" requiredPlan="Professionnelle" description="Structurez les preuves Qualiopi, audits, obligations et archives de conformité."><ModuleAccessGuard moduleKey="training_quality"><TrainingQualityCompliancePage /></ModuleAccessGuard></TrainingFeatureGate>} />
+        <Route path="portails-formation" element={<TrainingFeatureGate feature="training_portals_signatures" requiredPlan="Professionnelle" description="Ouvrez les espaces stagiaire, formateur et client, classez les dépôts et conservez les preuves de signature."><ModuleAccessGuard moduleKey="training_portals_signatures"><TrainingPortalAdminPage /></ModuleAccessGuard></TrainingFeatureGate>} />
         <Route path="dossiers-formation" element={<TrainingFeatureGate feature="training_session_dossier" requiredPlan="Professionnelle" description="Regroupez les pièces, signatures, présences et contrôles de chaque session."><ModuleAccessGuard moduleKey="training_session_dossier"><TrainingDossiersPage /></ModuleAccessGuard></TrainingFeatureGate>} />
         <Route path="terrain" element={<FieldTerrainArea />} />
         <Route path="planning" element={<PlanningArea />} />

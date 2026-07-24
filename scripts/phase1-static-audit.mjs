@@ -444,6 +444,34 @@ if (!trainingFeatureGate.includes('organizationHasFeature')
   errors.push('La montée en gamme ciblée des modules Formation V2.20.1 est incomplète.');
 }
 
+// V2.21.0 — espaces externes Formation, dépôt ciblé et preuves de signature.
+const trainingPortalsMigration = read('supabase/migrations/082_training_portals_signatures.sql');
+const trainingPortalAdminPage = read('src/pages/TrainingPortalAdminPage.tsx');
+const trainingPortalPage = read('src/pages/TrainingPortalPage.tsx');
+const trainingPortalInvitationPage = read('src/pages/TrainingPortalInvitationPage.tsx');
+if (!trainingPortalsMigration.includes('create table if not exists public.training_portal_accounts')
+    || !trainingPortalsMigration.includes('create table if not exists public.training_signature_events')
+    || !trainingPortalsMigration.includes('create or replace function public.complete_training_signature')
+    || !trainingPortalsMigration.includes('can_upload_training_portal_document_asset')
+    || !trainingPortalsMigration.includes('training_portals_signatures_addon')
+    || !trainingPortalsMigration.includes('ncr-suite-shell-v2.21.0-training-portals-signatures')
+    || !trainingPortalsMigration.includes("'2.21.0'")) {
+  errors.push('La migration V2.21.0 des espaces et signatures Formation est incomplète.');
+}
+if (!trainingPortalAdminPage.includes('training_portal_admin_overview')
+    || !trainingPortalAdminPage.includes('publish_training_portal_document')
+    || !trainingPortalPage.includes('register_training_portal_document')
+    || !trainingPortalPage.includes('complete_training_signature')
+    || !trainingPortalInvitationPage.includes('accept_training_portal_invitation')) {
+  errors.push('Les parcours V2.21.0 des espaces Formation sont incomplets.');
+}
+if (!moduleAccess.includes("'/portails-formation': 'training_portals_signatures'")
+    || !accessMatrix.includes("'/portails-formation'")
+    || !app.includes('feature="training_portals_signatures"')
+    || !businessPacks.includes("path: '/portails-formation'")) {
+  errors.push('Le droit à la carte et la navigation V2.21.0 sont incomplets.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {
@@ -478,7 +506,8 @@ const allowedAnonFunctions = new Set([
   'get_public_booking','cancel_public_booking','reschedule_public_booking','reschedule_public_booking_v2',
   'get_public_restaurant_menu','get_public_restaurant_booking_config','get_public_restaurant_booking_availability',
   'create_public_restaurant_reservation','get_public_training_satisfaction','submit_public_training_satisfaction','submit_public_training_evaluation',
-  'get_team_invitation','get_security_client_portal_invitation','get_cleaning_client_portal_invitation','get_coiffure_client_portal_invitation'
+  'get_team_invitation','get_security_client_portal_invitation','get_cleaning_client_portal_invitation','get_coiffure_client_portal_invitation',
+  'get_training_portal_invitation'
 ]);
 for (const match of allSql.matchAll(/grant\s+execute\s+on\s+function\s+public\.(\w+)[^;]*?\s+to\s+([^;]+);/ig)) {
   const roles = match[2].toLowerCase().split(',').map((role) => role.trim());

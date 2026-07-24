@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-locked-navigation`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-portals-signatures`;
+const lockedNavigationCache = 'ncr-suite-shell-v2.20.1-training-locked-navigation';
 const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const trainingQualityCache = 'ncr-suite-shell-v2.19.0-training-quality-compliance';
 const trainingBillingCache = 'ncr-suite-shell-v2.18.0-training-billing-collections';
@@ -63,6 +64,8 @@ const publicRoutes = [
   '/r/:slug/menu',
   '/r/:slug/reserver',
   '/evaluation/:token',
+  '/formation/invitation/:token',
+  '/espace-formation',
   '/invitation/:token',
   '/client-securite/invitation/:token',
   '/espace-client-securite',
@@ -113,7 +116,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080', '081']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080', '081', '082']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -658,7 +661,7 @@ requireText('supabase/migrations/080_final_stabilization_training_modules.sql', 
 ]);
 requireText('supabase/migrations/081_training_locked_module_navigation.sql', [
   "'2.20.1'",
-  expectedCache,
+  lockedNavigationCache,
   'platform_release_state'
 ]);
 requireText('src/components/TrainingFeatureGate.tsx', [
@@ -693,6 +696,38 @@ for (const [route, feature] of [
     failures.push(`Le verrou Formation V2.20.1 est absent ou incomplet : ${route}.`);
   }
 }
+requireText('supabase/migrations/082_training_portals_signatures.sql', [
+  'create table if not exists public.training_portal_accounts',
+  'create table if not exists public.training_portal_documents',
+  'create table if not exists public.training_signature_requests',
+  'create or replace function public.training_portal_admin_overview',
+  'create or replace function public.training_portal_dashboard',
+  'create or replace function public.complete_training_signature',
+  'training_portals_signatures_addon',
+  "'2.21.0'",
+  expectedCache,
+  'set search_path = public'
+]);
+requireText('src/pages/TrainingPortalAdminPage.tsx', [
+  "supabase.rpc('training_portal_admin_overview'",
+  "supabase.rpc('create_training_portal_invitation'",
+  "supabase.rpc('publish_training_portal_document'",
+  "supabase.rpc('create_training_signature_request'"
+]);
+requireText('src/pages/TrainingPortalPage.tsx', [
+  "supabase.rpc('current_training_portal_accounts'",
+  "supabase.rpc('training_portal_dashboard'",
+  "supabase.rpc('register_training_portal_document'",
+  "supabase.rpc('complete_training_signature'",
+  "crypto.subtle.digest('SHA-256'"
+]);
+requireText('src/pages/TrainingPortalInvitationPage.tsx', [
+  "supabase.rpc('get_training_portal_invitation'",
+  "supabase.rpc('accept_training_portal_invitation'"
+]);
+if (!app.includes('path="portails-formation"') || !app.includes('feature="training_portals_signatures"')) {
+  failures.push('Le module Espaces & signatures V2.21.0 n’est pas protégé par le droit Formation attendu.');
+}
 requireText('src/components/TrainingModulesPanel.tsx', [
   "supabase.rpc('training_module_portal'",
   "supabase.rpc('request_training_module_change'",
@@ -723,7 +758,11 @@ requireText('supabase/functions/process-email-queue/index.ts', [
   'Votre portail client Sécurité est prêt',
   'Votre portail client Nettoyage est prêt',
   '/client-coiffure/invitation/',
-  'Votre espace client Coiffure'
+  'Votre espace client Coiffure',
+  "case 'training_portal_invitation'",
+  "case 'training_signature_request'",
+  '/formation/invitation/',
+  '/espace-formation'
 ]);
 
 if (failures.length) {

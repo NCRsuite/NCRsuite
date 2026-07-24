@@ -11,20 +11,21 @@ const requireText = (file, snippets) => {
   }
   const source = read(file);
   for (const snippet of snippets) {
-    if (!source.includes(snippet)) failures.push(`Contrôle V2.20.1 absent dans ${file} : ${snippet}`);
+    if (!source.includes(snippet)) failures.push(`Contrôle V2.21.0 absent dans ${file} : ${snippet}`);
   }
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-locked-navigation`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-portals-signatures`;
+const lockedNavigationCache = 'ncr-suite-shell-v2.20.1-training-locked-navigation';
 const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.20.1') failures.push('package.json doit annoncer la V2.20.1.');
+if (pkg.version !== '2.21.0') failures.push('package.json doit annoncer la V2.21.0.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.20.1 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.20.1 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.21.0 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.21.0 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 
@@ -44,8 +45,41 @@ requireText('supabase/migrations/080_final_stabilization_training_modules.sql', 
 
 requireText('supabase/migrations/081_training_locked_module_navigation.sql', [
   "'2.20.1'",
-  expectedCache,
+  lockedNavigationCache,
   'platform_release_state'
+]);
+
+requireText('supabase/migrations/082_training_portals_signatures.sql', [
+  'create table if not exists public.training_portal_accounts',
+  'create table if not exists public.training_portal_invitations',
+  'create table if not exists public.training_portal_documents',
+  'create table if not exists public.training_signature_requests',
+  'create table if not exists public.training_signature_events',
+  'create or replace function public.complete_training_signature',
+  'can_upload_training_portal_document_asset',
+  'training_portals_signatures_addon',
+  "'2.21.0'",
+  expectedCache
+]);
+
+requireText('src/pages/TrainingPortalAdminPage.tsx', [
+  'training_portal_admin_overview',
+  'create_training_portal_invitation',
+  'publish_training_portal_document',
+  'create_training_signature_request'
+]);
+
+requireText('src/pages/TrainingPortalPage.tsx', [
+  'current_training_portal_accounts',
+  'training_portal_dashboard',
+  'register_training_portal_document',
+  'complete_training_signature',
+  "crypto.subtle.digest('SHA-256'"
+]);
+
+requireText('src/pages/TrainingPortalInvitationPage.tsx', [
+  'get_training_portal_invitation',
+  'accept_training_portal_invitation'
 ]);
 
 requireText('src/components/TrainingFeatureGate.tsx', [
@@ -114,7 +148,8 @@ requireText('src/config/planEntitlements.ts', [
 requireText('src/config/moduleAccess.ts', [
   "'/dossiers-formation': 'training_session_dossier'",
   "'/qualite-formation': 'training_quality'",
-  "'/facturation-formation': 'training_billing'"
+  "'/facturation-formation': 'training_billing'",
+  "'/portails-formation': 'training_portals_signatures'"
 ]);
 
 const businessPacks = read('src/config/businessPacks.ts');
@@ -153,7 +188,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }
@@ -165,4 +200,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('Préparation release NCR Suite : navigation Formation verrouillée et cohérence multi-métiers validées.');
+console.log('Préparation release NCR Suite : portails Formation, signatures et cohérence multi-métiers validés.');

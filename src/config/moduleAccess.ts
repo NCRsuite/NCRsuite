@@ -44,6 +44,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/facturation-formation': 'training_billing',
   '/bpf': 'training_bpf',
   '/qualite-formation': 'training_quality',
+  '/portails-formation': 'training_portals_signatures',
   '/dossiers-formation': 'training_session_dossier',
   '/emargements': 'attendance',
   '/evaluations': 'evaluations',
@@ -71,6 +72,7 @@ const GENERIC_FEATURE_BY_PATH: Partial<Record<string, PlanFeature>> = {
   '/facturation-formation': 'training_billing',
   '/bpf': 'training_bpf',
   '/qualite-formation': 'training_quality',
+  '/portails-formation': 'training_portals_signatures',
   '/parcours-formation': 'training_session_dossier',
   '/profil-organisme': 'training_commercial',
   '/dossiers-formation': 'training_session_dossier'
@@ -124,7 +126,7 @@ const CLEANING_UPSELL_PATHS = new Set(['/terrain', '/portail-clients', '/rapport
 const RESTAURANT_UPSELL_PATHS = new Set(['/terrain', '/acces-equipe', '/salle', '/menu-qr', '/hygiene', '/cuisine', '/personnalisation']);
 const FORMATION_UPSELL_PATHS = new Set([
   '/parcours-formation', '/profil-organisme', '/commercial', '/facturation-formation',
-  '/bpf', '/qualite-formation', '/dossiers-formation', '/evaluations',
+  '/bpf', '/qualite-formation', '/portails-formation', '/dossiers-formation', '/evaluations',
   '/etablissements', '/acces-equipe', '/personnalisation'
 ]);
 

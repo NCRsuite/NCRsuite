@@ -1,7 +1,9 @@
-# NCR Suite V2.20.1
+# NCR Suite V2.21.0
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version laisse les modules Formation non inclus visibles sous cadenas dans les navigations ordinateur et mobile. Leur fiche présente la montée en gamme et ouvre directement le module concerné dans `Mon abonnement`.
+Cette version ajoute les espaces sécurisés stagiaire, formateur et client. Les utilisateurs externes consultent leurs sessions et documents, déposent leurs pièces dans le bon dossier et signent les documents avec une preuve horodatée exploitable pour Qualiopi.
 
-Consulter `A_LIRE_INSTALLATION_V2.20.1.txt` avant déploiement.
+Le module `Portails et signatures` est inclus dans les offres Professionnelle et Métier. Il peut être activé à la carte sur Découverte ou Essentielle et participe à la comparaison avec l’offre supérieure.
+
+Consulter `A_LIRE_INSTALLATION_V2.21.0.txt` avant déploiement.

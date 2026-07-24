@@ -14142,3 +14142,755 @@ button { max-width: 100%; }
   .training-invoice-list article { padding: 12px; }
   .training-invoice-actions button { flex: 1 1 120px; }
 }
+
+/* Formation V2.21.0 - espaces externes, dépôts et signatures */
+.training-portal-admin-page {
+  --portal-admin-ink: #17211e;
+  --portal-admin-green: #147a52;
+  --portal-admin-soft: #f3f7f5;
+  --portal-admin-line: #dce6e1;
+  gap: 18px;
+}
+.training-portal-admin-header { align-items: flex-start; }
+.training-portal-admin-header > div { max-width: 760px; }
+.training-portal-admin-header h1 { color: var(--portal-admin-ink); }
+.training-portal-admin-header .secondary-button { display: inline-flex; align-items: center; gap: 7px; }
+.training-portal-admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  gap: 9px;
+}
+.training-portal-admin-metrics article {
+  min-width: 0;
+  min-height: 76px;
+  padding: 13px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid var(--portal-admin-line);
+  border-radius: 8px;
+  background: #fff;
+}
+.training-portal-admin-metrics article > span {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: var(--portal-admin-green);
+  background: #eaf5ef;
+}
+.training-portal-admin-metrics article.attention > span { color: #a95a08; background: #fff1dc; }
+.training-portal-admin-metrics article > div { display: grid; gap: 2px; min-width: 0; }
+.training-portal-admin-metrics strong { color: var(--portal-admin-ink); font-size: 20px; }
+.training-portal-admin-metrics small { overflow: hidden; color: #67736f; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-admin-tabs {
+  display: flex;
+  width: fit-content;
+  padding: 3px;
+  border: 1px solid var(--portal-admin-line);
+  border-radius: 7px;
+  background: #fff;
+}
+.training-portal-admin-tabs button {
+  min-height: 37px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 5px;
+  color: #66716d;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 720;
+  cursor: pointer;
+}
+.training-portal-admin-tabs button.active { color: #fff; background: var(--portal-admin-green); }
+.training-portal-admin-notice,
+.training-portal-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 13px;
+  border: 1px solid;
+  border-radius: 7px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.training-portal-admin-notice.success,
+.training-portal-notice.success { color: #145c40; border-color: #a9d4bf; background: #eff8f3; }
+.training-portal-admin-notice.error,
+.training-portal-notice.error { color: #9b2e2e; border-color: #e6b8b8; background: #fff3f3; }
+.training-portal-admin-workspace {
+  display: grid;
+  grid-template-columns: minmax(245px,290px) minmax(0,1fr);
+  min-height: 620px;
+  overflow: hidden;
+  border: 1px solid var(--portal-admin-line);
+  border-radius: 8px;
+  background: #fff;
+}
+.training-portal-subjects {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0,1fr);
+  border-right: 1px solid var(--portal-admin-line);
+  background: #f8faf9;
+}
+.training-portal-kind-switch {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  padding: 11px;
+  gap: 4px;
+  border-bottom: 1px solid var(--portal-admin-line);
+}
+.training-portal-kind-switch button {
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 5px;
+  border: 0;
+  border-radius: 5px;
+  color: #68736f;
+  background: transparent;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.training-portal-kind-switch button.active { color: var(--portal-admin-green); background: #e6f3ec; }
+.training-portal-subject-search {
+  margin: 10px;
+  padding: 0 10px;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--portal-admin-line);
+  border-radius: 6px;
+  color: #7d8783;
+  background: #fff;
+}
+.training-portal-subject-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 11px; }
+.training-portal-subject-list { overflow-y: auto; padding: 0 7px 9px; }
+.training-portal-subject-list > p { padding: 24px 12px; color: #7b8581; text-align: center; font-size: 11px; }
+.training-portal-subject-list > button {
+  width: 100%;
+  min-width: 0;
+  padding: 9px;
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) 8px;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.training-portal-subject-list > button:hover { background: #edf3f0; }
+.training-portal-subject-list > button.active { background: #dff0e7; }
+.training-portal-subject-list > button > span,
+.training-portal-subject-header > div > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: #fff;
+  background: #2b7560;
+  font-size: 10px;
+  font-weight: 800;
+}
+.training-portal-subject-list > button > div { min-width: 0; display: grid; gap: 2px; }
+.training-portal-subject-list strong,
+.training-portal-subject-list small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-subject-list strong { color: var(--portal-admin-ink); font-size: 10px; }
+.training-portal-subject-list small { color: #76817d; font-size: 9px; }
+.training-portal-subject-list i { width: 7px; height: 7px; border-radius: 50%; background: #c5ceca; }
+.training-portal-subject-list i.active { background: #20a66c; }
+.training-portal-subject-list i.pending { background: #e39a30; }
+.training-portal-admin-main { min-width: 0; padding: 18px; }
+.training-portal-subject-header {
+  min-width: 0;
+  padding-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid var(--portal-admin-line);
+}
+.training-portal-subject-header > div { min-width: 0; display: flex; align-items: center; gap: 11px; }
+.training-portal-subject-header > div > span { width: 42px; height: 42px; flex: 0 0 auto; }
+.training-portal-subject-header > div > div { min-width: 0; }
+.training-portal-subject-header h2 { margin: 1px 0 3px; overflow-wrap: anywhere; color: var(--portal-admin-ink); font-size: 18px; }
+.training-portal-subject-header small { color: #717c78; font-size: 10px; }
+.training-portal-subject-header select { max-width: 250px; }
+.training-portal-admin-two-columns {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 14px;
+  padding-top: 15px;
+}
+.training-portal-admin-section {
+  min-width: 0;
+  border: 1px solid var(--portal-admin-line);
+  border-radius: 8px;
+  background: #fff;
+}
+.training-portal-admin-section > header {
+  min-height: 60px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--portal-admin-line);
+}
+.training-portal-admin-section h3,
+.training-portal-publish-form h3 { margin: 0; color: var(--portal-admin-ink); font-size: 13px; }
+.training-portal-admin-section header p,
+.training-portal-publish-form header p { margin: 3px 0 0; color: #75807c; font-size: 10px; }
+.training-portal-admin-empty {
+  min-height: 360px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 7px;
+  color: #77827e;
+  text-align: center;
+  font-size: 11px;
+}
+.training-portal-admin-empty strong { color: var(--portal-admin-ink); font-size: 13px; }
+.training-portal-admin-empty.compact { min-height: 120px; padding: 18px; }
+.training-portal-access-list,
+.training-portal-admin-document-list,
+.training-portal-source-list { display: grid; }
+.training-portal-access-list article,
+.training-portal-admin-document-list article,
+.training-portal-source-list article {
+  min-width: 0;
+  padding: 11px 13px;
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #edf1ef;
+}
+.training-portal-access-list article:last-child,
+.training-portal-admin-document-list article:last-child,
+.training-portal-source-list article:last-child { border-bottom: 0; }
+.training-portal-access-list article > span,
+.training-portal-admin-document-list article > span,
+.training-portal-source-list article > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--portal-admin-green);
+  background: #edf6f1;
+}
+.training-portal-access-list article > span.disabled { color: #8b9591; background: #eef1f0; }
+.training-portal-access-list article > div,
+.training-portal-admin-document-list article > div,
+.training-portal-source-list article > div { min-width: 0; display: grid; gap: 2px; }
+.training-portal-access-list strong,
+.training-portal-access-list small,
+.training-portal-admin-document-list strong,
+.training-portal-admin-document-list small,
+.training-portal-source-list strong,
+.training-portal-source-list small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-access-list strong,
+.training-portal-admin-document-list strong,
+.training-portal-source-list strong { color: var(--portal-admin-ink); font-size: 10px; }
+.training-portal-access-list small,
+.training-portal-admin-document-list small,
+.training-portal-source-list small { color: #77827e; font-size: 9px; }
+.training-portal-admin-document-list article > div:last-child,
+.training-portal-source-list article > div:last-child { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
+.training-portal-invite-form { padding: 13px; display: grid; gap: 10px; }
+.training-portal-invite-form label,
+.training-portal-publish-form label,
+.training-portal-form-grid label {
+  display: grid;
+  gap: 5px;
+  color: #56615d;
+  font-size: 9px;
+  font-weight: 720;
+}
+.training-portal-invite-form input,
+.training-portal-publish-form input,
+.training-portal-publish-form select,
+.training-portal-form-grid input,
+.training-portal-form-grid select,
+.training-portal-subject-header select,
+.training-portal-admin-section header select {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--portal-admin-line);
+  border-radius: 6px;
+  color: var(--portal-admin-ink);
+  background: #fff;
+  font: inherit;
+  font-size: 10px;
+}
+.training-portal-pending-invite {
+  margin: 0 13px 13px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px dashed #cbd8d2;
+  border-radius: 6px;
+}
+.training-portal-pending-invite > div:first-child { min-width: 0; display: grid; gap: 2px; }
+.training-portal-pending-invite strong,
+.training-portal-pending-invite small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-pending-invite strong { font-size: 10px; }
+.training-portal-pending-invite small { color: #77827e; font-size: 9px; }
+.training-portal-pending-invite > div:last-child { display: flex; gap: 4px; }
+.icon-button.danger,
+.training-portal-admin-document-list .danger { color: #ae3939; }
+.training-portal-document-console { padding-top: 15px; display: grid; gap: 14px; }
+.training-portal-publish-form {
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--portal-admin-line);
+  border-radius: 8px;
+  background: var(--portal-admin-soft);
+}
+.training-portal-publish-form > header { display: flex; justify-content: space-between; gap: 12px; }
+.training-portal-publish-form > header > span {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: var(--portal-admin-green);
+  background: #dff0e7;
+}
+.training-portal-form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.training-portal-admin-file { align-self: end; }
+.training-portal-admin-file > span {
+  min-height: 38px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px dashed #a9beb4;
+  border-radius: 6px;
+  color: var(--portal-admin-green);
+  background: #fff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.training-portal-admin-file input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.training-portal-publish-form > .primary-button { justify-self: end; }
+.training-portal-signature-console { margin-top: 15px; }
+.training-portal-admin-signature-list { display: grid; }
+.training-portal-admin-signature-list > article { border-bottom: 1px solid var(--portal-admin-line); }
+.training-portal-admin-signature-list > article:last-child { border-bottom: 0; }
+.training-portal-admin-signature-list > article.highlighted { outline: 2px solid #59a987; outline-offset: -2px; }
+.training-portal-signature-row {
+  min-width: 0;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 36px minmax(0,1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+}
+.training-portal-signature-state {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: #a26012;
+  background: #fff1dd;
+}
+.training-portal-signature-state.signed { color: #147a52; background: #e8f5ee; }
+.training-portal-signature-state.canceled { color: #8a9691; background: #eff2f1; }
+.training-portal-signature-row > div:nth-child(2) { min-width: 0; display: grid; gap: 2px; }
+.training-portal-signature-row strong,
+.training-portal-signature-row small,
+.training-portal-signature-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-signature-row strong { color: var(--portal-admin-ink); font-size: 11px; }
+.training-portal-signature-row small { color: #77827e; font-size: 9px; }
+.training-portal-signature-row b { color: var(--portal-admin-green); font-size: 9px; }
+.training-portal-signature-actions { display: flex; align-items: center; gap: 5px; }
+.training-portal-status {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 24px;
+  padding: 0 8px;
+  align-items: center;
+  border-radius: 999px;
+  color: #85520c;
+  background: #fff0d5;
+  font-size: 8px;
+  font-weight: 780;
+  white-space: nowrap;
+}
+.training-portal-status.signed,
+.training-portal-status.completed,
+.training-portal-status.present { color: #126344; background: #e5f4ec; }
+.training-portal-status.canceled,
+.training-portal-status.declined { color: #68736f; background: #edf1ef; }
+.training-portal-status.confirmed,
+.training-portal-status.scheduled,
+.training-portal-status.in_progress { color: #1c5f91; background: #e5f1f9; }
+.training-portal-admin-signature-list details { padding: 0 14px 13px 60px; }
+.training-portal-admin-signature-list summary { color: #53625c; font-size: 9px; font-weight: 700; cursor: pointer; }
+.training-portal-admin-signature-list dl,
+.training-portal-proof-list dl { margin: 10px 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+.training-portal-admin-signature-list dl > div,
+.training-portal-proof-list dl > div { min-width: 0; padding: 8px; border-radius: 5px; background: #f4f7f5; }
+.training-portal-admin-signature-list dt,
+.training-portal-proof-list dt { color: #78837f; font-size: 8px; }
+.training-portal-admin-signature-list dd,
+.training-portal-proof-list dd { margin: 3px 0 0; overflow: hidden; color: #26332e; font-family: ui-monospace,SFMono-Regular,Menlo,monospace; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-admin-signature-list ol { margin: 10px 0 0; padding: 0; display: grid; list-style: none; }
+.training-portal-admin-signature-list li { position: relative; padding: 0 0 10px 19px; display: flex; }
+.training-portal-admin-signature-list li::before { content: ""; position: absolute; top: 8px; bottom: -2px; left: 4px; width: 1px; background: #cdd9d3; }
+.training-portal-admin-signature-list li:last-child::before { display: none; }
+.training-portal-admin-signature-list li > span { position: absolute; top: 4px; left: 0; width: 9px; height: 9px; border: 2px solid #fff; border-radius: 50%; background: var(--portal-admin-green); box-shadow: 0 0 0 1px #9fc4b2; }
+.training-portal-admin-signature-list li > div { display: grid; gap: 2px; }
+.training-portal-admin-signature-list li strong { font-size: 9px; }
+.training-portal-admin-signature-list li small { color: #7b8581; font-size: 8px; }
+
+.training-portal-public-shell {
+  --portal-accent: #147a52;
+  min-height: 100vh;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  color: #18221f;
+  background: #eaf0ed;
+}
+.training-portal-auth-panel {
+  width: min(100%,470px);
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+  border: 1px solid #d5e0da;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(27,45,37,.1);
+}
+.training-portal-public-brand { min-width: 0; display: flex; align-items: center; gap: 10px; }
+.training-portal-public-brand > img,
+.training-portal-public-brand > span {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+}
+.training-portal-public-brand > img { object-fit: contain; border: 1px solid #e0e8e4; }
+.training-portal-public-brand > span { color: #fff; background: var(--portal-accent); }
+.training-portal-public-brand > div { min-width: 0; display: grid; gap: 2px; }
+.training-portal-public-brand strong,
+.training-portal-public-brand small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-public-brand strong { font-size: 13px; }
+.training-portal-public-brand small { color: #73807a; font-size: 9px; }
+.training-portal-auth-heading { display: grid; gap: 7px; }
+.training-portal-auth-heading h1 { margin: 0; color: #17211e; font-size: clamp(25px,4vw,34px); line-height: 1.08; letter-spacing: 0; }
+.training-portal-auth-heading p:not(.eyebrow) { margin: 0; color: #65716c; font-size: 11px; line-height: 1.65; }
+.training-portal-auth-switch {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  padding: 3px;
+  border-radius: 7px;
+  background: #edf2ef;
+}
+.training-portal-auth-switch button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 5px;
+  color: #68746e;
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 720;
+  cursor: pointer;
+}
+.training-portal-auth-switch button.active { color: #184d39; background: #fff; box-shadow: 0 1px 4px rgba(20,50,38,.09); }
+.training-portal-auth-form { display: grid; gap: 11px; }
+.training-portal-auth-form label,
+.training-portal-account-actions label,
+.training-portal-deposit-panel label {
+  display: grid;
+  gap: 5px;
+  color: #56625d;
+  font-size: 9px;
+  font-weight: 720;
+}
+.training-portal-auth-form input,
+.training-portal-account-actions select,
+.training-portal-deposit-panel select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 1px solid #d5e0da;
+  border-radius: 6px;
+  color: #17211e;
+  background: #fff;
+  font: inherit;
+  font-size: 11px;
+}
+.training-portal-auth-form .primary-button,
+.training-portal-accept .primary-button,
+.training-portal-accept .secondary-button { width: 100%; justify-content: center; }
+.training-portal-accept { display: grid; gap: 12px; }
+.training-portal-back-link { color: #65716c; font-size: 9px; text-align: center; text-decoration: none; }
+.training-portal-loading { min-height: 130px; display: grid; place-content: center; justify-items: center; gap: 10px; color: #64716b; font-size: 10px; }
+.training-portal-loading > span { width: 25px; height: 25px; border: 2px solid #c6d6ce; border-top-color: var(--portal-accent); border-radius: 50%; animation: spin .8s linear infinite; }
+.training-portal-app { padding: 0; display: block; background: #f3f6f4; }
+.training-portal-topbar {
+  min-height: 64px;
+  padding: 10px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #dce5e0;
+  background: #fff;
+}
+.training-portal-account-actions { display: flex; align-items: center; gap: 9px; }
+.training-portal-account-actions label { min-width: 230px; }
+.training-portal-account-actions label > span { position: absolute; width: 1px; height: 1px; overflow: hidden; }
+.training-portal-account-actions select { min-height: 36px; }
+.training-portal-workspace { min-height: calc(100vh - 64px); display: grid; grid-template-columns: 230px minmax(0,1fr); }
+.training-portal-sidebar {
+  padding: 17px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  border-right: 1px solid #dce5e0;
+  background: #fff;
+}
+.training-portal-identity { min-width: 0; padding: 0 7px 14px; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid #e5ebe8; }
+.training-portal-identity > span {
+  width: 35px;
+  height: 35px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: #fff;
+  background: var(--portal-accent);
+  font-size: 10px;
+  font-weight: 800;
+}
+.training-portal-identity > div { min-width: 0; display: grid; gap: 2px; }
+.training-portal-identity strong,
+.training-portal-identity small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-identity strong { font-size: 10px; }
+.training-portal-identity small { color: #78837e; font-size: 8px; }
+.training-portal-sidebar nav { display: grid; gap: 4px; }
+.training-portal-sidebar nav button {
+  min-width: 0;
+  min-height: 39px;
+  padding: 0 10px;
+  display: grid;
+  grid-template-columns: 21px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 6px;
+  color: #68746e;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.training-portal-sidebar nav button.active { color: var(--portal-accent); background: #e9f3ee; }
+.training-portal-sidebar nav button b { min-width: 19px; height: 19px; padding: 0 5px; display: grid; place-items: center; border-radius: 999px; color: #fff; background: #b45b2b; font-size: 8px; }
+.training-portal-contact { margin-top: auto; padding: 11px; display: grid; gap: 4px; border: 1px solid #dce6e1; border-radius: 7px; background: #f7faf8; }
+.training-portal-contact strong { font-size: 9px; }
+.training-portal-contact a { overflow: hidden; color: #61706a; font-size: 8px; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-content { min-width: 0; width: 100%; max-width: 1280px; padding: 25px 28px 42px; display: grid; align-content: start; gap: 15px; }
+.training-portal-page-heading { min-width: 0; display: flex; justify-content: space-between; gap: 15px; }
+.training-portal-page-heading h1 { margin: 2px 0 4px; color: #17211e; font-size: 23px; letter-spacing: 0; }
+.training-portal-page-heading p:not(.eyebrow) { margin: 0; color: #6f7b75; font-size: 10px; }
+.training-portal-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; }
+.training-portal-metrics article {
+  min-width: 0;
+  min-height: 74px;
+  padding: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #dce5e0;
+  border-radius: 8px;
+  background: #fff;
+}
+.training-portal-metrics article > span {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: var(--portal-accent);
+  background: #ebf4ef;
+}
+.training-portal-metrics article.attention > span { color: #a85f0f; background: #fff1dd; }
+.training-portal-metrics article > div { display: grid; gap: 2px; }
+.training-portal-metrics strong { font-size: 18px; }
+.training-portal-metrics small { color: #78837e; font-size: 9px; }
+.training-portal-section {
+  min-width: 0;
+  border: 1px solid #dce5e0;
+  border-radius: 8px;
+  background: #fff;
+}
+.training-portal-section > header { min-height: 58px; padding: 11px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #e4ebe7; }
+.training-portal-section h2,
+.training-portal-deposit-panel h2 { margin: 0; color: #1a2521; font-size: 13px; }
+.training-portal-section header p,
+.training-portal-deposit-panel p { margin: 3px 0 0; color: #76817c; font-size: 9px; }
+.training-portal-list { display: grid; }
+.training-portal-list article {
+  min-width: 0;
+  padding: 10px 13px;
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #edf1ef;
+}
+.training-portal-list article:last-child { border-bottom: 0; }
+.training-portal-list-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 6px; color: var(--portal-accent); background: #edf5f1; }
+.training-portal-list article > div { min-width: 0; display: grid; gap: 2px; }
+.training-portal-list strong,
+.training-portal-list small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-list strong { font-size: 10px; }
+.training-portal-list small { color: #78837e; font-size: 9px; }
+.training-portal-empty { min-height: 115px; padding: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; color: #79847f; font-size: 10px; text-align: center; }
+.training-portal-empty.success { color: #217050; }
+.training-portal-overview-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.training-portal-session-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.training-portal-session-grid > article {
+  min-width: 0;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 48px minmax(0,1fr);
+  gap: 12px;
+  border: 1px solid #dce5e0;
+  border-radius: 8px;
+  background: #fff;
+}
+.training-portal-session-date { height: 52px; display: grid; place-content: center; justify-items: center; border-radius: 7px; color: #fff; background: var(--portal-accent); }
+.training-portal-session-date strong { font-size: 17px; }
+.training-portal-session-date small { font-size: 8px; text-transform: uppercase; }
+.training-portal-session-grid > article > div:last-child { min-width: 0; display: grid; justify-items: start; gap: 4px; }
+.training-portal-session-grid h2 { margin: 2px 0 0; overflow-wrap: anywhere; font-size: 13px; }
+.training-portal-session-grid p { margin: 0; color: #66736d; font-size: 9px; }
+.training-portal-session-grid small { color: #7b8681; font-size: 8px; }
+.training-portal-documents-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(260px,330px); gap: 12px; align-items: start; }
+.training-portal-deposit-panel {
+  padding: 15px;
+  display: grid;
+  gap: 11px;
+  border: 1px solid #cfded7;
+  border-radius: 8px;
+  background: #fff;
+}
+.training-portal-deposit-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 7px; color: #fff; background: var(--portal-accent); }
+.training-portal-file-field > span { min-height: 42px; padding: 0 11px; display: flex; align-items: center; overflow: hidden; border: 1px dashed #9fb8ac; border-radius: 6px; color: var(--portal-accent); background: #f7faf8; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.training-portal-file-field input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.training-portal-deposit-panel > small { color: #7c8782; font-size: 8px; }
+.training-portal-signature-list,
+.training-portal-proof-list { display: grid; }
+.training-portal-signature-list > article { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #edf1ef; }
+.training-portal-signature-list > article:last-child { border-bottom: 0; }
+.training-portal-signature-list > article > div:first-child { min-width: 0; display: flex; align-items: center; gap: 10px; }
+.training-portal-signature-list > article > div:first-child > div { min-width: 0; display: grid; gap: 2px; }
+.training-portal-signature-list strong,
+.training-portal-signature-list small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-signature-list strong { font-size: 10px; }
+.training-portal-signature-list small { color: #79847f; font-size: 9px; }
+.training-portal-signature-list > article > div:last-child { display: flex; gap: 6px; }
+.training-portal-proof-list > article { padding: 13px 14px; border-bottom: 1px solid #e9efec; }
+.training-portal-proof-list > article:last-child { border-bottom: 0; }
+.training-portal-proof-heading { min-width: 0; display: grid; grid-template-columns: 34px minmax(0,1fr) auto; align-items: center; gap: 9px; }
+.training-portal-proof-heading > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 6px; color: #147a52; background: #e8f5ee; }
+.training-portal-proof-heading > div { min-width: 0; display: grid; gap: 2px; }
+.training-portal-proof-heading strong,
+.training-portal-proof-heading small,
+.training-portal-proof-heading b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.training-portal-proof-heading strong { font-size: 10px; }
+.training-portal-proof-heading small { color: #78837e; font-size: 9px; }
+.training-portal-proof-heading b { color: #147a52; font-size: 9px; }
+.training-portal-proof-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.training-portal-consent { margin: 0; padding: 9px 11px; border-left: 3px solid #147a52; color: #59655f; background: #f1f7f4; font-size: 9px; line-height: 1.5; }
+.training-portal-signature-modal { max-width: 680px; }
+
+@media (max-width: 1120px) {
+  .training-portal-admin-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .training-portal-admin-two-columns { grid-template-columns: 1fr; }
+  .training-portal-source-list article { grid-template-columns: 34px minmax(0,1fr); }
+  .training-portal-source-list article > div:last-child { grid-column: 2; justify-content: flex-start; }
+}
+@media (max-width: 880px) {
+  .training-portal-admin-workspace { grid-template-columns: 1fr; }
+  .training-portal-subjects { max-height: 330px; border-right: 0; border-bottom: 1px solid var(--portal-admin-line); }
+  .training-portal-workspace { grid-template-columns: 1fr; }
+  .training-portal-sidebar { padding: 8px 12px; border-right: 0; border-bottom: 1px solid #dce5e0; }
+  .training-portal-identity,
+  .training-portal-contact { display: none; }
+  .training-portal-sidebar nav { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .training-portal-sidebar nav button { grid-template-columns: 20px minmax(0,1fr) auto; padding: 0 7px; }
+  .training-portal-content { padding: 20px 18px 35px; }
+  .training-portal-documents-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .training-portal-admin-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .training-portal-admin-main { padding: 12px; }
+  .training-portal-subject-header { align-items: flex-start; flex-direction: column; }
+  .training-portal-subject-header select { width: 100%; max-width: none; }
+  .training-portal-form-grid { grid-template-columns: 1fr; }
+  .training-portal-signature-row { grid-template-columns: 36px minmax(0,1fr) auto; }
+  .training-portal-signature-row > .training-portal-status { grid-column: 3; grid-row: 1; }
+  .training-portal-signature-actions { grid-column: 2 / -1; justify-content: flex-start; }
+  .training-portal-admin-signature-list details { padding-left: 14px; }
+  .training-portal-topbar { padding: 9px 12px; }
+  .training-portal-account-actions label { min-width: 0; width: 160px; }
+  .training-portal-sidebar nav button { display: flex; justify-content: center; }
+  .training-portal-sidebar nav button span { display: none; }
+  .training-portal-content { padding: 17px 12px 30px; }
+  .training-portal-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .training-portal-overview-grid,
+  .training-portal-session-grid { grid-template-columns: 1fr; }
+  .training-portal-signature-list > article { align-items: flex-start; flex-direction: column; }
+  .training-portal-proof-heading { grid-template-columns: 34px minmax(0,1fr); }
+  .training-portal-proof-heading b { grid-column: 2; }
+  .training-portal-admin-signature-list dl,
+  .training-portal-proof-list dl { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .training-portal-public-shell { padding: 10px; align-items: start; }
+  .training-portal-app { padding: 0; }
+  .training-portal-auth-panel { margin-top: 8px; padding: 17px; }
+  .training-portal-admin-tabs { width: 100%; }
+  .training-portal-admin-tabs button { flex: 1; justify-content: center; min-width: 0; padding: 0 7px; }
+  .training-portal-admin-metrics { grid-template-columns: 1fr; }
+  .training-portal-topbar .training-portal-public-brand small { display: none; }
+  .training-portal-account-actions label { width: 125px; }
+  .training-portal-account-actions select { font-size: 9px; }
+  .training-portal-metrics article { min-height: 66px; padding: 10px; }
+  .training-portal-list article { grid-template-columns: 32px minmax(0,1fr) auto; padding: 9px; }
+}

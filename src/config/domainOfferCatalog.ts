@@ -35,6 +35,7 @@ export type OfferFeatureKey =
   | 'training_billing'
   | 'training_bpf'
   | 'training_quality'
+  | 'training_portals_signatures'
   | 'security_planning'
   | 'security_clients_sites'
   | 'security_site_rates'
@@ -167,6 +168,7 @@ const formationProfessionnelle: OfferFeatureKey[] = [
   'training_billing',
   'training_bpf',
   'training_quality',
+  'training_portals_signatures',
   'multi_site',
   'team_access',
   'manager_role'
@@ -496,6 +498,7 @@ export const OFFER_FEATURE_LABELS: Record<OfferFeatureKey, string> = {
   training_billing: 'Factures, avoirs, encaissements, échéances et relances',
   training_bpf: 'BPF automatique, contrôles annuels et exports préparatoires',
   training_quality: 'Qualiopi, conformité, preuves, échéances et audits',
+  training_portals_signatures: 'Espaces stagiaire, formateur et client avec signatures',
   security_planning: 'Planning des agents',
   security_clients_sites: 'Clients et sites',
   security_site_rates: 'Tarif défini par site',

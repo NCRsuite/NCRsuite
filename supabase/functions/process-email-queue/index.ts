@@ -648,6 +648,27 @@ function templateCopy(templateKey: string, payload: Record<string, unknown>) {
           : `Vous trouverez en pièce jointe ${isCredit ? 'votre avoir' : 'votre facture'} ${reference}.`
       };
     }
+    case 'training_portal_invitation': {
+      const roleLabels: Record<string, string> = {
+        trainee: 'stagiaire',
+        trainer: 'formateur',
+        client: 'client'
+      };
+      const role = roleLabels[String(payload.subject_kind ?? '')] ?? 'Formation';
+      return {
+        subject: `Votre espace ${role} — ${organization}`,
+        eyebrow: 'ESPACE FORMATION',
+        title: `Votre espace ${role} est prêt`,
+        message: `${organization} vous invite à accéder à vos sessions, documents et demandes de signature.`
+      };
+    }
+    case 'training_signature_request':
+      return {
+        subject: `${payload.is_reminder === true ? 'Rappel — ' : ''}Document à signer — ${organization}`,
+        eyebrow: payload.is_reminder === true ? 'RAPPEL DE SIGNATURE' : 'SIGNATURE DEMANDÉE',
+        title: `Un document attend votre signature`,
+        message: `${organization} vous demande de consulter et signer « ${String(payload.document_title ?? 'un document')} » depuis votre espace Formation.`
+      };
     case 'security_client_portal_invitation':
       return {
         subject: `Votre portail client Sécurité — ${organization}`,
@@ -812,6 +833,66 @@ Invitation valable jusqu’au ${expiry}.
 
 Activer mon espace : ${inviteUrl}${bookingUrl ? `
 Prendre rendez-vous : ${bookingUrl}` : ''}`;
+    return { subject: copy.subject, html, text, replyTo: contactEmail || null };
+  }
+
+  if (item.template_key === 'training_portal_invitation' || item.template_key === 'training_signature_request') {
+    const accent = safeColor(payload.organization_primary_color);
+    const organizationRaw = String(payload.organization_name ?? 'Votre organisme de formation');
+    const organization = escapeHtml(organizationRaw);
+    const invitee = escapeHtml(payload.invited_name ?? item.recipient_name ?? '');
+    const organizationLogoUrl = safeImageUrl(payload.organization_logo_url);
+    const contactEmail = String(payload.contact_email ?? '').trim();
+    const contactPhone = String(payload.contact_phone ?? '').trim();
+    const isInvitation = item.template_key === 'training_portal_invitation';
+    const roleLabels: Record<string, string> = {
+      trainee: 'Stagiaire',
+      trainer: 'Formateur',
+      client: 'Client'
+    };
+    const role = roleLabels[String(payload.subject_kind ?? '')] ?? 'Formation';
+    const token = String(payload.invitation_token ?? '').trim();
+    const actionUrl = isInvitation
+      ? `${publicUrl.replace(/\/$/, '')}/formation/invitation/${encodeURIComponent(token)}`
+      : `${publicUrl.replace(/\/$/, '')}/espace-formation`;
+    const actionLabel = isInvitation ? 'Activer mon espace Formation' : 'Consulter et signer le document';
+    const expiresAt = new Date(String(payload.expires_at ?? ''));
+    const invitationExpiry = Number.isNaN(expiresAt.getTime())
+      ? '7 jours'
+      : new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(expiresAt);
+    const dueDate = payload.due_date
+      ? new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(`${String(payload.due_date)}T12:00:00`))
+      : 'Sans échéance';
+    const logo = organizationLogoUrl
+      ? `<img src="${escapeHtml(organizationLogoUrl)}" alt="${organization}" style="display:block;max-width:180px;max-height:64px;object-fit:contain">`
+      : `<div style="display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:14px;background:${accent};color:#fff;font-size:22px;font-weight:800">${organization.slice(0, 2).toUpperCase()}</div>`;
+    const detailLabel = isInvitation ? 'Espace attribué' : 'Document';
+    const detailValue = isInvitation ? role : String(payload.document_title ?? 'Document à signer');
+    const dateLabel = isInvitation ? 'Invitation valable' : 'Échéance';
+    const dateValue = isInvitation ? `Jusqu’au ${invitationExpiry}` : dueDate;
+    const reassurance = isInvitation
+      ? 'Vous retrouverez uniquement les sessions, documents et informations que votre organisme vous a attribués.'
+      : 'La signature conserve l’identité du compte, la date, l’historique et les empreintes de contrôle du document et de la preuve.';
+
+    const html = `<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;background:#eef5f1;font-family:Arial,Helvetica,sans-serif;color:#14231b">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#eef5f1;padding:32px 12px"><tr><td align="center">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 18px 45px rgba(20,35,27,.10)">
+<tr><td style="height:8px;background:${accent}"></td></tr>
+<tr><td style="padding:34px 34px 18px">${logo}<div style="font-size:11px;letter-spacing:.14em;font-weight:800;color:${accent};margin-top:28px">${escapeHtml(copy.eyebrow)}</div><h1 style="font-size:30px;line-height:1.15;margin:10px 0 12px">${escapeHtml(copy.title)}</h1><p style="font-size:16px;line-height:1.65;color:#607267;margin:0">${invitee ? `Bonjour ${invitee}, ` : ''}${escapeHtml(copy.message)}</p></td></tr>
+<tr><td style="padding:12px 34px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f9f7;border:1px solid #dce9e2;border-radius:16px"><tr><td style="padding:16px 18px;color:#607267">${detailLabel}</td><td align="right" style="padding:16px 18px;font-weight:700">${escapeHtml(detailValue)}</td></tr><tr><td style="padding:16px 18px;border-top:1px solid #dce9e2;color:#607267">${dateLabel}</td><td align="right" style="padding:16px 18px;border-top:1px solid #dce9e2;font-weight:700">${escapeHtml(dateValue)}</td></tr></table></td></tr>
+<tr><td style="padding:22px 34px 30px"><a href="${escapeHtml(actionUrl)}" style="display:inline-block;background:${accent};color:#fff;text-decoration:none;font-weight:800;padding:15px 25px;border-radius:10px">${actionLabel}</a><p style="font-size:13px;line-height:1.55;color:#86978d;margin:18px 0 0">${reassurance}</p></td></tr>
+<tr><td style="padding:22px 34px 30px;border-top:1px solid #dce9e2;color:#607267;font-size:13px;line-height:1.7">${contactEmail ? `Contact : ${escapeHtml(contactEmail)}` : ''}${contactEmail && contactPhone ? ' · ' : ''}${contactPhone ? escapeHtml(contactPhone) : ''}<br>E-mail envoyé automatiquement par NCR Suite.</td></tr>
+</table></td></tr></table></body></html>`;
+
+    const text = `${copy.title}
+
+${copy.message}
+${detailLabel} : ${detailValue}
+${dateLabel} : ${dateValue}
+
+${actionLabel} : ${actionUrl}`;
     return { subject: copy.subject, html, text, replyTo: contactEmail || null };
   }
 

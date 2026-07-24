@@ -1,5 +1,20 @@
 # Changelog NCR Suite
 
+## V2.21.0 — Espaces Formation et signatures traçables
+
+- Nouveaux espaces sécurisés pour les stagiaires, formateurs et clients.
+- Invitations personnelles par e-mail avec création ou connexion au compte existant.
+- Vue des sessions, documents, évaluations et émargements selon le profil.
+- Dépôt de pièces directement dans le dossier général ou la session choisie.
+- Partage de documents existants, devis, conventions, contrats et factures.
+- Demandes de signature avec consultation préalable, échéance et relances.
+- Empreinte SHA-256 du document et de la preuve, référence unique et historique horodaté.
+- Enregistrement automatique de la preuve dans le dossier Qualiopi.
+- Console organisme pour ouvrir, suspendre et diagnostiquer les accès externes.
+- Nouveau module `Portails et signatures` à la carte sur Découverte et Essentielle.
+- Inclusion dans les offres Professionnelle et Métier, avec comparaison tarifaire de la V2.20.
+- Nouveau cache PWA et contrôles automatiques de sécurité, droits et parcours critiques.
+
 ## V2.20.1 — Modules Formation visibles sous cadenas
 
 - Conservation des modules Formation non inclus dans les menus ordinateur et mobile.
