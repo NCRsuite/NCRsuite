@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-motion-pwa-recovery`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-safari-styles`;
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
@@ -55,6 +55,15 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
+requireText('index.html', [
+  '/ncr-suite-showcase-v2223.css',
+  'ncr-style-guard',
+  'ncr:css-recovery-v2.22.3'
+]);
+requireText('public/_headers', [
+  '/assets/*.css',
+  'Content-Type: text/css; charset=utf-8'
+]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
   "window.addEventListener('unhandledrejection'",

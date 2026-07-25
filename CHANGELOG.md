@@ -1,5 +1,18 @@
 # Changelog NCR Suite
 
+## V2.22.3 — Fiabilité Safari de la vitrine animée
+
+- Conservation intégrale des animations et interactions introduites en V2.22.2.
+- Nouvelle feuille critique légère dédiée à la vitrine et chargée avant le style général.
+- Génération automatique de cette feuille depuis les styles officiels à chaque build.
+- Type MIME `text/css` explicite pour les styles Cloudflare.
+- Type MIME JavaScript explicite pour les modules de l’application.
+- Écran de préparation NCR Suite empêchant l’affichage temporaire d’un HTML brut.
+- Récupération automatique unique si les styles ne sont pas disponibles.
+- Contrôle distinct de la vitrine publique et des styles complets de la connexion.
+- Nouveau cache `ncr-suite-shell-v2.22.3-safari-styles`.
+- Aucun changement SQL, Supabase, authentification, automatisation ou donnée métier.
+
 ## V2.22.2 — Mouvement premium et lancement PWA
 
 - Suppression de la croix, du carré central et du repère bleu présents dans le hero ordinateur.

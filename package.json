@@ -1,11 +1,11 @@
 {
   "name": "ncr-suite",
   "private": true,
-  "version": "2.22.2",
+  "version": "2.22.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/phase1-static-audit.mjs && node scripts/phase1-critical-flows.mjs && node scripts/phase1-release-readiness.mjs && tsc -b && vite build",
+    "build": "node scripts/generate-public-showcase-css.mjs && node scripts/phase1-static-audit.mjs && node scripts/phase1-critical-flows.mjs && node scripts/phase1-release-readiness.mjs && tsc -b && vite build",
     "preview": "vite preview",
     "audit:phase1": "node scripts/phase1-static-audit.mjs",
     "test:critical": "node scripts/phase1-critical-flows.mjs",

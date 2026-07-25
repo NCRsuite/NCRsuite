@@ -28,6 +28,39 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preload" href="/ncr-suite-showcase-v2223.css" as="style" />
+    <link rel="stylesheet" href="/ncr-suite-showcase-v2223.css" />
+    <style>
+      #ncr-style-guard {
+        position: fixed;
+        z-index: 2147483647;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 18px;
+        color: #ffffff;
+        background: #080d12;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        transition: opacity .3s ease, visibility .3s ease;
+      }
+      #ncr-style-guard img { width: 72px; height: 72px; border-radius: 8px; object-fit: cover; }
+      #ncr-style-guard strong { font-size: 22px; }
+      #ncr-style-guard span { color: #8e9aa4; font-size: 12px; }
+      #ncr-style-guard button {
+        display: none;
+        min-height: 44px;
+        padding: 0 18px;
+        border: 0;
+        border-radius: 7px;
+        color: #ffffff;
+        background: #0969f5;
+        font: inherit;
+        font-weight: 750;
+      }
+      #ncr-style-guard[data-state="error"] button { display: block; }
+      html.ncr-styles-ready #ncr-style-guard { opacity: 0; visibility: hidden; pointer-events: none; }
+    </style>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -57,7 +90,61 @@
     <title>NCR Suite | La plateforme de gestion conçue pour votre métier</title>
   </head>
   <body>
+    <div id="ncr-style-guard" aria-live="polite">
+      <img src="/brand/ncr-suite-icon.png" alt="" />
+      <strong>NCR Suite</strong>
+      <span id="ncr-style-message">Préparation de votre espace…</span>
+      <button type="button" onclick="window.location.reload()">Recharger</button>
+    </div>
     <div id="root"></div>
+    <script>
+      (() => {
+        const recoveryKey = 'ncr:css-recovery-v2.22.3';
+        let completed = false;
+
+        const stylesAreReady = () => getComputedStyle(document.documentElement)
+          .getPropertyValue(window.location.pathname === '/' ? '--ncr-styles-ready' : '--ncr-app-styles-ready')
+          .trim() === '1';
+
+        const reveal = () => {
+          if (completed) return;
+          completed = true;
+          document.documentElement.classList.add('ncr-styles-ready');
+          try { sessionStorage.removeItem(recoveryKey); } catch {}
+        };
+
+        const recover = async () => {
+          if (completed || stylesAreReady()) {
+            reveal();
+            return;
+          }
+
+          try {
+            if (sessionStorage.getItem(recoveryKey) !== 'retried') {
+              sessionStorage.setItem(recoveryKey, 'retried');
+              if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(registrations.map((registration) => registration.unregister()));
+              }
+              if ('caches' in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.filter((key) => key.startsWith('ncr-suite-')).map((key) => caches.delete(key)));
+              }
+              window.location.reload();
+              return;
+            }
+          } catch {}
+
+          const guard = document.getElementById('ncr-style-guard');
+          const message = document.getElementById('ncr-style-message');
+          guard?.setAttribute('data-state', 'error');
+          if (message) message.textContent = 'Le style n’a pas pu être chargé. Réessayez dans quelques secondes.';
+        };
+
+        window.addEventListener('load', () => window.setTimeout(recover, 100));
+        window.setTimeout(recover, 12000);
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -16,7 +16,7 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-motion-pwa-recovery`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-safari-styles`;
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
@@ -26,10 +26,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.22.2') failures.push('package.json doit annoncer la V2.22.2.');
+if (pkg.version !== '2.22.3') failures.push('package.json doit annoncer la V2.22.3.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.22.2 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.22.2 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.22.3 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.22.3 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -137,6 +137,29 @@ requireText('src/components/AppErrorBoundary.tsx', [
   'MODULE_RECOVERY_KEY',
   'this.resetAndReload()'
 ]);
+
+requireText('scripts/generate-public-showcase-css.mjs', [
+  'ncr-suite-showcase-v2223.css',
+  "source.indexOf('.public-home,')",
+  'fs.writeFileSync'
+]);
+
+requireText('index.html', [
+  '/ncr-suite-showcase-v2223.css',
+  'ncr-style-guard',
+  'ncr:css-recovery-v2.22.3',
+  '--ncr-styles-ready'
+]);
+
+requireText('public/_headers', [
+  '/assets/*.css',
+  'Content-Type: text/css; charset=utf-8',
+  '/ncr-suite-showcase-v2223.css'
+]);
+
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v2223.css'))) {
+  failures.push('La feuille de style critique Safari V2.22.3 n’a pas été générée.');
+}
 
 requireText('src/components/PublicSiteHeader.tsx', [
   '/brand/ncr-suite-logo-header-v2221.png',
