@@ -1,5 +1,20 @@
 # Changelog NCR Suite
 
+## V2.22.1 — Vitrine premium et catalogue métier
+
+- Nouvelle première impression centrée sur le logo NCR Suite, sans photographie générique.
+- Animation épurée reliant relation client, planning, documents et conformité autour de la marque.
+- Présentation produit détaillée avec aperçu réaliste du poste de pilotage.
+- Catalogue interactif pour Formation, Sécurité privée, Nettoyage, Restauration et Coiffure & beauté.
+- Mise en avant claire des modules et du résultat opérationnel de chaque métier.
+- Parcours visuel Collecter, Orchestrer, Prouver et Piloter.
+- Présentation simplifiée de la montée en gamme et de la comparaison tarifaire déjà disponible dans l’application.
+- Logos officiels haute définition dans l’en-tête et signature Retina dans le pied de page.
+- Nouvelle image Open Graph sans texte coupé pour les partages et résultats enrichis.
+- Responsive renforcé pour ordinateur, tablette et mobile.
+- Cache PWA synchronisé en `ncr-suite-shell-v2.22.1-premium-showcase`.
+- Aucun changement SQL, Supabase, authentification, automatisation ou donnée métier.
+
 ## V2.22.0 — Lancement commercial, domaine et accès contrôlés
 
 - Nouvelle page publique complète présentant NCR Suite, ses cinq métiers, sa plateforme et sa montée en gamme.

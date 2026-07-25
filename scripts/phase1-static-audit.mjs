@@ -602,6 +602,24 @@ if (!adminAccessFunction.includes("eq('role', 'super_admin')")
   errors.push('Les e-mails de compte V2.22.0 ne sont pas correctement proteges ou marques.');
 }
 
+// V2.22.1 - vitrine premium, catalogue interactif et identite haute definition.
+const publicHeader = read('src/components/PublicSiteHeader.tsx');
+const publicFooter = read('src/components/PublicSiteFooter.tsx');
+const runtimeConfig = read('src/config/runtime.ts');
+const serviceWorker = read('public/sw.js');
+if (!publicHomePage.includes('public-hero-canvas')
+    || !publicHomePage.includes('public-business-showcase')
+    || !publicHomePage.includes('/og/ncr-suite-og-v2221.webp')
+    || !publicHeader.includes('/brand/ncr-suite-logo-header-v2221.png')
+    || !publicFooter.includes('public-footer-brand')) {
+  errors.push('La vitrine premium V2.22.1 ou son identite officielle est incomplete.');
+}
+if (!runtimeConfig.includes("APP_VERSION = '2.22.1'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.22.1-premium-showcase")
+    || !serviceWorker.includes("ncr-suite-shell-v2.22.1-premium-showcase")) {
+  errors.push('La version ou le cache PWA V2.22.1 de la vitrine premium est incoherent.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

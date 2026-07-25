@@ -1,0 +1,32 @@
+NCR SUITE V2.22.1 - VITRINE PREMIUM
+
+OBJECTIF
+- Donner une premiere impression premium, moderne et credible.
+- Mettre NCR Suite et son produit au centre, sans image de bureau generique.
+- Presenter clairement les cinq metiers et leurs modules.
+
+CHANGEMENTS VISIBLES
+- Hero epure avec symbole officiel anime et signaux operationnels.
+- Nouvelle hierarchie editoriale et nouveaux appels a l'action.
+- Apercu detaille du poste de pilotage.
+- Catalogue metier interactif.
+- Parcours Collecter, Orchestrer, Prouver, Piloter.
+- Presentation de la montee en gamme.
+- Logo officiel haute definition dans l'en-tete.
+- Signature nette dans le pied de page.
+- Nouvelle image de partage Open Graph.
+
+CHANGEMENTS TECHNIQUES
+- Version frontend : 2.22.1.
+- Cache PWA : ncr-suite-shell-v2.22.1-premium-showcase.
+- Audits de release et parcours critiques synchronises.
+- Responsive ordinateur, tablette et mobile renforce.
+
+SQL / SUPABASE
+- Aucune migration.
+- Aucune Edge Function.
+- Aucun secret.
+- Aucun changement de droits ou de donnees.
+
+BASE DE DEPART
+- NCR Suite V2.22.0 deja deployee et fonctionnelle.

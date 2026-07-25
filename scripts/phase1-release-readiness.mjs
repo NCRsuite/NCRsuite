@@ -16,7 +16,8 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-commercial-launch`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-showcase`;
+const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
 const trainingPortalsCache = 'ncr-suite-shell-v2.21.0-training-portals-signatures';
@@ -25,12 +26,19 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.22.0') failures.push('package.json doit annoncer la V2.22.0.');
+if (pkg.version !== '2.22.1') failures.push('package.json doit annoncer la V2.22.1.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.22.0 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.22.0 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.22.1 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.22.1 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
+for (const asset of [
+  'public/brand/ncr-suite-logo-header-v2221.png',
+  'public/brand/ncr-suite-symbol-v2221.png',
+  'public/og/ncr-suite-og-v2221.webp'
+]) {
+  if (!fs.existsSync(path.join(root, asset))) failures.push(`Asset V2.22.1 absent : ${asset}`);
+}
 
 requireText('supabase/migrations/080_final_stabilization_training_modules.sql', [
   'create table if not exists public.training_module_catalog',
@@ -97,7 +105,7 @@ requireText('supabase/migrations/088_commercial_launch_controlled_access.sql', [
   'platform_access_requests_admin_read',
   "'access_requests'",
   "'2.22.0'",
-  expectedCache,
+  commercialLaunchCache,
   'set search_path = public'
 ]);
 
@@ -105,7 +113,25 @@ requireText('src/pages/PublicHomePage.tsx', [
   '<PublicSiteHeader />',
   'NCR Suite',
   'Demander un accès',
-  'public-business-grid'
+  'public-business-grid',
+  'public-business-showcase',
+  'public-hero-canvas',
+  '/brand/ncr-suite-symbol-v2221.png'
+]);
+
+requireText('src/components/PublicSiteHeader.tsx', [
+  '/brand/ncr-suite-logo-header-v2221.png',
+  'Solutions métier'
+]);
+
+requireText('src/components/PublicSiteFooter.tsx', [
+  'public-footer-brand',
+  'contact@ncr-suite.fr'
+]);
+
+requireText('index.html', [
+  '/og/ncr-suite-og-v2221.webp',
+  '/brand/ncr-suite-logo-header-v2221.png'
 ]);
 
 requireText('src/pages/AccessRequestPage.tsx', [

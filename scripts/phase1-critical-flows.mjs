@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-commercial-launch`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-showcase`;
+const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
 const trainingPortalsCache = 'ncr-suite-shell-v2.21.0-training-portals-signatures';
@@ -749,7 +750,7 @@ requireText('supabase/migrations/088_commercial_launch_controlled_access.sql', [
   'public.is_platform_admin()',
   "'access_requests'",
   "'2.22.0'",
-  expectedCache,
+  commercialLaunchCache,
   'set search_path = public'
 ]);
 requireText('src/pages/LoginPage.tsx', [
