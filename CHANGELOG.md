@@ -1,5 +1,19 @@
 # Changelog NCR Suite
 
+## V2.23.2 — Finitions visuelles et cadrage mobile
+
+- Réduction d’environ 18 % des quatre cartes flottantes du premier écran.
+- Conservation de leurs animations et de la réaction au pointeur.
+- Survol bleu explicite pour Plateforme, Solutions métier, Offres et Se connecter.
+- Même indication bleue lors de la navigation au clavier.
+- Suppression des points finaux dans les grands titres de la vitrine.
+- Correction du chevauchement entre le texte et les aperçus bento sur mobile.
+- Aperçus mobiles replacés dans le flux normal sous leur contenu.
+- Présentation des cinq métiers en deux colonnes sur petit écran.
+- Migration `091` synchronisant Supabase, le frontend et le cache PWA en `2.23.2`.
+- Nouveau bundle `ncr-suite-app-v232.js` et cache `ncr-suite-shell-v2.23.2-showcase-polish`.
+- Aucun changement de tarif, fonction métier, automatisation, droit ou donnée.
+
 ## V2.23.1 — Vitrine signature et bento animé
 
 - Nouveau premier écran composé de quatre mini-interfaces bento animées.

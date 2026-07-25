@@ -25,7 +25,7 @@ const businesses: PublicBusiness[] = [
     label: 'Organismes de formation',
     icon: 'graduation',
     color: '#0878f9',
-    summary: 'Du premier prospect jusqu’au BPF, chaque étape du parcours reste liée et exploitable.',
+    summary: 'Du premier prospect jusqu’au BPF, chaque étape du parcours reste liée et exploitable',
     outcome: 'Commercial, pédagogique, qualité et finance réunis',
     features: ['CRM et pipeline commercial', 'Catalogue et programmes', 'Sessions et émargements', 'Évaluations automatisées', 'Facturation et BPF', 'Qualiopi et preuves']
   },
@@ -35,7 +35,7 @@ const businesses: PublicBusiness[] = [
     label: 'Entreprises de sécurité',
     icon: 'shield',
     color: '#d92d20',
-    summary: 'Les équipes du bureau et du terrain partagent enfin le même niveau d’information.',
+    summary: 'Les équipes du bureau et du terrain partagent enfin le même niveau d’information',
     outcome: 'Des opérations suivies, traçables et facturables',
     features: ['Clients, sites et contrats', 'Agents et agréments', 'Planning et vacations', 'Rondes QR et PTI', 'Main courante terrain', 'Facturation et portail client']
   },
@@ -45,7 +45,7 @@ const businesses: PublicBusiness[] = [
     label: 'Propreté et multiservices',
     icon: 'sparkles',
     color: '#07865c',
-    summary: 'Chaque intervention devient une prestation planifiée, prouvée et mesurable.',
+    summary: 'Chaque intervention devient une prestation planifiée, prouvée et mesurable',
     outcome: 'Qualité terrain et rentabilité dans un même flux',
     features: ['Clients et sites', 'Agents et affectations', 'Pointage et consignes', 'Rapports et anomalies', 'Contrôles qualité', 'Stocks et rentabilité']
   },
@@ -55,7 +55,7 @@ const businesses: PublicBusiness[] = [
     label: 'Restaurants et établissements',
     icon: 'utensils',
     color: '#b36a08',
-    summary: 'La salle, la cuisine et la gestion avancent avec une vision commune du service.',
+    summary: 'La salle, la cuisine et la gestion avancent avec une vision commune du service',
     outcome: 'Une exploitation fluide, du couvert jusqu’au stock',
     features: ['Réservations et plan de salle', 'Carte et recettes', 'Commandes et écran cuisine', 'Planning des équipes', 'Hygiène et traçabilité', 'Stocks et pilotage']
   },
@@ -65,7 +65,7 @@ const businesses: PublicBusiness[] = [
     label: 'Salons et instituts',
     icon: 'scissors',
     color: '#9b3db4',
-    summary: 'Les rendez-vous, l’équipe et la fidélité client se pilotent sans alourdir l’accueil.',
+    summary: 'Les rendez-vous, l’équipe et la fidélité client se pilotent sans alourdir l’accueil',
     outcome: 'Une relation client suivie avant et après la visite',
     features: ['Réservation en ligne', 'Planning du salon', 'Fichier client', 'Prestations et équipe', 'Fidélité personnalisée', 'Espace client']
   }
@@ -173,7 +173,7 @@ export function PublicHomePage() {
   }, []);
 
   return (
-    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231">
+    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231 public-home-v232">
       <PageMetadata
         title="NCR Suite | La plateforme de gestion conçue pour votre métier"
         description="NCR Suite réunit clients, équipes, planning, documents, facturation, conformité et automatisations dans une plateforme métier claire, modulaire et sécurisée."
@@ -246,7 +246,7 @@ export function PublicHomePage() {
         <section className="public-intro-band public-reveal">
           <div>
             <p className="public-section-label">LE TRAVAIL, ENFIN RELIÉ</p>
-            <h2>Une plateforme qui comprend ce qui se passe après le clic.</h2>
+            <h2>Une plateforme qui comprend ce qui se passe après le clic</h2>
           </div>
           <div className="public-intro-copy">
             <p>Un devis accepté devient un dossier. Un dossier alimente le planning. Le terrain produit des preuves. Les preuves déclenchent la suite. NCR Suite fait circuler l’information sans multiplier les ressaisies.</p>
@@ -257,7 +257,7 @@ export function PublicHomePage() {
         <section className="public-product-section public-reveal" id="plateforme">
           <div className="public-product-copy">
             <p className="public-section-label">POSTE DE PILOTAGE</p>
-            <h2>Voir juste. Agir vite.</h2>
+            <h2>Voir juste, agir vite</h2>
             <p>Les priorités du jour, les dossiers incomplets et les prochaines actions restent lisibles dans une interface conçue pour travailler, pas pour décorer.</p>
             <ul>
               <li><Icon name="check" size={16} />Tableaux de bord adaptés à chaque activité</li>
@@ -309,7 +309,7 @@ export function PublicHomePage() {
         <section className="public-business-section public-reveal" id="catalogue">
           <header>
             <p className="public-section-label">CATALOGUE MÉTIER</p>
-            <h2>Cinq environnements. Une exigence commune.</h2>
+            <h2>Cinq environnements, une exigence commune</h2>
             <p>Choisissez un métier pour découvrir un espace débarrassé du superflu et déjà structuré autour de ses opérations essentielles.</p>
           </header>
 
@@ -355,7 +355,7 @@ export function PublicHomePage() {
           <div className="public-flow-heading">
             <div>
               <p className="public-section-label">DU SIGNAL À LA DÉCISION</p>
-              <h2>Un seul flux de travail, sans angles morts.</h2>
+              <h2>Un seul flux de travail, sans angles morts</h2>
             </div>
             <p>Chaque information poursuit son chemin sans ressaisie et laisse une trace exploitable. Vous savez ce qui entre, ce qui avance et ce qui demande une décision.</p>
           </div>
@@ -378,7 +378,7 @@ export function PublicHomePage() {
         <section className="public-platform-section public-reveal">
           <div>
             <p className="public-section-label">UN SOCLE QUI RESTE SIMPLE</p>
-            <h2>Assez complet pour grandir. Assez clair pour être adopté.</h2>
+            <h2>Assez complet pour grandir, assez clair pour être adopté</h2>
           </div>
           <div className="public-platform-grid">
             {platformPoints.map((point) => (
@@ -404,7 +404,7 @@ export function PublicHomePage() {
           <div className="public-offer-copy">
             <div>
               <p className="public-section-label">CATALOGUE DES OFFRES</p>
-              <h2>Votre outil évolue au rythme de votre entreprise.</h2>
+              <h2>Votre outil évolue au rythme de votre entreprise</h2>
             </div>
             <p>Choisissez votre métier pour retrouver une gamme claire, les accès inclus et les fonctions qui font réellement progresser votre organisation.</p>
           </div>
@@ -467,7 +467,7 @@ export function PublicHomePage() {
 
         <section className="public-final-cta public-reveal">
           <p className="public-section-label">OUVERTURE SUR VALIDATION</p>
-          <h2>Votre entreprise mérite mieux qu’un assemblage d’outils.</h2>
+          <h2>Votre entreprise mérite mieux qu’un assemblage d’outils</h2>
           <p>Présentez-nous votre activité. Chaque nouvelle demande est examinée avant l’ouverture pour vous livrer un environnement propre, sécurisé et correctement configuré.</p>
           <div>
             <Link className="public-primary-action" to="/demande-acces">Présenter mon besoin <Icon name="chevronRight" size={17} /></Link>
