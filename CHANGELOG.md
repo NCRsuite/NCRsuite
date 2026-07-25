@@ -1,5 +1,22 @@
 # Changelog NCR Suite
 
+## V2.22.0 — Lancement commercial, domaine et accès contrôlés
+
+- Nouvelle page publique complète présentant NCR Suite, ses cinq métiers, sa plateforme et sa montée en gamme.
+- Séparation nette entre le site public, la connexion et l’application privée.
+- Suppression de la création libre d’un espace depuis la page de connexion.
+- Formulaire de demande d’accès protégé par Cloudflare Turnstile, limitation de débit et pot de miel.
+- Nouvelle file de demandes dans l’administration centrale NCR.
+- Acceptation, refus et renvoi d’invitation réservés au super-administrateur.
+- Invitation et récupération de mot de passe personnalisées depuis `contact@ncr-suite.fr`.
+- Création d’entreprise refusée en base sans demande préalablement acceptée.
+- Préremplissage de la configuration avec les informations validées lors de la demande.
+- Domaine canonique `https://ncr-suite.fr` dans les liens, e-mails, métadonnées et données structurées.
+- Redirection contrôlée de `ncrsuite.pages.dev` et `www.ncr-suite.fr` vers le domaine principal.
+- SEO technique avec canonical, Open Graph, Twitter Card, Schema.org, robots et sitemap.
+- Guides complets IONOS, Cloudflare, Supabase, Brevo, SPF, DKIM et DMARC.
+- Cache PWA et validation production synchronisés en V2.22.0.
+
 ## V2.21.2 — Validation production finale
 
 - Identification des 188 fonctions publiques comme objets d'extensions PostgreSQL gérés par Supabase.

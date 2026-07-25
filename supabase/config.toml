@@ -15,3 +15,12 @@ verify_jwt = false
 
 [functions.translate-restaurant-menu]
 verify_jwt = true
+
+[functions.request-platform-access]
+verify_jwt = false
+
+[functions.admin-review-access-request]
+verify_jwt = true
+
+[functions.request-account-recovery]
+verify_jwt = false

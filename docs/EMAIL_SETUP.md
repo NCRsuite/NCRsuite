@@ -1,4 +1,8 @@
-# NCR Suite V1.6 — Configuration des e-mails automatiques
+# NCR Suite V2.22.0 — Configuration des e-mails automatiques
+
+> Configuration de production obligatoire : tous les e-mails NCR Suite utilisent
+> `NCR Suite <contact@ncr-suite.fr>`. Le domaine doit être authentifié dans Brevo
+> avec SPF, DKIM et DMARC avant l’ouverture commerciale.
 
 ## Architecture
 
@@ -22,10 +26,10 @@ Créer ou utiliser un compte Brevo, puis :
 2. créer une clé API transactionnelle ;
 3. conserver l’adresse vérifiée et la clé pour les secrets Supabase.
 
-Le domaine conseillé est `ncr-solutions.fr`. L’expéditeur peut être par exemple :
+Le domaine d’expédition est `ncr-suite.fr`. L’expéditeur obligatoire est :
 
 ```text
-NCR Suite <notifications@ncr-solutions.fr>
+NCR Suite <contact@ncr-suite.fr>
 ```
 
 Les entreprises clientes ne deviennent pas expéditeurs techniques. Leur adresse est utilisée comme adresse de réponse, ce qui évite d’envoyer depuis des domaines non vérifiés.
@@ -45,9 +49,9 @@ Ajouter dans Edge Functions > Secrets :
 
 ```text
 BREVO_API_KEY=...
-BREVO_SENDER_EMAIL=notifications@ncr-solutions.fr
+BREVO_SENDER_EMAIL=contact@ncr-suite.fr
 BREVO_SENDER_NAME=NCR Suite
-NCR_SUITE_PUBLIC_URL=https://ncrsuite.pages.dev
+NCR_SUITE_PUBLIC_URL=https://ncr-suite.fr
 EMAIL_PROCESSOR_SECRET=une-valeur-longue-et-imprevisible
 ```
 
@@ -100,3 +104,16 @@ Dans Supabase > Cron > Jobs :
 - notifications obsolètes annulées avant envoi ;
 - aucun accès navigateur à `email_outbox` ;
 - données séparées par `organization_id`.
+
+## Authentification du domaine
+
+Dans Brevo, ouvrir `Paramètres > Expéditeurs et IP > Domaines`, ajouter
+`ncr-suite.fr`, puis recopier sans adaptation les enregistrements proposés dans
+la zone DNS Cloudflare. Ne jamais créer deux enregistrements SPF séparés : si
+IONOS ou un autre service utilise déjà SPF, fusionner les mécanismes dans un
+seul enregistrement.
+
+Créer aussi un enregistrement DMARC initial en mode observation, puis vérifier
+sur Gmail ou Mail-Tester que SPF, DKIM et DMARC indiquent tous `PASS`.
+
+La procédure détaillée se trouve dans `docs/DOMAINE_EMAILS_V2.22.0.md`.

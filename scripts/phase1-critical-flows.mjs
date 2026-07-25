@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-final-production-validation`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-commercial-launch`;
+const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
 const trainingPortalsCache = 'ncr-suite-shell-v2.21.0-training-portals-signatures';
 const lockedNavigationCache = 'ncr-suite-shell-v2.20.1-training-locked-navigation';
@@ -75,6 +76,11 @@ const publicRoutes = [
   '/espace-client-nettoyage',
   '/client-coiffure/invitation/:token',
   '/espace-client-coiffure'
+  ,'/demande-acces'
+  ,'/mot-de-passe-oublie'
+  ,'/activation'
+  ,'/mentions-legales'
+  ,'/confidentialite'
 ];
 for (const route of publicRoutes) {
   if (!app.includes(`path=\"${route}\"`) && !app.includes(`path='${route}'`)) {
@@ -118,7 +124,7 @@ requireText(migration, [
 ]);
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080', '081', '082', '083', '084', '085']) {
+for (const number of ['054', '055', '056', '057', '058', '059', '060', '061', '062', '063', '064', '065', '066', '067', '068', '069', '070', '071', '072', '073', '074', '075', '076', '077', '078', '079', '080', '081', '082', '083', '084', '085', '086', '087', '088']) {
   if (!migrationFiles.some((file) => file.startsWith(`${number}_`))) failures.push(`Migration critique ${number} absente.`);
 }
 
@@ -733,8 +739,47 @@ requireText('supabase/migrations/084_final_production_validation.sql', [
   "'training_signatures'",
   "'manual_validation'",
   "'2.21.2'",
+  finalProductionValidationCache,
+  'set search_path = public'
+]);
+requireText('supabase/migrations/088_commercial_launch_controlled_access.sql', [
+  'create table if not exists public.platform_access_requests',
+  'create table if not exists public.platform_auth_email_events',
+  'platform_access_requests_admin_read',
+  'public.is_platform_admin()',
+  "'access_requests'",
+  "'2.22.0'",
   expectedCache,
   'set search_path = public'
+]);
+requireText('src/pages/LoginPage.tsx', [
+  "to=\"/mot-de-passe-oublie\"",
+  "to=\"/demande-acces\""
+]);
+requireText('src/pages/AccessRequestPage.tsx', [
+  "functions.invoke('request-platform-access'",
+  'VITE_TURNSTILE_SITE_KEY'
+]);
+requireText('src/components/AdminAccessRequestsPanel.tsx', [
+  "from('platform_access_requests')",
+  "functions.invoke('admin-review-access-request'",
+  'Accepter et inviter'
+]);
+requireText('supabase/functions/admin-review-access-request/index.ts', [
+  "eq('role', 'super_admin')",
+  "type: 'magiclink'",
+  'contact@ncr-suite.fr',
+  '/activation?token_hash='
+]);
+requireText('supabase/functions/request-account-recovery/index.ts', [
+  "type: 'recovery'",
+  'platform_auth_email_events',
+  'contact@ncr-suite.fr'
+]);
+requireText('index.html', [
+  'https://ncr-suite.fr/',
+  'application/ld+json',
+  'SoftwareApplication'
 ]);
 requireText('supabase/migrations/085_production_validation_security_correction.sql', [
   'create temporary table ncr_function_access_snapshot on commit drop',

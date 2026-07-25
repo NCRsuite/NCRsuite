@@ -574,6 +574,34 @@ if (finalPublicAclCorrection.includes('set local role supabase_admin')
   errors.push('Le correctif final V2.21.2 ne doit modifier aucun objet ou role gere par Supabase.');
 }
 
+// V2.22.0 - lancement commercial, acces controles et e-mails de marque.
+const commercialLaunchMigration = read('supabase/migrations/088_commercial_launch_controlled_access.sql');
+const publicHomePage = read('src/pages/PublicHomePage.tsx');
+const accessRequestPage = read('src/pages/AccessRequestPage.tsx');
+const adminAccessRequestsPanel = read('src/components/AdminAccessRequestsPanel.tsx');
+const adminAccessFunction = read('supabase/functions/admin-review-access-request/index.ts');
+const recoveryFunction = read('supabase/functions/request-account-recovery/index.ts');
+if (!commercialLaunchMigration.includes('create table if not exists public.platform_access_requests')
+    || !commercialLaunchMigration.includes('create table if not exists public.platform_auth_email_events')
+    || !commercialLaunchMigration.includes('platform_access_requests_admin_read')
+    || !commercialLaunchMigration.includes("'2.22.0'")
+    || !commercialLaunchMigration.includes('ncr-suite-shell-v2.22.0-commercial-launch')) {
+  errors.push('La migration V2.22.0 de lancement commercial est incomplete.');
+}
+if (!publicHomePage.includes('<PublicSiteHeader />')
+    || !publicHomePage.includes('Demander un accès')
+    || !accessRequestPage.includes("functions.invoke('request-platform-access'")
+    || !adminAccessRequestsPanel.includes("functions.invoke('admin-review-access-request'")) {
+  errors.push('Le parcours V2.22.0 de presentation et de validation des acces est incomplet.');
+}
+if (!adminAccessFunction.includes("eq('role', 'super_admin')")
+    || !adminAccessFunction.includes("type: 'magiclink'")
+    || !adminAccessFunction.includes('contact@ncr-suite.fr')
+    || !recoveryFunction.includes("type: 'recovery'")
+    || !recoveryFunction.includes('contact@ncr-suite.fr')) {
+  errors.push('Les e-mails de compte V2.22.0 ne sont pas correctement proteges ou marques.');
+}
+
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');
 let allSql = '';
 for (const file of sqlFiles) {

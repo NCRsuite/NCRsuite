@@ -1,14 +1,13 @@
 import { FormEvent, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { PageMetadata } from '../components/PageMetadata';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 export function LoginPage() {
-  const { user, signIn, signUp, startDemo } = useAuth();
+  const { user, signIn, startDemo } = useAuth();
   const { isAdmin, loading: adminLoading } = usePlatformAdmin();
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -31,8 +30,7 @@ export function LoginPage() {
     setError('');
     setPending(true);
     try {
-      if (mode === 'login') await signIn(email, password);
-      else await signUp(email, password, fullName);
+      await signIn(email, password);
       releaseMobileKeyboard();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Une erreur est survenue.');
@@ -43,8 +41,9 @@ export function LoginPage() {
 
   return (
     <div className="auth-layout">
+      <PageMetadata title="Connexion | NCR Suite" path="/connexion" />
       <section className="auth-showcase">
-        <div className="showcase-brand"><img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" /></div>
+        <Link className="showcase-brand" to="/"><img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" /></Link>
         <div className="showcase-copy">
           <p className="eyebrow">UNE PLATEFORME. PLUSIEURS MÉTIERS.</p>
           <h1>La gestion professionnelle qui s’adapte vraiment à votre activité.</h1>
@@ -57,18 +56,16 @@ export function LoginPage() {
         <div className="auth-card">
           <img className="auth-wordmark" src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
           <p className="eyebrow">ESPACE PROFESSIONNEL</p>
-          <h2>{mode === 'login' ? 'Connexion' : 'Créer votre espace'}</h2>
+          <h2>Connexion</h2>
           <p className="muted">Accédez à votre environnement métier NCR Suite.</p>
 
           {isSupabaseConfigured ? (
             <form onSubmit={submit}>
-              {mode === 'signup' && (
-                <label>Nom complet<input value={fullName} onChange={(e) => setFullName(e.target.value)} required /></label>
-              )}
               <label>Adresse e-mail<input type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
-              <label>Mot de passe<input type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
+              <label>Mot de passe<input type="password" autoComplete="current-password" minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
+              <div className="auth-form-links"><Link to="/mot-de-passe-oublie">Mot de passe oublié ?</Link></div>
               {error && <div className="error-message">{error}</div>}
-              <button className="primary-button full" disabled={pending}>{pending ? 'Veuillez patienter…' : mode === 'login' ? 'Se connecter' : 'Créer mon compte'}</button>
+              <button className="primary-button full" disabled={pending}>{pending ? 'Veuillez patienter…' : 'Se connecter'}</button>
             </form>
           ) : (
             <div className="demo-box">
@@ -79,10 +76,12 @@ export function LoginPage() {
           )}
 
           {isSupabaseConfigured && (
-            <button className="text-button" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>
-              {mode === 'login' ? 'Première connexion ? Créer un compte' : 'Déjà inscrit ? Se connecter'}
-            </button>
+            <div className="auth-access-request">
+              <span>Vous n’avez pas encore de compte ?</span>
+              <Link className="text-button" to="/demande-acces">Demander un accès</Link>
+            </div>
           )}
+          <Link className="auth-home-link" to="/">Retour au site NCR Suite</Link>
         </div>
       </section>
     </div>

@@ -1,9 +1,10 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.21.2-final-production-validation';
+const CACHE = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const SHELL = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
+  '/marketing/ncr-suite-hero-v2220.jpg',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-icon.png',
   '/icons/icon-192.png',

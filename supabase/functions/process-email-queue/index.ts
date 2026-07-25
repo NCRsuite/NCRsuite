@@ -1168,7 +1168,7 @@ Deno.serve(async (request) => {
   const brevoApiKey = Deno.env.get('BREVO_API_KEY');
   const senderEmail = Deno.env.get('BREVO_SENDER_EMAIL');
   const senderName = Deno.env.get('BREVO_SENDER_NAME') || 'NCR Suite';
-  const publicUrl = Deno.env.get('NCR_SUITE_PUBLIC_URL') || 'https://ncrsuite.pages.dev';
+  const publicUrl = Deno.env.get('NCR_SUITE_PUBLIC_URL') || 'https://ncr-suite.fr';
 
   if (!supabaseUrl || !serviceRoleKey || !brevoApiKey || !senderEmail) {
     return new Response(JSON.stringify({ error: 'Configuration incomplète des secrets.' }), {

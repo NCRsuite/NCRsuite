@@ -8,7 +8,6 @@ interface AuthContextValue {
   loading: boolean;
   demoMode: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
   startDemo: () => void;
 }
@@ -58,15 +57,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async signIn(email, password) {
       if (!supabase) throw new Error('Supabase n’est pas encore configuré.');
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-    },
-    async signUp(email, password, fullName) {
-      if (!supabase) throw new Error('Supabase n’est pas encore configuré.');
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: fullName } }
-      });
       if (error) throw error;
     },
     async signOut() {

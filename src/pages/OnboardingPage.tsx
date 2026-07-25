@@ -23,19 +23,23 @@ function money(cents: number) {
 export function OnboardingPage() {
   const { user } = useAuth();
   const { organization, createOrganization } = useOrganization();
+  const requestedBusinessType = String(user?.user_metadata?.requested_business_type ?? '');
+  const initialBusinessType = availableBusinessTypeOptions.some((option) => option.id === requestedBusinessType)
+    ? requestedBusinessType as BusinessType
+    : 'coiffure';
   const [step, setStep] = useState(1);
-  const [name, setName] = useState('');
-  const [businessType, setBusinessType] = useState<BusinessType>('coiffure');
+  const [name, setName] = useState(String(user?.user_metadata?.requested_company_name ?? ''));
+  const [businessType, setBusinessType] = useState<BusinessType>(initialBusinessType);
   const [requestedPlan, setRequestedPlan] = useState<Plan>('essentielle');
   const [primaryColor, setPrimaryColor] = useState('#2997ff');
   const [contactName, setContactName] = useState(String(user?.user_metadata?.full_name ?? ''));
   const [companyEmail, setCompanyEmail] = useState(user?.email ?? '');
-  const [companyPhone, setCompanyPhone] = useState('');
+  const [companyPhone, setCompanyPhone] = useState(String(user?.user_metadata?.phone ?? ''));
   const [companyAddress, setCompanyAddress] = useState('');
   const [companyPostalCode, setCompanyPostalCode] = useState('');
   const [companyCity, setCompanyCity] = useState('');
   const [companySiret, setCompanySiret] = useState('');
-  const [objective, setObjective] = useState('');
+  const [objective, setObjective] = useState(String(user?.user_metadata?.access_request_message ?? ''));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
 

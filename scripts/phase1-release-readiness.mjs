@@ -11,12 +11,13 @@ const requireText = (file, snippets) => {
   }
   const source = read(file);
   for (const snippet of snippets) {
-    if (!source.includes(snippet)) failures.push(`Contrôle V2.21.2 absent dans ${file} : ${snippet}`);
+    if (!source.includes(snippet)) failures.push(`Contrôle de livraison absent dans ${file} : ${snippet}`);
   }
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-final-production-validation`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-commercial-launch`;
+const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
 const trainingPortalsCache = 'ncr-suite-shell-v2.21.0-training-portals-signatures';
 const lockedNavigationCache = 'ncr-suite-shell-v2.20.1-training-locked-navigation';
@@ -24,10 +25,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.21.2') failures.push('package.json doit annoncer la V2.21.2.');
+if (pkg.version !== '2.22.0') failures.push('package.json doit annoncer la V2.22.0.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.21.2 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.21.2 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.22.0 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.22.0 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 
@@ -86,8 +87,54 @@ requireText('supabase/migrations/084_final_production_validation.sql', [
   'public.is_platform_super_admin()',
   "'manual_validation'",
   "'2.21.2'",
+  finalProductionValidationCache,
+  'set search_path = public'
+]);
+
+requireText('supabase/migrations/088_commercial_launch_controlled_access.sql', [
+  'create table if not exists public.platform_access_requests',
+  'create table if not exists public.platform_auth_email_events',
+  'platform_access_requests_admin_read',
+  "'access_requests'",
+  "'2.22.0'",
   expectedCache,
   'set search_path = public'
+]);
+
+requireText('src/pages/PublicHomePage.tsx', [
+  '<PublicSiteHeader />',
+  'NCR Suite',
+  'Demander un accès',
+  'public-business-grid'
+]);
+
+requireText('src/pages/AccessRequestPage.tsx', [
+  "functions.invoke('request-platform-access'",
+  'VITE_TURNSTILE_SITE_KEY'
+]);
+
+requireText('src/components/AdminAccessRequestsPanel.tsx', [
+  "from('platform_access_requests')",
+  "functions.invoke('admin-review-access-request'",
+  'Accepter et inviter'
+]);
+
+requireText('supabase/functions/request-platform-access/index.ts', [
+  'TURNSTILE_SECRET_KEY',
+  'ACCESS_REQUEST_HASH_SALT',
+  'platform_access_requests'
+]);
+
+requireText('supabase/functions/admin-review-access-request/index.ts', [
+  "eq('role', 'super_admin')",
+  "type: 'magiclink'",
+  'contact@ncr-suite.fr'
+]);
+
+requireText('supabase/functions/request-account-recovery/index.ts', [
+  "type: 'recovery'",
+  'platform_auth_email_events',
+  'contact@ncr-suite.fr'
 ]);
 
 requireText('supabase/migrations/085_production_validation_security_correction.sql', [
@@ -276,7 +323,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086','087']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086','087','088']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }

@@ -105,6 +105,11 @@ const RestaurantFoodSafetyPage = lazy(() => import('./pages/RestaurantFoodSafety
 const RestaurantStockPage = lazy(() => import('./pages/RestaurantStockPage').then((module) => ({ default: module.RestaurantStockPage })));
 const PublicRestaurantMenuPage = lazy(() => import('./pages/PublicRestaurantMenuPage').then((module) => ({ default: module.PublicRestaurantMenuPage })));
 const PublicRestaurantBookingPage = lazy(() => import('./pages/PublicRestaurantBookingPage').then((module) => ({ default: module.PublicRestaurantBookingPage })));
+const PublicHomePage = lazy(() => import('./pages/PublicHomePage').then((module) => ({ default: module.PublicHomePage })));
+const AccessRequestPage = lazy(() => import('./pages/AccessRequestPage').then((module) => ({ default: module.AccessRequestPage })));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((module) => ({ default: module.ForgotPasswordPage })));
+const AccountActivationPage = lazy(() => import('./pages/AccountActivationPage').then((module) => ({ default: module.AccountActivationPage })));
+const PublicLegalPage = lazy(() => import('./pages/PublicLegalPage').then((module) => ({ default: module.PublicLegalPage })));
 
 function DocumentsArea() {
   const { organization } = useOrganization();
@@ -236,8 +241,9 @@ function ProtectedArea() {
   const { isAdmin, loading: adminLoading } = usePlatformAdmin();
   const location = useLocation();
 
-  if (authLoading || adminLoading || organizationLoading) return <LoadingScreen />;
-  if (!user) return <Navigate to="/connexion" replace />;
+  if (authLoading || adminLoading) return <LoadingScreen />;
+  if (!user) return location.pathname === '/' ? <PublicHomePage /> : <Navigate to="/connexion" replace />;
+  if (organizationLoading) return <LoadingScreen />;
 
   // Un compte plateforme ne pénètre dans un espace entreprise que pendant une session d’assistance autorisée.
   if (isAdmin && !supportSession) return <Navigate to="/administration-ncr" replace />;
@@ -282,6 +288,11 @@ export default function App() {
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
       <Route path="/connexion" element={<LoginPage />} />
+      <Route path="/demande-acces" element={<AccessRequestPage />} />
+      <Route path="/mot-de-passe-oublie" element={<ForgotPasswordPage />} />
+      <Route path="/activation" element={<AccountActivationPage />} />
+      <Route path="/mentions-legales" element={<PublicLegalPage kind="legal" />} />
+      <Route path="/confidentialite" element={<PublicLegalPage kind="privacy" />} />
       <Route path="/configuration" element={<OnboardingArea />} />
       <Route path="/reserver/:slug" element={<PublicBookingPage />} />
       <Route path="/reservation/:token" element={<PublicBookingManagePage />} />

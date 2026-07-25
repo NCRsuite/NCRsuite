@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /activation
+Disallow: /administration-ncr
+Disallow: /configuration
+Disallow: /connexion
+Disallow: /demande-acces
+Disallow: /mot-de-passe-oublie
+
+Sitemap: https://ncr-suite.fr/sitemap.xml

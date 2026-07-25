@@ -1,9 +1,9 @@
-# NCR Suite V2.21.2
+# NCR Suite V2.22.0
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version ajoute la validation production finale dans la console de surveillance du super-administrateur NCR. Elle réunit les contrôles automatiques multi-métiers, la vérification des automatisations Formation, une liste de confirmation manuelle et un historique horodaté exportable.
+Cette version prépare le lancement commercial sur `https://ncr-suite.fr` : site public, connexion séparée, demandes d’accès contrôlées par le super-administrateur, e-mails de compte personnalisés, SEO et redirection du domaine technique Cloudflare.
 
-Les fonctionnalités déjà livrées restent inchangées. Le nouveau contrôle donne un verdict clair : prêt, à vérifier ou bloqué, avec l’action attendue pour chaque anomalie.
+Les fonctions métier déjà validées restent inchangées. La création d’une entreprise exige désormais une demande acceptée et liée à l’invitation reçue.
 
-Consulter `A_LIRE_INSTALLATION_V2.21.2.txt` avant déploiement.
+Consulter `A_LIRE_INSTALLATION_V2.22.0.txt` avant déploiement.

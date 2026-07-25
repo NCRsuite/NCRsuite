@@ -10,6 +10,7 @@ import { AdminActivityPanel } from '../components/AdminActivityPanel';
 import { AdminDiagnosticsPanel } from '../components/AdminDiagnosticsPanel';
 import { AdminMonitoringPanel } from '../components/AdminMonitoringPanel';
 import { AdminTrainingSavPanel } from '../components/AdminTrainingSavPanel';
+import { AdminAccessRequestsPanel } from '../components/AdminAccessRequestsPanel';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
@@ -135,7 +136,7 @@ function statusClass(value: string) {
 }
 
 export function PlatformAdminPage() {
-  const [activeSection, setActiveSection] = useState<'cockpit' | 'overview' | 'support' | 'activity' | 'diagnostics' | 'monitoring' | 'trainingSav' | 'catalogue' | 'billing' | 'metier' | 'push'>('cockpit');
+  const [activeSection, setActiveSection] = useState<'cockpit' | 'access' | 'overview' | 'support' | 'activity' | 'diagnostics' | 'monitoring' | 'trainingSav' | 'catalogue' | 'billing' | 'metier' | 'push'>('cockpit');
   const { user, signOut } = useAuth();
   const { profile, canManage } = usePlatformAdmin();
   const [metrics, setMetrics] = useState<AdminMetrics>(emptyMetrics);
@@ -449,6 +450,10 @@ export function PlatformAdminPage() {
             <Icon name="building" size={19} />
             <span><strong>Entreprises</strong><small>Comptes, santé et formules</small></span>
           </button>
+          <button type="button" className={activeSection === 'access' ? 'active' : ''} onClick={() => setActiveSection('access')}>
+            <Icon name="users" size={19} />
+            <span><strong>Demandes d’accès</strong><small>Validation et invitations</small></span>
+          </button>
           <button type="button" className={activeSection === 'support' ? 'active' : ''} onClick={() => setActiveSection('support')}>
             <Icon name="alert" size={19} />
             <span><strong>Support</strong><small>Demandes et incidents clients</small></span>
@@ -496,6 +501,7 @@ export function PlatformAdminPage() {
         )}
 
         {activeSection === 'support' && <AdminSupportPanel />}
+        {activeSection === 'access' && <AdminAccessRequestsPanel canReview={profile?.role === 'super_admin'} />}
         {activeSection === 'activity' && <AdminActivityPanel />}
         {activeSection === 'diagnostics' && <AdminDiagnosticsPanel onOpenSupport={() => setActiveSection('support')} />}
         {activeSection === 'monitoring' && <AdminMonitoringPanel />}

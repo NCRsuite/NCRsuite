@@ -1,0 +1,32 @@
+type PagesContext = {
+  request: Request;
+  env: { NCR_CANONICAL_REDIRECT_ENABLED?: string };
+  next: () => Promise<Response>;
+};
+
+export const onRequest = async (context: PagesContext) => {
+  const url = new URL(context.request.url);
+  const canonicalRedirectEnabled = context.env.NCR_CANONICAL_REDIRECT_ENABLED === 'true';
+  const legacyHost = url.hostname === 'ncrsuite.pages.dev';
+  const wwwHost = url.hostname === 'www.ncr-suite.fr';
+
+  if (canonicalRedirectEnabled && (legacyHost || wwwHost)) {
+    url.protocol = 'https:';
+    url.hostname = 'ncr-suite.fr';
+    url.port = '';
+    return Response.redirect(url.toString(), 301);
+  }
+
+  const response = await context.next();
+  const headers = new Headers(response.headers);
+  if (url.pathname !== '/') headers.set('X-Robots-Tag', 'noindex, nofollow');
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+};
