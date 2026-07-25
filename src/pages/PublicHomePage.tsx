@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { PageMetadata } from '../components/PageMetadata';
 import { PublicSiteFooter } from '../components/PublicSiteFooter';
 import { PublicSiteHeader } from '../components/PublicSiteHeader';
+import { formatPublicMonthlyPrice, publicOfferCatalog } from '../config/publicOfferCatalog';
 import type { IconName } from '../types';
 
 type PublicBusiness = {
@@ -77,11 +78,11 @@ const platformPoints: Array<{ icon: IconName; title: string; text: string }> = [
   { icon: 'monitor', title: 'Une PWA partout', text: 'Le même environnement rapide et cohérent accompagne le bureau comme le terrain.' }
 ];
 
-const operatingFlow: Array<{ step: string; title: string; text: string }> = [
-  { step: '01', title: 'Collecter', text: 'Clients, équipes, besoins et documents entrent au bon endroit.' },
-  { step: '02', title: 'Orchestrer', text: 'Plannings, tâches et automatisations font circuler l’information.' },
-  { step: '03', title: 'Prouver', text: 'Signatures, contrôles et historiques sécurisent chaque dossier.' },
-  { step: '04', title: 'Piloter', text: 'Les indicateurs transforment l’activité en décisions concrètes.' }
+const operatingFlow: Array<{ step: string; title: string; text: string; outcome: string; icon: IconName }> = [
+  { step: '01', title: 'Collecter', text: 'Clients, équipes, besoins et documents entrent au bon endroit.', outcome: 'Données qualifiées', icon: 'users' },
+  { step: '02', title: 'Orchestrer', text: 'Plannings, tâches et automatisations font circuler l’information.', outcome: 'Actions coordonnées', icon: 'activity' },
+  { step: '03', title: 'Prouver', text: 'Signatures, contrôles et historiques sécurisent chaque dossier.', outcome: 'Preuves horodatées', icon: 'shield' },
+  { step: '04', title: 'Piloter', text: 'Les indicateurs transforment l’activité en décisions concrètes.', outcome: 'Décisions éclairées', icon: 'chart' }
 ];
 
 const heroSignals: Array<{ key: string; icon: IconName; eyebrow: string; label: string; status: string }> = [
@@ -102,9 +103,12 @@ function introShouldBeVisible() {
 
 export function PublicHomePage() {
   const [activeBusinessKey, setActiveBusinessKey] = useState(businesses[0].key);
+  const [activeOfferBusinessKey, setActiveOfferBusinessKey] = useState(publicOfferCatalog[0].key);
   const [showIntro, setShowIntro] = useState(introShouldBeVisible);
   const activeBusiness = businesses.find((business) => business.key === activeBusinessKey) ?? businesses[0];
+  const activeOfferBusiness = publicOfferCatalog.find((business) => business.key === activeOfferBusinessKey) ?? publicOfferCatalog[0];
   const businessStyle = { '--business-color': activeBusiness.color } as CSSProperties;
+  const offerStyle = { '--offer-color': activeOfferBusiness.color } as CSSProperties;
 
   useEffect(() => {
     if (!showIntro) return;
@@ -137,7 +141,7 @@ export function PublicHomePage() {
   }, []);
 
   return (
-    <div className="public-home public-home-v2221 public-home-v2222">
+    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230">
       <PageMetadata
         title="NCR Suite | La plateforme de gestion conçue pour votre métier"
         description="NCR Suite réunit clients, équipes, planning, documents, facturation, conformité et automatisations dans une plateforme métier claire, modulaire et sécurisée."
@@ -307,15 +311,21 @@ export function PublicHomePage() {
 
         <section className="public-flow-section public-reveal">
           <div className="public-flow-heading">
-            <p className="public-section-label">DU SIGNAL À LA DÉCISION</p>
-            <h2>Un seul flux de travail, sans angles morts.</h2>
+            <div>
+              <p className="public-section-label">DU SIGNAL À LA DÉCISION</p>
+              <h2>Un seul flux de travail, sans angles morts.</h2>
+            </div>
+            <p>Chaque information poursuit son chemin sans ressaisie et laisse une trace exploitable. Vous savez ce qui entre, ce qui avance et ce qui demande une décision.</p>
           </div>
-          <div className="public-flow-grid">
-            {operatingFlow.map((item) => (
-              <article key={item.step}>
+          <div className="public-flow-rail" aria-hidden="true"><span /></div>
+          <div className="public-flow-grid" aria-label="Parcours opérationnel NCR Suite">
+            {operatingFlow.map((item, index) => (
+              <article key={item.step} style={{ '--flow-index': index } as CSSProperties}>
+                <div className="public-flow-node"><Icon name={item.icon} size={18} /></div>
                 <small>{item.step}</small>
                 <h3>{item.title}</h3>
                 <p>{item.text}</p>
+                <strong><Icon name="check" size={13} />{item.outcome}</strong>
               </article>
             ))}
           </div>
@@ -339,15 +349,66 @@ export function PublicHomePage() {
 
         <section className="public-offer-section public-reveal" id="offres">
           <div className="public-offer-copy">
-            <p className="public-section-label">UNE MONTÉE EN GAMME LISIBLE</p>
-            <h2>Votre outil évolue au rythme de votre entreprise.</h2>
-            <p>NCR Suite compare le coût de vos modules à la carte avec la formule supérieure et vous signale automatiquement l’option la plus avantageuse.</p>
+            <div>
+              <p className="public-section-label">CATALOGUE DES OFFRES</p>
+              <h2>Votre outil évolue au rythme de votre entreprise.</h2>
+            </div>
+            <p>Choisissez votre métier pour retrouver une gamme claire, les accès inclus et les fonctions qui font réellement progresser votre organisation.</p>
           </div>
-          <div className="public-offer-levels" aria-label="Formules NCR Suite">
-            <span><small>01</small><strong>Découverte</strong><em>Structurer les premiers flux</em></span>
-            <span><small>02</small><strong>Essentielle</strong><em>Équiper le quotidien</em></span>
-            <span className="recommended"><small>03 · RECOMMANDÉE</small><strong>Professionnelle</strong><em>Automatiser et piloter</em></span>
-            <span><small>04</small><strong>Métier</strong><em>Composer un environnement sur mesure</em></span>
+
+          <div className="public-offer-business-tabs" role="tablist" aria-label="Tarifs par métier">
+            {publicOfferCatalog.map((business) => (
+              <button
+                key={business.key}
+                type="button"
+                role="tab"
+                aria-selected={business.key === activeOfferBusiness.key}
+                aria-controls="public-offer-catalog"
+                className={business.key === activeOfferBusiness.key ? 'active' : ''}
+                style={{ '--offer-color': business.color } as CSSProperties}
+                onClick={() => setActiveOfferBusinessKey(business.key)}
+              >
+                <Icon name={business.icon} size={17} />
+                <span>{business.name}</span>
+              </button>
+            ))}
+          </div>
+
+          <div key={activeOfferBusiness.key} id="public-offer-catalog" className="public-offer-catalog" style={offerStyle} role="tabpanel">
+            <header>
+              <div>
+                <span><Icon name={activeOfferBusiness.icon} size={21} /></span>
+                <p><small>TARIFS {activeOfferBusiness.label.toUpperCase()}</small><strong>{activeOfferBusiness.name}</strong></p>
+              </div>
+              <p><strong>HT / mois</strong><span>Activation après validation de votre demande</span></p>
+            </header>
+            <div className="public-offer-plans">
+              {activeOfferBusiness.plans.map((plan, index) => (
+                <article className={plan.recommended ? 'recommended' : ''} key={plan.key}>
+                  <div className="public-offer-plan-heading">
+                    <small>0{index + 1}</small>
+                    {plan.recommended && <em>RECOMMANDÉE</em>}
+                    {plan.custom && <em>SUR MESURE</em>}
+                  </div>
+                  <h3>{plan.name}</h3>
+                  <p className="public-offer-price">
+                    {plan.custom && <small>À partir de</small>}
+                    <strong>{formatPublicMonthlyPrice(plan.monthlyPriceCents)} <sup>€</sup></strong>
+                    <span>HT / mois</span>
+                  </p>
+                  <p className="public-offer-summary">{plan.summary}</p>
+                  <p className="public-offer-access"><Icon name="users" size={15} />{plan.memberLimit === 1 ? '1 accès inclus' : `Jusqu’à ${plan.memberLimit} accès`}</p>
+                  <ul>
+                    {plan.highlights.map((highlight) => <li key={highlight}><Icon name="check" size={14} />{highlight}</li>)}
+                  </ul>
+                  <Link to="/demande-acces">Demander cette offre <Icon name="chevronRight" size={15} /></Link>
+                </article>
+              ))}
+            </div>
+            <footer>
+              <span><Icon name="activity" size={15} />Comparaison automatique avec les modules à la carte</span>
+              <span><Icon name="shield" size={15} />Montée en gamme signalée avant tout surcoût</span>
+            </footer>
           </div>
         </section>
 

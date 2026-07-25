@@ -1,5 +1,18 @@
 # Changelog NCR Suite
 
+## V2.23.0 — Vitrine premium et catalogue tarifaire métier
+
+- Mouvement renforcé et différencié des quatre signaux du premier écran.
+- Parcours opérationnel relié par une progression animée de la collecte jusqu’à la décision.
+- Nouveau catalogue tarifaire interactif pour les cinq métiers.
+- Vingt offres synchronisées avec les prix et capacités du catalogue central validé.
+- Formule Essentielle mise en avant selon la recommandation actuelle de chaque gamme.
+- Présentation détaillée des accès inclus et des fonctions clés par formule.
+- Correction du logo NCR Suite dans le pied de page de la demande d’accès.
+- Migration `089` synchronisant Supabase, le frontend et le cache PWA en `2.23.0`.
+- Nouveau bundle autonome `ncr-suite-app-v230.js` et nouveau cache `ncr-suite-shell-v2.23.0-premium-catalog`.
+- Aucun retrait de fonction, automatisation, droit ou donnée métier existante.
+
 ## V2.22.4 — Démarrage Cloudflare résilient
 
 - Correction de l’échec réel du module dynamique `PublicHomePage` observé en production.

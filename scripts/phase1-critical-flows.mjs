@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-asset-resilience`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-catalog`;
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
@@ -56,18 +56,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v2224.css',
-  '/ncr-suite-app-v2224.css',
+  '/ncr-suite-showcase-v230.css',
+  '/ncr-suite-app-v230.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.22.4'
+  'ncr:css-recovery-v2.23.0'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v2224.css',
+  '/ncr-suite-app-v230.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2224.js'"
+  "entryFileNames: 'ncr-suite-app-v230.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -775,6 +775,26 @@ requireText('supabase/migrations/088_commercial_launch_controlled_access.sql', [
   "'2.22.0'",
   commercialLaunchCache,
   'set search_path = public'
+]);
+requireText('supabase/migrations/089_premium_showcase_offer_catalog.sql', [
+  "'2.23.0'",
+  expectedCache,
+  'platform_release_state'
+]);
+requireText('src/config/publicOfferCatalog.ts', [
+  "key: 'formation'",
+  "key: 'securite'",
+  "key: 'nettoyage'",
+  "key: 'restauration'",
+  "key: 'coiffure'",
+  'monthlyPriceCents: 14990',
+  'monthlyPriceCents: 990'
+]);
+requireText('src/pages/PublicHomePage.tsx', [
+  'public-home-v230',
+  'public-flow-rail',
+  'public-offer-business-tabs',
+  'public-offer-catalog'
 ]);
 requireText('src/pages/LoginPage.tsx', [
   "to=\"/mot-de-passe-oublie\"",

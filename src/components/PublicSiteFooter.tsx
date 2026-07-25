@@ -5,7 +5,7 @@ export function PublicSiteFooter() {
     <footer className="public-site-footer">
       <div>
         <Link className="public-footer-brand" to="/" aria-label="Accueil NCR Suite">
-          <img src="/brand/ncr-suite-icon.png" alt="" />
+          <img src="/brand/ncr-suite-icon.png" alt="" width="54" height="54" />
           <span><strong>NCR</strong><em>Suite</em></span>
         </Link>
         <p>La plateforme professionnelle qui relie les équipes, les clients et les opérations sans complexifier le quotidien.</p>
