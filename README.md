@@ -1,9 +1,12 @@
-# NCR Suite V2.22.3
+# NCR Suite V2.22.4
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version sécurise le chargement de la vitrine animée sur Safari. Un style critique léger est chargé avant l’application, les types CSS et JavaScript sont explicités pour Cloudflare et un écran NCR Suite empêche l’apparition d’une page HTML brute.
+Cette version rend le démarrage indépendant des fragments CSS et JavaScript du
+dossier `/assets`. Les styles complets sont servis à la racine et le code est
+regroupé dans un seul fichier de lancement afin de supprimer les erreurs de
+module observées sur Safari et le domaine personnalisé.
 
 Le lancement commercial, les accès contrôlés et toutes les fonctions métier déjà validées restent inchangés. Aucun SQL supplémentaire n’est nécessaire.
 
-Consulter `A_LIRE_INSTALLATION_V2.22.3.txt` avant déploiement.
+Consulter `A_LIRE_INSTALLATION_V2.22.4.txt` avant déploiement.

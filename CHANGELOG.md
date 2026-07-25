@@ -1,5 +1,18 @@
 # Changelog NCR Suite
 
+## V2.22.4 — Démarrage Cloudflare résilient
+
+- Correction de l’échec réel du module dynamique `PublicHomePage` observé en production.
+- Regroupement du démarrage dans `ncr-suite-app-v2224.js`, servi à la racine.
+- Suppression de la dépendance de la vitrine aux fragments JavaScript générés dans `/assets`.
+- Feuille de style complète servie à la racine sous `ncr-suite-app-v2224.css`.
+- Feuille critique animée servie sous `ncr-suite-showcase-v2224.css`.
+- Conservation de toutes les animations, interactions et transitions de la V2.22.2.
+- Page de récupération désormais stylée même en cas d’incident applicatif.
+- Cache PWA renouvelé sous `ncr-suite-shell-v2.22.4-asset-resilience`.
+- Contrôles automatiques vérifiant l’absence de fragmentation au prochain build.
+- Aucun changement SQL, Supabase, authentification, automatisation ou donnée métier.
+
 ## V2.22.3 — Fiabilité Safari de la vitrine animée
 
 - Conservation intégrale des animations et interactions introduites en V2.22.2.

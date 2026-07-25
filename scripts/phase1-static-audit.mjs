@@ -636,27 +636,37 @@ if (!appErrorBoundary.includes('MODULE_LOAD_ERROR')
     || !appErrorBoundary.includes('this.resetAndReload()')) {
   errors.push('La recuperation automatique des modules PWA V2.22.2 est incomplete.');
 }
-// V2.22.3 - feuille critique Safari et protection contre le rendu HTML brut.
+// V2.22.4 - démarrage autonome vis-à-vis des fragments CSS et JS de /assets.
 const indexHtml = read('index.html');
 const cloudflareHeaders = read('public/_headers');
 const showcaseGenerator = read('scripts/generate-public-showcase-css.mjs');
-if (!indexHtml.includes('/ncr-suite-showcase-v2223.css')
+const viteConfig = read('vite.config.ts');
+if (!indexHtml.includes('/ncr-suite-showcase-v2224.css')
+    || !indexHtml.includes('/ncr-suite-app-v2224.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.22.3')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v2223.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.22.4')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v2224.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v2224.css')
+    || !viteConfig.includes('codeSplitting: false')
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2224.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection Safari V2.22.3 contre le rendu sans style est incomplete.');
+  errors.push('La protection V2.22.4 contre les fragments /assets indisponibles est incomplete.');
 }
-if (!cloudflareHeaders.includes('/assets/*.css')
-    || !cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2223.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.22.3 sont incomplets.');
+if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2224.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v2224.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.22.4 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.22.3'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.22.3-safari-styles")
-    || !serviceWorker.includes("ncr-suite-shell-v2.22.3-safari-styles")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v2223.css'")) {
-  errors.push('La version ou le cache PWA V2.22.3 est incoherent.');
+if (!runtimeConfig.includes("APP_VERSION = '2.22.4'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.22.4-asset-resilience")
+    || !serviceWorker.includes("ncr-suite-shell-v2.22.4-asset-resilience")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v2224.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2224.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2224.js'")) {
+  errors.push('La version ou le cache PWA V2.22.4 est incoherent.');
+}
+if (read('src/main.tsx').includes("import './styles.css'")) {
+  errors.push('Le style complet V2.22.4 ne doit pas etre fragmente dans /assets.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

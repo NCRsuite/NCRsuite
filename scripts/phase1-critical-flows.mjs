@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-safari-styles`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-asset-resilience`;
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
@@ -56,13 +56,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v2223.css',
+  '/ncr-suite-showcase-v2224.css',
+  '/ncr-suite-app-v2224.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.22.3'
+  'ncr:css-recovery-v2.22.4'
 ]);
 requireText('public/_headers', [
-  '/assets/*.css',
+  '/ncr-suite-app-v2224.css',
   'Content-Type: text/css; charset=utf-8'
+]);
+requireText('vite.config.ts', [
+  'codeSplitting: false',
+  "entryFileNames: 'ncr-suite-app-v2224.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",

@@ -8,7 +8,6 @@ import { RuntimeMonitor } from './components/RuntimeMonitor';
 import { AuthProvider } from './contexts/AuthContext';
 import { OrganizationProvider } from './contexts/OrganizationContext';
 import { PlatformAdminProvider } from './contexts/PlatformAdminContext';
-import './styles.css';
 
 function announceServiceWorkerUpdate(registration: ServiceWorkerRegistration) {
   window.dispatchEvent(new CustomEvent('ncr:sw-update', { detail: { registration } }));

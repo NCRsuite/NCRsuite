@@ -3,7 +3,8 @@ import path from 'node:path';
 
 const root = process.cwd();
 const sourcePath = path.join(root, 'src', 'styles.css');
-const outputPath = path.join(root, 'public', 'ncr-suite-showcase-v2223.css');
+const showcaseOutputPath = path.join(root, 'public', 'ncr-suite-showcase-v2224.css');
+const appOutputPath = path.join(root, 'public', 'ncr-suite-app-v2224.css');
 const source = fs.readFileSync(sourcePath, 'utf8');
 const resetEnd = source.indexOf('.loading-screen');
 const publicStart = source.indexOf('.public-home,');
@@ -13,11 +14,16 @@ if (resetEnd < 0 || publicStart < 0) {
 }
 
 const output = [
-  '/* NCR Suite V2.22.3 - styles critiques de la vitrine Safari */',
+  '/* NCR Suite V2.22.4 - styles critiques de la vitrine Safari */',
   source.slice(0, resetEnd).trim(),
   source.slice(publicStart).trim(),
   ''
 ].join('\n');
 
-fs.writeFileSync(outputPath, output, 'utf8');
-console.log('Styles critiques de la vitrine générés.');
+fs.writeFileSync(showcaseOutputPath, output, 'utf8');
+fs.writeFileSync(appOutputPath, [
+  '/* NCR Suite V2.22.4 - styles complets servis hors du dossier assets */',
+  source,
+  ''
+].join('\n'), 'utf8');
+console.log('Styles critiques et complets de NCR Suite générés.');
