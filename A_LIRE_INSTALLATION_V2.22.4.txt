@@ -9,7 +9,7 @@ APPLICATION
 2. Envoyer tous les fichiers et dossiers sur GitHub a la racine du depot.
 3. Accepter le remplacement des fichiers portant le meme nom.
 4. Attendre que le build et le deploiement Cloudflare soient termines.
-5. Ouvrir https://ncr-suite.fr dans une fenetre privee.
+5. Ouvrir https://ncr-suite.fr dans une fenetre privee. 
 6. Verifier ensuite la page de connexion et la PWA installee.
 
 SUPABASE
