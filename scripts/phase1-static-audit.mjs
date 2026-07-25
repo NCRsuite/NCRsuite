@@ -602,7 +602,7 @@ if (!adminAccessFunction.includes("eq('role', 'super_admin')")
   errors.push('Les e-mails de compte V2.22.0 ne sont pas correctement proteges ou marques.');
 }
 
-// V2.22.1 - vitrine premium, catalogue interactif et identite haute definition.
+// V2.22.1 - socle visuel premium, catalogue interactif et identite haute definition.
 const publicHeader = read('src/components/PublicSiteHeader.tsx');
 const publicFooter = read('src/components/PublicSiteFooter.tsx');
 const runtimeConfig = read('src/config/runtime.ts');
@@ -614,10 +614,32 @@ if (!publicHomePage.includes('public-hero-canvas')
     || !publicFooter.includes('public-footer-brand')) {
   errors.push('La vitrine premium V2.22.1 ou son identite officielle est incomplete.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.22.1'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.22.1-premium-showcase")
-    || !serviceWorker.includes("ncr-suite-shell-v2.22.1-premium-showcase")) {
-  errors.push('La version ou le cache PWA V2.22.1 de la vitrine premium est incoherent.');
+
+// V2.22.2 - interactions premium, lancement PWA sur connexion et recuperation des modules.
+const publicStyles = read('src/styles.css');
+const webManifest = read('public/manifest.webmanifest');
+const appErrorBoundary = read('src/components/AppErrorBoundary.tsx');
+if (!publicHomePage.includes('public-home-v2222')
+    || !publicHomePage.includes('public-showcase-intro')
+    || !publicHomePage.includes('public-mobile-signals')
+    || publicHomePage.includes('public-hero-axis')
+    || !publicStyles.includes('public-showcase-exit')
+    || !publicStyles.includes('.public-primary-action:active')) {
+  errors.push('Les animations et interactions premium V2.22.2 sont incompletes.');
+}
+if (!app.includes('runsAsInstalledPwa')
+    || !webManifest.includes('"start_url": "/connexion?source=pwa"')) {
+  errors.push('Le lancement direct de la PWA sur la connexion est incomplet.');
+}
+if (!appErrorBoundary.includes('MODULE_LOAD_ERROR')
+    || !appErrorBoundary.includes('MODULE_RECOVERY_KEY')
+    || !appErrorBoundary.includes('this.resetAndReload()')) {
+  errors.push('La recuperation automatique des modules PWA V2.22.2 est incomplete.');
+}
+if (!runtimeConfig.includes("APP_VERSION = '2.22.2'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.22.2-motion-pwa-recovery")
+    || !serviceWorker.includes("ncr-suite-shell-v2.22.2-motion-pwa-recovery")) {
+  errors.push('La version ou le cache PWA V2.22.2 est incoherent.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

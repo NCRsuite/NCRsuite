@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { PageMetadata } from '../components/PageMetadata';
@@ -84,13 +84,60 @@ const operatingFlow: Array<{ step: string; title: string; text: string }> = [
   { step: '04', title: 'Piloter', text: 'Les indicateurs transforment l’activité en décisions concrètes.' }
 ];
 
+const heroSignals: Array<{ key: string; icon: IconName; eyebrow: string; label: string; status: string }> = [
+  { key: 'clients', icon: 'users', eyebrow: 'RELATION CLIENT', label: '8 opportunités actives', status: '+12 %' },
+  { key: 'planning', icon: 'calendar', eyebrow: 'PLANNING', label: '28 actions coordonnées', status: 'À jour' },
+  { key: 'documents', icon: 'file', eyebrow: 'DOCUMENTS', label: 'Dossiers automatiquement liés', status: 'Prêts' },
+  { key: 'quality', icon: 'shield', eyebrow: 'CONFORMITÉ', label: 'Preuves et historique suivis', status: '91 %' }
+];
+
+function introShouldBeVisible() {
+  if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+  try {
+    return sessionStorage.getItem('ncr:showcase-intro-v2222') !== 'seen';
+  } catch {
+    return false;
+  }
+}
+
 export function PublicHomePage() {
   const [activeBusinessKey, setActiveBusinessKey] = useState(businesses[0].key);
+  const [showIntro, setShowIntro] = useState(introShouldBeVisible);
   const activeBusiness = businesses.find((business) => business.key === activeBusinessKey) ?? businesses[0];
   const businessStyle = { '--business-color': activeBusiness.color } as CSSProperties;
 
+  useEffect(() => {
+    if (!showIntro) return;
+    const timer = window.setTimeout(() => {
+      try {
+        sessionStorage.setItem('ncr:showcase-intro-v2222', 'seen');
+      } catch {
+        // L’animation reste facultative lorsque le stockage privé est indisponible.
+      }
+      setShowIntro(false);
+    }, 1250);
+    return () => window.clearTimeout(timer);
+  }, [showIntro]);
+
+  useEffect(() => {
+    const sections = Array.from(document.querySelectorAll<HTMLElement>('.public-home-v2222 .public-reveal'));
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      sections.forEach((section) => section.classList.add('is-visible'));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        (entry.target as HTMLElement).classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 });
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="public-home public-home-v2221">
+    <div className="public-home public-home-v2221 public-home-v2222">
       <PageMetadata
         title="NCR Suite | La plateforme de gestion conçue pour votre métier"
         description="NCR Suite réunit clients, équipes, planning, documents, facturation, conformité et automatisations dans une plateforme métier claire, modulaire et sécurisée."
@@ -98,37 +145,40 @@ export function PublicHomePage() {
         index
       />
 
+      {showIntro && (
+        <div className="public-showcase-intro" aria-hidden="true">
+          <img src="/brand/ncr-suite-icon.png" alt="" />
+          <span><strong>NCR</strong> Suite</span>
+        </div>
+      )}
+
       <section className="public-hero">
         <PublicSiteHeader />
         <div className="public-hero-canvas" aria-hidden="true">
-          <span className="public-hero-axis horizontal" />
-          <span className="public-hero-axis vertical" />
-          <div className="public-hero-signal clients">
-            <Icon name="users" size={16} />
-            <span><small>RELATION CLIENT</small><strong>8 opportunités actives</strong></span>
-            <i>+12 %</i>
-          </div>
-          <div className="public-hero-signal planning">
-            <Icon name="calendar" size={16} />
-            <span><small>PLANNING</small><strong>28 actions coordonnées</strong></span>
-            <i>À jour</i>
-          </div>
-          <div className="public-hero-signal documents">
-            <Icon name="file" size={16} />
-            <span><small>DOCUMENTS</small><strong>Dossiers automatiquement liés</strong></span>
-            <i>Prêts</i>
-          </div>
-          <div className="public-hero-signal quality">
-            <Icon name="shield" size={16} />
-            <span><small>CONFORMITÉ</small><strong>Preuves et historique suivis</strong></span>
-            <i>91 %</i>
-          </div>
+          {heroSignals.map((signal) => (
+            <div className={`public-hero-signal ${signal.key}`} key={signal.key}>
+              <div className="public-hero-signal-inner">
+                <Icon name={signal.icon} size={16} />
+                <span><small>{signal.eyebrow}</small><strong>{signal.label}</strong></span>
+                <i>{signal.status}</i>
+              </div>
+            </div>
+          ))}
         </div>
         <div className="public-hero-copy">
           <span className="public-hero-symbol"><img src="/brand/ncr-suite-symbol-v2221.png" alt="" /></span>
           <p className="public-kicker"><span />UNE SUITE. TOUS VOS MÉTIERS. UNE SEULE PLATEFORME.</p>
           <h1><span>NCR</span> Suite</h1>
           <p className="public-hero-statement">Le système de gestion qui relie votre activité commerciale, vos équipes et vos opérations, sans transformer votre quotidien en usine à gaz.</p>
+          <div className="public-mobile-signals" aria-label="Aperçu des fonctions reliées par NCR Suite">
+            {heroSignals.map((signal) => (
+              <span key={signal.key}>
+                <Icon name={signal.icon} size={15} />
+                <strong>{signal.label}</strong>
+                <i>{signal.status}</i>
+              </span>
+            ))}
+          </div>
           <div className="public-hero-actions">
             <Link className="public-primary-action" to="/demande-acces">Demander un accès <Icon name="chevronRight" size={17} /></Link>
             <Link className="public-secondary-action" to="/connexion"><Icon name="lock" size={16} />Se connecter</Link>
@@ -147,7 +197,7 @@ export function PublicHomePage() {
       </section>
 
       <main>
-        <section className="public-intro-band">
+        <section className="public-intro-band public-reveal">
           <div>
             <p className="public-section-label">LE TRAVAIL, ENFIN RELIÉ</p>
             <h2>Une plateforme qui comprend ce qui se passe après le clic.</h2>
@@ -158,7 +208,7 @@ export function PublicHomePage() {
           </div>
         </section>
 
-        <section className="public-product-section" id="plateforme">
+        <section className="public-product-section public-reveal" id="plateforme">
           <div className="public-product-copy">
             <p className="public-section-label">POSTE DE PILOTAGE</p>
             <h2>Voir juste. Agir vite.</h2>
@@ -210,7 +260,7 @@ export function PublicHomePage() {
           </div>
         </section>
 
-        <section className="public-business-section" id="catalogue">
+        <section className="public-business-section public-reveal" id="catalogue">
           <header>
             <p className="public-section-label">CATALOGUE MÉTIER</p>
             <h2>Cinq environnements. Une exigence commune.</h2>
@@ -236,7 +286,7 @@ export function PublicHomePage() {
             ))}
           </div>
 
-          <article id="public-business-catalog" className="public-business-showcase" style={businessStyle} role="tabpanel">
+          <article key={activeBusiness.key} id="public-business-catalog" className="public-business-showcase" style={businessStyle} role="tabpanel">
             <div className="public-business-story">
               <span><Icon name={activeBusiness.icon} size={24} /></span>
               <p>{activeBusiness.label}</p>
@@ -255,7 +305,7 @@ export function PublicHomePage() {
           </article>
         </section>
 
-        <section className="public-flow-section">
+        <section className="public-flow-section public-reveal">
           <div className="public-flow-heading">
             <p className="public-section-label">DU SIGNAL À LA DÉCISION</p>
             <h2>Un seul flux de travail, sans angles morts.</h2>
@@ -271,7 +321,7 @@ export function PublicHomePage() {
           </div>
         </section>
 
-        <section className="public-platform-section">
+        <section className="public-platform-section public-reveal">
           <div>
             <p className="public-section-label">UN SOCLE QUI RESTE SIMPLE</p>
             <h2>Assez complet pour grandir. Assez clair pour être adopté.</h2>
@@ -287,7 +337,7 @@ export function PublicHomePage() {
           </div>
         </section>
 
-        <section className="public-offer-section" id="offres">
+        <section className="public-offer-section public-reveal" id="offres">
           <div className="public-offer-copy">
             <p className="public-section-label">UNE MONTÉE EN GAMME LISIBLE</p>
             <h2>Votre outil évolue au rythme de votre entreprise.</h2>
@@ -301,7 +351,7 @@ export function PublicHomePage() {
           </div>
         </section>
 
-        <section className="public-final-cta">
+        <section className="public-final-cta public-reveal">
           <p className="public-section-label">OUVERTURE SUR VALIDATION</p>
           <h2>Votre entreprise mérite mieux qu’un assemblage d’outils.</h2>
           <p>Présentez-nous votre activité. Chaque nouvelle demande est examinée avant l’ouverture pour vous livrer un environnement propre, sécurisé et correctement configuré.</p>

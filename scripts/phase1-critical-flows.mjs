@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-showcase`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-motion-pwa-recovery`;
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
@@ -45,7 +45,16 @@ if (!runtime.includes('RUNTIME_HEARTBEAT_INTERVAL_MS')) failures.push('La survei
 if (!sw.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker ne correspond pas à la release attendue.');
 
 requireText('src/main.tsx', ['<RuntimeMonitor />', '<ConnectivityStatus />']);
-requireText('src/components/AppErrorBoundary.tsx', ["source: 'react'", "severity: 'critical'", 'componentStack']);
+requireText('src/components/AppErrorBoundary.tsx', [
+  "source: 'react'",
+  "severity: 'critical'",
+  'componentStack',
+  'MODULE_LOAD_ERROR',
+  'MODULE_RECOVERY_KEY',
+  'this.resetAndReload()'
+]);
+requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
+requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
   "window.addEventListener('unhandledrejection'",

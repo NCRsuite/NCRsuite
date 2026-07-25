@@ -1,7 +1,8 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.22.1-premium-showcase';
+const CACHE = 'ncr-suite-shell-v2.22.2-motion-pwa-recovery';
 const SHELL = [
   '/',
+  '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
   '/brand/ncr-suite-logo-header-v2221.png',

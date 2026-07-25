@@ -9,6 +9,7 @@ import { usePlatformAdmin } from './contexts/PlatformAdminContext';
 
 import { CleaningFeatureGate } from './components/CleaningFeatureGate';
 import { organizationCanAccessPath } from './config/moduleAccess';
+import { runsAsInstalledPwa } from './features/notifications/pushNotifications';
 import { RestaurantFeatureGate } from './components/RestaurantFeatureGate';
 import { TrainingFeatureGate } from './components/TrainingFeatureGate';
 
@@ -242,7 +243,10 @@ function ProtectedArea() {
   const location = useLocation();
 
   if (authLoading || adminLoading) return <LoadingScreen />;
-  if (!user) return location.pathname === '/' ? <PublicHomePage /> : <Navigate to="/connexion" replace />;
+  if (!user) {
+    if (location.pathname === '/' && !runsAsInstalledPwa()) return <PublicHomePage />;
+    return <Navigate to="/connexion" replace />;
+  }
   if (organizationLoading) return <LoadingScreen />;
 
   // Un compte plateforme ne pénètre dans un espace entreprise que pendant une session d’assistance autorisée.

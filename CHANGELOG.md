@@ -1,5 +1,20 @@
 # Changelog NCR Suite
 
+## V2.22.2 — Mouvement premium et lancement PWA
+
+- Suppression de la croix, du carré central et du repère bleu présents dans le hero ordinateur.
+- Court écran d’introduction NCR Suite affiché une seule fois par session.
+- Mouvements continus et discrets des signaux Relation client, Planning, Documents et Conformité.
+- Présentation de ces quatre signaux également sur mobile.
+- Apparition progressive des sections pendant le défilement.
+- Réactions professionnelles au survol, au clic, au toucher et au changement de métier.
+- Respect du réglage système réduisant les animations.
+- Ouverture directe de la PWA installée sur la page de connexion.
+- Conservation de la vitrine publique sur `https://ncr-suite.fr` dans un navigateur normal.
+- Récupération automatique unique des erreurs de module provoquées par un ancien cache PWA.
+- Cache PWA synchronisé en `ncr-suite-shell-v2.22.2-motion-pwa-recovery`.
+- Aucun changement SQL, Supabase, authentification, automatisation ou donnée métier.
+
 ## V2.22.1 — Vitrine premium et catalogue métier
 
 - Nouvelle première impression centrée sur le logo NCR Suite, sans photographie générique.

@@ -3,7 +3,7 @@
   "name": "NCR Suite",
   "short_name": "NCR Suite",
   "description": "NCR Suite — gestion métier pour la formation, la sécurité privée, le nettoyage, la restauration et la coiffure-beauté.",
-  "start_url": "/",
+  "start_url": "/connexion?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

@@ -1,0 +1,35 @@
+NCR SUITE V2.22.2 - MOUVEMENT PREMIUM ET LANCEMENT PWA
+
+OBJECTIF
+- Porter la finition de la vitrine au niveau attendu pour la commercialisation.
+- Supprimer les repères graphiques donnant une impression de maquette.
+- Ouvrir la PWA installée directement sur la connexion.
+- Réparer automatiquement les anciens modules conservés par le cache.
+
+CHANGEMENTS VISIBLES
+- Suppression de la croix, du carré central et du repère bleu du hero.
+- Ecran d'introduction NCR Suite court et affiche une fois par session.
+- Signaux operationnels en mouvement doux sur ordinateur.
+- Signaux operationnels visibles sur mobile.
+- Apparition progressive des sections au defilement.
+- Reactions au survol, au clic, au toucher et au changement de metier.
+
+CHANGEMENTS PWA
+- Lancement installe sur /connexion?source=pwa.
+- Redirection de secours vers /connexion si une ancienne installation ouvre encore /.
+- Recuperation automatique unique des erreurs de chargement de module.
+- Nettoyage des anciens caches NCR Suite avant rechargement.
+
+CHANGEMENTS TECHNIQUES
+- Version frontend : 2.22.2.
+- Cache PWA : ncr-suite-shell-v2.22.2-motion-pwa-recovery.
+- Audits de release et parcours critiques synchronises.
+
+SQL / SUPABASE
+- Aucune migration.
+- Aucune Edge Function.
+- Aucun secret.
+- Aucun changement de droits ou de donnees.
+
+BASE DE DEPART
+- NCR Suite V2.22.1 deja deployee et fonctionnelle.

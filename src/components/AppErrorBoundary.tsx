@@ -1,13 +1,32 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { APP_VERSION } from '../config/runtime';
 
 type Props = { children: ReactNode };
 type State = { error: Error | null };
 
+const MODULE_LOAD_ERROR = /Importing a module script failed|Failed to fetch dynamically imported module|Loading chunk|error loading dynamically imported module/i;
+const MODULE_RECOVERY_KEY = 'ncr:module-recovery-version';
+
 export class AppErrorBoundary extends Component<Props, State> {
   state: State = { error: null };
+  private recoveryTimer?: number;
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
+  }
+
+  componentDidMount() {
+    this.recoveryTimer = window.setTimeout(() => {
+      try {
+        sessionStorage.removeItem(MODULE_RECOVERY_KEY);
+      } catch {
+        // Le nettoyage automatique reste facultatif en navigation privée stricte.
+      }
+    }, 10000);
+  }
+
+  componentWillUnmount() {
+    if (this.recoveryTimer) window.clearTimeout(this.recoveryTimer);
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
@@ -23,6 +42,17 @@ export class AppErrorBoundary extends Component<Props, State> {
         severity: 'critical'
       }
     }));
+
+    if (MODULE_LOAD_ERROR.test(error.message)) {
+      try {
+        if (sessionStorage.getItem(MODULE_RECOVERY_KEY) !== APP_VERSION) {
+          sessionStorage.setItem(MODULE_RECOVERY_KEY, APP_VERSION);
+          void this.resetAndReload();
+        }
+      } catch {
+        // L’écran de récupération manuel reste disponible si le stockage est bloqué.
+      }
+    }
   }
 
   private retry = () => this.setState({ error: null });
