@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { PageMetadata } from '../components/PageMetadata';
@@ -71,11 +71,11 @@ const businesses: PublicBusiness[] = [
   }
 ];
 
-const platformPoints: Array<{ icon: IconName; title: string; text: string }> = [
-  { icon: 'briefcase', title: 'Une expérience par métier', text: 'Menus, indicateurs et automatisations suivent la réalité opérationnelle de chaque entreprise.' },
-  { icon: 'tool', title: 'Un catalogue modulaire', text: 'Activez les fonctions utiles, visualisez les suivantes et changez de formule au bon moment.' },
-  { icon: 'shield', title: 'Des accès maîtrisés', text: 'Équipes, clients, formateurs et intervenants disposent chacun d’un espace adapté à leur rôle.' },
-  { icon: 'monitor', title: 'Une PWA partout', text: 'Le même environnement rapide et cohérent accompagne le bureau comme le terrain.' }
+const platformPoints: Array<{ icon: IconName; title: string; text: string; number: string; metric: string; visual: string }> = [
+  { icon: 'briefcase', title: 'Une expérience par métier', text: 'Menus, indicateurs et automatisations suivent la réalité opérationnelle de chaque entreprise.', number: '01', metric: '5 univers prêts', visual: 'domains' },
+  { icon: 'tool', title: 'Un catalogue modulaire', text: 'Activez les fonctions utiles, visualisez les suivantes et changez de formule au bon moment.', number: '02', metric: 'Montée en gamme lisible', visual: 'modules' },
+  { icon: 'shield', title: 'Des accès maîtrisés', text: 'Équipes, clients, formateurs et intervenants disposent chacun d’un espace adapté à leur rôle.', number: '03', metric: 'Un espace par rôle', visual: 'access' },
+  { icon: 'monitor', title: 'Une PWA partout', text: 'Le même environnement rapide et cohérent accompagne le bureau comme le terrain.', number: '04', metric: 'Bureau + terrain', visual: 'devices' }
 ];
 
 const operatingFlow: Array<{ step: string; title: string; text: string; outcome: string; icon: IconName }> = [
@@ -85,11 +85,11 @@ const operatingFlow: Array<{ step: string; title: string; text: string; outcome:
   { step: '04', title: 'Piloter', text: 'Les indicateurs transforment l’activité en décisions concrètes.', outcome: 'Décisions éclairées', icon: 'chart' }
 ];
 
-const heroSignals: Array<{ key: string; icon: IconName; eyebrow: string; label: string; status: string }> = [
-  { key: 'clients', icon: 'users', eyebrow: 'RELATION CLIENT', label: '8 opportunités actives', status: '+12 %' },
-  { key: 'planning', icon: 'calendar', eyebrow: 'PLANNING', label: '28 actions coordonnées', status: 'À jour' },
-  { key: 'documents', icon: 'file', eyebrow: 'DOCUMENTS', label: 'Dossiers automatiquement liés', status: 'Prêts' },
-  { key: 'quality', icon: 'shield', eyebrow: 'CONFORMITÉ', label: 'Preuves et historique suivis', status: '91 %' }
+const heroSignals: Array<{ key: string; icon: IconName; eyebrow: string; metric: string; label: string; detail: string; status: string }> = [
+  { key: 'clients', icon: 'users', eyebrow: 'RELATION CLIENT', metric: '8', label: 'opportunités actives', detail: '2 décisions aujourd’hui', status: '+12 %' },
+  { key: 'planning', icon: 'calendar', eyebrow: 'PLANNING', metric: '28', label: 'actions coordonnées', detail: 'Semaine maîtrisée', status: 'À jour' },
+  { key: 'documents', icon: 'file', eyebrow: 'DOCUMENTS', metric: '14', label: 'dossiers prêts', detail: '3 automatisés à l’instant', status: 'Prêts' },
+  { key: 'quality', icon: 'shield', eyebrow: 'CONFORMITÉ', metric: '91 %', label: 'preuves complètes', detail: 'Aucune anomalie critique', status: 'Conforme' }
 ];
 
 function introShouldBeVisible() {
@@ -102,6 +102,7 @@ function introShouldBeVisible() {
 }
 
 export function PublicHomePage() {
+  const heroRef = useRef<HTMLElement | null>(null);
   const [activeBusinessKey, setActiveBusinessKey] = useState(businesses[0].key);
   const [activeOfferBusinessKey, setActiveOfferBusinessKey] = useState(publicOfferCatalog[0].key);
   const [showIntro, setShowIntro] = useState(introShouldBeVisible);
@@ -140,8 +141,39 @@ export function PublicHomePage() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero || !window.matchMedia('(pointer: fine)').matches) return;
+    const signals = Array.from(hero.querySelectorAll<HTMLElement>('.public-hero-signal'));
+
+    const updateParallax = (event: PointerEvent) => {
+      const bounds = hero.getBoundingClientRect();
+      const x = (event.clientX - bounds.left) / bounds.width - .5;
+      const y = (event.clientY - bounds.top) / bounds.height - .5;
+      signals.forEach((signal, index) => {
+        const direction = index % 2 === 0 ? 1 : -1;
+        const intensity = 14 + index * 3;
+        signal.style.setProperty('--pointer-x', `${x * intensity * direction}px`);
+        signal.style.setProperty('--pointer-y', `${y * intensity}px`);
+      });
+    };
+    const resetParallax = () => {
+      signals.forEach((signal) => {
+        signal.style.setProperty('--pointer-x', '0px');
+        signal.style.setProperty('--pointer-y', '0px');
+      });
+    };
+
+    hero.addEventListener('pointermove', updateParallax);
+    hero.addEventListener('pointerleave', resetParallax);
+    return () => {
+      hero.removeEventListener('pointermove', updateParallax);
+      hero.removeEventListener('pointerleave', resetParallax);
+    };
+  }, []);
+
   return (
-    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230">
+    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231">
       <PageMetadata
         title="NCR Suite | La plateforme de gestion conçue pour votre métier"
         description="NCR Suite réunit clients, équipes, planning, documents, facturation, conformité et automatisations dans une plateforme métier claire, modulaire et sécurisée."
@@ -156,15 +188,25 @@ export function PublicHomePage() {
         </div>
       )}
 
-      <section className="public-hero">
+      <section className="public-hero" ref={heroRef}>
         <PublicSiteHeader />
         <div className="public-hero-canvas" aria-hidden="true">
           {heroSignals.map((signal) => (
             <div className={`public-hero-signal ${signal.key}`} key={signal.key}>
               <div className="public-hero-signal-inner">
-                <Icon name={signal.icon} size={16} />
-                <span><small>{signal.eyebrow}</small><strong>{signal.label}</strong></span>
-                <i>{signal.status}</i>
+                <header>
+                  <span><Icon name={signal.icon} size={17} /></span>
+                  <small>{signal.eyebrow}</small>
+                  <i>{signal.status}</i>
+                </header>
+                <div className="public-signal-value"><strong>{signal.metric}</strong><span>{signal.label}</span></div>
+                <div className={`public-signal-visual ${signal.key}`} aria-hidden="true">
+                  {signal.key === 'clients' && <><span /><span /><span /><b /><b /><b /></>}
+                  {signal.key === 'planning' && <><small>L</small><small>M</small><small>M</small><small>J</small><small>V</small></>}
+                  {signal.key === 'documents' && <><span /><span /><span /></>}
+                  {signal.key === 'quality' && <><span /><span /><span /><span /><span /></>}
+                </div>
+                <footer><span />{signal.detail}</footer>
               </div>
             </div>
           ))}
@@ -178,7 +220,7 @@ export function PublicHomePage() {
             {heroSignals.map((signal) => (
               <span key={signal.key}>
                 <Icon name={signal.icon} size={15} />
-                <strong>{signal.label}</strong>
+                <strong>{signal.metric} {signal.label}</strong>
                 <i>{signal.status}</i>
               </span>
             ))}
@@ -317,12 +359,14 @@ export function PublicHomePage() {
             </div>
             <p>Chaque information poursuit son chemin sans ressaisie et laisse une trace exploitable. Vous savez ce qui entre, ce qui avance et ce qui demande une décision.</p>
           </div>
-          <div className="public-flow-rail" aria-hidden="true"><span /></div>
+          <div className="public-flow-rail" aria-hidden="true" />
           <div className="public-flow-grid" aria-label="Parcours opérationnel NCR Suite">
             {operatingFlow.map((item, index) => (
               <article key={item.step} style={{ '--flow-index': index } as CSSProperties}>
-                <div className="public-flow-node"><Icon name={item.icon} size={18} /></div>
-                <small>{item.step}</small>
+                <div className="public-flow-top">
+                  <small>{item.step}</small>
+                  <div className="public-flow-node"><Icon name={item.icon} size={19} /></div>
+                </div>
                 <h3>{item.title}</h3>
                 <p>{item.text}</p>
                 <strong><Icon name="check" size={13} />{item.outcome}</strong>
@@ -338,10 +382,19 @@ export function PublicHomePage() {
           </div>
           <div className="public-platform-grid">
             {platformPoints.map((point) => (
-              <article key={point.title}>
-                <Icon name={point.icon} size={21} />
-                <h3>{point.title}</h3>
-                <p>{point.text}</p>
+              <article className={`public-platform-card ${point.visual}`} key={point.title}>
+                <header><small>{point.number}</small><span><Icon name={point.icon} size={21} /></span></header>
+                <div className="public-platform-card-copy">
+                  <strong>{point.metric}</strong>
+                  <h3>{point.title}</h3>
+                  <p>{point.text}</p>
+                </div>
+                <div className={`public-platform-visual ${point.visual}`} aria-hidden="true">
+                  {point.visual === 'domains' && <><span>Formation</span><span>Sécurité</span><span>Nettoyage</span><span>Restauration</span><span>Coiffure</span></>}
+                  {point.visual === 'modules' && <><span><i />CRM<b>Actif</b></span><span><i />Planning<b>Actif</b></span><span><i />Automatisations<b>+</b></span></>}
+                  {point.visual === 'access' && <><span>AD</span><span>MG</span><span>EQ</span><span>CL</span><strong>4 rôles reliés</strong></>}
+                  {point.visual === 'devices' && <><span className="public-device-desktop"><i /><b /><b /><b /></span><span className="public-device-mobile"><i /><b /><b /></span></>}
+                </div>
               </article>
             ))}
           </div>

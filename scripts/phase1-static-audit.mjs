@@ -636,53 +636,60 @@ if (!appErrorBoundary.includes('MODULE_LOAD_ERROR')
     || !appErrorBoundary.includes('this.resetAndReload()')) {
   errors.push('La recuperation automatique des modules PWA V2.22.2 est incomplete.');
 }
-// V2.23.0 - vitrine premium servie sans fragment CSS ou JS critique dans /assets.
+// V2.23.1 - vitrine signature servie sans fragment CSS ou JS critique dans /assets.
 const indexHtml = read('index.html');
 const cloudflareHeaders = read('public/_headers');
 const showcaseGenerator = read('scripts/generate-public-showcase-css.mjs');
 const viteConfig = read('vite.config.ts');
 const premiumShowcaseMigration = read('supabase/migrations/089_premium_showcase_offer_catalog.sql');
+const signatureShowcaseMigration = read('supabase/migrations/090_signature_showcase_release.sql');
 const publicOfferCatalog = read('src/config/publicOfferCatalog.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v230.css')
-    || !indexHtml.includes('/ncr-suite-app-v230.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v231.css')
+    || !indexHtml.includes('/ncr-suite-app-v231.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.23.0')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v230.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v230.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.23.1')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v231.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v231.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v230.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v231.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.23.0 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.23.1 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v230.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v230.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.23.0 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v231.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v231.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.23.1 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.23.0'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.23.0-premium-catalog")
-    || !serviceWorker.includes("ncr-suite-shell-v2.23.0-premium-catalog")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v230.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v230.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v230.js'")) {
-  errors.push('La version ou le cache PWA V2.23.0 est incoherent.');
+if (!runtimeConfig.includes("APP_VERSION = '2.23.1'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.23.1-signature-showcase")
+    || !serviceWorker.includes("ncr-suite-shell-v2.23.1-signature-showcase")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v231.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v231.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v231.js'")) {
+  errors.push('La version ou le cache PWA V2.23.1 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.23.0 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.23.1 ne doit pas etre fragmente dans /assets.');
 }
-if (!publicHomePage.includes('public-home-v230')
+if (!publicHomePage.includes('public-home-v231')
     || !publicHomePage.includes('public-offer-business-tabs')
     || !publicHomePage.includes('public-flow-rail')
+    || !publicHomePage.includes('public-flow-top')
+    || !publicHomePage.includes('public-platform-card')
     || !publicOfferCatalog.includes('monthlyPriceCents: 14990')
     || !publicOfferCatalog.includes('monthlyPriceCents: 990')
-    || !publicStyles.includes('@keyframes public-signal-orbit')
-    || !publicStyles.includes('@keyframes public-flow-progress')) {
-  errors.push('La vitrine premium ou le catalogue tarifaire V2.23.0 est incomplet.');
+    || !publicStyles.includes('@keyframes public-bento-float')
+    || !publicStyles.includes('@keyframes public-flow-sweep')
+    || !publicStyles.includes('@keyframes public-domain-shift')) {
+  errors.push('La vitrine signature ou le catalogue tarifaire V2.23.1 est incomplet.');
 }
 if (!premiumShowcaseMigration.includes("'2.23.0'")
     || !premiumShowcaseMigration.includes('ncr-suite-shell-v2.23.0-premium-catalog')
-    || !premiumShowcaseMigration.includes('platform_release_state')) {
-  errors.push('La migration de synchronisation V2.23.0 est incomplete.');
+    || !premiumShowcaseMigration.includes('platform_release_state')
+    || !signatureShowcaseMigration.includes("'2.23.1'")
+    || !signatureShowcaseMigration.includes('ncr-suite-shell-v2.23.1-signature-showcase')
+    || !signatureShowcaseMigration.includes('platform_release_state')) {
+  errors.push('La migration de synchronisation V2.23.1 est incomplete.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

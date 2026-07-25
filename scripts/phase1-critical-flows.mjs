@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-catalog`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-signature-showcase`;
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
@@ -56,18 +56,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v230.css',
-  '/ncr-suite-app-v230.css',
+  '/ncr-suite-showcase-v231.css',
+  '/ncr-suite-app-v231.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.23.0'
+  'ncr:css-recovery-v2.23.1'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v230.css',
+  '/ncr-suite-app-v231.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v230.js'"
+  "entryFileNames: 'ncr-suite-app-v231.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -778,6 +778,11 @@ requireText('supabase/migrations/088_commercial_launch_controlled_access.sql', [
 ]);
 requireText('supabase/migrations/089_premium_showcase_offer_catalog.sql', [
   "'2.23.0'",
+  'ncr-suite-shell-v2.23.0-premium-catalog',
+  'platform_release_state'
+]);
+requireText('supabase/migrations/090_signature_showcase_release.sql', [
+  "'2.23.1'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -792,7 +797,10 @@ requireText('src/config/publicOfferCatalog.ts', [
 ]);
 requireText('src/pages/PublicHomePage.tsx', [
   'public-home-v230',
+  'public-home-v231',
   'public-flow-rail',
+  'public-flow-top',
+  'public-platform-card',
   'public-offer-business-tabs',
   'public-offer-catalog'
 ]);

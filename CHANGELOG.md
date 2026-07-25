@@ -1,5 +1,20 @@
 # Changelog NCR Suite
 
+## V2.23.1 — Vitrine signature et bento animé
+
+- Nouveau premier écran composé de quatre mini-interfaces bento animées.
+- Réaction douce des cartes au déplacement du pointeur sur ordinateur.
+- Mouvement lent maintenu sur Safari lorsque la réduction des animations est active.
+- Indicateurs `01` à `04` agrandis dans le parcours opérationnel.
+- Suppression de la pastille bleue qui recouvrait l’icône Collecter.
+- Nouvelle progression lumineuse sans élément parasite.
+- Présentation du socle transformée en grille bento contrastée et animée.
+- Aperçus visuels dédiés aux métiers, modules, rôles et appareils.
+- Interactions du catalogue tarifaire affinées sans modifier les prix validés.
+- Migration `090` synchronisant Supabase, le frontend et le cache PWA en `2.23.1`.
+- Nouveau bundle `ncr-suite-app-v231.js` et cache `ncr-suite-shell-v2.23.1-signature-showcase`.
+- Aucun retrait de fonction, automatisation, droit ou donnée métier existante.
+
 ## V2.23.0 — Vitrine premium et catalogue tarifaire métier
 
 - Mouvement renforcé et différencié des quatre signaux du premier écran.

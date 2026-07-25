@@ -16,7 +16,7 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-catalog`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-signature-showcase`;
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
@@ -26,10 +26,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.23.0') failures.push('package.json doit annoncer la V2.23.0.');
+if (pkg.version !== '2.23.1') failures.push('package.json doit annoncer la V2.23.1.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.23.0 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.23.0 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.23.1 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.23.1 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -111,6 +111,11 @@ requireText('supabase/migrations/088_commercial_launch_controlled_access.sql', [
 
 requireText('supabase/migrations/089_premium_showcase_offer_catalog.sql', [
   "'2.23.0'",
+  'ncr-suite-shell-v2.23.0-premium-catalog',
+  'platform_release_state'
+]);
+requireText('supabase/migrations/090_signature_showcase_release.sql', [
+  "'2.23.1'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -124,7 +129,10 @@ requireText('src/pages/PublicHomePage.tsx', [
   'public-hero-canvas',
   'public-home-v2222',
   'public-home-v230',
+  'public-home-v231',
   'public-flow-rail',
+  'public-flow-top',
+  'public-platform-card',
   'public-offer-business-tabs',
   'public-showcase-intro',
   'public-mobile-signals',
@@ -148,36 +156,36 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v230.css',
-  'ncr-suite-app-v230.css',
+  'ncr-suite-showcase-v231.css',
+  'ncr-suite-app-v231.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
 
 requireText('index.html', [
-  '/ncr-suite-showcase-v230.css',
-  '/ncr-suite-app-v230.css',
+  '/ncr-suite-showcase-v231.css',
+  '/ncr-suite-app-v231.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.23.0',
+  'ncr:css-recovery-v2.23.1',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v230.css',
-  '/ncr-suite-app-v230.css'
+  '/ncr-suite-showcase-v231.css',
+  '/ncr-suite-app-v231.css'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v230.css'))) {
-  failures.push('La feuille de style critique V2.23.0 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v231.css'))) {
+  failures.push('La feuille de style critique V2.23.1 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v230.css'))) {
-  failures.push('La feuille de style complète V2.23.0 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v231.css'))) {
+  failures.push('La feuille de style complète V2.23.1 n’a pas été générée.');
 }
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v230.js'"
+  "entryFileNames: 'ncr-suite-app-v231.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');
@@ -413,7 +421,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086','087','088','089']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086','087','088','089','090']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }
