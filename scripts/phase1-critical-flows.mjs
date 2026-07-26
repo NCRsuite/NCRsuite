@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-showcase-polish`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-portal-access-support-alerts`;
+const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
@@ -56,18 +57,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v232.css',
-  '/ncr-suite-app-v232.css',
+  '/ncr-suite-showcase-v240.css',
+  '/ncr-suite-app-v240.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.23.2'
+  'ncr:css-recovery-v2.24.0'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v232.css',
+  '/ncr-suite-app-v240.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v232.js'"
+  "entryFileNames: 'ncr-suite-app-v240.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -788,8 +789,16 @@ requireText('supabase/migrations/090_signature_showcase_release.sql', [
 ]);
 requireText('supabase/migrations/091_showcase_polish_release.sql', [
   "'2.23.2'",
-  expectedCache,
+  showcasePolishCache,
   'platform_release_state'
+]);
+requireText('supabase/migrations/092_portal_access_support_alerts.sql', [
+  'prepare_training_portal_manual_link',
+  'platform_admin_notifications',
+  'notify_platform_admin_support_ticket',
+  'notify_platform_admin_access_request',
+  "'2.24.0'",
+  expectedCache
 ]);
 requireText('src/config/publicOfferCatalog.ts', [
   "key: 'formation'",
@@ -812,7 +821,20 @@ requireText('src/pages/PublicHomePage.tsx', [
 ]);
 requireText('src/pages/LoginPage.tsx', [
   "to=\"/mot-de-passe-oublie\"",
-  "to=\"/demande-acces\""
+  "to=\"/demande-acces\"",
+  "to=\"/espace-formation\"",
+  "to=\"/espace-client-securite\"",
+  "to=\"/espace-client-nettoyage\"",
+  "to=\"/espace-client-coiffure\""
+]);
+requireText('src/pages/TrainingPortalAdminPage.tsx', [
+  "supabase.rpc('prepare_training_portal_manual_link'",
+  'shareManualInvitationLink'
+]);
+requireText('src/components/AdminNotificationCenter.tsx', [
+  "from('platform_admin_notifications')",
+  "supabase.rpc('mark_platform_admin_notifications_read'",
+  'setInterval'
 ]);
 requireText('src/pages/AccessRequestPage.tsx', [
   "functions.invoke('request-platform-access'",

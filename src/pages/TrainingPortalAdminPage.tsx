@@ -79,6 +79,7 @@ export function TrainingPortalAdminPage() {
   const [success, setSuccess] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteName, setInviteName] = useState('');
+  const [manualLink, setManualLink] = useState<{ invitationId: string; email: string; url: string } | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadTitle, setUploadTitle] = useState('');
   const [uploadCategory, setUploadCategory] = useState('administrative');
@@ -235,6 +236,59 @@ export function TrainingPortalAdminPage() {
     } finally {
       setBusyId('');
     }
+  }
+
+  async function prepareManualInvitationLink(invitationId: string, invitationEmail: string) {
+    if (!supabase || !organization) return;
+    setBusyId(invitationId);
+    clearMessages();
+    try {
+      const { data, error: rpcError } = await supabase.rpc('prepare_training_portal_manual_link', {
+        p_organization_id: organization.id,
+        p_invitation_id: invitationId
+      });
+      if (rpcError) throw rpcError;
+      const url = new URL(String(data), window.location.origin).toString();
+      setManualLink({ invitationId, email: invitationEmail, url });
+      try {
+        await navigator.clipboard.writeText(url);
+        setSuccess('Nouveau lien valable 7 jours créé et copié.');
+      } catch {
+        setSuccess('Nouveau lien valable 7 jours créé. Vous pouvez le sélectionner ci-dessous.');
+      }
+      await loadOverview();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Création du lien impossible.');
+    } finally {
+      setBusyId('');
+    }
+  }
+
+  async function copyManualInvitationLink() {
+    if (!manualLink) return;
+    try {
+      await navigator.clipboard.writeText(manualLink.url);
+      setSuccess('Lien copié. Vous pouvez maintenant le transmettre au destinataire.');
+    } catch {
+      setError('La copie automatique est bloquée. Sélectionnez le lien puis copiez-le.');
+    }
+  }
+
+  async function shareManualInvitationLink() {
+    if (!manualLink) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Activation de votre espace Formation',
+          text: `Voici votre lien personnel d’activation NCR Suite pour ${manualLink.email}. Il reste valable 7 jours.`,
+          url: manualLink.url
+        });
+        return;
+      } catch (caught) {
+        if (caught instanceof DOMException && caught.name === 'AbortError') return;
+      }
+    }
+    await copyManualInvitationLink();
   }
 
   async function toggleAccount(account: TrainingPortalAccount) {
@@ -506,9 +560,17 @@ export function TrainingPortalAdminPage() {
                     {overview.invitations.filter((invitation) => invitation.subject_kind === selectedSubject.subject_kind && invitation.subject_id === selectedSubject.id).map((invitation) => (
                       <article className="training-portal-pending-invite" key={invitation.id}>
                         <div><strong>{invitation.email}</strong><small>{invitation.status === 'expired' ? 'Expirée' : `Valable jusqu’au ${humanDate(invitation.expires_at)}`}</small></div>
-                        {canAdministerAccess && <div><button className="icon-button" onClick={() => void invitationAction(invitation.id, 'resend')} disabled={busyId === invitation.id} title="Renvoyer" aria-label="Renvoyer"><Icon name="refresh" size={17} /></button><button className="icon-button danger" onClick={() => void invitationAction(invitation.id, 'revoke')} disabled={busyId === invitation.id || invitation.status === 'expired'} title="Révoquer" aria-label="Révoquer"><Icon name="close" size={17} /></button></div>}
+                        {canAdministerAccess && <div><button className="icon-button" onClick={() => void prepareManualInvitationLink(invitation.id, invitation.email)} disabled={busyId === invitation.id} title="Créer un lien à transmettre" aria-label="Créer un lien à transmettre"><Icon name="clipboard" size={17} /></button><button className="icon-button" onClick={() => void invitationAction(invitation.id, 'resend')} disabled={busyId === invitation.id} title="Renvoyer par e-mail" aria-label="Renvoyer par e-mail"><Icon name="refresh" size={17} /></button><button className="icon-button danger" onClick={() => void invitationAction(invitation.id, 'revoke')} disabled={busyId === invitation.id || invitation.status === 'expired'} title="Révoquer" aria-label="Révoquer"><Icon name="close" size={17} /></button></div>}
                       </article>
                     ))}
+                    {manualLink && overview.invitations.some((invitation) => invitation.id === manualLink.invitationId && invitation.subject_kind === selectedSubject.subject_kind && invitation.subject_id === selectedSubject.id) && (
+                      <div className="training-portal-manual-link">
+                        <header><span><Icon name="lock" size={17} /></span><div><strong>Lien prêt à transmettre</strong><small>Personnel, valable 7 jours et remplaçant le lien précédent.</small></div></header>
+                        <label>Destinataire<input value={manualLink.email} readOnly /></label>
+                        <label>Lien d’activation<input value={manualLink.url} readOnly onFocus={(event) => event.currentTarget.select()} /></label>
+                        <div><button className="secondary-button compact-button" type="button" onClick={() => void copyManualInvitationLink()}><Icon name="clipboard" size={16} />Copier</button><button className="primary-button compact-button" type="button" onClick={() => void shareManualInvitationLink()}><Icon name="message" size={16} />Partager</button></div>
+                      </div>
+                    )}
                   </section>
                 </div>
               )}

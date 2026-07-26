@@ -1,14 +1,13 @@
-# NCR Suite V2.23.2
+# NCR Suite V2.24.0
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version apporte les finitions demandées à la vitrine signature : cartes
-flottantes plus compactes, liens du header bleus au survol, titres sans points
-finaux et cadrage mobile corrigé pour les aperçus bento. Les cinq métiers et les
-vingt offres déjà validés restent inchangés.
+Cette version sécurise le secours manuel des invitations Formation, réunit les
+accès aux portails externes sur la connexion et ajoute les notifications actives
+dans la console super-administrateur sur ordinateur et téléphone.
 
-Le lancement commercial, les accès contrôlés et toutes les fonctions métier déjà
-validées restent inchangés. La migration `091` synchronise uniquement la version
-attendue par Supabase avec le frontend et le cache PWA.
+Les portails, automatisations, droits et fonctions métier déjà validés restent
+inchangés. La migration `092` ajoute uniquement les nouveaux liens, alertes et
+contrôles nécessaires à la V2.24.0.
 
-Consulter uniquement `A_LIRE_INSTALLATION_V2.23.2.txt` avant déploiement.
+Consulter uniquement `A_LIRE_INSTALLATION_V2.24.0.txt` avant déploiement.

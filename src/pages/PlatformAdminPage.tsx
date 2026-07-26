@@ -11,6 +11,7 @@ import { AdminDiagnosticsPanel } from '../components/AdminDiagnosticsPanel';
 import { AdminMonitoringPanel } from '../components/AdminMonitoringPanel';
 import { AdminTrainingSavPanel } from '../components/AdminTrainingSavPanel';
 import { AdminAccessRequestsPanel } from '../components/AdminAccessRequestsPanel';
+import { AdminNotificationCenter, type AdminNotificationSection } from '../components/AdminNotificationCenter';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
@@ -381,6 +382,11 @@ export function PlatformAdminPage() {
     setDeletingOrganization(false);
   }
 
+  function openNotificationSection(section: AdminNotificationSection) {
+    setActiveSection(section);
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
   return (
     <div className="platform-admin-page">
       <header className="platform-admin-topbar">
@@ -389,6 +395,7 @@ export function PlatformAdminPage() {
           <span>Administration centrale</span>
         </div>
         <div className="platform-admin-account">
+          <AdminNotificationCenter onNavigate={openNotificationSection} />
           <span><strong>{user?.user_metadata?.full_name || 'NCR Admin'}</strong><small>{profile?.role === 'super_admin' ? 'Super-administrateur' : 'Support'}</small></span>
           <button className="icon-button" type="button" onClick={() => signOut()} aria-label="Se déconnecter"><Icon name="logout" size={19} /></button>
         </div>

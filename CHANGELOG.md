@@ -1,5 +1,22 @@
 # Changelog NCR Suite
 
+## V2.24.0 — Accès portails et alertes super-administrateur
+
+- Génération sécurisée d’un lien manuel pour les invitations Formation.
+- Renouvellement automatique du lien pendant 7 jours et invalidation du précédent.
+- Copie et partage natif du lien depuis l’entreprise sur ordinateur ou téléphone.
+- Conservation de l’envoi automatique par e-mail et de la révocation existante.
+- Accès central aux portails Formation, Sécurité, Nettoyage et Coiffure depuis la connexion.
+- Formation clairement présentée pour les stagiaires, formateurs et clients.
+- Nouvelle cloche dans la console super-administrateur avec compteur non lu.
+- Alerte immédiate dans l’application et historique personnel des événements.
+- Activation facultative des alertes système sur le téléphone.
+- Notifications couvrant tickets, réponses support, accès, abonnements et modules Formation/Sécurité.
+- Ouverture directe de la rubrique concernée depuis chaque notification.
+- Migration `092` et cache PWA `ncr-suite-shell-v2.24.0-portal-access-support-alerts`.
+- Nouveau bundle autonome `ncr-suite-app-v240.js`.
+- Aucun retrait de portail, automatisation, droit ou fonction métier existante.
+
 ## V2.23.2 — Finitions visuelles et cadrage mobile
 
 - Réduction d’environ 18 % des quatre cartes flottantes du premier écran.

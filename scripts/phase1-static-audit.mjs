@@ -644,33 +644,34 @@ const viteConfig = read('vite.config.ts');
 const premiumShowcaseMigration = read('supabase/migrations/089_premium_showcase_offer_catalog.sql');
 const signatureShowcaseMigration = read('supabase/migrations/090_signature_showcase_release.sql');
 const showcasePolishMigration = read('supabase/migrations/091_showcase_polish_release.sql');
+const portalAccessAlertsMigration = read('supabase/migrations/092_portal_access_support_alerts.sql');
 const publicOfferCatalog = read('src/config/publicOfferCatalog.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v232.css')
-    || !indexHtml.includes('/ncr-suite-app-v232.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v240.css')
+    || !indexHtml.includes('/ncr-suite-app-v240.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.23.2')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v232.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v232.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.24.0')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v240.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v240.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v232.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v240.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.23.2 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.24.0 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v232.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v232.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.23.2 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v240.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v240.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.24.0 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.23.2'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.23.2-showcase-polish")
-    || !serviceWorker.includes("ncr-suite-shell-v2.23.2-showcase-polish")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v232.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v232.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v232.js'")) {
-  errors.push('La version ou le cache PWA V2.23.2 est incoherent.');
+if (!runtimeConfig.includes("APP_VERSION = '2.24.0'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.24.0-portal-access-support-alerts")
+    || !serviceWorker.includes("ncr-suite-shell-v2.24.0-portal-access-support-alerts")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v240.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v240.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v240.js'")) {
+  errors.push('La version ou le cache PWA V2.24.0 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.23.2 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.24.0 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -694,8 +695,14 @@ if (!premiumShowcaseMigration.includes("'2.23.0'")
     || !signatureShowcaseMigration.includes('platform_release_state')
     || !showcasePolishMigration.includes("'2.23.2'")
     || !showcasePolishMigration.includes('ncr-suite-shell-v2.23.2-showcase-polish')
-    || !showcasePolishMigration.includes('platform_release_state')) {
-  errors.push('La migration de synchronisation V2.23.2 est incomplete.');
+    || !showcasePolishMigration.includes('platform_release_state')
+    || !portalAccessAlertsMigration.includes("'2.24.0'")
+    || !portalAccessAlertsMigration.includes('ncr-suite-shell-v2.24.0-portal-access-support-alerts')
+    || !portalAccessAlertsMigration.includes('prepare_training_portal_manual_link')
+    || !portalAccessAlertsMigration.includes('platform_admin_notifications')
+    || !portalAccessAlertsMigration.includes('notify_platform_admin_training_module_request')
+    || !portalAccessAlertsMigration.includes('platform_release_state')) {
+  errors.push('La migration ou les acces V2.24.0 sont incomplets.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

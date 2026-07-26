@@ -16,7 +16,8 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-showcase-polish`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-portal-access-support-alerts`;
+const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
 const trainingDataRecoveryCache = 'ncr-suite-shell-v2.21.1-training-data-recovery';
@@ -26,10 +27,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.23.2') failures.push('package.json doit annoncer la V2.23.2.');
+if (pkg.version !== '2.24.0') failures.push('package.json doit annoncer la V2.24.0.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.23.2 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.23.2 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.24.0 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.24.0 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -121,6 +122,18 @@ requireText('supabase/migrations/090_signature_showcase_release.sql', [
 ]);
 requireText('supabase/migrations/091_showcase_polish_release.sql', [
   "'2.23.2'",
+  showcasePolishCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/092_portal_access_support_alerts.sql', [
+  'prepare_training_portal_manual_link',
+  'create table if not exists public.platform_admin_notifications',
+  'notify_platform_admin_support_ticket',
+  'notify_platform_admin_access_request',
+  'notify_platform_admin_subscription_request',
+  'notify_platform_admin_security_module_request',
+  'notify_platform_admin_training_module_request',
+  "'2.24.0'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -162,36 +175,36 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v232.css',
-  'ncr-suite-app-v232.css',
+  'ncr-suite-showcase-v240.css',
+  'ncr-suite-app-v240.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
 
 requireText('index.html', [
-  '/ncr-suite-showcase-v232.css',
-  '/ncr-suite-app-v232.css',
+  '/ncr-suite-showcase-v240.css',
+  '/ncr-suite-app-v240.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.23.2',
+  'ncr:css-recovery-v2.24.0',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v232.css',
-  '/ncr-suite-app-v232.css'
+  '/ncr-suite-showcase-v240.css',
+  '/ncr-suite-app-v240.css'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v232.css'))) {
-  failures.push('La feuille de style critique V2.23.2 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v240.css'))) {
+  failures.push('La feuille de style critique V2.24.0 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v232.css'))) {
-  failures.push('La feuille de style complète V2.23.2 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v240.css'))) {
+  failures.push('La feuille de style complète V2.24.0 n’a pas été générée.');
 }
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v232.js'"
+  "entryFileNames: 'ncr-suite-app-v240.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');
@@ -221,6 +234,25 @@ requireText('src/components/AdminAccessRequestsPanel.tsx', [
   "from('platform_access_requests')",
   "functions.invoke('admin-review-access-request'",
   'Accepter et inviter'
+]);
+
+requireText('src/pages/LoginPage.tsx', [
+  'auth-portal-chooser',
+  'to="/espace-formation"',
+  'to="/espace-client-securite"',
+  'to="/espace-client-nettoyage"',
+  'to="/espace-client-coiffure"'
+]);
+requireText('src/pages/TrainingPortalAdminPage.tsx', [
+  "supabase.rpc('prepare_training_portal_manual_link'",
+  'Lien prêt à transmettre',
+  'shareManualInvitationLink'
+]);
+requireText('src/components/AdminNotificationCenter.tsx', [
+  "from('platform_admin_notifications')",
+  "supabase.rpc('mark_platform_admin_notifications_read'",
+  'setInterval',
+  'Activer sur ce téléphone'
 ]);
 
 requireText('supabase/functions/request-platform-access/index.ts', [

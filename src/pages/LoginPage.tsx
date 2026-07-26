@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { PageMetadata } from '../components/PageMetadata';
+import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -81,6 +82,35 @@ export function LoginPage() {
               <Link className="text-button" to="/demande-acces">Demander un accès</Link>
             </div>
           )}
+
+          <section className="auth-portal-chooser" aria-labelledby="auth-portals-title">
+            <div>
+              <p className="eyebrow">ESPACES EXTERNES</p>
+              <h3 id="auth-portals-title">Accéder à votre portail</h3>
+            </div>
+            <div className="auth-portal-grid">
+              <Link to="/espace-formation">
+                <span><Icon name="graduation" size={18} /></span>
+                <div><strong>Formation</strong><small>Stagiaire · Formateur · Client</small></div>
+                <Icon name="chevronRight" size={16} />
+              </Link>
+              <Link to="/espace-client-securite">
+                <span><Icon name="shield" size={18} /></span>
+                <div><strong>Sécurité</strong><small>Portail client</small></div>
+                <Icon name="chevronRight" size={16} />
+              </Link>
+              <Link to="/espace-client-nettoyage">
+                <span><Icon name="sparkles" size={18} /></span>
+                <div><strong>Nettoyage</strong><small>Portail client</small></div>
+                <Icon name="chevronRight" size={16} />
+              </Link>
+              <Link to="/espace-client-coiffure">
+                <span><Icon name="scissors" size={18} /></span>
+                <div><strong>Coiffure</strong><small>Portail client</small></div>
+                <Icon name="chevronRight" size={16} />
+              </Link>
+            </div>
+          </section>
           <Link className="auth-home-link" to="/">Retour au site NCR Suite</Link>
         </div>
       </section>
