@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-portal-access-support-alerts`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-platform-admin-locked-screen-push`;
+const portalAccessAlertsCache = 'ncr-suite-shell-v2.24.0-portal-access-support-alerts';
 const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
 const finalProductionValidationCache = 'ncr-suite-shell-v2.21.2-final-production-validation';
@@ -57,18 +58,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v240.css',
-  '/ncr-suite-app-v240.css',
+  '/ncr-suite-showcase-v241.css',
+  '/ncr-suite-app-v241.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.24.0'
+  'ncr:css-recovery-v2.24.1'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v240.css',
+  '/ncr-suite-app-v241.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v240.js'"
+  "entryFileNames: 'ncr-suite-app-v241.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -798,6 +799,15 @@ requireText('supabase/migrations/092_portal_access_support_alerts.sql', [
   'notify_platform_admin_support_ticket',
   'notify_platform_admin_access_request',
   "'2.24.0'",
+  portalAccessAlertsCache
+]);
+requireText('supabase/migrations/093_platform_admin_locked_screen_push.sql', [
+  'alter column organization_id drop not null',
+  "metadata->>'scope'='platform_admin'",
+  'platform-admin-push:',
+  'push_delivery_queue',
+  'queue_platform_admin_push_test',
+  "'2.24.1'",
   expectedCache
 ]);
 requireText('src/config/publicOfferCatalog.ts', [
@@ -834,7 +844,15 @@ requireText('src/pages/TrainingPortalAdminPage.tsx', [
 requireText('src/components/AdminNotificationCenter.tsx', [
   "from('platform_admin_notifications')",
   "supabase.rpc('mark_platform_admin_notifications_read'",
+  "supabase!.rpc('queue_platform_admin_push_test'",
+  'currentPushSubscription',
+  'écran verrouillé',
   'setInterval'
+]);
+requireText('src/pages/PlatformAdminPage.tsx', [
+  "get('section')",
+  "get('notification')",
+  "window.history.replaceState({}, '', '/administration-ncr')"
 ]);
 requireText('src/pages/AccessRequestPage.tsx', [
   "functions.invoke('request-platform-access'",

@@ -1,4 +1,4 @@
-# NCR Suite V2.24.0
+# NCR Suite V2.24.1
 
 Base SaaS multi-métier NCR Suite.
 
@@ -8,6 +8,6 @@ dans la console super-administrateur sur ordinateur et téléphone.
 
 Les portails, automatisations, droits et fonctions métier déjà validés restent
 inchangés. La migration `092` ajoute uniquement les nouveaux liens, alertes et
-contrôles nécessaires à la V2.24.0.
+contrôles nécessaires à la V2.24.1.
 
-Consulter uniquement `A_LIRE_INSTALLATION_V2.24.0.txt` avant déploiement.
+Consulter uniquement `A_LIRE_INSTALLATION_V2.24.1.txt` avant déploiement.

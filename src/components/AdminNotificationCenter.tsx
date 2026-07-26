@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { enablePushOnDevice, pushIsSupported } from '../features/notifications/pushNotifications';
+import {
+  currentPushSubscription,
+  enablePushOnDevice,
+  pushIsSupported,
+  runsAsInstalledPwa
+} from '../features/notifications/pushNotifications';
 import { supabase } from '../lib/supabase';
 import { Icon } from './Icon';
 
@@ -45,9 +50,8 @@ export function AdminNotificationCenter({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [deviceAlertsEnabled, setDeviceAlertsEnabled] = useState(
-    () => typeof Notification !== 'undefined' && Notification.permission === 'granted'
-  );
+  const [deviceAlertsEnabled, setDeviceAlertsEnabled] = useState(false);
+  const [deviceMessage, setDeviceMessage] = useState('');
   const [enablingDeviceAlerts, setEnablingDeviceAlerts] = useState(false);
   const [toast, setToast] = useState<AdminNotification | null>(null);
   const knownIds = useRef<Set<string>>(new Set());
@@ -57,24 +61,6 @@ export function AdminNotificationCenter({
     () => notifications.filter((notification) => !notification.read_at).length,
     [notifications]
   );
-
-  const showDeviceNotification = useCallback(async (notification: AdminNotification) => {
-    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-    if (!('serviceWorker' in navigator)) return;
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification(notification.title, {
-        body: notification.body,
-        icon: '/brand/ncr-suite-icon.png',
-        badge: '/icons/icon-192.png',
-        tag: `ncr-admin-${notification.id}`,
-        requireInteraction: notification.urgency === 'critical',
-        data: { url: '/administration-ncr' }
-      });
-    } catch {
-      // L'alerte interne reste toujours disponible si le navigateur bloque l'alerte système.
-    }
-  }, []);
 
   const loadNotifications = useCallback(async (announceNew = true) => {
     if (!supabase || !user) return;
@@ -98,7 +84,6 @@ export function AdminNotificationCenter({
       if (fresh.length > 0) {
         const newest = fresh[fresh.length - 1];
         setToast(newest);
-        void showDeviceNotification(newest);
       }
     }
     knownIds.current = new Set(rows.map((notification) => notification.id));
@@ -106,7 +91,14 @@ export function AdminNotificationCenter({
     setNotifications(rows);
     setError('');
     setLoading(false);
-  }, [showDeviceNotification, user]);
+  }, [user]);
+
+  useEffect(() => {
+    if (!pushIsSupported()) return;
+    void currentPushSubscription()
+      .then((subscription) => setDeviceAlertsEnabled(Boolean(subscription)))
+      .catch(() => setDeviceAlertsEnabled(false));
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -157,15 +149,26 @@ export function AdminNotificationCenter({
   async function enableDeviceAlerts() {
     setEnablingDeviceAlerts(true);
     setError('');
+    setDeviceMessage('');
     try {
       await enablePushOnDevice('Super-admin NCR');
       setDeviceAlertsEnabled(true);
+      const { error: testError } = await supabase!.rpc('queue_platform_admin_push_test');
+      if (testError) {
+        setError(`Téléphone enregistré, mais le test n’a pas pu être programmé : ${testError.message}`);
+      } else {
+        setDeviceMessage('Alertes écran verrouillé activées. Le test arrivera dans moins d’une minute.');
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Activation impossible.');
     } finally {
       setEnablingDeviceAlerts(false);
     }
   }
+
+  const appleInstallRequired = typeof navigator !== 'undefined'
+    && /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    && !runsAsInstalledPwa();
 
   return (
     <div className="admin-notification-center">
@@ -195,10 +198,17 @@ export function AdminNotificationCenter({
               disabled={enablingDeviceAlerts}
             >
               <Icon name="bell" size={17} />
-              <span><strong>{enablingDeviceAlerts ? 'Activation…' : 'Activer sur ce téléphone'}</strong><small>Recevoir aussi une alerte système pendant l’utilisation.</small></span>
+              <span><strong>{enablingDeviceAlerts ? 'Activation…' : 'Activer sur ce téléphone'}</strong><small>Recevoir les alertes même PWA fermée ou écran verrouillé.</small></span>
             </button>
           )}
 
+          {!pushIsSupported() && appleInstallRequired && (
+            <p className="admin-notification-info">Sur iPhone, ouvrez NCR Suite depuis l’icône ajoutée à l’écran d’accueil pour activer les alertes verrouillées.</p>
+          )}
+          {deviceAlertsEnabled && (
+            <p className="admin-notification-success"><Icon name="check" size={15} /> Alertes écran verrouillé actives sur cet appareil.</p>
+          )}
+          {deviceMessage && <p className="admin-notification-success">{deviceMessage}</p>}
           {error && <p className="admin-notification-error">{error}</p>}
           {loading ? (
             <div className="admin-notification-empty">Chargement…</div>

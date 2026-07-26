@@ -645,33 +645,34 @@ const premiumShowcaseMigration = read('supabase/migrations/089_premium_showcase_
 const signatureShowcaseMigration = read('supabase/migrations/090_signature_showcase_release.sql');
 const showcasePolishMigration = read('supabase/migrations/091_showcase_polish_release.sql');
 const portalAccessAlertsMigration = read('supabase/migrations/092_portal_access_support_alerts.sql');
+const platformAdminLockedPushMigration = read('supabase/migrations/093_platform_admin_locked_screen_push.sql');
 const publicOfferCatalog = read('src/config/publicOfferCatalog.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v240.css')
-    || !indexHtml.includes('/ncr-suite-app-v240.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v241.css')
+    || !indexHtml.includes('/ncr-suite-app-v241.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.24.0')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v240.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v240.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.24.1')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v241.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v241.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v240.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v241.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.24.0 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.24.1 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v240.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v240.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.24.0 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v241.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v241.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.24.1 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.24.0'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.24.0-portal-access-support-alerts")
-    || !serviceWorker.includes("ncr-suite-shell-v2.24.0-portal-access-support-alerts")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v240.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v240.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v240.js'")) {
-  errors.push('La version ou le cache PWA V2.24.0 est incoherent.');
+if (!runtimeConfig.includes("APP_VERSION = '2.24.1'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push")
+    || !serviceWorker.includes("ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v241.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v241.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v241.js'")) {
+  errors.push('La version ou le cache PWA V2.24.1 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.24.0 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.24.1 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -701,8 +702,16 @@ if (!premiumShowcaseMigration.includes("'2.23.0'")
     || !portalAccessAlertsMigration.includes('prepare_training_portal_manual_link')
     || !portalAccessAlertsMigration.includes('platform_admin_notifications')
     || !portalAccessAlertsMigration.includes('notify_platform_admin_training_module_request')
-    || !portalAccessAlertsMigration.includes('platform_release_state')) {
-  errors.push('La migration ou les acces V2.24.0 sont incomplets.');
+    || !portalAccessAlertsMigration.includes('platform_release_state')
+    || !platformAdminLockedPushMigration.includes("alter column organization_id drop not null")
+    || !platformAdminLockedPushMigration.includes("metadata->>'scope'='platform_admin'")
+    || !platformAdminLockedPushMigration.includes('platform-admin-push:')
+    || !platformAdminLockedPushMigration.includes('push_delivery_queue')
+    || !platformAdminLockedPushMigration.includes('queue_platform_admin_push_test')
+    || !platformAdminLockedPushMigration.includes("'2.24.1'")
+    || !platformAdminLockedPushMigration.includes('ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push')
+    || !platformAdminLockedPushMigration.includes('platform_release_state')) {
+  errors.push('La migration Push super-administrateur V2.24.1 est incomplete.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

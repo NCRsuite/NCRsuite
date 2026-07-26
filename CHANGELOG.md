@@ -1,5 +1,17 @@
 # Changelog NCR Suite
 
+## V2.24.1 — Notifications super-admin sur écran verrouillé
+
+- Acheminement des demandes super-administrateur dans la file Web Push serveur.
+- Réception possible lorsque la PWA est fermée ou le téléphone verrouillé.
+- Ouverture directe de la rubrique concernée depuis la notification.
+- Marquage automatique comme lu après ouverture.
+- Test Push programmé lors de l’activation du téléphone super-admin.
+- Indication spécifique pour l’installation de la PWA sur iPhone.
+- Isolation des erreurs Push afin qu’une demande client ne soit jamais bloquée.
+- Migration `093` et cache PWA `ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push`.
+- Nouveau bundle autonome `ncr-suite-app-v241.js`.
+
 ## V2.24.0 — Accès portails et alertes super-administrateur
 
 - Génération sécurisée d’un lien manuel pour les invitations Formation.

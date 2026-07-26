@@ -70,6 +70,11 @@ const emptyMetrics: AdminMetrics = {
 };
 
 const planValues: Plan[] = ['decouverte', 'essentielle', 'professionnelle', 'metier'];
+const platformAdminSections = [
+  'cockpit','access','overview','support','activity','diagnostics',
+  'monitoring','trainingSav','catalogue','billing','metier','push'
+] as const;
+type PlatformAdminSection = typeof platformAdminSections[number];
 
 const planLabels: Record<Plan, string> = {
   decouverte: 'Découverte',
@@ -136,8 +141,15 @@ function statusClass(value: string) {
   return '';
 }
 
+function initialPlatformAdminSection(): PlatformAdminSection {
+  const requested = new URLSearchParams(window.location.search).get('section');
+  return platformAdminSections.includes(requested as PlatformAdminSection)
+    ? requested as PlatformAdminSection
+    : 'cockpit';
+}
+
 export function PlatformAdminPage() {
-  const [activeSection, setActiveSection] = useState<'cockpit' | 'access' | 'overview' | 'support' | 'activity' | 'diagnostics' | 'monitoring' | 'trainingSav' | 'catalogue' | 'billing' | 'metier' | 'push'>('cockpit');
+  const [activeSection, setActiveSection] = useState<PlatformAdminSection>(initialPlatformAdminSection);
   const { user, signOut } = useAuth();
   const { profile, canManage } = usePlatformAdmin();
   const [metrics, setMetrics] = useState<AdminMetrics>(emptyMetrics);
@@ -166,6 +178,22 @@ export function PlatformAdminPage() {
   const [editPeriodEnd, setEditPeriodEnd] = useState('');
   const [editCancelAtPeriodEnd, setEditCancelAtPeriodEnd] = useState(false);
   const [editNotes, setEditNotes] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const notificationId = params.get('notification');
+    if (!notificationId || !supabase) return;
+
+    void (async () => {
+      try {
+        await supabase.rpc('mark_platform_admin_notifications_read', {
+          p_notification_id: notificationId
+        });
+      } finally {
+        window.history.replaceState({}, '', '/administration-ncr');
+      }
+    })();
+  }, []);
 
   function populateEditor(org: AdminOrganization) {
     setSelected(org);
