@@ -646,33 +646,37 @@ const signatureShowcaseMigration = read('supabase/migrations/090_signature_showc
 const showcasePolishMigration = read('supabase/migrations/091_showcase_polish_release.sql');
 const portalAccessAlertsMigration = read('supabase/migrations/092_portal_access_support_alerts.sql');
 const platformAdminLockedPushMigration = read('supabase/migrations/093_platform_admin_locked_screen_push.sql');
+const stripeBillingMigration = read('supabase/migrations/094_stripe_subscription_billing.sql');
+const stripeCheckoutFunction = read('supabase/functions/create-stripe-checkout/index.ts');
+const stripePortalFunction = read('supabase/functions/create-stripe-portal/index.ts');
+const stripeWebhookFunction = read('supabase/functions/stripe-webhook/index.ts');
 const publicOfferCatalog = read('src/config/publicOfferCatalog.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v241.css')
-    || !indexHtml.includes('/ncr-suite-app-v241.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v250.css')
+    || !indexHtml.includes('/ncr-suite-app-v250.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.24.1')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v241.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v241.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.25.0')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v250.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v250.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v241.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v250.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.24.1 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.25.0 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v241.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v241.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.24.1 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v250.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v250.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.25.0 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.24.1'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push")
-    || !serviceWorker.includes("ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v241.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v241.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v241.js'")) {
-  errors.push('La version ou le cache PWA V2.24.1 est incoherent.');
+if (!runtimeConfig.includes("APP_VERSION = '2.25.0'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.25.0-stripe-billing")
+    || !serviceWorker.includes("ncr-suite-shell-v2.25.0-stripe-billing")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v250.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v250.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v250.js'")) {
+  errors.push('La version ou le cache PWA V2.25.0 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.24.1 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.25.0 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -712,6 +716,31 @@ if (!premiumShowcaseMigration.includes("'2.23.0'")
     || !platformAdminLockedPushMigration.includes('ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push')
     || !platformAdminLockedPushMigration.includes('platform_release_state')) {
   errors.push('La migration Push super-administrateur V2.24.1 est incomplete.');
+}
+if (!stripeBillingMigration.includes('create table if not exists public.stripe_price_catalog')
+    || !stripeBillingMigration.includes('stripe_customer_id')
+    || !stripeBillingMigration.includes('stripe_subscription_id')
+    || !stripeBillingMigration.includes('claim_stripe_webhook_event')
+    || !stripeBillingMigration.includes('apply_stripe_billing_event')
+    || !stripeBillingMigration.includes("'2.25.0'")
+    || !stripeBillingMigration.includes('ncr-suite-shell-v2.25.0-stripe-billing')
+    || !stripeCheckoutFunction.includes("mode: 'subscription'")
+    || !stripeCheckoutFunction.includes('stripe_price_catalog')
+    || !stripeCheckoutFunction.includes('subscription_data')
+    || !stripePortalFunction.includes('billingPortal.sessions.create')
+    || !stripeWebhookFunction.includes('constructEventAsync')
+    || !stripeWebhookFunction.includes('await request.text()')
+    || !stripeWebhookFunction.includes('checkout.session.completed')
+    || !stripeWebhookFunction.includes('invoice.payment_failed')
+    || !stripeWebhookFunction.includes('customer.subscription.deleted')
+    || !subscriptionPage.includes("functions.invoke('create-stripe-checkout'")
+    || !subscriptionPage.includes("functions.invoke('create-stripe-portal'")) {
+  errors.push('La facturation Stripe multi-metiers V2.25.0 est incomplete.');
+}
+if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
+  source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')
+)) {
+  errors.push('Un secret Stripe ne doit jamais etre present dans le frontend.');
 }
 
 const sqlFiles = walk(path.join(root, 'supabase', 'migrations'), '.sql');

@@ -24,3 +24,12 @@ verify_jwt = true
 
 [functions.request-account-recovery]
 verify_jwt = false
+
+[functions.create-stripe-checkout]
+verify_jwt = true
+
+[functions.create-stripe-portal]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false

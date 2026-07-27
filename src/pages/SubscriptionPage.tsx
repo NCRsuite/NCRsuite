@@ -115,7 +115,13 @@ const historyLabels: Record<string, string> = {
   request_rejected: 'Demande refusée',
   request_approved: 'Demande validée',
   plan_changed: 'Formule modifiée',
-  organization_status_changed: 'Statut de l’entreprise modifié'
+  organization_status_changed: 'Statut de l’entreprise modifié',
+  stripe_checkout_created: 'Paiement Stripe préparé',
+  stripe_checkout_completed: 'Souscription Stripe confirmée',
+  stripe_invoice_paid: 'Paiement Stripe reçu',
+  stripe_invoice_payment_failed: 'Paiement Stripe à régulariser',
+  stripe_subscription_updated: 'Abonnement Stripe actualisé',
+  stripe_subscription_deleted: 'Abonnement Stripe résilié'
 };
 
 function money(cents: number) {
@@ -134,9 +140,23 @@ function formatBytes(bytes: number) {
 }
 
 function requestStatusLabel(request: OpenRequest) {
+  if (request.status === 'payment_pending' && request.provider === 'stripe') return 'Paiement Stripe en attente';
   if (request.status === 'payment_pending') return 'Paiement Qonto en attente de validation';
   if (request.request_type === 'metier') return 'Étude de la demande Métier';
   return 'Validation NCR en attente';
+}
+
+async function functionErrorMessage(error: unknown, fallback: string) {
+  const context = (error as { context?: Response } | null)?.context;
+  if (context) {
+    try {
+      const body = await context.clone().json() as { error?: unknown };
+      if (typeof body.error === 'string' && body.error.trim()) return body.error;
+    } catch {
+      // Le message standard Supabase reste disponible ci-dessous.
+    }
+  }
+  return error instanceof Error && error.message ? error.message : fallback;
 }
 
 export function SubscriptionPage() {
@@ -148,6 +168,7 @@ export function SubscriptionPage() {
   const [portfolio, setPortfolio] = useState<SubscriptionPortfolioItem[]>([]);
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [openingPortal, setOpeningPortal] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -193,6 +214,22 @@ export function SubscriptionPage() {
   }, [organization?.id]);
 
   useEffect(() => {
+    const stripeResult = new URLSearchParams(location.search).get('stripe');
+    if (stripeResult === 'success') {
+      setMessage('Paiement Stripe confirmé. L’abonnement se synchronise automatiquement.');
+      const firstRefresh = window.setTimeout(() => void load(), 1200);
+      const secondRefresh = window.setTimeout(() => void load(), 4200);
+      return () => {
+        window.clearTimeout(firstRefresh);
+        window.clearTimeout(secondRefresh);
+      };
+    }
+    if (stripeResult === 'cancel') {
+      setMessage('Paiement interrompu. La demande reste disponible si tu souhaites la reprendre.');
+    }
+  }, [location.search, organization?.id]);
+
+  useEffect(() => {
     if (loading || !data || location.hash !== '#training-modules') return;
     const timer = window.setTimeout(() => {
       document.getElementById('training-modules')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -219,6 +256,28 @@ export function SubscriptionPage() {
     setPendingPlan(plan.plan_key);
     setError('');
     setMessage('');
+
+    if (plan.provider === 'stripe' && plan.checkout_active) {
+      const { data: response, error: requestError } = await supabase.functions.invoke('create-stripe-checkout', {
+        body: {
+          organizationId: organization.id,
+          planKey: plan.plan_key,
+          acceptTerms: true
+        }
+      });
+      setPendingPlan(null);
+      if (requestError || !response?.url) {
+        setError(await functionErrorMessage(requestError, 'Le paiement Stripe ne peut pas être ouvert.'));
+        await load();
+        return;
+      }
+      setMessage(response.destination === 'portal'
+        ? `Demande ${response.reference ?? ''} enregistrée. Ouverture de la confirmation Stripe…`
+        : `Demande ${response.reference ?? ''} enregistrée. Ouverture du paiement sécurisé Stripe…`);
+      window.location.assign(String(response.url));
+      return;
+    }
+
     const { data: response, error: requestError } = await supabase.rpc('request_subscription_change', {
       p_organization_id: organization.id,
       p_requested_plan: plan.plan_key,
@@ -244,6 +303,40 @@ export function SubscriptionPage() {
     }
   }
 
+  async function resumeStripeCheckout(request: OpenRequest) {
+    if (!organization || !supabase || !canManage) return;
+    setPendingPlan(request.requested_plan);
+    setError('');
+    setMessage('');
+    const { data: response, error: requestError } = await supabase.functions.invoke('create-stripe-checkout', {
+      body: {
+        organizationId: organization.id,
+        requestId: request.id
+      }
+    });
+    setPendingPlan(null);
+    if (requestError || !response?.url) {
+      setError(await functionErrorMessage(requestError, 'Le paiement Stripe ne peut pas être repris.'));
+      return;
+    }
+    window.location.assign(String(response.url));
+  }
+
+  async function openStripePortal() {
+    if (!organization || !supabase || !canManage) return;
+    setOpeningPortal(true);
+    setError('');
+    const { data: response, error: requestError } = await supabase.functions.invoke('create-stripe-portal', {
+      body: { organizationId: organization.id }
+    });
+    setOpeningPortal(false);
+    if (requestError || !response?.url) {
+      setError(await functionErrorMessage(requestError, 'Le portail client Stripe ne peut pas être ouvert.'));
+      return;
+    }
+    window.location.assign(String(response.url));
+  }
+
   async function cancelOpenRequest() {
     if (!organization || !data?.open_request || !supabase || !canManage) return;
     setError('');
@@ -264,6 +357,9 @@ export function SubscriptionPage() {
 
   if (!organization) return null;
 
+  const usesStripe = data?.subscription.provider === 'stripe'
+    || Boolean(data?.plans.some((plan) => plan.provider === 'stripe' && plan.checkout_active));
+
   return (
     <div className="page subscription-page">
       <header className="page-header subscription-header">
@@ -272,7 +368,7 @@ export function SubscriptionPage() {
           <h1>Ma formule NCR Suite</h1>
           <p>Consulte ton utilisation et compare les offres adaptées à ton domaine{data?.business_type_label ? ` ${data.business_type_label}` : ''}.</p>
         </div>
-        <span className="subscription-provider-badge"><Icon name="creditCard" size={18} /> Paiement par Qonto</span>
+        <span className="subscription-provider-badge"><Icon name="creditCard" size={18} /> {usesStripe ? 'Paiement sécurisé Stripe' : 'Paiement par Qonto'}</span>
       </header>
 
       {error && <div className="error-message page-message" role="alert">{error}</div>}
@@ -325,8 +421,15 @@ export function SubscriptionPage() {
               <div className="subscription-dates">
                 {data.subscription.subscription_status === 'trialing' && <span>Fin de l’essai <strong>{dateLabel(data.subscription.trial_ends_at)}</strong></span>}
                 {data.subscription.current_period_end && <span>Prochaine échéance <strong>{dateLabel(data.subscription.current_period_end)}</strong></span>}
-                <span>Mode de paiement <strong>{data.subscription.provider === 'qonto' ? 'Qonto' : data.subscription.provider === 'stripe' ? 'Stripe (préparé)' : 'Gestion manuelle'}</strong></span>
+                <span>Mode de paiement <strong>{data.subscription.provider === 'qonto' ? 'Qonto' : data.subscription.provider === 'stripe' ? 'Stripe' : 'Gestion manuelle'}</strong></span>
               </div>
+              {data.subscription.provider === 'stripe' && canManage && (
+                <div className="subscription-current-actions">
+                  <button type="button" className="secondary-button" onClick={() => void openStripePortal()} disabled={openingPortal}>
+                    <Icon name="creditCard" size={17} /> {openingPortal ? 'Ouverture…' : 'Gérer mes paiements'}
+                  </button>
+                </div>
+              )}
             </article>
 
             <article className="panel subscription-usage-card">
@@ -353,7 +456,12 @@ export function SubscriptionPage() {
                 <p>{requestStatusLabel(data.open_request)}. La formule ne change qu’après validation par NCR Solutions.</p>
               </div>
               <div className="subscription-request-actions">
-                {data.open_request.checkout_url_snapshot && <a className="primary-button" href={data.open_request.checkout_url_snapshot}>Reprendre le paiement</a>}
+                {data.open_request.provider === 'stripe' && canManage && (
+                  <button className="primary-button" type="button" onClick={() => void resumeStripeCheckout(data.open_request as OpenRequest)} disabled={pendingPlan !== null}>
+                    {pendingPlan ? 'Préparation…' : 'Reprendre sur Stripe'}
+                  </button>
+                )}
+                {data.open_request.provider !== 'stripe' && data.open_request.checkout_url_snapshot && <a className="primary-button" href={data.open_request.checkout_url_snapshot}>Reprendre le paiement</a>}
                 {canManage && <button className="secondary-button" type="button" onClick={cancelOpenRequest}>Annuler la demande</button>}
               </div>
             </section>
@@ -364,7 +472,7 @@ export function SubscriptionPage() {
 
           <section id="subscription-plans" className="subscription-plans-section">
             <div className="section-heading-row">
-              <div><p className="eyebrow">FORMULES</p><h2>Choisir le niveau adapté</h2><p>Le paiement Qonto déclenche une demande ; l’activation est validée depuis l’administration NCR.</p></div>
+              <div><p className="eyebrow">FORMULES</p><h2>Choisir le niveau adapté</h2><p>{usesStripe ? 'Le paiement Stripe active et synchronise automatiquement l’abonnement.' : 'Le paiement Qonto déclenche une demande ; l’activation est validée depuis l’administration NCR.'}</p></div>
             </div>
 
             <div className="subscription-plan-grid">
@@ -401,7 +509,7 @@ export function SubscriptionPage() {
                       disabled={currentIsPaid || !canManage || Boolean(data.open_request) || pendingPlan !== null}
                       onClick={() => requestPlan(plan)}
                     >
-                      {pendingPlan === plan.plan_key ? 'Création de la demande…' : currentIsPaid ? 'Formule active' : current ? 'Conserver cette formule' : isMetier ? 'Demander une étude' : plan.checkout_active ? 'Choisir avec Qonto' : 'Envoyer une demande'}
+                      {pendingPlan === plan.plan_key ? 'Création de la demande…' : currentIsPaid ? 'Formule active' : current ? 'Conserver cette formule' : plan.provider === 'stripe' && plan.checkout_active ? 'Souscrire avec Stripe' : isMetier ? 'Demander une étude' : plan.checkout_active ? 'Choisir avec Qonto' : 'Envoyer une demande'}
                     </button>
                   </article>
                 );

@@ -1,5 +1,20 @@
 # Changelog NCR Suite
 
+## V2.25.0 — Facturation Stripe multi-métiers
+
+- Checkout Stripe mensuel créé à la demande depuis la page Abonnement.
+- Trois premiers Price Stripe configurés pour les offres Formation.
+- Catalogue extensible à tous les métiers sans nouveau développement backend.
+- Création et conservation des identifiants client et abonnement Stripe dans Supabase.
+- Portail client Stripe accessible aux propriétaires et administrateurs.
+- Webhook signé et idempotent pour les souscriptions, paiements, échecs et résiliations.
+- Synchronisation automatique du plan, du statut, des périodes et des demandes.
+- Notification super-administrateur lors des principaux événements de paiement.
+- Secrets Stripe confinés aux Supabase Edge Functions.
+- Trois Edge Functions autonomes, déployables directement depuis le tableau de bord Supabase.
+- Migration `094` et cache PWA `ncr-suite-shell-v2.25.0-stripe-billing`.
+- Nouveau bundle autonome `ncr-suite-app-v250.js`.
+
 ## V2.24.1 — Notifications super-admin sur écran verrouillé
 
 - Acheminement des demandes super-administrateur dans la file Web Push serveur.

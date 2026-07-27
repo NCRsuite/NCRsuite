@@ -16,7 +16,8 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-platform-admin-locked-screen-push`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-stripe-billing`;
+const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
 const portalAccessAlertsCache = 'ncr-suite-shell-v2.24.0-portal-access-support-alerts';
 const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
@@ -28,10 +29,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.24.1') failures.push('package.json doit annoncer la V2.24.1.');
+if (pkg.version !== '2.25.0') failures.push('package.json doit annoncer la V2.25.0.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.24.1 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.24.1 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.25.0 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.25.0 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -145,8 +146,39 @@ requireText('supabase/migrations/093_platform_admin_locked_screen_push.sql', [
   'push_delivery_queue',
   'queue_platform_admin_push_test',
   "'2.24.1'",
+  platformAdminLockedPushCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/094_stripe_subscription_billing.sql', [
+  'create table if not exists public.stripe_price_catalog',
+  'create table if not exists public.stripe_webhook_events',
+  'stripe_customer_id',
+  'stripe_subscription_id',
+  'claim_stripe_webhook_event',
+  'complete_stripe_webhook_event',
+  'apply_stripe_billing_event',
+  "'2.25.0'",
   expectedCache,
   'platform_release_state'
+]);
+requireText('supabase/functions/create-stripe-checkout/index.ts', [
+  "mode: 'subscription'",
+  'stripe_price_catalog',
+  'subscription_data',
+  'success_url',
+  'cancel_url'
+]);
+requireText('supabase/functions/create-stripe-portal/index.ts', [
+  'billingPortal.sessions.create'
+]);
+requireText('supabase/functions/stripe-webhook/index.ts', [
+  'constructEventAsync',
+  'await request.text()',
+  'checkout.session.completed',
+  'invoice.paid',
+  'invoice.payment_failed',
+  'customer.subscription.updated',
+  'customer.subscription.deleted'
 ]);
 
 requireText('src/pages/PublicHomePage.tsx', [
@@ -186,36 +218,36 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v241.css',
-  'ncr-suite-app-v241.css',
+  'ncr-suite-showcase-v250.css',
+  'ncr-suite-app-v250.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
 
 requireText('index.html', [
-  '/ncr-suite-showcase-v241.css',
-  '/ncr-suite-app-v241.css',
+  '/ncr-suite-showcase-v250.css',
+  '/ncr-suite-app-v250.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.24.1',
+  'ncr:css-recovery-v2.25.0',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v241.css',
-  '/ncr-suite-app-v241.css'
+  '/ncr-suite-showcase-v250.css',
+  '/ncr-suite-app-v250.css'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v241.css'))) {
-  failures.push('La feuille de style critique V2.24.1 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v250.css'))) {
+  failures.push('La feuille de style critique V2.25.0 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v241.css'))) {
-  failures.push('La feuille de style complète V2.24.1 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v250.css'))) {
+  failures.push('La feuille de style complète V2.25.0 n’a pas été générée.');
 }
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v241.js'"
+  "entryFileNames: 'ncr-suite-app-v250.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');

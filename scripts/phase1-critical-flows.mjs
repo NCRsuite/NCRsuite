@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-platform-admin-locked-screen-push`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-stripe-billing`;
+const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
 const portalAccessAlertsCache = 'ncr-suite-shell-v2.24.0-portal-access-support-alerts';
 const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
 const commercialLaunchCache = 'ncr-suite-shell-v2.22.0-commercial-launch';
@@ -58,18 +59,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v241.css',
-  '/ncr-suite-app-v241.css',
+  '/ncr-suite-showcase-v250.css',
+  '/ncr-suite-app-v250.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.24.1'
+  'ncr:css-recovery-v2.25.0'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v241.css',
+  '/ncr-suite-app-v250.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v241.js'"
+  "entryFileNames: 'ncr-suite-app-v250.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -808,7 +809,38 @@ requireText('supabase/migrations/093_platform_admin_locked_screen_push.sql', [
   'push_delivery_queue',
   'queue_platform_admin_push_test',
   "'2.24.1'",
+  platformAdminLockedPushCache
+]);
+requireText('supabase/migrations/094_stripe_subscription_billing.sql', [
+  'create table if not exists public.stripe_price_catalog',
+  'stripe_customer_id',
+  'stripe_subscription_id',
+  'claim_stripe_webhook_event',
+  'apply_stripe_billing_event',
+  "'2.25.0'",
   expectedCache
+]);
+requireText('supabase/functions/create-stripe-checkout/index.ts', [
+  "mode: 'subscription'",
+  'stripe_price_catalog',
+  'subscription_data'
+]);
+requireText('supabase/functions/create-stripe-portal/index.ts', [
+  'billingPortal.sessions.create'
+]);
+requireText('supabase/functions/stripe-webhook/index.ts', [
+  'constructEventAsync',
+  'await request.text()',
+  'checkout.session.completed',
+  'invoice.paid',
+  'invoice.payment_failed',
+  'customer.subscription.updated',
+  'customer.subscription.deleted'
+]);
+requireText('src/pages/SubscriptionPage.tsx', [
+  "functions.invoke('create-stripe-checkout'",
+  "functions.invoke('create-stripe-portal'",
+  'Souscrire avec Stripe'
 ]);
 requireText('src/config/publicOfferCatalog.ts', [
   "key: 'formation'",
