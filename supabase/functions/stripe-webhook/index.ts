@@ -91,8 +91,8 @@ Deno.serve(async (request) => {
     if (!signature) return new Response('Stripe signature missing', { status: 400 });
 
     const rawBody = await request.text();
-    const stripe = stripeClient(config.stripeSecretKey);
-    event = await stripe.webhooks.constructEventAsync(
+    const signatureStripe = stripeClient(config.stripeSecretKey);
+    event = await signatureStripe.webhooks.constructEventAsync(
       rawBody,
       signature,
       webhookSecret,

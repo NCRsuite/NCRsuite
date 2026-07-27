@@ -12,6 +12,7 @@
 - Notification super-administrateur lors des principaux événements de paiement.
 - Secrets Stripe confinés aux Supabase Edge Functions.
 - Trois Edge Functions autonomes, déployables directement depuis le tableau de bord Supabase.
+- Correction du démarrage autonome du worker `stripe-webhook`.
 - Migration `094` et cache PWA `ncr-suite-shell-v2.25.0-stripe-billing`.
 - Nouveau bundle autonome `ncr-suite-app-v250.js`.
 
