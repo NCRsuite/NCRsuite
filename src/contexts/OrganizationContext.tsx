@@ -202,7 +202,8 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         return;
       }
 
-      const { data, error } = await supabase
+      const client = supabase;
+      const { data, error } = await client
         .from('organization_members')
         .select(`role,custom_role_id,organizations(${ORGANIZATION_FIELDS})`)
         .eq('user_id', user.id)
@@ -217,8 +218,24 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       const membershipRows = (data ?? [])
         .map((row: any) => ({ ...row.organizations, role: row.role, custom_role_id: row.custom_role_id } as Organization))
         .filter((row: Organization) => Boolean(row.id));
-      const organizationIds = membershipRows.map((row) => row.id);
-      const customRoleIds = membershipRows.map((row) => row.custom_role_id).filter(Boolean) as string[];
+      const billingStates = await Promise.all(membershipRows.map(async (row) => {
+        const { data: state, error: stateError } = await client.rpc('organization_billing_access_state', {
+          p_organization_id: row.id
+        });
+        if (stateError) {
+          console.error('Impossible de vérifier l’accès de facturation.', stateError);
+          return [row.id, null] as const;
+        }
+        return [row.id, state as Record<string, unknown>] as const;
+      }));
+      const billingStateMap = new Map(billingStates);
+      const organizationIds = membershipRows
+        .filter((row) => billingStateMap.get(row.id)?.access_allowed !== false)
+        .map((row) => row.id);
+      const customRoleIds = membershipRows
+        .filter((row) => billingStateMap.get(row.id)?.access_allowed !== false)
+        .map((row) => row.custom_role_id)
+        .filter(Boolean) as string[];
 
       const moduleMap = new Map<string, string[]>();
       if (organizationIds.length > 0) {
@@ -250,11 +267,22 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
       const rows = membershipRows.map((row) => {
         const customRole = row.custom_role_id ? customRoleMap.get(row.custom_role_id) : undefined;
+        const billingState = billingStateMap.get(row.id);
+        const accessAllowed = billingState?.access_allowed !== false;
         return {
           ...row,
+          status: accessAllowed ? row.status : 'suspended',
           enabled_modules: moduleMap.get(row.id) ?? [],
           custom_role_label: customRole?.label ?? null,
-          custom_module_keys: customRole?.module_keys ?? []
+          custom_module_keys: customRole?.module_keys ?? [],
+          subscription_status: billingState?.subscription_status ?? null,
+          billing_access_allowed: accessAllowed,
+          billing_access_reason: billingState?.reason ?? null,
+          billing_grace_period_ends_at: billingState?.grace_period_ends_at ?? null,
+          scheduled_plan_key: billingState?.scheduled_plan_key ?? null,
+          scheduled_change_at: billingState?.scheduled_change_at ?? null,
+          cancel_at_period_end: billingState?.cancel_at_period_end === true,
+          billing_data_retained: billingState?.data_retained !== false
         } as Organization;
       });
 
@@ -395,7 +423,7 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     },
     async createOrganization({ name, businessType, primaryColor, requestedPlan, contactName, companyEmail, companyPhone, companyAddress, companyPostalCode, companyCity, companySiret, objective }) {
       const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 7)}`;
-      const plan: Plan = 'decouverte';
+      const plan: Plan = requestedPlan;
 
       if (demoMode || !supabase) {
         const org: Organization = {
@@ -430,7 +458,8 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         p_name: name,
         p_slug: slug,
         p_business_type: businessType,
-        p_primary_color: primaryColor
+        p_primary_color: primaryColor,
+        p_requested_plan: requestedPlan
       });
       if (error) throw error;
 

@@ -5,8 +5,9 @@ import { PageMetadata } from '../components/PageMetadata';
 import { PublicSiteFooter } from '../components/PublicSiteFooter';
 import { PublicSiteHeader } from '../components/PublicSiteHeader';
 import { availableBusinessTypeOptions } from '../config/businessPacks';
+import { getDomainPlans } from '../config/domainPlans';
 import { supabase } from '../lib/supabase';
-import type { BusinessType } from '../types';
+import type { BusinessType, Plan } from '../types';
 
 type TurnstileApi = {
   render: (container: HTMLElement, options: Record<string, unknown>) => string;
@@ -15,6 +16,7 @@ type TurnstileApi = {
 };
 
 const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
+const planOrder: Plan[] = ['decouverte', 'essentielle', 'professionnelle', 'metier'];
 
 export function AccessRequestPage() {
   const [fullName, setFullName] = useState('');
@@ -22,6 +24,7 @@ export function AccessRequestPage() {
   const [phone, setPhone] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [businessType, setBusinessType] = useState<BusinessType>('formation');
+  const [requestedPlan, setRequestedPlan] = useState<Plan>('essentielle');
   const [teamSize, setTeamSize] = useState('1-5');
   const [message, setMessage] = useState('');
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
@@ -95,6 +98,7 @@ export function AccessRequestPage() {
         phone,
         companyName,
         businessType,
+        requestedPlan,
         teamSize,
         message,
         privacyAccepted,
@@ -124,7 +128,7 @@ export function AccessRequestPage() {
           <span><Icon name="check" size={32} /></span>
           <p className="public-section-label">DEMANDE TRANSMISE</p>
           <h1>Merci, votre demande va être étudiée.</h1>
-          <p>Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte. Vous recevrez ensuite un e-mail envoyé par <strong>contact@ncr-suite.fr</strong>.</p>
+          <p>Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte. Après l’invitation, votre espace sera activé par le paiement Stripe de la formule choisie. Vous recevrez l’e-mail depuis <strong>contact@ncr-suite.fr</strong>.</p>
           <div><small>Référence de suivi</small><strong>{reference}</strong></div>
           <Link className="public-primary-action" to="/">Retourner à l’accueil</Link>
         </main>
@@ -169,6 +173,14 @@ export function AccessRequestPage() {
                 {availableBusinessTypeOptions.map((business) => <option key={business.id} value={business.id}>{business.label}</option>)}
               </select>
             </label>
+            <label>Formule souhaitée *
+              <select value={requestedPlan} onChange={(event) => setRequestedPlan(event.target.value as Plan)}>
+                {planOrder.map((planKey) => {
+                  const plan = getDomainPlans(businessType)[planKey];
+                  return <option key={planKey} value={planKey}>{plan.label} · {(plan.monthlyPriceCents / 100).toLocaleString('fr-FR')} € HT/mois</option>;
+                })}
+              </select>
+            </label>
             <label>Taille de l’équipe
               <select value={teamSize} onChange={(event) => setTeamSize(event.target.value)}>
                 <option value="1">Moi uniquement</option>
@@ -190,7 +202,7 @@ export function AccessRequestPage() {
           <button className="public-primary-action full" disabled={pending}>
             {pending ? 'Envoi de la demande…' : 'Transmettre ma demande'} <Icon name="chevronRight" size={17} />
           </button>
-          <small className="public-form-note">Aucun paiement et aucune création de compte ne sont réalisés à cette étape.</small>
+          <small className="public-form-note">Aucun paiement n’est réalisé à cette étape. Après validation, Stripe activera l’espace uniquement lorsque la souscription sera confirmée.</small>
         </form>
       </main>
       <PublicSiteFooter />

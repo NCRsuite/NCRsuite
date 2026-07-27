@@ -647,36 +647,38 @@ const showcasePolishMigration = read('supabase/migrations/091_showcase_polish_re
 const portalAccessAlertsMigration = read('supabase/migrations/092_portal_access_support_alerts.sql');
 const platformAdminLockedPushMigration = read('supabase/migrations/093_platform_admin_locked_screen_push.sql');
 const stripeBillingMigration = read('supabase/migrations/094_stripe_subscription_billing.sql');
+const stripeLifecycleMigration = read('supabase/migrations/095_stripe_catalog_lifecycle_paid_activation.sql');
 const stripeCheckoutFunction = read('supabase/functions/create-stripe-checkout/index.ts');
 const stripePortalFunction = read('supabase/functions/create-stripe-portal/index.ts');
 const stripeWebhookFunction = read('supabase/functions/stripe-webhook/index.ts');
+const stripeAddonFunction = read('supabase/functions/manage-stripe-addon/index.ts');
 const publicOfferCatalog = read('src/config/publicOfferCatalog.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v250.css')
-    || !indexHtml.includes('/ncr-suite-app-v250.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v260.css')
+    || !indexHtml.includes('/ncr-suite-app-v260.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.25.0')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v250.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v250.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.26.0')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v260.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v260.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v250.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v260.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.25.0 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.26.0 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v250.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v250.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.25.0 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v260.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v260.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.26.0 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.25.0'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.25.0-stripe-billing")
-    || !serviceWorker.includes("ncr-suite-shell-v2.25.0-stripe-billing")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v250.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v250.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v250.js'")) {
-  errors.push('La version ou le cache PWA V2.25.0 est incoherent.');
+if (!runtimeConfig.includes("APP_VERSION = '2.26.0'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.26.0-stripe-billing")
+    || !serviceWorker.includes("ncr-suite-shell-v2.26.0-stripe-billing")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v260.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v260.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v260.js'")) {
+  errors.push('La version ou le cache PWA V2.26.0 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.25.0 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.26.0 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -724,9 +726,22 @@ if (!stripeBillingMigration.includes('create table if not exists public.stripe_p
     || !stripeBillingMigration.includes('apply_stripe_billing_event')
     || !stripeBillingMigration.includes("'2.25.0'")
     || !stripeBillingMigration.includes('ncr-suite-shell-v2.25.0-stripe-billing')
+    || !stripeLifecycleMigration.includes('create table if not exists public.stripe_addon_price_catalog')
+    || !stripeLifecycleMigration.includes('create table if not exists public.subscription_data_retention_events')
+    || !stripeLifecycleMigration.includes("check (data_retention_mode='preserve')")
+    || !stripeLifecycleMigration.includes('organization_billing_access_allowed')
+    || !stripeLifecycleMigration.includes('record_stripe_scheduled_plan_change')
+    || !stripeLifecycleMigration.includes("'data_retained',true")
+    || !stripeLifecycleMigration.includes("'2.26.0'")
+    || !stripeLifecycleMigration.includes('ncr-suite-shell-v2.26.0-stripe-billing')
     || !stripeCheckoutFunction.includes("mode: 'subscription'")
     || !stripeCheckoutFunction.includes('stripe_price_catalog')
     || !stripeCheckoutFunction.includes('subscription_data')
+    || !stripeCheckoutFunction.includes('subscriptionSchedules')
+    || !stripeCheckoutFunction.includes("destination: 'scheduled'")
+    || !stripeAddonFunction.includes('subscriptionItems.create')
+    || !stripeAddonFunction.includes('subscriptionItems.del')
+    || !stripeAddonFunction.includes('complete_stripe_addon_removal')
     || !stripePortalFunction.includes('billingPortal.sessions.create')
     || !stripeWebhookFunction.includes('constructEventAsync')
     || !stripeWebhookFunction.includes('await request.text()')
@@ -734,8 +749,10 @@ if (!stripeBillingMigration.includes('create table if not exists public.stripe_p
     || !stripeWebhookFunction.includes('invoice.payment_failed')
     || !stripeWebhookFunction.includes('customer.subscription.deleted')
     || !subscriptionPage.includes("functions.invoke('create-stripe-checkout'")
-    || !subscriptionPage.includes("functions.invoke('create-stripe-portal'")) {
-  errors.push('La facturation Stripe multi-metiers V2.25.0 est incomplete.');
+    || !subscriptionPage.includes("functions.invoke('create-stripe-portal'")
+    || !subscriptionPage.includes('sans suppression des données')
+    || !subscriptionPage.includes('Vos données sont conservées')) {
+  errors.push('Le cycle Stripe et la conservation des donnees V2.26.0 sont incomplets.');
 }
 if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
   source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')

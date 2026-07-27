@@ -38,6 +38,14 @@ interface BillingSubscription {
   current_period_end: string | null;
   cancel_at_period_end: boolean;
   payment_confirmed_at: string | null;
+  scheduled_plan_key: Plan | null;
+  scheduled_change_at: string | null;
+  payment_failed_at: string | null;
+  grace_period_ends_at: string | null;
+  access_restricted_at: string | null;
+  data_retention_mode: 'preserve';
+  access_allowed: boolean;
+  data_retained: boolean;
 }
 
 interface BillingUsageItem {
@@ -53,6 +61,7 @@ interface BillingUsage {
   active_services: number;
   appointments_this_month: number;
   storage_bytes: number;
+  available?: boolean;
   usage_items?: BillingUsageItem[];
 }
 
@@ -66,6 +75,8 @@ interface OpenRequest {
   request_reference: string;
   checkout_url_snapshot: string | null;
   created_at: string;
+  effective_at: string | null;
+  stripe_schedule_id: string | null;
 }
 
 interface BillingHistoryItem {
@@ -85,6 +96,8 @@ interface BillingTerms {
 interface BillingPortalData {
   business_type?: BusinessType;
   business_type_label?: string;
+  access_allowed?: boolean;
+  data_retained?: boolean;
   subscription: BillingSubscription;
   usage: BillingUsage;
   plans: BillingPlan[];
@@ -160,7 +173,7 @@ async function functionErrorMessage(error: unknown, fallback: string) {
 }
 
 export function SubscriptionPage() {
-  const { organization, organizations, selectOrganization } = useOrganization();
+  const { organization, organizations, selectOrganization, refreshOrganizations } = useOrganization();
   const location = useLocation();
   const [data, setData] = useState<BillingPortalData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -252,55 +265,46 @@ export function SubscriptionPage() {
       setError('Coche l’acceptation des conditions avant de poursuivre.');
       return;
     }
+    if (plan.provider !== 'stripe' || !plan.checkout_active) {
+      setError('Le Price ID Stripe de cette formule doit être configuré par NCR Suite.');
+      return;
+    }
 
     setPendingPlan(plan.plan_key);
     setError('');
     setMessage('');
 
-    if (plan.provider === 'stripe' && plan.checkout_active) {
-      const { data: response, error: requestError } = await supabase.functions.invoke('create-stripe-checkout', {
-        body: {
-          organizationId: organization.id,
-          planKey: plan.plan_key,
-          acceptTerms: true
-        }
-      });
-      setPendingPlan(null);
-      if (requestError || !response?.url) {
-        setError(await functionErrorMessage(requestError, 'Le paiement Stripe ne peut pas être ouvert.'));
-        await load();
-        return;
+    const { data: response, error: requestError } = await supabase.functions.invoke('create-stripe-checkout', {
+      body: {
+        organizationId: organization.id,
+        planKey: plan.plan_key,
+        acceptTerms: true
       }
-      setMessage(response.destination === 'portal'
-        ? `Demande ${response.reference ?? ''} enregistrée. Ouverture de la confirmation Stripe…`
-        : `Demande ${response.reference ?? ''} enregistrée. Ouverture du paiement sécurisé Stripe…`);
-      window.location.assign(String(response.url));
-      return;
-    }
-
-    const { data: response, error: requestError } = await supabase.rpc('request_subscription_change', {
-      p_organization_id: organization.id,
-      p_requested_plan: plan.plan_key,
-      p_accept_terms: true
     });
     setPendingPlan(null);
-
     if (requestError) {
-      setError(requestError.message);
+      setError(await functionErrorMessage(requestError, 'Le paiement Stripe ne peut pas être ouvert.'));
+      await load();
       return;
     }
-
-    const result = response as { status: string; checkout_url: string | null; reference: string };
-    if (result.checkout_url) {
-      setMessage(`Demande ${result.reference} enregistrée. Redirection vers le paiement sécurisé Qonto…`);
-      window.setTimeout(() => window.location.assign(result.checkout_url as string), 850);
-    } else if (plan.plan_key === 'metier') {
-      setMessage(`Demande ${result.reference} transmise. NCR Solutions te recontactera pour cadrer l’offre Métier.`);
+    if (response?.destination === 'scheduled' && response?.effectiveAt) {
+      setMessage(
+        `Rétrogradation programmée au ${dateLabel(String(response.effectiveAt))}. `
+        + 'Les droits premium seront retirés à cette date, sans suppression des données existantes.'
+      );
+      refreshOrganizations();
       await Promise.all([load(), loadPortfolio()]);
-    } else {
-      setMessage(`Demande ${result.reference} transmise à NCR Solutions pour validation.`);
-      await Promise.all([load(), loadPortfolio()]);
+      return;
     }
+    if (!response?.url) {
+      setError('Stripe n’a pas retourné de destination de paiement.');
+      await load();
+      return;
+    }
+    setMessage(response.destination === 'portal'
+      ? `Demande ${response.reference ?? ''} enregistrée. Ouverture de la confirmation Stripe…`
+      : `Demande ${response.reference ?? ''} enregistrée. Ouverture du paiement sécurisé Stripe…`);
+    window.location.assign(String(response.url));
   }
 
   async function resumeStripeCheckout(request: OpenRequest) {
@@ -315,8 +319,21 @@ export function SubscriptionPage() {
       }
     });
     setPendingPlan(null);
-    if (requestError || !response?.url) {
+    if (requestError) {
       setError(await functionErrorMessage(requestError, 'Le paiement Stripe ne peut pas être repris.'));
+      return;
+    }
+    if (response?.destination === 'scheduled' && response?.effectiveAt) {
+      setMessage(
+        `Rétrogradation déjà programmée au ${dateLabel(String(response.effectiveAt))}. `
+        + 'Les données premium resteront conservées.'
+      );
+      refreshOrganizations();
+      await Promise.all([load(), loadPortfolio()]);
+      return;
+    }
+    if (!response?.url) {
+      setError('Stripe n’a pas retourné de destination de paiement.');
       return;
     }
     window.location.assign(String(response.url));
@@ -422,6 +439,7 @@ export function SubscriptionPage() {
                 {data.subscription.subscription_status === 'trialing' && <span>Fin de l’essai <strong>{dateLabel(data.subscription.trial_ends_at)}</strong></span>}
                 {data.subscription.current_period_end && <span>Prochaine échéance <strong>{dateLabel(data.subscription.current_period_end)}</strong></span>}
                 <span>Mode de paiement <strong>{data.subscription.provider === 'qonto' ? 'Qonto' : data.subscription.provider === 'stripe' ? 'Stripe' : 'Gestion manuelle'}</strong></span>
+                <span>Conservation des données <strong>Garantie</strong></span>
               </div>
               {data.subscription.provider === 'stripe' && canManage && (
                 <div className="subscription-current-actions">
@@ -447,22 +465,63 @@ export function SubscriptionPage() {
             </article>
           </section>
 
+          {data.subscription.subscription_status === 'past_due' && data.subscription.access_allowed && (
+            <section className="panel subscription-request-banner">
+              <span className="subscription-request-icon"><Icon name="alert" size={22} /></span>
+              <div>
+                <p className="eyebrow">PAIEMENT À RÉGULARISER</p>
+                <h2>Délai de grâce jusqu’au {dateLabel(data.subscription.grace_period_ends_at)}</h2>
+                <p>L’espace reste accessible jusque-là. Après cette date, les droits seront suspendus mais toutes les données resteront conservées.</p>
+              </div>
+              {canManage && <button className="primary-button" type="button" onClick={() => void openStripePortal()} disabled={openingPortal}>Régulariser sur Stripe</button>}
+            </section>
+          )}
+
+          {data.subscription.cancel_at_period_end && (
+            <section className="panel subscription-request-banner">
+              <span className="subscription-request-icon"><Icon name="clock" size={22} /></span>
+              <div>
+                <p className="eyebrow">RÉSILIATION PROGRAMMÉE</p>
+                <h2>Accès maintenu jusqu’au {dateLabel(data.subscription.current_period_end)}</h2>
+                <p>À l’échéance, les droits seront retirés. Les données resteront stockées et seront retrouvées après une réactivation.</p>
+              </div>
+              {canManage && <button className="secondary-button" type="button" onClick={() => void openStripePortal()} disabled={openingPortal}>Gérer sur Stripe</button>}
+            </section>
+          )}
+
+          {!data.subscription.access_allowed && (
+            <section className="panel subscription-request-banner">
+              <span className="subscription-request-icon"><Icon name="lock" size={22} /></span>
+              <div>
+                <p className="eyebrow">ACCÈS MÉTIER SUSPENDU</p>
+                <h2>Vos données sont conservées</h2>
+                <p>Aucun client, dossier, document ou historique n’a été supprimé. Régularisez ou réactivez l’offre pour retrouver les fonctions autorisées.</p>
+              </div>
+              {canManage && data.subscription.provider === 'stripe' && <button className="primary-button" type="button" onClick={() => void openStripePortal()} disabled={openingPortal}>Ouvrir Stripe</button>}
+            </section>
+          )}
+
           {data.open_request && (
             <section className="panel subscription-request-banner">
               <span className="subscription-request-icon"><Icon name="activity" size={22} /></span>
               <div>
                 <p className="eyebrow">DEMANDE EN COURS · {data.open_request.request_reference}</p>
                 <h2>{planLabel(data.open_request.current_plan)} → {planLabel(data.open_request.requested_plan)}</h2>
-                <p>{requestStatusLabel(data.open_request)}. La formule ne change qu’après validation par NCR Solutions.</p>
+                <p>
+                  {data.open_request.effective_at
+                    ? `Rétrogradation programmée au ${dateLabel(data.open_request.effective_at)}. Les droits premium changeront à cette date, sans suppression des données.`
+                    : `${requestStatusLabel(data.open_request)}. La formule change uniquement après confirmation Stripe.`}
+                </p>
               </div>
               <div className="subscription-request-actions">
-                {data.open_request.provider === 'stripe' && canManage && (
+                {data.open_request.provider === 'stripe' && !data.open_request.effective_at && canManage && (
                   <button className="primary-button" type="button" onClick={() => void resumeStripeCheckout(data.open_request as OpenRequest)} disabled={pendingPlan !== null}>
                     {pendingPlan ? 'Préparation…' : 'Reprendre sur Stripe'}
                   </button>
                 )}
                 {data.open_request.provider !== 'stripe' && data.open_request.checkout_url_snapshot && <a className="primary-button" href={data.open_request.checkout_url_snapshot}>Reprendre le paiement</a>}
-                {canManage && <button className="secondary-button" type="button" onClick={cancelOpenRequest}>Annuler la demande</button>}
+                {canManage && !data.open_request.effective_at && <button className="secondary-button" type="button" onClick={cancelOpenRequest}>Annuler la demande</button>}
+                {canManage && data.open_request.effective_at && <button className="secondary-button" type="button" onClick={() => void openStripePortal()} disabled={openingPortal}>Gérer sur Stripe</button>}
               </div>
             </section>
           )}
@@ -506,10 +565,10 @@ export function SubscriptionPage() {
                     <button
                       type="button"
                       className={current ? 'secondary-button full' : 'primary-button full'}
-                      disabled={currentIsPaid || !canManage || Boolean(data.open_request) || pendingPlan !== null}
+                      disabled={currentIsPaid || !canManage || !plan.checkout_active || Boolean(data.open_request) || pendingPlan !== null}
                       onClick={() => requestPlan(plan)}
                     >
-                      {pendingPlan === plan.plan_key ? 'Création de la demande…' : currentIsPaid ? 'Formule active' : current ? 'Conserver cette formule' : plan.provider === 'stripe' && plan.checkout_active ? 'Souscrire avec Stripe' : isMetier ? 'Demander une étude' : plan.checkout_active ? 'Choisir avec Qonto' : 'Envoyer une demande'}
+                      {pendingPlan === plan.plan_key ? 'Création de la demande…' : currentIsPaid ? 'Formule active' : !plan.checkout_active ? 'Tarif Stripe à configurer' : current ? 'Réactiver cette formule' : 'Choisir avec Stripe'}
                     </button>
                   </article>
                 );

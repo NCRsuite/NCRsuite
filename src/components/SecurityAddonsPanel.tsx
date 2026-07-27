@@ -114,24 +114,80 @@ export function SecurityAddonsPanel() {
     setBusy(item.addon_key);
     setError('');
     setMessage('');
-    const { data, error: requestError } = await supabase.rpc('request_security_addon_change', {
-      p_organization_id: organization.id,
-      p_addon_key: item.addon_key,
-      p_action: action,
-      p_accept_terms: true
-    });
-    setBusy('');
+    const stripeManaged = item.provider === 'stripe' && item.checkout_active;
+    const { data, error: requestError } = stripeManaged
+      ? await supabase.rpc('request_stripe_addon_change', {
+          p_organization_id: organization.id,
+          p_item_type: 'security_addon',
+          p_item_key: item.addon_key,
+          p_action: action,
+          p_accept_terms: true
+        })
+      : await supabase.rpc('request_security_addon_change', {
+          p_organization_id: organization.id,
+          p_addon_key: item.addon_key,
+          p_action: action,
+          p_accept_terms: true
+        });
     if (requestError) {
+      setBusy('');
       setError(requestError.message);
       return;
     }
-    const response = data as { status?: string; checkout_url?: string | null; reference?: string } | null;
+    const response = data as { id?: string; status?: string; provider?: string; checkout_url?: string | null; reference?: string } | null;
+    if (stripeManaged && response?.id) {
+      const { data: stripeResponse, error: stripeError } = await supabase.functions.invoke('manage-stripe-addon', {
+        body: {
+          organizationId: organization.id,
+          requestId: response.id,
+          itemType: 'security_addon'
+        }
+      });
+      setBusy('');
+      if (stripeError || stripeResponse?.error) {
+        setError(String(stripeResponse?.error || stripeError?.message || 'La modification Stripe n’a pas pu être terminée.'));
+        await load();
+        return;
+      }
+      setMessage(action === 'remove'
+        ? 'Le module est retiré de Stripe. Ses données restent conservées et redeviendront accessibles après réactivation.'
+        : stripeResponse?.status === 'active'
+          ? 'Le paiement Stripe est confirmé et le module est actif.'
+          : 'Le module sera activé dès la confirmation du paiement Stripe.');
+      await load();
+      refreshOrganizations();
+      if (stripeResponse?.paymentUrl) window.location.assign(String(stripeResponse.paymentUrl));
+      return;
+    }
+    setBusy('');
     setMessage(action === 'add'
       ? `Demande enregistrée${response?.reference ? ` · ${response.reference}` : ''}. Le module sera activé après validation.`
       : 'La demande de retrait a été transmise à NCR Solutions.');
     await load();
     refreshOrganizations();
     if (response?.checkout_url) window.location.assign(response.checkout_url);
+  }
+
+  async function resumeStripeRequest(request: SecurityAddonRequest) {
+    if (!organization || !supabase || !canManage) return;
+    setBusy(request.addon_key);
+    setError('');
+    const { data, error: stripeError } = await supabase.functions.invoke('manage-stripe-addon', {
+      body: {
+        organizationId: organization.id,
+        requestId: request.id,
+        itemType: 'security_addon'
+      }
+    });
+    setBusy('');
+    if (stripeError || data?.error) {
+      setError(String(data?.error || stripeError?.message || 'La demande Stripe n’a pas pu reprendre.'));
+      return;
+    }
+    await load();
+    refreshOrganizations();
+    if (data?.paymentUrl) window.location.assign(String(data.paymentUrl));
+    else setMessage(request.action === 'remove' ? 'Le retrait est confirmé et les données sont conservées.' : 'La synchronisation Stripe est terminée.');
   }
 
   async function cancelRequest(request: SecurityAddonRequest) {
@@ -220,7 +276,8 @@ export function SecurityAddonsPanel() {
                   <div className="security-addon-request">
                     <small>{requestStatusLabel(request)} · {request.request_reference}</small>
                     {request.checkout_url_snapshot && <a className="primary-button compact-button" href={request.checkout_url_snapshot}>Reprendre le paiement</a>}
-                    <button type="button" className="secondary-button compact-button" onClick={() => void cancelRequest(request)} disabled={!canManage || busy === item.addon_key}>Annuler</button>
+                    {request.provider === 'stripe' && <button type="button" className="primary-button compact-button" onClick={() => void resumeStripeRequest(request)} disabled={!canManage || busy === item.addon_key}>Reprendre avec Stripe</button>}
+                    {request.provider !== 'stripe' && <button type="button" className="secondary-button compact-button" onClick={() => void cancelRequest(request)} disabled={!canManage || busy === item.addon_key}>Annuler</button>}
                   </div>
                 ) : item.included_by_plan ? <div className="security-addon-included-note"><Icon name="check" size={15} /> Déjà compris dans la formule {planLabels[portal!.plan]}.</div>
                   : item.active ? <button type="button" className="secondary-button full danger" onClick={() => void requestChange(item, 'remove')} disabled={!canManage || !canRemove || busy === item.addon_key}>{dependents.length > 0 ? 'Désactiver les dépendances d’abord' : busy === item.addon_key ? 'Envoi…' : 'Demander le retrait'}</button>
@@ -233,7 +290,7 @@ export function SecurityAddonsPanel() {
 
       <label className="subscription-terms-check security-addon-terms">
         <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} disabled={!canManage} />
-        <span><strong>J’accepte les conditions d’abonnement pour les modules à la carte</strong><small>L’activation intervient après validation du paiement ou de la demande par NCR Solutions. Les opérations sont historisées.</small></span>
+        <span><strong>J’accepte les conditions d’abonnement pour les modules à la carte</strong><small>Stripe gère l’ajout et le retrait. Un retrait coupe le droit sans supprimer les données existantes.</small></span>
       </label>
       {!canManage && <div className="info-message">Seul le propriétaire ou un administrateur peut ajouter ou retirer des modules.</div>}
     </section>

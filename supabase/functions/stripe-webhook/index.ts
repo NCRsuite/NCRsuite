@@ -1,7 +1,8 @@
-import { createClient } from 'npm:@supabase/supabase-js@2.110.2';
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2.110.2';
 import Stripe from 'npm:stripe@22.0.0';
 
 type JsonRecord = Record<string, unknown>;
+type AppStatus = 'trialing' | 'active' | 'past_due' | 'paused' | 'canceled';
 
 function serverConfiguration() {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -40,8 +41,6 @@ function safeMetadata(value: unknown): Record<string, string> {
   );
 }
 
-type AppStatus = 'trialing' | 'active' | 'past_due' | 'paused' | 'canceled';
-
 function timestamp(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value)
     ? new Date(value * 1000).toISOString()
@@ -61,7 +60,9 @@ function appStatus(status: string): AppStatus {
   if (status === 'trialing') return 'trialing';
   if (status === 'active') return 'active';
   if (status === 'paused') return 'paused';
-  if (status === 'canceled' || status === 'incomplete_expired') return 'canceled';
+  if (status === 'canceled' || status === 'incomplete_expired' || status === 'unpaid') {
+    return 'canceled';
+  }
   return 'past_due';
 }
 
@@ -78,6 +79,133 @@ function eventObjectId(event: Stripe.Event) {
   return safeId(event.data.object);
 }
 
+function serializedItems(subscription: Stripe.Subscription) {
+  return subscription.items.data.map((item) => ({
+    subscription_item_id: item.id,
+    price_id: item.price.id,
+  }));
+}
+
+async function resolveOrganization(
+  service: SupabaseClient,
+  organizationId: string | null,
+  subscriptionId: string,
+  customerId: string | null,
+) {
+  if (organizationId) return organizationId;
+  let query = service
+    .from('organization_subscriptions')
+    .select('organization_id')
+    .or(`stripe_subscription_id.eq.${subscriptionId},provider_subscription_id.eq.${subscriptionId}`)
+    .limit(1);
+  let { data } = await query.maybeSingle();
+  if (!data && customerId) {
+    const result = await service
+      .from('organization_subscriptions')
+      .select('organization_id')
+      .or(`stripe_customer_id.eq.${customerId},provider_customer_id.eq.${customerId}`)
+      .limit(1)
+      .maybeSingle();
+    data = result.data;
+  }
+  return data?.organization_id ? String(data.organization_id) : null;
+}
+
+async function basePrice(
+  service: SupabaseClient,
+  subscription: Stripe.Subscription,
+  organizationId: string,
+  livemode: boolean,
+) {
+  const { data: organization, error: organizationError } = await service
+    .from('organizations')
+    .select('business_type,plan')
+    .eq('id', organizationId)
+    .maybeSingle();
+  if (organizationError || !organization) throw new Error('Entreprise Stripe introuvable.');
+  const priceIds = subscription.items.data.map((item) => item.price.id).filter(Boolean);
+  const { data: catalog, error: catalogError } = await service
+    .from('stripe_price_catalog')
+    .select('stripe_price_id,plan_key')
+    .eq('business_type', organization.business_type)
+    .eq('livemode', livemode)
+    .eq('active', true)
+    .in('stripe_price_id', priceIds);
+  if (catalogError) throw catalogError;
+  const mapping = (catalog ?? []).find((row) => priceIds.includes(row.stripe_price_id));
+  return {
+    businessType: String(organization.business_type),
+    planKey: mapping?.plan_key ? String(mapping.plan_key) : String(organization.plan),
+    priceId: mapping?.stripe_price_id ? String(mapping.stripe_price_id) : null,
+  };
+}
+
+async function removeIncompatibleAddons(
+  service: SupabaseClient,
+  stripe: Stripe,
+  subscription: Stripe.Subscription,
+  planKey: string,
+  businessType: string,
+  livemode: boolean,
+) {
+  const priceIds = subscription.items.data.map((item) => item.price.id).filter(Boolean);
+  const { data: mappings, error } = await service
+    .from('stripe_addon_price_catalog')
+    .select('item_type,item_key,stripe_price_id')
+    .eq('livemode', livemode)
+    .eq('active', true)
+    .in('stripe_price_id', priceIds);
+  if (error) throw error;
+  const { data: targetPlanCatalog, error: planError } = await service
+    .from('domain_plan_catalog')
+    .select('features')
+    .eq('business_type', businessType)
+    .eq('plan_key', planKey)
+    .eq('active', true)
+    .maybeSingle();
+  if (planError || !targetPlanCatalog) {
+    throw new Error('La formule Stripe est introuvable dans le catalogue NCR Suite.');
+  }
+  const planFeatures = targetPlanCatalog.features && typeof targetPlanCatalog.features === 'object'
+    ? targetPlanCatalog.features as Record<string, unknown>
+    : {};
+  let removed = false;
+
+  for (const mapping of mappings ?? []) {
+    const table = mapping.item_type === 'training_module'
+      ? 'training_module_catalog'
+      : 'security_addon_catalog';
+    const keyColumn = mapping.item_type === 'training_module' ? 'module_key' : 'addon_key';
+    const { data: catalogItem, error: catalogError } = await service
+      .from(table)
+      .select('available_plans,feature_keys')
+      .eq(keyColumn, mapping.item_key)
+      .eq('active', true)
+      .maybeSingle();
+    if (catalogError) throw catalogError;
+    const availablePlans = Array.isArray(catalogItem?.available_plans)
+      ? catalogItem.available_plans as string[]
+      : [];
+    const featureKeys = Array.isArray(catalogItem?.feature_keys)
+      ? catalogItem.feature_keys as string[]
+      : [];
+    const includedByTargetPlan = featureKeys.length > 0
+      && featureKeys.every((feature) => planFeatures[feature] === true);
+    if (!availablePlans.includes(planKey) || includedByTargetPlan) {
+      const item = subscription.items.data.find(
+        (candidate) => candidate.price.id === mapping.stripe_price_id,
+      );
+      if (item) {
+        await stripe.subscriptionItems.del(item.id, {
+          proration_behavior: 'create_prorations',
+        });
+        removed = true;
+      }
+    }
+  }
+  return removed;
+}
+
 Deno.serve(async (request) => {
   if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 });
 
@@ -91,8 +219,8 @@ Deno.serve(async (request) => {
     if (!signature) return new Response('Stripe signature missing', { status: 400 });
 
     const rawBody = await request.text();
-    const signatureStripe = stripeClient(config.stripeSecretKey);
-    event = await signatureStripe.webhooks.constructEventAsync(
+    const stripe = stripeClient(config.stripeSecretKey);
+    event = await stripe.webhooks.constructEventAsync(
       rawBody,
       signature,
       webhookSecret,
@@ -115,13 +243,10 @@ Deno.serve(async (request) => {
     let organizationId: string | null = null;
     let requestId: string | null = null;
     let customerId: string | null = null;
-    let priceId: string | null = null;
-    let planKey: string | null = null;
     let paymentConfirmed = false;
-    let normalizedStatus: AppStatus = 'past_due';
-    let stripeStatus = 'unknown';
-    let eventMetadata: Record<string, unknown> = {};
-    const stripe = stripeClient(config.stripeSecretKey);
+    let eventMetadata: Record<string, unknown> = {
+      data_retention_mode: 'preserve',
+    };
 
     if (event.type === 'checkout.session.completed') {
       const checkout = event.data.object as Stripe.Checkout.Session;
@@ -131,10 +256,11 @@ Deno.serve(async (request) => {
       subscription = await stripe.subscriptions.retrieve(subscriptionId);
       organizationId = metadata.ncr_organization_id ?? null;
       requestId = metadata.ncr_request_id ?? null;
-      planKey = metadata.ncr_plan_key ?? null;
       customerId = safeId(checkout.customer);
-      paymentConfirmed = checkout.payment_status === 'paid' || checkout.payment_status === 'no_payment_required';
+      paymentConfirmed = checkout.payment_status === 'paid'
+        || checkout.payment_status === 'no_payment_required';
       eventMetadata = {
+        ...eventMetadata,
         checkout_session_id: checkout.id,
         payment_status: checkout.payment_status,
         request_reference: metadata.ncr_request_reference,
@@ -156,6 +282,7 @@ Deno.serve(async (request) => {
       customerId = safeId(invoice.customer);
       paymentConfirmed = event.type === 'invoice.paid' && invoice.paid === true;
       eventMetadata = {
+        ...eventMetadata,
         invoice_id: invoice.id,
         invoice_status: invoice.status,
         amount_paid: invoice.amount_paid,
@@ -183,13 +310,20 @@ Deno.serve(async (request) => {
     const metadata = safeMetadata(subscription.metadata);
     organizationId = organizationId ?? metadata.ncr_organization_id ?? null;
     requestId = requestId ?? metadata.ncr_request_id ?? null;
-    planKey = planKey ?? metadata.ncr_plan_key ?? null;
     customerId = customerId ?? safeId(subscription.customer);
-    priceId = subscription.items.data[0]?.price?.id ?? null;
-    stripeStatus = event.type === 'customer.subscription.deleted'
+    organizationId = await resolveOrganization(
+      service,
+      organizationId,
+      subscription.id,
+      customerId,
+    );
+    if (!organizationId) throw new Error('Entreprise Stripe introuvable.');
+
+    const base = await basePrice(service, subscription, organizationId, event.livemode);
+    const stripeStatus = event.type === 'customer.subscription.deleted'
       ? 'canceled'
       : subscription.status;
-    normalizedStatus = event.type === 'invoice.payment_failed'
+    const normalizedStatus = event.type === 'invoice.payment_failed'
       ? 'past_due'
       : appStatus(stripeStatus);
     const period = subscriptionPeriod(subscription);
@@ -201,8 +335,8 @@ Deno.serve(async (request) => {
       p_request_id: requestId,
       p_customer_id: customerId,
       p_subscription_id: subscription.id,
-      p_price_id: priceId,
-      p_plan_key: planKey,
+      p_price_id: base.priceId,
+      p_plan_key: base.planKey,
       p_app_status: normalizedStatus,
       p_stripe_status: stripeStatus,
       p_period_start: period.start,
@@ -213,8 +347,57 @@ Deno.serve(async (request) => {
       p_metadata: eventMetadata,
     });
     if (applyError) throw applyError;
-    const appliedResult = applied as { organization_id?: string } | null;
+    const appliedResult = applied as { organization_id?: string; plan_key?: string } | null;
     organizationId = appliedResult?.organization_id ?? organizationId;
+    const appliedPlan = appliedResult?.plan_key ?? base.planKey;
+
+    const { error: lifecycleError } = await service.rpc('apply_stripe_lifecycle_state', {
+      p_organization_id: organizationId,
+      p_event_type: event.type,
+      p_app_status: normalizedStatus,
+      p_plan_key: appliedPlan,
+      p_period_end: period.end,
+      p_cancel_at_period_end: subscription.cancel_at_period_end,
+    });
+    if (lifecycleError) throw lifecycleError;
+
+    let removedIncompatibleAddon = false;
+    if (
+      normalizedStatus === 'active'
+      && event.type !== 'invoice.payment_failed'
+      && event.type !== 'customer.subscription.deleted'
+    ) {
+      removedIncompatibleAddon = await removeIncompatibleAddons(
+        service,
+        stripe,
+        subscription,
+        appliedPlan,
+        base.businessType,
+        event.livemode,
+      );
+      if (removedIncompatibleAddon) {
+        subscription = await stripe.subscriptions.retrieve(subscription.id);
+      }
+    }
+
+    if (
+      event.type === 'checkout.session.completed'
+      || event.type === 'invoice.paid'
+      || event.type === 'customer.subscription.deleted'
+      || removedIncompatibleAddon
+    ) {
+      const items = event.type === 'customer.subscription.deleted'
+        ? []
+        : serializedItems(subscription);
+      const { error: reconcileError } = await service.rpc('reconcile_stripe_subscription_items', {
+        p_organization_id: organizationId,
+        p_subscription_id: subscription.id,
+        p_items: items,
+        p_livemode: event.livemode,
+        p_event_reference: event.id,
+      });
+      if (reconcileError) throw reconcileError;
+    }
 
     const { error: completeError } = await service.rpc('complete_stripe_webhook_event', {
       p_event_id: event.id,
@@ -224,7 +407,9 @@ Deno.serve(async (request) => {
       p_metadata: {
         stripe_subscription_id: subscription.id,
         stripe_customer_id: customerId,
-        stripe_price_id: priceId,
+        stripe_price_id: base.priceId,
+        plan_key: appliedPlan,
+        data_retained: true,
       },
     });
     if (completeError) throw completeError;

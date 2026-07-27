@@ -1,7 +1,8 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.110.2';
 
-const allowedBusinesses = new Set(['coiffure', 'securite', 'nettoyage', 'restaurant', 'formation']);
+const allowedBusinesses = new Set(['coiffure', 'securite', 'nettoyage', 'restauration', 'formation']);
 const allowedTeamSizes = new Set(['1', '1-5', '6-15', '16-50', '51+']);
+const allowedPlans = new Set(['decouverte', 'essentielle', 'professionnelle', 'metier']);
 
 function allowedOrigins() {
   return new Set(
@@ -99,14 +100,17 @@ Deno.serve(async (request) => {
   const email = normalizeEmail(payload.email);
   const phone = clean(payload.phone, 40);
   const companyName = clean(payload.companyName, 160);
-  const businessType = clean(payload.businessType, 30);
+  const rawBusinessType = clean(payload.businessType, 30);
+  const businessType = rawBusinessType === 'restaurant' ? 'restauration' : rawBusinessType;
+  const requestedPlan = clean(payload.requestedPlan, 30);
   const teamSize = clean(payload.teamSize, 20);
   const message = String(payload.message ?? '').trim().slice(0, 2000);
   const privacyAccepted = payload.privacyAccepted === true;
   const turnstileToken = clean(payload.turnstileToken, 3000);
 
   if (fullName.length < 2 || companyName.length < 2 || !validEmail(email)
-    || !allowedBusinesses.has(businessType) || !allowedTeamSizes.has(teamSize) || !privacyAccepted) {
+    || !allowedBusinesses.has(businessType) || !allowedPlans.has(requestedPlan)
+    || !allowedTeamSizes.has(teamSize) || !privacyAccepted) {
     return jsonResponse(request, 400, { error: 'Vérifiez les informations obligatoires du formulaire.' });
   }
 
@@ -157,6 +161,7 @@ Deno.serve(async (request) => {
       phone: phone || null,
       company_name: companyName,
       business_type: businessType,
+      requested_plan: requestedPlan,
       team_size: teamSize,
       message: message || null,
       privacy_accepted: true,

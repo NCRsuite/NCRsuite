@@ -129,6 +129,14 @@ export interface Organization {
   security_quote_validity_days?: number;
   role?: MemberRole;
   plan_features?: Record<string, boolean>;
+  subscription_status?: SubscriptionStatus | null;
+  billing_access_allowed?: boolean;
+  billing_access_reason?: 'active' | 'payment_required' | 'past_due_grace' | 'past_due_locked' | 'canceled' | 'suspended' | 'closed' | null;
+  billing_grace_period_ends_at?: string | null;
+  scheduled_plan_key?: Plan | null;
+  scheduled_change_at?: string | null;
+  cancel_at_period_end?: boolean;
+  billing_data_retained?: boolean;
 }
 
 export interface NavigationItem {

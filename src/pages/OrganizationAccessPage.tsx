@@ -10,7 +10,19 @@ export function OrganizationAccessPage() {
 
   if (!organization) return null;
   const closed = organization.status === 'closed';
+  const paymentRequired = organization.billing_access_reason === 'payment_required';
+  const paymentLocked = organization.billing_access_reason === 'past_due_locked';
+  const canceled = organization.billing_access_reason === 'canceled';
   const otherOrganizations = organizations.filter((item) => item.id !== organization.id && ['active', 'trial'].includes(item.status));
+  const title = closed
+    ? 'Cet espace est fermé.'
+    : paymentRequired
+      ? 'Le paiement doit être finalisé.'
+      : paymentLocked
+        ? 'Le délai de régularisation est terminé.'
+        : canceled
+          ? 'Cet abonnement est résilié.'
+          : 'Cet espace est temporairement suspendu.';
 
   function changeOrganization(id: string) {
     selectOrganization(id);
@@ -23,10 +35,11 @@ export function OrganizationAccessPage() {
         <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
         <span className="organization-access-icon"><Icon name={closed ? 'lock' : 'alert'} size={30} /></span>
         <p className="eyebrow">ACCÈS À L’ENTREPRISE</p>
-        <h1>{closed ? 'Cet espace est fermé.' : 'Cet espace est temporairement suspendu.'}</h1>
+        <h1>{title}</h1>
         <p>
-          L’entreprise <strong>{organization.name}</strong> reste enregistrée, mais ses données métier ne sont plus accessibles.
-          Contacte NCR Suite pour régulariser ou réactiver l’abonnement.
+          L’entreprise <strong>{organization.name}</strong> et toutes ses données restent enregistrées.
+          Les fonctions non comprises dans l’offre active sont simplement verrouillées : aucun client, document, historique ou dossier n’est supprimé.
+          Une régularisation ou une remontée en gamme rétablit les accès autorisés.
         </p>
 
         {otherOrganizations.length > 0 && (

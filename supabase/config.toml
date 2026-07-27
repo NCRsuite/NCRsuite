@@ -31,5 +31,8 @@ verify_jwt = true
 [functions.create-stripe-portal]
 verify_jwt = true
 
+[functions.manage-stripe-addon]
+verify_jwt = true
+
 [functions.stripe-webhook]
 verify_jwt = false

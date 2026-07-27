@@ -10,6 +10,12 @@ interface BillingSettings {
   terms_version: string;
   terms_text: string;
   cancellation_text: string;
+  stripe_livemode: boolean;
+  grace_period_days: number;
+  payment_required_before_access: boolean;
+  downgrade_at_period_end: boolean;
+  qonto_exceptional_payment_url: string | null;
+  qonto_exceptional_instructions: string;
 }
 
 interface BillingPlanLink {
@@ -23,6 +29,8 @@ interface BillingPlanLink {
   checkout_url: string | null;
   active: boolean;
   sort_order: number;
+  stripe_price_id: string | null;
+  stripe_livemode: boolean;
 }
 
 interface BillingDomain {
@@ -50,6 +58,7 @@ interface SubscriptionRequest {
   provider_payment_reference: string | null;
   created_at: string;
   review_note: string | null;
+  effective_at?: string | null;
 }
 
 interface SecurityAddonLink {
@@ -62,6 +71,8 @@ interface SecurityAddonLink {
   checkout_url: string | null;
   checkout_active: boolean;
   sort_order: number;
+  stripe_price_id: string | null;
+  stripe_livemode: boolean;
 }
 
 interface SecurityAddonConfiguration {
@@ -94,6 +105,8 @@ interface TrainingModuleLink {
   checkout_url: string | null;
   checkout_active: boolean;
   sort_order: number;
+  stripe_price_id: string | null;
+  stripe_livemode: boolean;
 }
 
 interface TrainingModuleConfiguration {
@@ -224,11 +237,12 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     setSaving(`plan-${plan.business_type}-${plan.plan_key}`);
     setMessage('');
     setError('');
-    const { error: requestError } = await supabase.rpc('admin_update_billing_plan_link', {
+    const { error: requestError } = await supabase.rpc('admin_update_stripe_catalog_item', {
+      p_item_type: 'plan',
       p_business_type: plan.business_type,
-      p_plan_key: plan.plan_key,
-      p_provider: plan.provider,
-      p_checkout_url: plan.checkout_url || null,
+      p_item_key: plan.plan_key,
+      p_stripe_price_id: plan.stripe_price_id || null,
+      p_livemode: configuration?.settings.stripe_livemode ?? false,
       p_active: plan.active
     });
     setSaving('');
@@ -239,20 +253,23 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     }
   }
 
-  async function saveSettings(event: FormEvent) {
-    event.preventDefault();
+  async function saveSettings(event?: FormEvent) {
+    event?.preventDefault();
     if (!supabase || !canManage || !configuration) return;
     setSaving('settings');
     setMessage('');
     setError('');
     const settings = configuration.settings;
-    const { error: requestError } = await supabase.rpc('admin_update_billing_settings', {
-      p_default_provider: settings.default_provider,
-      p_default_trial_days: settings.default_trial_days,
-      p_default_trial_plan: settings.default_trial_plan,
+    const { error: requestError } = await supabase.rpc('admin_update_billing_settings_v2', {
+      p_stripe_livemode: settings.stripe_livemode,
+      p_grace_period_days: settings.grace_period_days,
+      p_payment_required_before_access: settings.payment_required_before_access,
+      p_downgrade_at_period_end: settings.downgrade_at_period_end,
       p_terms_version: settings.terms_version,
       p_terms_text: settings.terms_text,
-      p_cancellation_text: settings.cancellation_text
+      p_cancellation_text: settings.cancellation_text,
+      p_qonto_exceptional_payment_url: settings.qonto_exceptional_payment_url || null,
+      p_qonto_exceptional_instructions: settings.qonto_exceptional_instructions
     });
     setSaving('');
     if (requestError) setError(requestError.message);
@@ -294,10 +311,12 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     setSaving(`addon-link-${addon.addon_key}`);
     setMessage('');
     setError('');
-    const { error: requestError } = await supabase.rpc('admin_update_security_addon_link', {
-      p_addon_key: addon.addon_key,
-      p_provider: addon.provider,
-      p_checkout_url: addon.checkout_url || null,
+    const { error: requestError } = await supabase.rpc('admin_update_stripe_catalog_item', {
+      p_item_type: 'security_addon',
+      p_business_type: 'securite',
+      p_item_key: addon.addon_key,
+      p_stripe_price_id: addon.stripe_price_id || null,
+      p_livemode: configuration?.settings.stripe_livemode ?? false,
       p_active: addon.checkout_active
     });
     setSaving('');
@@ -342,10 +361,12 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     setSaving(`training-module-link-${module.module_key}`);
     setMessage('');
     setError('');
-    const { error: requestError } = await supabase.rpc('admin_update_training_module_link', {
-      p_module_key: module.module_key,
-      p_provider: module.provider,
-      p_checkout_url: module.checkout_url || null,
+    const { error: requestError } = await supabase.rpc('admin_update_stripe_catalog_item', {
+      p_item_type: 'training_module',
+      p_business_type: 'formation',
+      p_item_key: module.module_key,
+      p_stripe_price_id: module.stripe_price_id || null,
+      p_livemode: configuration?.settings.stripe_livemode ?? false,
       p_active: module.checkout_active
     });
     setSaving('');
@@ -384,7 +405,7 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
   return (
     <section className="billing-admin-section">
       <div className="billing-admin-heading">
-        <div><p className="eyebrow">ABONNEMENTS & QONTO</p><h2>Paiements par domaine métier</h2><p>Chaque domaine conserve les mêmes niveaux de formule, mais ses propres tarifs, fonctions et liens Qonto.</p></div>
+        <div><p className="eyebrow">ABONNEMENTS & STRIPE</p><h2>Catalogue Stripe par domaine métier</h2><p>Les formules, renouvellements, rétrogradations et modules sont synchronisés automatiquement avec Stripe.</p></div>
         <button className="secondary-button" type="button" onClick={load}>Actualiser</button>
       </div>
 
@@ -401,15 +422,16 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
                   <div className="billing-request-top">
                     <span className="admin-company-avatar">{request.organization_name.slice(0, 1).toUpperCase()}</span>
                     <div><strong>{request.organization_name}</strong><small>{request.owner_email || 'E-mail propriétaire non disponible'}</small></div>
-                    <span className={`admin-status-pill ${request.status === 'payment_pending' ? 'warning' : 'positive'}`}>{request.status === 'payment_pending' ? 'Paiement à vérifier' : 'Étude manuelle'}</span>
+                    <span className={`admin-status-pill ${request.status === 'payment_pending' ? 'warning' : 'positive'}`}>{request.provider === 'stripe' ? (request.effective_at ? 'Changement programmé' : 'Synchronisation Stripe') : request.status === 'payment_pending' ? 'Paiement à vérifier' : 'Étude manuelle'}</span>
                   </div>
                   <div className="billing-request-route"><b>{planLabels[request.current_plan]}</b><Icon name="chevronRight" size={18} /><b>{planLabels[request.requested_plan]}</b></div>
                   <p>Référence <strong>{request.request_reference}</strong> · {request.provider === 'qonto' ? 'Qonto' : request.provider} · {dateLabel(request.created_at)}</p>
-                  {request.status === 'payment_pending' && (
+                  {request.status === 'payment_pending' && request.provider !== 'stripe' && (
                     <label>Référence du paiement Qonto (facultatif)<input value={paymentReferences[request.id] ?? ''} onChange={(event) => setPaymentReferences((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Ex. identifiant visible dans Qonto" disabled={!canManage} /></label>
                   )}
                   <label>Note interne<textarea rows={2} value={reviewNotes[request.id] ?? ''} onChange={(event) => setReviewNotes((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Vérification, échange client…" disabled={!canManage} /></label>
-                  {canManage && (
+                  {request.provider === 'stripe' && <div className="info-message">{request.effective_at ? `Application automatique le ${dateLabel(request.effective_at)}. Les données premium restent conservées.` : 'Stripe validera automatiquement cette demande après le paiement.'}</div>}
+                  {canManage && request.provider !== 'stripe' && (
                     <div className="billing-request-buttons">
                       <button className="primary-button" type="button" onClick={() => reviewRequest(request, 'approve')} disabled={saving === `request-${request.id}`}>{saving === `request-${request.id}` ? 'Traitement…' : 'Valider et activer'}</button>
                       <button className="secondary-button danger" type="button" onClick={() => reviewRequest(request, 'reject')} disabled={saving === `request-${request.id}`}>Refuser</button>
@@ -423,24 +445,20 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
 
         <article className="panel billing-links-panel">
           <div className="panel-header billing-domain-header">
-            <div><p className="eyebrow">LIENS DE PAIEMENT</p><h3>Formules Qonto par domaine</h3></div>
+            <div><p className="eyebrow">PRIX RÉCURRENTS</p><h3>Formules Stripe par domaine</h3></div>
             <label>Domaine
               <select value={selectedBusinessType} onChange={(event) => setSelectedBusinessType(event.target.value)}>
                 {(configuration.domains ?? []).map((domain) => <option key={domain.business_type} value={domain.business_type}>{domain.display_name}</option>)}
               </select>
             </label>
           </div>
-          <p className="muted">Crée un lien récurrent propre à chaque tarif. Une formule Formation ne doit jamais utiliser le lien Qonto de la Coiffure.</p>
+          <p className="muted">Saisis le Price ID Stripe correspondant au bon métier et à la bonne formule. Le mode actif est {configuration.settings.stripe_livemode ? 'Production' : 'Test'}.</p>
           <div className="billing-plan-link-list">
             {visiblePlans.map((plan) => (
               <div className="billing-plan-link-row" key={`${plan.business_type}-${plan.plan_key}`}>
                 <div><strong>{plan.display_name}</strong><small>{plan.plan_key === 'metier' ? `Base contractuelle ${money(plan.monthly_price_cents)} HT / mois` : `${money(plan.monthly_price_cents)} HT / mois`} · {plan.member_limit} accès</small></div>
-                <select value={plan.provider} onChange={(event) => updatePlanLocal(plan.business_type, plan.plan_key, { provider: event.target.value as BillingPlanLink['provider'] })} disabled={!canManage}>
-                  <option value="qonto">Qonto</option>
-                  <option value="manual">Manuel</option>
-                  <option value="stripe">Stripe (plus tard)</option>
-                </select>
-                <input type="url" value={plan.checkout_url ?? ''} onChange={(event) => updatePlanLocal(plan.business_type, plan.plan_key, { checkout_url: event.target.value })} placeholder={plan.plan_key === 'metier' ? 'Facultatif — offre sur étude' : 'https://...'} disabled={!canManage} />
+                <span className="subscription-provider-badge"><Icon name="creditCard" size={15} /> Stripe</span>
+                <input value={plan.stripe_price_id ?? ''} onChange={(event) => updatePlanLocal(plan.business_type, plan.plan_key, { stripe_price_id: event.target.value })} placeholder="price_..." disabled={!canManage} />
                 <label className="compact-switch"><input type="checkbox" checked={plan.active} onChange={(event) => updatePlanLocal(plan.business_type, plan.plan_key, { active: event.target.checked })} disabled={!canManage} /><span>{plan.active ? 'Actif' : 'Inactif'}</span></label>
                 {canManage && <button className="secondary-button compact-button" type="button" onClick={() => savePlanLink(plan)} disabled={saving === `plan-${plan.business_type}-${plan.plan_key}`}>{saving === `plan-${plan.business_type}-${plan.plan_key}` ? '…' : 'Enregistrer'}</button>}
               </div>
@@ -459,13 +477,14 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
                   <div className="billing-request-top">
                     <span className="admin-company-avatar"><Icon name="shield" size={19} /></span>
                     <div><strong>{request.organization_name}</strong><small>{request.owner_email || 'E-mail propriétaire non disponible'}</small></div>
-                    <span className={`admin-status-pill ${request.status === 'payment_pending' ? 'warning' : 'positive'}`}>{request.status === 'payment_pending' ? 'Paiement à vérifier' : 'Validation manuelle'}</span>
+                    <span className={`admin-status-pill ${request.status === 'payment_pending' ? 'warning' : 'positive'}`}>{request.provider === 'stripe' ? 'Synchronisation Stripe' : request.status === 'payment_pending' ? 'Paiement à vérifier' : 'Validation manuelle'}</span>
                   </div>
                   <div className="billing-request-route"><b>{request.action === 'add' ? 'Ajouter' : 'Retirer'}</b><Icon name="chevronRight" size={18} /><b>{request.addon_name}</b></div>
                   <p>Référence <strong>{request.request_reference}</strong> · {request.provider === 'qonto' ? 'Qonto' : request.provider} · {dateLabel(request.created_at)}</p>
-                  {request.status === 'payment_pending' && <label>Référence du paiement Qonto (facultatif)<input value={paymentReferences[request.id] ?? ''} onChange={(event) => setPaymentReferences((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Identifiant visible dans Qonto" disabled={!canManage} /></label>}
+                  {request.status === 'payment_pending' && request.provider !== 'stripe' && <label>Référence du paiement Qonto (facultatif)<input value={paymentReferences[request.id] ?? ''} onChange={(event) => setPaymentReferences((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Identifiant visible dans Qonto" disabled={!canManage} /></label>}
                   <label>Note interne<textarea rows={2} value={reviewNotes[request.id] ?? ''} onChange={(event) => setReviewNotes((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Contrôle ou échange avec le client…" disabled={!canManage} /></label>
-                  {canManage && <div className="billing-request-buttons"><button className="primary-button" type="button" onClick={() => reviewSecurityAddonRequest(request, 'approve')} disabled={saving === `addon-request-${request.id}`}>{saving === `addon-request-${request.id}` ? 'Traitement…' : request.action === 'add' ? 'Valider et activer' : 'Valider le retrait'}</button><button className="secondary-button danger" type="button" onClick={() => reviewSecurityAddonRequest(request, 'reject')} disabled={saving === `addon-request-${request.id}`}>Refuser</button></div>}
+                  {request.provider === 'stripe' && <div className="info-message">Le webhook Stripe activera ou retirera ce module automatiquement. Les données du module ne seront pas supprimées.</div>}
+                  {canManage && request.provider !== 'stripe' && <div className="billing-request-buttons"><button className="primary-button" type="button" onClick={() => reviewSecurityAddonRequest(request, 'approve')} disabled={saving === `addon-request-${request.id}`}>{saving === `addon-request-${request.id}` ? 'Traitement…' : request.action === 'add' ? 'Valider et activer' : 'Valider le retrait'}</button><button className="secondary-button danger" type="button" onClick={() => reviewSecurityAddonRequest(request, 'reject')} disabled={saving === `addon-request-${request.id}`}>Refuser</button></div>}
                 </article>
               ))}
             </div>
@@ -473,14 +492,14 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
         </article>
 
         <article className="panel billing-links-panel">
-          <div className="panel-header"><div><p className="eyebrow">PAIEMENTS MODULES</p><h3>Liens Qonto Sécurité</h3></div></div>
-          <p className="muted">Chaque module peut disposer de son propre lien récurrent. Sans lien actif, la demande remonte en validation manuelle.</p>
+          <div className="panel-header"><div><p className="eyebrow">PRIX RÉCURRENTS</p><h3>Modules Stripe Sécurité</h3></div></div>
+          <p className="muted">Chaque module actif doit posséder son propre Price ID récurrent Stripe.</p>
           <div className="billing-plan-link-list">
             {securityAddonConfiguration.addons.map((addon) => (
               <div className="billing-plan-link-row" key={addon.addon_key}>
                 <div><strong>{addon.display_name}</strong><small>{money(addon.monthly_price_cents)} HT / mois · {addon.available_plans.map((plan) => planLabels[plan]).join(', ')}</small></div>
-                <select value={addon.provider} onChange={(event) => updateSecurityAddonLocal(addon.addon_key, { provider: event.target.value as SecurityAddonLink['provider'] })} disabled={!canManage}><option value="qonto">Qonto</option><option value="manual">Manuel</option><option value="stripe">Stripe (plus tard)</option></select>
-                <input type="url" value={addon.checkout_url ?? ''} onChange={(event) => updateSecurityAddonLocal(addon.addon_key, { checkout_url: event.target.value })} placeholder="https://..." disabled={!canManage} />
+                <span className="subscription-provider-badge"><Icon name="creditCard" size={15} /> Stripe</span>
+                <input value={addon.stripe_price_id ?? ''} onChange={(event) => updateSecurityAddonLocal(addon.addon_key, { stripe_price_id: event.target.value })} placeholder="price_..." disabled={!canManage} />
                 <label className="compact-switch"><input type="checkbox" checked={addon.checkout_active} onChange={(event) => updateSecurityAddonLocal(addon.addon_key, { checkout_active: event.target.checked })} disabled={!canManage} /><span>{addon.checkout_active ? 'Actif' : 'Inactif'}</span></label>
                 {canManage && <button className="secondary-button compact-button" type="button" onClick={() => saveSecurityAddonLink(addon)} disabled={saving === `addon-link-${addon.addon_key}`}>{saving === `addon-link-${addon.addon_key}` ? '…' : 'Enregistrer'}</button>}
               </div>
@@ -499,13 +518,14 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
                   <div className="billing-request-top">
                     <span className="admin-company-avatar"><Icon name="graduation" size={19} /></span>
                     <div><strong>{request.organization_name}</strong><small>{request.owner_email || 'E-mail propriétaire non disponible'}</small></div>
-                    <span className={`admin-status-pill ${request.status === 'payment_pending' ? 'warning' : 'positive'}`}>{request.status === 'payment_pending' ? 'Paiement à vérifier' : 'Validation manuelle'}</span>
+                    <span className={`admin-status-pill ${request.status === 'payment_pending' ? 'warning' : 'positive'}`}>{request.provider === 'stripe' ? 'Synchronisation Stripe' : request.status === 'payment_pending' ? 'Paiement à vérifier' : 'Validation manuelle'}</span>
                   </div>
                   <div className="billing-request-route"><b>{request.action === 'add' ? 'Ajouter' : 'Retirer'}</b><Icon name="chevronRight" size={18} /><b>{request.module_name}</b></div>
                   <p>Référence <strong>{request.request_reference}</strong> · {request.provider === 'qonto' ? 'Qonto' : request.provider} · {dateLabel(request.created_at)}</p>
-                  {request.status === 'payment_pending' && <label>Référence du paiement Qonto (facultatif)<input value={paymentReferences[request.id] ?? ''} onChange={(event) => setPaymentReferences((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Identifiant visible dans Qonto" disabled={!canManage} /></label>}
+                  {request.status === 'payment_pending' && request.provider !== 'stripe' && <label>Référence du paiement Qonto (facultatif)<input value={paymentReferences[request.id] ?? ''} onChange={(event) => setPaymentReferences((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Identifiant visible dans Qonto" disabled={!canManage} /></label>}
                   <label>Note interne<textarea rows={2} value={reviewNotes[request.id] ?? ''} onChange={(event) => setReviewNotes((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Contrôle ou échange avec le client…" disabled={!canManage} /></label>
-                  {canManage && <div className="billing-request-buttons"><button className="primary-button" type="button" onClick={() => reviewTrainingModuleRequest(request, 'approve')} disabled={saving === `training-module-request-${request.id}`}>{saving === `training-module-request-${request.id}` ? 'Traitement…' : request.action === 'add' ? 'Valider et activer' : 'Valider le retrait'}</button><button className="secondary-button danger" type="button" onClick={() => reviewTrainingModuleRequest(request, 'reject')} disabled={saving === `training-module-request-${request.id}`}>Refuser</button></div>}
+                  {request.provider === 'stripe' && <div className="info-message">Le webhook Stripe activera ou retirera ce module automatiquement. Les données du module ne seront pas supprimées.</div>}
+                  {canManage && request.provider !== 'stripe' && <div className="billing-request-buttons"><button className="primary-button" type="button" onClick={() => reviewTrainingModuleRequest(request, 'approve')} disabled={saving === `training-module-request-${request.id}`}>{saving === `training-module-request-${request.id}` ? 'Traitement…' : request.action === 'add' ? 'Valider et activer' : 'Valider le retrait'}</button><button className="secondary-button danger" type="button" onClick={() => reviewTrainingModuleRequest(request, 'reject')} disabled={saving === `training-module-request-${request.id}`}>Refuser</button></div>}
                 </article>
               ))}
             </div>
@@ -513,14 +533,14 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
         </article>
 
         <article className="panel billing-links-panel">
-          <div className="panel-header"><div><p className="eyebrow">PAIEMENTS MODULES</p><h3>Liens Qonto Formation</h3></div></div>
-          <p className="muted">Chaque module peut disposer de son propre lien récurrent. Sans lien actif, la demande remonte en validation manuelle.</p>
+          <div className="panel-header"><div><p className="eyebrow">PRIX RÉCURRENTS</p><h3>Modules Stripe Formation</h3></div></div>
+          <p className="muted">Chaque module actif doit posséder son propre Price ID récurrent Stripe.</p>
           <div className="billing-plan-link-list">
             {trainingModuleConfiguration.modules.map((module) => (
               <div className="billing-plan-link-row" key={module.module_key}>
                 <div><strong>{module.display_name}</strong><small>{money(module.monthly_price_cents)} HT / mois · {module.available_plans.map((plan) => planLabels[plan]).join(', ')}</small></div>
-                <select value={module.provider} onChange={(event) => updateTrainingModuleLocal(module.module_key, { provider: event.target.value as TrainingModuleLink['provider'] })} disabled={!canManage}><option value="qonto">Qonto</option><option value="manual">Manuel</option><option value="stripe">Stripe (plus tard)</option></select>
-                <input type="url" value={module.checkout_url ?? ''} onChange={(event) => updateTrainingModuleLocal(module.module_key, { checkout_url: event.target.value })} placeholder="https://..." disabled={!canManage} />
+                <span className="subscription-provider-badge"><Icon name="creditCard" size={15} /> Stripe</span>
+                <input value={module.stripe_price_id ?? ''} onChange={(event) => updateTrainingModuleLocal(module.module_key, { stripe_price_id: event.target.value })} placeholder="price_..." disabled={!canManage} />
                 <label className="compact-switch"><input type="checkbox" checked={module.checkout_active} onChange={(event) => updateTrainingModuleLocal(module.module_key, { checkout_active: event.target.checked })} disabled={!canManage} /><span>{module.checkout_active ? 'Actif' : 'Inactif'}</span></label>
                 {canManage && <button className="secondary-button compact-button" type="button" onClick={() => saveTrainingModuleLink(module)} disabled={saving === `training-module-link-${module.module_key}`}>{saving === `training-module-link-${module.module_key}` ? '…' : 'Enregistrer'}</button>}
               </div>
@@ -530,17 +550,28 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
       </div>
 
       <form className="panel billing-settings-panel" onSubmit={saveSettings}>
-        <div className="panel-header"><div><p className="eyebrow">RÈGLES COMMERCIALES</p><h3>Essai et conditions</h3></div></div>
+        <div className="panel-header"><div><p className="eyebrow">RÈGLES COMMERCIALES</p><h3>Stripe, impayés et conditions</h3></div></div>
         <div className="admin-form-grid">
-          <label>Prestataire par défaut<select value={configuration.settings.default_provider} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, default_provider: event.target.value as BillingSettings['default_provider'] } })} disabled={!canManage}><option value="qonto">Qonto</option><option value="manual">Manuel</option><option value="stripe">Stripe (préparé)</option></select></label>
-          <label>Durée d’essai<input type="number" min={0} max={90} value={configuration.settings.default_trial_days} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, default_trial_days: Number(event.target.value) } })} disabled={!canManage} /><small>0 désactive l’essai pour les prochaines entreprises.</small></label>
-          <label>Formule pendant l’essai<select value={configuration.settings.default_trial_plan} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, default_trial_plan: event.target.value as Plan } })} disabled={!canManage}>{(Object.entries(planLabels) as Array<[Plan, string]>).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label>Environnement Stripe<select value={configuration.settings.stripe_livemode ? 'live' : 'test'} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, stripe_livemode: event.target.value === 'live' } })} disabled={!canManage}><option value="test">Test</option><option value="live">Production</option></select></label>
+          <label>Délai de grâce en cas d’impayé<input type="number" min={0} max={30} value={configuration.settings.grace_period_days} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, grace_period_days: Number(event.target.value) } })} disabled={!canManage} /><small>Après ce délai, les droits sont bloqués mais les données restent conservées.</small></label>
+          <label className="compact-switch"><input type="checkbox" checked={configuration.settings.payment_required_before_access} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, payment_required_before_access: event.target.checked } })} disabled={!canManage} /><span>Paiement obligatoire avant l’accès</span></label>
+          <label className="compact-switch"><input type="checkbox" checked={configuration.settings.downgrade_at_period_end} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, downgrade_at_period_end: event.target.checked } })} disabled={!canManage} /><span>Rétrogradation à l’échéance</span></label>
           <label>Version des conditions<input value={configuration.settings.terms_version} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, terms_version: event.target.value } })} disabled={!canManage} /></label>
           <label className="full-field">Conditions d’abonnement<textarea rows={4} maxLength={5000} value={configuration.settings.terms_text} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, terms_text: event.target.value } })} disabled={!canManage} /></label>
           <label className="full-field">Conditions de résiliation<textarea rows={4} maxLength={5000} value={configuration.settings.cancellation_text} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, cancellation_text: event.target.value } })} disabled={!canManage} /></label>
         </div>
         {canManage && <button className="primary-button" type="submit" disabled={saving === 'settings'}>{saving === 'settings' ? 'Enregistrement…' : 'Enregistrer les règles'}</button>}
       </form>
+
+      <article className="panel billing-settings-panel">
+        <div className="panel-header"><div><p className="eyebrow">PAIEMENTS EXCEPTIONNELS</p><h3>Qonto hors abonnement</h3></div></div>
+        <div className="admin-form-grid">
+          <label className="full-field">Lien Qonto exceptionnel<input type="url" value={configuration.settings.qonto_exceptional_payment_url ?? ''} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, qonto_exceptional_payment_url: event.target.value } })} placeholder="https://pay.qonto.com/..." disabled={!canManage} /></label>
+          <label className="full-field">Utilisation autorisée<textarea rows={3} maxLength={3000} value={configuration.settings.qonto_exceptional_instructions} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, qonto_exceptional_instructions: event.target.value } })} disabled={!canManage} /></label>
+        </div>
+        <p className="muted">Réservé aux prestations sur devis, installations, paramétrages, formations personnalisées, factures ponctuelles et virements convenus. Ce lien ne pilote aucun droit dans NCR Suite.</p>
+        {canManage && <button className="primary-button" type="button" onClick={() => void saveSettings()} disabled={saving === 'settings'}>{saving === 'settings' ? 'Enregistrement…' : 'Enregistrer Qonto exceptionnel'}</button>}
+      </article>
     </section>
   );
 }

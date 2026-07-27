@@ -29,10 +29,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.25.0') failures.push('package.json doit annoncer la V2.25.0.');
+if (pkg.version !== '2.26.0') failures.push('package.json doit annoncer la V2.26.0.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.25.0 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.25.0 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.26.0 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.26.0 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -158,6 +158,23 @@ requireText('supabase/migrations/094_stripe_subscription_billing.sql', [
   'complete_stripe_webhook_event',
   'apply_stripe_billing_event',
   "'2.25.0'",
+  'ncr-suite-shell-v2.25.0-stripe-billing',
+  'platform_release_state'
+]);
+requireText('supabase/migrations/095_stripe_catalog_lifecycle_paid_activation.sql', [
+  'create table if not exists public.stripe_addon_price_catalog',
+  'create table if not exists public.subscription_data_retention_events',
+  'organization_billing_access_allowed',
+  'organization_billing_portal',
+  'request_stripe_addon_change',
+  'record_stripe_scheduled_plan_change',
+  'apply_stripe_lifecycle_state',
+  'audit_plan_change_data_retention',
+  'create or replace function public.apply_organization_plan_defaults()',
+  "if tg_op='INSERT' then",
+  "check (data_retention_mode='preserve')",
+  "'data_retained',true",
+  "'2.26.0'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -166,7 +183,16 @@ requireText('supabase/functions/create-stripe-checkout/index.ts', [
   'stripe_price_catalog',
   'subscription_data',
   'success_url',
-  'cancel_url'
+  'cancel_url',
+  'subscriptionSchedules',
+  "destination: 'scheduled'",
+  'dataRetained: true'
+]);
+requireText('supabase/functions/manage-stripe-addon/index.ts', [
+  'subscriptionItems.create',
+  'subscriptionItems.del',
+  'complete_stripe_addon_removal',
+  'dataRetained: true'
 ]);
 requireText('supabase/functions/create-stripe-portal/index.ts', [
   'billingPortal.sessions.create'
@@ -218,36 +244,36 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v250.css',
-  'ncr-suite-app-v250.css',
+  'ncr-suite-showcase-v260.css',
+  'ncr-suite-app-v260.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
 
 requireText('index.html', [
-  '/ncr-suite-showcase-v250.css',
-  '/ncr-suite-app-v250.css',
+  '/ncr-suite-showcase-v260.css',
+  '/ncr-suite-app-v260.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.25.0',
+  'ncr:css-recovery-v2.26.0',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v250.css',
-  '/ncr-suite-app-v250.css'
+  '/ncr-suite-showcase-v260.css',
+  '/ncr-suite-app-v260.css'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v250.css'))) {
-  failures.push('La feuille de style critique V2.25.0 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v260.css'))) {
+  failures.push('La feuille de style critique V2.26.0 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v250.css'))) {
-  failures.push('La feuille de style complète V2.25.0 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v260.css'))) {
+  failures.push('La feuille de style complète V2.26.0 n’a pas été générée.');
 }
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v250.js'"
+  "entryFileNames: 'ncr-suite-app-v260.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');
@@ -430,10 +456,13 @@ requireText('src/components/TrainingModulesPanel.tsx', [
 requireText('src/components/TrainingModulesPanel.tsx', [
   "supabase.rpc('training_module_portal'",
   "supabase.rpc('request_training_module_change'",
+  "supabase.rpc('request_stripe_addon_change'",
+  "functions.invoke('manage-stripe-addon'",
   "supabase.rpc('cancel_training_module_request'",
   'projectedTotal',
   'upgradeWouldBeCheaper',
   'La formule',
+  'Ses données restent conservées',
   'MODULES FORMATION À LA CARTE'
 ]);
 
@@ -441,16 +470,21 @@ requireText('src/pages/SubscriptionPage.tsx', [
   "import { TrainingModulesPanel }",
   "data.business_type === 'formation'",
   '<TrainingModulesPanel />',
-  'id="subscription-plans"'
+  'id="subscription-plans"',
+  'Rétrogradation programmée',
+  'sans suppression des données',
+  'Vos données sont conservées'
 ]);
 
 requireText('src/components/BillingAdminPanel.tsx', [
   "supabase.rpc('admin_training_module_configuration')",
   "supabase.rpc('admin_list_training_module_requests'",
-  "supabase.rpc('admin_update_training_module_link'",
+  "supabase.rpc('admin_update_stripe_catalog_item'",
+  "supabase.rpc('admin_update_billing_settings_v2'",
   "supabase.rpc('admin_review_training_module_request'",
   'MODULES FORMATION',
-  'Liens Qonto Formation'
+  'Modules Stripe Formation',
+  'Qonto hors abonnement'
 ]);
 
 requireText('src/components/AdminMonitoringPanel.tsx', [
@@ -473,6 +507,26 @@ requireText('src/config/moduleAccess.ts', [
   "'/facturation-formation': 'training_billing'",
   "'/portails-formation': 'training_portals_signatures'"
 ]);
+
+const retentionSources = [
+  read('supabase/migrations/057_security_addons.sql'),
+  read('supabase/migrations/080_final_stabilization_training_modules.sql'),
+  read('supabase/migrations/095_stripe_catalog_lifecycle_paid_activation.sql')
+].join('\n').toLowerCase();
+for (const destructiveStatement of [
+  'delete from public.organization_training_modules',
+  'delete from public.organization_security_addons',
+  'delete from public.training_trainees',
+  'delete from public.training_sessions',
+  'delete from public.training_documents',
+  'delete from public.training_customers',
+  'delete from public.clients',
+  'truncate public.'
+]) {
+  if (retentionSources.includes(destructiveStatement)) {
+    failures.push(`La rétrogradation ne doit jamais exécuter : ${destructiveStatement}.`);
+  }
+}
 
 const businessPacks = read('src/config/businessPacks.ts');
 const accessMatrix = read('src/config/accessMatrix.ts');
@@ -510,7 +564,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086','087','088','089','090','091']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086','087','088','089','090','091','092','093','094','095']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }

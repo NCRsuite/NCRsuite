@@ -59,18 +59,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v250.css',
-  '/ncr-suite-app-v250.css',
+  '/ncr-suite-showcase-v260.css',
+  '/ncr-suite-app-v260.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.25.0'
+  'ncr:css-recovery-v2.26.0'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v250.css',
+  '/ncr-suite-app-v260.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v250.js'"
+  "entryFileNames: 'ncr-suite-app-v260.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -818,12 +818,33 @@ requireText('supabase/migrations/094_stripe_subscription_billing.sql', [
   'claim_stripe_webhook_event',
   'apply_stripe_billing_event',
   "'2.25.0'",
+  'ncr-suite-shell-v2.25.0-stripe-billing'
+]);
+requireText('supabase/migrations/095_stripe_catalog_lifecycle_paid_activation.sql', [
+  'create table if not exists public.stripe_addon_price_catalog',
+  'create table if not exists public.subscription_data_retention_events',
+  'organization_billing_access_allowed',
+  'request_stripe_addon_change',
+  'record_stripe_scheduled_plan_change',
+  'data_retention_mode',
+  "check (data_retention_mode='preserve')",
+  "'data_retained',true",
+  "'2.26.0'",
   expectedCache
 ]);
 requireText('supabase/functions/create-stripe-checkout/index.ts', [
   "mode: 'subscription'",
   'stripe_price_catalog',
-  'subscription_data'
+  'subscription_data',
+  'subscriptionSchedules',
+  "destination: 'scheduled'",
+  'dataRetained: true'
+]);
+requireText('supabase/functions/manage-stripe-addon/index.ts', [
+  'subscriptionItems.create',
+  'subscriptionItems.del',
+  'complete_stripe_addon_removal',
+  'dataRetained: true'
 ]);
 requireText('supabase/functions/create-stripe-portal/index.ts', [
   'billingPortal.sessions.create'
@@ -840,7 +861,18 @@ requireText('supabase/functions/stripe-webhook/index.ts', [
 requireText('src/pages/SubscriptionPage.tsx', [
   "functions.invoke('create-stripe-checkout'",
   "functions.invoke('create-stripe-portal'",
-  'Souscrire avec Stripe'
+  'Rétrogradation programmée',
+  'sans suppression des données',
+  'Vos données sont conservées'
+]);
+requireText('src/pages/OnboardingPage.tsx', [
+  'Créer et payer avec Stripe',
+  'L’espace restera verrouillé jusqu’à la confirmation du paiement'
+]);
+requireText('src/components/BillingAdminPanel.tsx', [
+  "supabase.rpc('admin_update_stripe_catalog_item'",
+  "supabase.rpc('admin_update_billing_settings_v2'",
+  'Qonto hors abonnement'
 ]);
 requireText('src/config/publicOfferCatalog.ts', [
   "key: 'formation'",

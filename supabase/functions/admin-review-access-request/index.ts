@@ -8,6 +8,7 @@ type AccessRequest = {
   phone: string | null;
   company_name: string;
   business_type: string;
+  requested_plan: string;
   team_size: string | null;
   message: string | null;
   status: 'pending' | 'approved' | 'rejected';
@@ -138,7 +139,7 @@ Deno.serve(async (request) => {
 
   const { data: accessRequest, error: accessError } = await service
     .from('platform_access_requests')
-    .select('id,reference,full_name,email,phone,company_name,business_type,team_size,message,status,invitation_count')
+    .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,team_size,message,status,invitation_count')
     .eq('id', requestId)
     .maybeSingle();
   if (accessError || !accessRequest) return jsonResponse(request, 404, { error: 'Demande introuvable.' });
@@ -195,6 +196,7 @@ Deno.serve(async (request) => {
     phone: row.phone,
     requested_company_name: row.company_name,
     requested_business_type: row.business_type,
+    requested_plan: row.requested_plan,
     requested_team_size: row.team_size,
     access_request_message: row.message,
     access_request_id: row.id,

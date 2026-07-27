@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { businessPacks } from '../config/businessPacks';
 import { supabase } from '../lib/supabase';
-import type { BusinessType } from '../types';
+import type { BusinessType, Plan } from '../types';
 import { Icon } from './Icon';
 
 type AccessRequestStatus = 'pending' | 'approved' | 'rejected';
@@ -14,6 +14,7 @@ interface AccessRequest {
   phone: string | null;
   company_name: string;
   business_type: BusinessType;
+  requested_plan: Plan;
   team_size: string | null;
   message: string | null;
   status: AccessRequestStatus;
@@ -30,6 +31,13 @@ const statusLabels: Record<AccessRequestStatus, string> = {
   pending: 'À étudier',
   approved: 'Acceptée',
   rejected: 'Refusée'
+};
+
+const planLabels: Record<Plan, string> = {
+  decouverte: 'Découverte',
+  essentielle: 'Essentielle',
+  professionnelle: 'Professionnelle',
+  metier: 'Métier'
 };
 
 function dateLabel(value: string | null) {
@@ -55,7 +63,7 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
 
     let query = supabase
       .from('platform_access_requests')
-      .select('id,reference,full_name,email,phone,company_name,business_type,team_size,message,status,submitted_at,reviewed_at,decision_note,invited_user_id,invitation_sent_at,invitation_count,last_invitation_error')
+      .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,team_size,message,status,submitted_at,reviewed_at,decision_note,invited_user_id,invitation_sent_at,invitation_count,last_invitation_error')
       .order('submitted_at', { ascending: false })
       .limit(250);
 
@@ -200,7 +208,7 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
                 <div>
                   <p className="eyebrow">{selected.reference}</p>
                   <h2>{selected.company_name}</h2>
-                  <small>{businessPacks[selected.business_type].label} · équipe {selected.team_size || 'non précisée'}</small>
+                  <small>{businessPacks[selected.business_type].label} · formule {planLabels[selected.requested_plan]} · équipe {selected.team_size || 'non précisée'}</small>
                 </div>
                 <span className={`admin-access-status ${selected.status}`}>{statusLabels[selected.status]}</span>
               </header>
@@ -209,6 +217,7 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
                 <div><dt>Demandeur</dt><dd>{selected.full_name}</dd></div>
                 <div><dt>E-mail</dt><dd><a href={`mailto:${selected.email}`}>{selected.email}</a></dd></div>
                 <div><dt>Téléphone</dt><dd>{selected.phone || 'Non renseigné'}</dd></div>
+                <div><dt>Formule</dt><dd>{planLabels[selected.requested_plan]}</dd></div>
                 <div><dt>Reçue le</dt><dd>{dateLabel(selected.submitted_at)}</dd></div>
               </dl>
 

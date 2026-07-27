@@ -1,5 +1,22 @@
 # Changelog NCR Suite
 
+## V2.26.0 — Cycle Stripe complet et données conservées
+
+- Catalogue des `price_id` Stripe administrable par métier, formule et module.
+- Stripe devient le moyen normal pour les abonnements et modules récurrents.
+- Qonto est conservé uniquement pour les prestations et virements exceptionnels.
+- Choix obligatoire du métier et de la formule avant le premier paiement.
+- Espace métier verrouillé jusqu’à la confirmation du paiement Stripe.
+- Rétrogradations programmées à la fin de la période en cours.
+- Retrait des droits premium sans suppression des clients, dossiers, documents ou historiques.
+- Réapparition des données dès qu’une formule ou un module compatible est réactivé.
+- Ajout et retrait automatiques des modules Formation et Sécurité dans l’abonnement Stripe.
+- Délai de grâce configurable après un paiement échoué, puis suspension des accès.
+- Résiliation et gestion du moyen de paiement depuis le portail client Stripe.
+- Affichage du statut, de la date d’effet et de la conservation des données côté client et super-administrateur.
+- Migration `095`, Edge Function `manage-stripe-addon` et cache PWA `ncr-suite-shell-v2.26.0-stripe-billing`.
+- Nouveau bundle autonome `ncr-suite-app-v260.js`.
+
 ## V2.25.0 — Facturation Stripe multi-métiers
 
 - Checkout Stripe mensuel créé à la demande depuis la page Abonnement.

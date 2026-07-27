@@ -5,6 +5,7 @@ import { getDomainPlans } from '../config/domainPlans';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { supabase } from '../lib/supabase';
 import type { BusinessType, Plan } from '../types';
 
 const steps = [
@@ -30,7 +31,10 @@ export function OnboardingPage() {
   const [step, setStep] = useState(1);
   const [name, setName] = useState(String(user?.user_metadata?.requested_company_name ?? ''));
   const [businessType, setBusinessType] = useState<BusinessType>(initialBusinessType);
-  const [requestedPlan, setRequestedPlan] = useState<Plan>('essentielle');
+  const metadataPlan = String(user?.user_metadata?.requested_plan ?? '');
+  const [requestedPlan, setRequestedPlan] = useState<Plan>(
+    planOrder.includes(metadataPlan as Plan) ? metadataPlan as Plan : 'essentielle'
+  );
   const [primaryColor, setPrimaryColor] = useState('#2997ff');
   const [contactName, setContactName] = useState(String(user?.user_metadata?.full_name ?? ''));
   const [companyEmail, setCompanyEmail] = useState(user?.email ?? '');
@@ -41,6 +45,7 @@ export function OnboardingPage() {
   const [companySiret, setCompanySiret] = useState('');
   const [objective, setObjective] = useState(String(user?.user_metadata?.access_request_message ?? ''));
   const [pending, setPending] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState('');
 
   const selectedPack = businessPacks[businessType];
@@ -53,7 +58,7 @@ export function OnboardingPage() {
     if (step === 1) return Boolean(businessType);
     if (step === 2) return name.trim().length >= 2 && companyEmail.includes('@');
     if (step === 3) return Boolean(requestedPlan);
-    return contactName.trim().length >= 2 && companyEmail.includes('@');
+    return contactName.trim().length >= 2 && companyEmail.includes('@') && termsAccepted;
   }
 
   function nextStep() {
@@ -74,7 +79,7 @@ export function OnboardingPage() {
     setPending(true);
     setError('');
     try {
-      await createOrganization({
+      const organizationId = await createOrganization({
         name: name.trim(),
         businessType,
         primaryColor,
@@ -88,6 +93,19 @@ export function OnboardingPage() {
         companySiret: companySiret.trim(),
         objective: objective.trim()
       });
+      if (!supabase) return;
+      const { data, error: checkoutError } = await supabase.functions.invoke('create-stripe-checkout', {
+        body: {
+          organizationId,
+          planKey: requestedPlan,
+          acceptTerms: true
+        }
+      });
+      if (checkoutError || data?.error || !data?.url) {
+        window.location.assign('/abonnement?stripe=retry');
+        return;
+      }
+      window.location.assign(String(data.url));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Impossible de créer l’espace.');
     } finally {
@@ -134,7 +152,7 @@ export function OnboardingPage() {
             <div>
               <span className="saas-step-chip">Étape {step}/4</span>
               <h2>{step === 1 ? 'Quel est ton métier ?' : step === 2 ? 'Présente ton entreprise.' : step === 3 ? 'Quelle formule t’intéresse ?' : 'Finalise ton identité.'}</h2>
-              <p>{step === 1 ? 'Le métier détermine l’architecture et les outils disponibles.' : step === 2 ? 'Ces informations seront reprises dans l’administration NCR et tes documents.' : step === 3 ? 'Ce choix prépare ton espace. L’abonnement pourra ensuite être confirmé dans Mon abonnement.' : 'Choisis ton identité visuelle et vérifie le récapitulatif.'}</p>
+              <p>{step === 1 ? 'Le métier détermine l’architecture et les outils disponibles.' : step === 2 ? 'Ces informations seront reprises dans l’administration NCR et tes documents.' : step === 3 ? 'Cette formule sera réglée sur la page sécurisée Stripe avant l’ouverture de l’espace.' : 'Choisis ton identité visuelle, vérifie le récapitulatif puis passe au paiement.'}</p>
             </div>
           </div>
 
@@ -202,6 +220,10 @@ export function OnboardingPage() {
                   <div><dt>Localisation</dt><dd>{[companyPostalCode, companyCity].filter(Boolean).join(' ') || 'Non renseignée'}</dd></div>
                 </dl>
                 <div className="saas-onboarding-assurance"><Icon name="shield" size={18} /><span><strong>Aucune fonction métier ne sera mélangée.</strong><small>Chaque espace conserve ses données, ses droits et son abonnement séparés.</small></span></div>
+                <label className="public-privacy-check">
+                  <input type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} required />
+                  <span>J’accepte la souscription de la formule <strong>{selectedPlan.label}</strong> via Stripe. L’espace restera verrouillé jusqu’à la confirmation du paiement.</span>
+                </label>
               </div>
             </section>
           )}
@@ -213,7 +235,7 @@ export function OnboardingPage() {
             {step < 4 ? (
               <button type="button" className="primary-button" onClick={nextStep}>Continuer <Icon name="chevronRight" size={17} /></button>
             ) : (
-              <button className="primary-button" disabled={pending}>{pending ? 'Création de l’espace…' : 'Créer mon espace'} <Icon name="check" size={17} /></button>
+              <button className="primary-button" disabled={pending}>{pending ? 'Préparation du paiement…' : 'Créer et payer avec Stripe'} <Icon name="creditCard" size={17} /></button>
             )}
           </footer>
         </form>

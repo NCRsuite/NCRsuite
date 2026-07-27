@@ -2,6 +2,14 @@ import { createClient, type SupabaseClient, type User } from 'npm:@supabase/supa
 import Stripe from 'npm:stripe@22.0.0';
 
 type JsonRecord = Record<string, unknown>;
+type CheckoutPayload = {
+  organizationId?: string;
+  planKey?: string;
+  requestId?: string;
+  acceptTerms?: boolean;
+};
+
+const validPlans = new Set(['decouverte', 'essentielle', 'professionnelle', 'metier']);
 
 function allowedOrigins() {
   return new Set(
@@ -48,8 +56,30 @@ function serviceClient(supabaseUrl: string, serviceRoleKey: string) {
   });
 }
 
+function userClient(supabaseUrl: string, anonKey: string, token: string) {
+  return createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 function stripeClient(secretKey: string) {
   return new Stripe(secretKey, { httpClient: Stripe.createFetchHttpClient() });
+}
+
+function safeId(value: unknown) {
+  if (typeof value === 'string') return value;
+  if (value && typeof value === 'object' && 'id' in value) {
+    const id = (value as { id?: unknown }).id;
+    return typeof id === 'string' ? id : '';
+  }
+  return '';
+}
+
+function periodEnd(subscription: Stripe.Subscription) {
+  const direct = (subscription as unknown as { current_period_end?: number }).current_period_end;
+  const item = subscription.items.data[0] as unknown as { current_period_end?: number } | undefined;
+  return direct ?? item?.current_period_end ?? null;
 }
 
 async function authenticatedUser(
@@ -82,21 +112,94 @@ async function requireOrganizationManager(
   }
 }
 
-function userClient(supabaseUrl: string, anonKey: string, token: string) {
-  return createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+async function baseSubscriptionItem(
+  service: SupabaseClient,
+  subscription: Stripe.Subscription,
+  businessType: string,
+  livemode: boolean,
+) {
+  const priceIds = subscription.items.data.map((item) => item.price.id).filter(Boolean);
+  if (!priceIds.length) throw new Error('L abonnement Stripe ne contient aucun article.');
+  const { data, error } = await service
+    .from('stripe_price_catalog')
+    .select('stripe_price_id,plan_key')
+    .eq('business_type', businessType)
+    .eq('livemode', livemode)
+    .eq('active', true)
+    .in('stripe_price_id', priceIds);
+  if (error) throw error;
+  const basePriceIds = new Set((data ?? []).map((row) => row.stripe_price_id));
+  const baseItem = subscription.items.data.find((item) => basePriceIds.has(item.price.id));
+  if (!baseItem) throw new Error('La formule principale Stripe est introuvable dans cet abonnement.');
+  return baseItem;
 }
 
-type CheckoutPayload = {
-  organizationId?: string;
-  planKey?: string;
-  requestId?: string;
-  acceptTerms?: boolean;
-};
+async function compatibleFutureItems(
+  service: SupabaseClient,
+  subscription: Stripe.Subscription,
+  baseItemId: string,
+  targetPriceId: string,
+  targetPlan: string,
+  businessType: string,
+  livemode: boolean,
+) {
+  const futureItems: Array<{ price: string; quantity: number }> = [{
+    price: targetPriceId,
+    quantity: 1,
+  }];
+  const addonItems = subscription.items.data.filter((item) => item.id !== baseItemId);
+  if (!addonItems.length) return futureItems;
 
-const validPlans = new Set(['decouverte', 'essentielle', 'professionnelle', 'metier']);
+  const priceIds = addonItems.map((item) => item.price.id);
+  const { data: mappings, error } = await service
+    .from('stripe_addon_price_catalog')
+    .select('item_type,item_key,stripe_price_id')
+    .eq('livemode', livemode)
+    .eq('active', true)
+    .in('stripe_price_id', priceIds);
+  if (error) throw error;
+  const { data: targetPlanCatalog, error: planError } = await service
+    .from('domain_plan_catalog')
+    .select('features')
+    .eq('business_type', businessType)
+    .eq('plan_key', targetPlan)
+    .eq('active', true)
+    .maybeSingle();
+  if (planError || !targetPlanCatalog) {
+    throw new Error('La formule cible est introuvable dans le catalogue NCR Suite.');
+  }
+  const planFeatures = targetPlanCatalog.features && typeof targetPlanCatalog.features === 'object'
+    ? targetPlanCatalog.features as Record<string, unknown>
+    : {};
+
+  for (const item of addonItems) {
+    const mapping = (mappings ?? []).find((row) => row.stripe_price_id === item.price.id);
+    if (!mapping) continue;
+    const table = mapping.item_type === 'training_module'
+      ? 'training_module_catalog'
+      : 'security_addon_catalog';
+    const keyColumn = mapping.item_type === 'training_module' ? 'module_key' : 'addon_key';
+    const { data: catalogItem, error: catalogError } = await service
+      .from(table)
+      .select('available_plans,feature_keys')
+      .eq(keyColumn, mapping.item_key)
+      .eq('active', true)
+      .maybeSingle();
+    if (catalogError) throw catalogError;
+    const availablePlans = Array.isArray(catalogItem?.available_plans)
+      ? catalogItem.available_plans as string[]
+      : [];
+    const featureKeys = Array.isArray(catalogItem?.feature_keys)
+      ? catalogItem.feature_keys as string[]
+      : [];
+    const includedByTargetPlan = featureKeys.length > 0
+      && featureKeys.every((feature) => planFeatures[feature] === true);
+    if (availablePlans.includes(targetPlan) && !includedByTargetPlan) {
+      futureItems.push({ price: item.price.id, quantity: item.quantity ?? 1 });
+    }
+  }
+  return futureItems;
+}
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(request) });
@@ -146,7 +249,7 @@ Deno.serve(async (request) => {
 
     const { data: changeRequest, error: changeError } = await service
       .from('subscription_change_requests')
-      .select('id,organization_id,requested_plan,status,provider,request_reference,stripe_checkout_session_id')
+      .select('id,organization_id,requested_plan,request_type,status,provider,request_reference,stripe_checkout_session_id,stripe_schedule_id,effective_at')
       .eq('id', requestId)
       .eq('organization_id', organizationId)
       .eq('status', 'payment_pending')
@@ -154,6 +257,16 @@ Deno.serve(async (request) => {
       .maybeSingle();
     if (changeError || !changeRequest) throw new Error('Demande Stripe introuvable ou deja traitee.');
     reference = reference || changeRequest.request_reference;
+    if (changeRequest.stripe_schedule_id && changeRequest.effective_at) {
+      return jsonResponse(request, 200, {
+        reference,
+        requestId,
+        destination: 'scheduled',
+        scheduled: true,
+        effectiveAt: changeRequest.effective_at,
+        dataRetained: true,
+      });
+    }
 
     const { data: organization, error: organizationError } = await service
       .from('organizations')
@@ -173,23 +286,100 @@ Deno.serve(async (request) => {
     if (priceError || !price) throw new Error('Le tarif Stripe de cette formule n est pas configure.');
 
     const stripe = stripeClient(config.stripeSecretKey);
-    const { data: subscription, error: subscriptionError } = await service
+    const { data: billing, error: subscriptionError } = await service
       .from('organization_subscriptions')
       .select('stripe_customer_id,provider_customer_id,stripe_subscription_id,provider_subscription_id,stripe_livemode')
       .eq('organization_id', organizationId)
       .maybeSingle();
-    if (subscriptionError || !subscription) throw new Error('Abonnement NCR Suite introuvable.');
+    if (subscriptionError || !billing) throw new Error('Abonnement NCR Suite introuvable.');
 
-    let customerId = subscription.stripe_livemode === config.stripeLivemode
-      ? subscription.stripe_customer_id || subscription.provider_customer_id || ''
+    let customerId = billing.stripe_livemode === config.stripeLivemode
+      ? billing.stripe_customer_id || billing.provider_customer_id || ''
       : '';
-    const activeSubscriptionId = subscription.stripe_livemode === config.stripeLivemode
-      ? subscription.stripe_subscription_id || subscription.provider_subscription_id || ''
+    const activeSubscriptionId = billing.stripe_livemode === config.stripeLivemode
+      ? billing.stripe_subscription_id || billing.provider_subscription_id || ''
       : '';
-    if (activeSubscriptionId && customerId) {
+
+    if (activeSubscriptionId) {
       const currentSubscription = await stripe.subscriptions.retrieve(activeSubscriptionId);
-      const currentItem = currentSubscription.items.data[0];
-      if (!currentItem) throw new Error('L abonnement Stripe ne contient aucune formule modifiable.');
+      customerId = customerId || safeId(currentSubscription.customer);
+      if (!customerId) throw new Error('Le client Stripe de cet abonnement est introuvable.');
+      const baseItem = await baseSubscriptionItem(
+        service,
+        currentSubscription,
+        String(organization.business_type),
+        config.stripeLivemode,
+      );
+
+      if (changeRequest.request_type === 'downgrade') {
+        const end = periodEnd(currentSubscription);
+        if (!end) throw new Error('La date de renouvellement Stripe est introuvable.');
+        const existingScheduleId = safeId(currentSubscription.schedule);
+        const schedule = existingScheduleId
+          ? await stripe.subscriptionSchedules.retrieve(existingScheduleId)
+          : await stripe.subscriptionSchedules.create(
+            { from_subscription: currentSubscription.id },
+            { idempotencyKey: `ncr-schedule-${requestId}` },
+          );
+        const firstPhase = schedule.phases[0];
+        const start = schedule.current_phase?.start_date
+          ?? firstPhase?.start_date
+          ?? Math.floor(Date.now() / 1000);
+        const currentItems = currentSubscription.items.data.map((item) => ({
+          price: item.price.id,
+          quantity: item.quantity ?? 1,
+        }));
+        const futureItems = await compatibleFutureItems(
+          service,
+          currentSubscription,
+          baseItem.id,
+          price.stripe_price_id,
+          changeRequest.requested_plan,
+          String(organization.business_type),
+          config.stripeLivemode,
+        );
+        await stripe.subscriptionSchedules.update(schedule.id, {
+          end_behavior: 'release',
+          phases: [
+            {
+              start_date: start,
+              end_date: end,
+              items: currentItems,
+              proration_behavior: 'none',
+            },
+            {
+              start_date: end,
+              items: futureItems,
+              proration_behavior: 'none',
+              metadata: {
+                ncr_organization_id: organizationId,
+                ncr_request_id: requestId,
+                ncr_plan_key: changeRequest.requested_plan,
+                ncr_request_reference: reference,
+                ncr_data_retention: 'preserve',
+              },
+            },
+          ],
+        });
+        const effectiveAt = new Date(end * 1000).toISOString();
+        const { error: recordError } = await service.rpc('record_stripe_scheduled_plan_change', {
+          p_organization_id: organizationId,
+          p_request_id: requestId,
+          p_schedule_id: schedule.id,
+          p_plan_key: changeRequest.requested_plan,
+          p_effective_at: effectiveAt,
+        });
+        if (recordError) throw recordError;
+        return jsonResponse(request, 200, {
+          reference,
+          requestId,
+          destination: 'scheduled',
+          scheduled: true,
+          effectiveAt,
+          dataRetained: true,
+        });
+      }
+
       const portal = await stripe.billingPortal.sessions.create({
         customer: customerId,
         return_url: `${config.publicUrl}/abonnement`,
@@ -199,16 +389,14 @@ Deno.serve(async (request) => {
           subscription_update_confirm: {
             subscription: activeSubscriptionId,
             items: [{
-              id: currentItem.id,
+              id: baseItem.id,
               price: price.stripe_price_id,
               quantity: 1,
             }],
           },
           after_completion: {
             type: 'redirect',
-            redirect: {
-              return_url: `${config.publicUrl}/abonnement?stripe=success`,
-            },
+            redirect: { return_url: `${config.publicUrl}/abonnement?stripe=success` },
           },
         },
       });
@@ -264,9 +452,10 @@ Deno.serve(async (request) => {
           ncr_request_id: requestId,
           ncr_plan_key: changeRequest.requested_plan,
           ncr_request_reference: reference,
+          ncr_data_retention: 'preserve',
         },
       },
-    });
+    }, { idempotencyKey: `ncr-checkout-${requestId}` });
     if (!checkout.url) throw new Error('Stripe n a pas retourne d URL de paiement.');
 
     const { error: requestSaveError } = await service

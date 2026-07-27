@@ -86,6 +86,8 @@ const FORMATION_FEATURE_MODULES: Partial<Record<PlanFeature, string>> = {
 };
 
 export function organizationHasFeature(organization: Organization, feature: PlanFeature) {
+  if (organization.billing_access_allowed === false) return false;
+
   if (organization.business_type === 'securite') {
     const addonModule = SECURITY_ADDON_FEATURE_MODULES[feature];
     if (addonModule && (organization.enabled_modules ?? []).includes(addonModule)) return true;
