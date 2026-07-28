@@ -1,5 +1,20 @@
 # Changelog NCR Suite
 
+## V2.28.1 - Pages métier premium
+
+- Hiérarchie typographique renforcée sur les cinq pages métier publiques.
+- Fonctionnalités présentées dans une composition bento plus riche et plus lisible.
+- Cartes d’offres agrandies avec prix, bénéfices et actions mieux mis en valeur.
+- Apparition progressive des sections et des cartes pendant le défilement.
+- Réactions visibles au survol, au clic et au focus clavier.
+- Animations automatiquement réduites lorsque le système le demande.
+- Nouvelle icône NCR Suite fournie utilisée sur le bloc final à fond sombre.
+- Mise en page mobile conservée sans débordement horizontal.
+- Parcours, liens, formulaires, tarifs, SEO et données existantes inchangés.
+- Migration `105` limitée à la synchronisation de la release.
+- Cache PWA `ncr-suite-shell-v2.28.1-premium-solution-pages`.
+- Nouveau bundle autonome `ncr-suite-app-v281.js`.
+
 ## V2.28.0 - SEO métier et acquisition
 
 - Cinq pages publiques spécialisées pour Formation, Sécurité privée, Nettoyage, Restauration et Coiffure.

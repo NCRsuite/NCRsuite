@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-seo-acquisition`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-solution-pages`;
+const seoAcquisitionCache = 'ncr-suite-shell-v2.28.0-seo-acquisition';
 const interactionsCache = 'ncr-suite-shell-v2.27.1-interactions';
 const commercialReadinessCache = 'ncr-suite-shell-v2.27.0-commercial-readiness';
 const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
@@ -61,18 +62,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v280.css',
-  '/ncr-suite-app-v280.css',
+  '/ncr-suite-showcase-v281.css',
+  '/ncr-suite-app-v281.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.0'
+  'ncr:css-recovery-v2.28.1'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v280.css',
+  '/ncr-suite-app-v281.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v280.js'"
+  "entryFileNames: 'ncr-suite-app-v281.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -888,10 +889,21 @@ requireText('supabase/migrations/103_v2_27_1_interactions_release.sql', [
 ]);
 requireText('supabase/migrations/104_seo_acquisition_release.sql', [
   "'2.28.0'",
-  expectedCache,
+  seoAcquisitionCache,
   'acquisition_source',
   'landing_path',
   'platform_release_state'
+]);
+requireText('supabase/migrations/105_premium_solution_pages_release.sql', [
+  "'2.28.1'",
+  expectedCache,
+  'platform_release_state'
+]);
+requireText('src/pages/PublicSolutionPage.tsx', [
+  'public-solution-v281',
+  'data-solution-reveal',
+  'IntersectionObserver',
+  '/brand/ncr-suite-application-icon-v281.png'
 ]);
 requireText('scripts/generate-seo-pages.mjs', [
   'publicSeoPages.json',

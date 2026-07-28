@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { PageMetadata } from '../components/PageMetadata';
@@ -52,6 +52,27 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
   const offers = publicOfferCatalog.find((item) => item.key === page.key) ?? publicOfferCatalog[0];
   const style = { '--solution-color': page.color } as CSSProperties;
   const defaultRequestPath = `/demande-acces?metier=${page.key}&offre=${page.defaultPlan}`;
+  const pageRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const elements = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('[data-solution-reveal]') ?? []);
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion || typeof IntersectionObserver === 'undefined') {
+      elements.forEach((element) => element.classList.add('is-visible'));
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [page.key]);
 
   const structuredData = useMemo(() => ({
     '@context': 'https://schema.org',
@@ -107,7 +128,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
   }), [offers.plans, page]);
 
   return (
-    <div className="public-solution-page" style={style}>
+    <div className="public-solution-page public-solution-v281" style={style} ref={pageRef}>
       <PageMetadata
         title={page.title}
         description={page.description}
@@ -159,13 +180,13 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
       </section>
 
       <main>
-        <section className="public-solution-outcome">
+        <section className="public-solution-outcome" data-solution-reveal>
           <p className="public-section-label">UNE INFORMATION QUI CIRCULE</p>
           <h2>{page.outcome}</h2>
           <p>Chaque action alimente la suivante. Les équipes travaillent dans le même contexte et les responsables gardent une vision exploitable de ce qui est prêt, incomplet ou bloquant.</p>
         </section>
 
-        <section className="public-solution-features" id="fonctionnalites">
+        <section className="public-solution-features" id="fonctionnalites" data-solution-reveal>
           <header>
             <p className="public-section-label">FONCTIONNALITÉS MÉTIER</p>
             <h2>Tout ce qui doit rester lié dans votre activité</h2>
@@ -181,7 +202,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
           </div>
         </section>
 
-        <section className="public-solution-workflow">
+        <section className="public-solution-workflow" data-solution-reveal>
           <header>
             <p className="public-section-label">DU PREMIER SIGNAL AU PILOTAGE</p>
             <h2>Un parcours continu, sans ressaisie inutile</h2>
@@ -197,7 +218,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
           </div>
         </section>
 
-        <section className="public-solution-offers" id="offres">
+        <section className="public-solution-offers" id="offres" data-solution-reveal>
           <header>
             <div>
               <p className="public-section-label">OFFRES {page.name.toUpperCase()}</p>
@@ -218,7 +239,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
           </div>
         </section>
 
-        <section className="public-solution-faq">
+        <section className="public-solution-faq" data-solution-reveal>
           <header>
             <p className="public-section-label">QUESTIONS FRÉQUENTES</p>
             <h2>Ce qu’il faut savoir avant de choisir</h2>
@@ -233,7 +254,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
           </div>
         </section>
 
-        <section className="public-solution-links">
+        <section className="public-solution-links" data-solution-reveal>
           <p className="public-section-label">AUTRES SOLUTIONS MÉTIER</p>
           <h2>Une suite, plusieurs environnements spécialisés</h2>
           <nav aria-label="Autres logiciels métier NCR Suite">
@@ -245,8 +266,8 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
           </nav>
         </section>
 
-        <section className="public-solution-final">
-          <img src="/brand/ncr-suite-symbol-v2221.png" alt="" />
+        <section className="public-solution-final" data-solution-reveal>
+          <img src="/brand/ncr-suite-application-icon-v281.png" alt="NCR Suite" />
           <p className="public-section-label">OUVERTURE SUR VALIDATION</p>
           <h2>Présentez-nous votre activité</h2>
           <p>Nous vérifions le métier, la formule et la configuration attendue avant l’ouverture de votre espace.</p>

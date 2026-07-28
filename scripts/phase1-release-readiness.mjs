@@ -16,7 +16,8 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-seo-acquisition`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-solution-pages`;
+const seoAcquisitionCache = 'ncr-suite-shell-v2.28.0-seo-acquisition';
 const interactionsCache = 'ncr-suite-shell-v2.27.1-interactions';
 const commercialReadinessCache = 'ncr-suite-shell-v2.27.0-commercial-readiness';
 const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
@@ -31,15 +32,16 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.28.0') failures.push('package.json doit annoncer la V2.28.0.');
+if (pkg.version !== '2.28.1') failures.push('package.json doit annoncer la V2.28.1.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.28.0 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.28.0 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.28.1 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.28.1 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
   'public/brand/ncr-suite-logo-header-v2221.png',
   'public/brand/ncr-suite-symbol-v2221.png',
+  'public/brand/ncr-suite-application-icon-v281.png',
   'public/og/ncr-suite-og-v2221.webp'
 ]) {
   if (!fs.existsSync(path.join(root, asset))) failures.push(`Asset V2.22.1 absent : ${asset}`);
@@ -233,11 +235,16 @@ requireText('supabase/migrations/103_v2_27_1_interactions_release.sql', [
 ]);
 requireText('supabase/migrations/104_seo_acquisition_release.sql', [
   "'2.28.0'",
-  expectedCache,
+  seoAcquisitionCache,
   'acquisition_source',
   'acquisition_medium',
   'acquisition_campaign',
   'landing_path',
+  'platform_release_state'
+]);
+requireText('supabase/migrations/105_premium_solution_pages_release.sql', [
+  "'2.28.1'",
+  expectedCache,
   'platform_release_state'
 ]);
 requireText('supabase/functions/create-stripe-checkout/index.ts', [
@@ -306,37 +313,37 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v280.css',
-  'ncr-suite-app-v280.css',
+  'ncr-suite-showcase-v281.css',
+  'ncr-suite-app-v281.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
 
 requireText('index.html', [
-  '/ncr-suite-showcase-v280.css',
-  '/ncr-suite-app-v280.css',
+  '/ncr-suite-showcase-v281.css',
+  '/ncr-suite-app-v281.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.0',
+  'ncr:css-recovery-v2.28.1',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v280.css',
-  '/ncr-suite-app-v280.css',
+  '/ncr-suite-showcase-v281.css',
+  '/ncr-suite-app-v281.css',
   'X-Robots-Tag: noindex, nofollow'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v280.css'))) {
-  failures.push('La feuille de style critique V2.28.0 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v281.css'))) {
+  failures.push('La feuille de style critique V2.28.1 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v280.css'))) {
-  failures.push('La feuille de style complète V2.28.0 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v281.css'))) {
+  failures.push('La feuille de style complète V2.28.1 n’a pas été générée.');
 }
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v280.js'"
+  "entryFileNames: 'ncr-suite-app-v281.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');
@@ -365,7 +372,10 @@ requireText('scripts/generate-seo-pages.mjs', [
 
 requireText('src/pages/PublicSolutionPage.tsx', [
   'structuredData',
-  'public-solution-page',
+  'public-solution-v281',
+  'data-solution-reveal',
+  'IntersectionObserver',
+  '/brand/ncr-suite-application-icon-v281.png',
   'logiciel de gestion métier',
   '/demande-acces?metier='
 ]);
