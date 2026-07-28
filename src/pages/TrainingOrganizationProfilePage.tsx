@@ -202,7 +202,7 @@ export function TrainingOrganizationProfilePage() {
           <label className="full-field">Adresse<input value={form.address} onChange={(event) => setForm({ ...form, address: event.target.value })} /></label>
           <label>Code postal<input value={form.postalCode} onChange={(event) => setForm({ ...form, postalCode: event.target.value })} /></label>
           <label>Ville<input value={form.city} onChange={(event) => setForm({ ...form, city: event.target.value })} /></label>
-          <label className="full-field">Adresse de réponse pour les documents signés *<input type="email" value={form.replyToEmail} onChange={(event) => setForm({ ...form, replyToEmail: event.target.value })} placeholder="administration@mon-organisme.fr" /><small>Cette adresse sera communiquée dans les propositions et utilisée comme adresse de réponse des futurs envois Brevo.</small></label>
+          <label className="full-field">Adresse de réponse pour les documents signés *<input type="email" value={form.replyToEmail} onChange={(event) => setForm({ ...form, replyToEmail: event.target.value })} placeholder="administration@mon-organisme.fr" /><small>Cette adresse sera communiquée dans les propositions et utilisée comme adresse de réponse des futurs envois.</small></label>
         </div></section>
 
         <section><header><span>03</span><div><p className="eyebrow">DOCUMENTS</p><h2>Mentions communes</h2></div></header><div className="training-form-grid">

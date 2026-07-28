@@ -192,7 +192,7 @@ export function RestaurantCommercialBrandingPage() {
   }
 
   async function uploadAsset(file: File, kind: 'restaurant-logo' | 'restaurant-cover') {
-    if (!supabase) throw new Error('Supabase n’est pas configuré.');
+    if (!supabase) throw new Error('Le service de données n’est pas disponible.');
     const path = `${currentOrganization.id}/restaurant/${kind}-${Date.now()}.${extensionFor(file)}`;
     const { error: uploadError } = await supabase.storage.from('organization-branding').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
     if (uploadError) throw uploadError;
@@ -201,7 +201,7 @@ export function RestaurantCommercialBrandingPage() {
 
 
   async function requestTranslation(segments: Record<string, string>): Promise<TranslationPayload> {
-    if (!supabase || demoMode) throw new Error('La traduction automatique nécessite Supabase.');
+    if (!supabase || demoMode) throw new Error('La traduction automatique n’est pas disponible dans ce mode.');
     const { data, error: functionError } = await supabase.functions.invoke('translate-restaurant-menu', {
       body: { organization_id: currentOrganization.id, segments },
     });

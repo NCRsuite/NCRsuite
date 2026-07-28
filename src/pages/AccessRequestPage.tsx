@@ -127,8 +127,8 @@ export function AccessRequestPage() {
         <main className="public-request-success">
           <span><Icon name="check" size={32} /></span>
           <p className="public-section-label">DEMANDE TRANSMISE</p>
-          <h1>Merci, votre demande va être étudiée.</h1>
-          <p>Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte. Après l’invitation, votre espace sera activé par le paiement Stripe de la formule choisie. Vous recevrez l’e-mail depuis <strong>contact@ncr-suite.fr</strong>.</p>
+          <h1>Merci, votre demande va être étudiée</h1>
+          <p>Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte. Après l’invitation, votre espace sera activé dès la confirmation du paiement sécurisé de la formule choisie. Vous recevrez l’e-mail depuis <strong>contact@ncr-suite.fr</strong>.</p>
           <div><small>Référence de suivi</small><strong>{reference}</strong></div>
           <Link className="public-primary-action" to="/">Retourner à l’accueil</Link>
         </main>
@@ -148,7 +148,7 @@ export function AccessRequestPage() {
       <main className="public-request-layout">
         <section className="public-request-intro">
           <p className="public-section-label">ACCÈS SUR VALIDATION</p>
-          <h1>Parlons de votre activité avant d’ouvrir votre espace.</h1>
+          <h1>Parlons de votre activité avant d’ouvrir votre espace</h1>
           <p>Cette courte demande nous permet de vérifier le métier, le bon niveau d’équipement et la personne qui deviendra propriétaire du compte.</p>
           <ol>
             <li><span>1</span><div><strong>Vous présentez votre besoin</strong><small>Aucun compte n’est créé automatiquement.</small></div></li>
@@ -161,7 +161,7 @@ export function AccessRequestPage() {
         <form className="public-request-form" onSubmit={submit}>
           <header>
             <p className="public-section-label">VOTRE DEMANDE</p>
-            <h2>Quelques informations suffisent.</h2>
+            <h2>Quelques informations suffisent</h2>
           </header>
           <div className="public-request-fields">
             <label>Nom et prénom *<input value={fullName} onChange={(event) => setFullName(event.target.value)} maxLength={120} autoComplete="name" required /></label>
@@ -202,7 +202,7 @@ export function AccessRequestPage() {
           <button className="public-primary-action full" disabled={pending}>
             {pending ? 'Envoi de la demande…' : 'Transmettre ma demande'} <Icon name="chevronRight" size={17} />
           </button>
-          <small className="public-form-note">Aucun paiement n’est réalisé à cette étape. Après validation, Stripe activera l’espace uniquement lorsque la souscription sera confirmée.</small>
+          <small className="public-form-note">Aucun paiement n’est réalisé à cette étape. Après validation, l’espace sera activé uniquement lorsque la souscription sera confirmée.</small>
         </form>
       </main>
       <PublicSiteFooter />

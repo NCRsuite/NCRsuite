@@ -320,7 +320,7 @@ export function PublicBookingPage() {
           <section className="public-success-card">
             <div className="public-success-icon">✓</div>
             <p className="eyebrow">DEMANDE ENREGISTRÉE</p>
-            <h1>{result.status === 'confirmed' ? 'Votre rendez-vous est confirmé.' : 'Votre demande attend une validation.'}</h1>
+            <h1>{result.status === 'confirmed' ? 'Votre rendez-vous est confirmé' : 'Votre demande attend une validation'}</h1>
             <p>Votre réservation apparaît immédiatement dans le planning de {result.site_name || pageData.organization.name}.</p>{result.site_name && <div className="public-booking-site-result"><strong>{result.site_name}</strong>{result.site_address && <span>{result.site_address}</span>}</div>}
             <div className="public-booking-recap">
               <div><span>Prestation</span><strong>{result.service_name}</strong></div>
@@ -367,7 +367,7 @@ export function PublicBookingPage() {
           style={pageData.organization.banner_url ? { backgroundImage: `linear-gradient(90deg, rgba(7,9,12,.88), rgba(7,9,12,.35)), url(${pageData.organization.banner_url})` } : undefined}
         >
           <p className="eyebrow">PRENEZ RENDEZ-VOUS</p>
-          <h1>{pageData.organization.tagline || 'Choisissez le créneau qui vous convient.'}</h1>
+          <h1>{pageData.organization.tagline || 'Choisissez le créneau qui vous convient'}</h1>
           <p>{pageData.settings.welcome_text || 'Sélectionnez une prestation, un professionnel et une disponibilité. Aucun compte client n’est nécessaire.'}</p>
         </section>
 

@@ -373,7 +373,7 @@ export function AppShell() {
               <Icon name={item.icon} size={20} />
               <span>{item.label}</span>
               {locked && <Icon name="lock" size={14} />}
-              {locked && requiredPlan ? <b className="nav-badge premium">{requiredPlan}</b> : item.path === '/notifications' && notificationUnread > 0 ? <b className="nav-badge notification">{notificationUnread > 99 ? '99+' : notificationUnread}</b> : item.badge && <b className="nav-badge">{item.badge}</b>}
+              {locked && requiredPlan ? <b className="nav-badge premium" title={`Disponible avec l’offre ${requiredPlan}`}>{requiredPlan === 'Professionnelle' ? 'Pro' : requiredPlan === 'Essentielle' ? 'Essentiel' : requiredPlan}</b> : item.path === '/notifications' && notificationUnread > 0 ? <b className="nav-badge notification">{notificationUnread > 99 ? '99+' : notificationUnread}</b> : item.badge && <b className="nav-badge">{item.badge}</b>}
             </NavLink>;
           })}
         </nav>

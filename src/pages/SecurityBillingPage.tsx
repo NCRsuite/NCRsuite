@@ -213,7 +213,7 @@ export function SecurityBillingPage() {
     if (mode === 'invoice' && !billingProfileReady) { setError('Complète d’abord l’adresse et le SIRET dans Personnalisation.'); return; }
     setSaving(true); setError(''); setSuccess('');
     try {
-      if (demoMode || !supabase) throw new Error('La facture définitive nécessite Supabase dans ce mode de démonstration.');
+      if (demoMode || !supabase) throw new Error('La facture définitive n’est pas disponible dans ce mode de démonstration.');
       const rpcName = mode === 'invoice' ? 'generate_security_final_invoice' : 'generate_security_invoice';
       const { data: invoiceId, error: rpcError } = await supabase.rpc(rpcName, { p_organization_id: organization.id, p_client_id: clientId, p_period_start: periodStart, p_period_end: periodEnd, p_notes: notes.trim() || null });
       if (rpcError) throw rpcError;
@@ -228,7 +228,7 @@ export function SecurityBillingPage() {
     if (!organization) return;
     setError(''); setSuccess('');
     try {
-      if (demoMode || !supabase) throw new Error('Cette action nécessite Supabase.');
+      if (demoMode || !supabase) throw new Error('Cette action n’est pas disponible dans ce mode.');
       const { error: updateError } = await supabase.rpc('set_security_invoice_status', { p_organization_id: organization.id, p_invoice_id: invoice.id, p_status: status });
       if (updateError) throw updateError;
       await refreshInvoices();

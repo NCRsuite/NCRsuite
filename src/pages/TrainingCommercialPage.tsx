@@ -374,7 +374,7 @@ export function TrainingCommercialPage() {
       } else {
         const { data, error: insertError } = await supabase.from('training_customers').insert(payload).select('id,organization_id,site_id,customer_type,legal_name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,notes,status,created_at,updated_at').single();
         if (insertError) throw insertError;
-        if (!data) throw new Error('Le client créé n’a pas été retourné par Supabase.');
+        if (!data) throw new Error('Le client créé n’a pas été confirmé par le service de données.');
         created = data as TrainingCustomerRecord;
       }
       setCustomers((current) => [...current, created].sort((a, b) => a.legal_name.localeCompare(b.legal_name, 'fr')));
@@ -403,7 +403,7 @@ export function TrainingCommercialPage() {
       } else {
         const { data, error: insertError } = await supabase.from('training_funders').insert(payload).select('id,organization_id,funder_type,name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,reference_code,notes,status,created_at,updated_at').single();
         if (insertError) throw insertError;
-        if (!data) throw new Error('Le financeur créé n’a pas été retourné par Supabase.');
+        if (!data) throw new Error('Le financeur créé n’a pas été confirmé par le service de données.');
         created = data as TrainingFunderRecord;
       }
       setFunders((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name, 'fr')));
@@ -446,7 +446,7 @@ export function TrainingCommercialPage() {
       } else {
         const { data, error: insertError } = await supabase.from('training_commercial_documents').insert(payload).select('id,organization_id,site_id,opportunity_id,customer_id,funder_id,session_id,trainee_id,program_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,signed_document_path,signed_document_received_at,signed_document_received_by,generated_document_path,generated_document_name,generated_at,email_queued_at,emailed_at,last_email_recipient,last_email_outbox_id,created_at,updated_at').single();
         if (insertError) throw insertError;
-        if (!data) throw new Error('Le dossier créé n’a pas été retourné par Supabase.');
+        if (!data) throw new Error('Le dossier créé n’a pas été confirmé par le service de données.');
         created = { ...(data as TrainingCommercialDocumentRecord), participant_count: Number(data.participant_count), amount_excl_tax_cents: Number(data.amount_excl_tax_cents), vat_rate_basis_points: Number(data.vat_rate_basis_points), tax_cents: Number(data.tax_cents), amount_incl_tax_cents: Number(data.amount_incl_tax_cents) };
       }
       setDocuments((current) => [created, ...current]);
@@ -586,7 +586,7 @@ export function TrainingCommercialPage() {
           last_email_outbox_id: result.outbox_id || null
         } : item));
       }
-      setSuccess(`${label} ${row.reference} placé dans la file Brevo pour ${recipient.email}.`);
+      setSuccess(`${label} ${row.reference} programmé pour ${recipient.email}.`);
     } catch (caught) {
       setError(`Envoi impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
     } finally { setBusyId(''); }
@@ -730,7 +730,7 @@ export function TrainingCommercialPage() {
               <span className="training-commercial-document-icon"><Icon name={row.document_type === 'quote' ? 'creditCard' : row.document_type === 'agreement' ? 'file' : 'signature'} size={22} /></span>
               <div className="training-commercial-document-main"><div><span className="training-commercial-type">{trainingCommercialDocumentTypeLabels[row.document_type]}</span><strong>{row.reference} · {row.title}</strong></div><p>{customer?.legal_name || (trainee ? personName(trainee.first_name, trainee.last_name) : 'Bénéficiaire à compléter')}{funder ? ` · ${funder.name}` : ''}</p><small>{program ? `${program.title} · ` : session ? `${session.title} · ` : ''}Émis le {dateLabel(row.issue_date)}{row.valid_until ? ` · validité ${dateLabel(row.valid_until)}` : ''}</small></div>
               <div className="training-commercial-document-value"><strong>{formatTrainingMoney(row.amount_incl_tax_cents)}</strong><span className={`status-chip ${statusClass(row.status)}`}>{trainingCommercialDocumentStatusLabels[row.status]}</span></div>
-              <div className="training-commercial-document-actions"><button type="button" className="secondary-button compact-button" onClick={() => void downloadPdf(row)}><Icon name="file" size={15} />PDF</button>{canManage && <button type="button" className="primary-button compact-button" disabled={busyId === row.id} onClick={() => void sendCommercialDocument(row)}><Icon name="message" size={15} />{busyId === row.id ? 'Préparation…' : row.email_queued_at ? 'Renvoyer' : 'Envoyer'}</button>}{canManage && ['sent','accepted'].includes(row.status) && <label className="secondary-button compact-button training-signed-upload"><Icon name="signature" size={15} />Signé reçu<input type="file" accept="application/pdf,image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadSignedDocument(row, file); event.currentTarget.value = ''; }} /></label>}{canManage && row.status === 'signed' && !row.session_id && row.program_id && <button type="button" className="primary-button compact-button" onClick={() => navigate(`/parcours-formation?convert=${encodeURIComponent(row.id)}`)}>Créer la session</button>}{canManage && <select aria-label={`Statut de ${row.reference}`} value={row.status} disabled={busyId === row.id} onChange={(event) => void updateDocumentStatus(row, event.target.value as TrainingCommercialDocumentStatus)}>{Object.entries(trainingCommercialDocumentStatusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select>}{row.email_queued_at && <small className="training-commercial-email-state"><Icon name="check" size={12} />Brevo · {row.last_email_recipient || 'envoi programmé'}</small>}</div>
+                <div className="training-commercial-document-actions"><button type="button" className="secondary-button compact-button" onClick={() => void downloadPdf(row)}><Icon name="file" size={15} />PDF</button>{canManage && <button type="button" className="primary-button compact-button" disabled={busyId === row.id} onClick={() => void sendCommercialDocument(row)}><Icon name="message" size={15} />{busyId === row.id ? 'Préparation…' : row.email_queued_at ? 'Renvoyer' : 'Envoyer'}</button>}{canManage && ['sent','accepted'].includes(row.status) && <label className="secondary-button compact-button training-signed-upload"><Icon name="signature" size={15} />Signé reçu<input type="file" accept="application/pdf,image/png,image/jpeg,image/webp" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadSignedDocument(row, file); event.currentTarget.value = ''; }} /></label>}{canManage && row.status === 'signed' && !row.session_id && row.program_id && <button type="button" className="primary-button compact-button" onClick={() => navigate(`/parcours-formation?convert=${encodeURIComponent(row.id)}`)}>Créer la session</button>}{canManage && <select aria-label={`Statut de ${row.reference}`} value={row.status} disabled={busyId === row.id} onChange={(event) => void updateDocumentStatus(row, event.target.value as TrainingCommercialDocumentStatus)}>{Object.entries(trainingCommercialDocumentStatusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select>}{row.email_queued_at && <small className="training-commercial-email-state"><Icon name="check" size={12} />Envoi programmé · {row.last_email_recipient || 'destinataire enregistré'}</small>}</div>
             </article>;
           })}</div>
         ) : tab === 'customers' ? (

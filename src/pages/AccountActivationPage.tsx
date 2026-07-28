@@ -76,7 +76,7 @@ export function AccountActivationPage() {
         <section>
           <span className="auth-simple-icon"><Icon name={verified ? 'check' : 'lock'} size={26} /></span>
           <p className="public-section-label">{isRecovery ? 'RÉCUPÉRATION DU COMPTE' : 'INVITATION NCR SUITE'}</p>
-          <h1>{isRecovery ? 'Choisissez un nouveau mot de passe.' : 'Finalisez votre accès.'}</h1>
+          <h1>{isRecovery ? 'Choisissez un nouveau mot de passe' : 'Finalisez votre accès'}</h1>
 
           {verifying && <div className="auth-verification-state"><span className="auth-spinner" /><p>Vérification du lien sécurisé…</p></div>}
           {!verifying && error && !verified && (

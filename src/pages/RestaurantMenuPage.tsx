@@ -133,7 +133,7 @@ export function RestaurantMenuPage() {
   }
 
   async function uploadDishImage(file: File) {
-    if (!organization || !supabase) throw new Error('Supabase n’est pas configuré.');
+    if (!organization || !supabase) throw new Error('Le service de données n’est pas disponible.');
     const itemKey = editingId || crypto.randomUUID();
     const path = `${organization.id}/restaurant/dishes/${itemKey}-${Date.now()}.${restaurantImageExtension(file)}`;
     const { error: uploadError } = await supabase.storage.from('organization-branding').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
@@ -171,7 +171,7 @@ export function RestaurantMenuPage() {
   useEffect(() => { void load(); }, [organization?.id, demoMode, canViewCosts]);
 
   async function requestTranslation(segments: Record<string, string>): Promise<TranslationPayload> {
-    if (!organization || !supabase || demoMode) throw new Error('La traduction automatique nécessite Supabase.');
+    if (!organization || !supabase || demoMode) throw new Error('La traduction automatique n’est pas disponible dans ce mode.');
     const { data, error: functionError } = await supabase.functions.invoke('translate-restaurant-menu', {
       body: { organization_id: organization.id, segments },
     });
@@ -194,7 +194,7 @@ export function RestaurantMenuPage() {
         nameEn: '', nameEs: '', nameIt: '',
         descriptionEn: '', descriptionEs: '', descriptionIt: '',
       }, translated));
-      setSuccess(`Traductions générées avec ${translated.provider === 'deepl' ? 'DeepL' : 'le moteur automatique'}. Tu peux les relire avant d’enregistrer.`);
+      setSuccess('Traductions générées automatiquement. Tu peux les relire avant d’enregistrer.');
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Traduction impossible.');
     } finally {

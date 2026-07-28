@@ -45,7 +45,7 @@ export async function sendSecurityDocumentEmail(input: {
   blob: Blob;
   copySender?: boolean;
 }) {
-  if (!supabase) throw new Error('Supabase est indisponible.');
+  if (!supabase) throw new Error('Le service d’envoi est indisponible.');
   if (!input.recipientEmail.trim()) throw new Error('L’adresse e-mail du destinataire est obligatoire.');
   const pdfBase64 = await blobToBase64(input.blob);
   const body = {
@@ -81,7 +81,7 @@ export async function sendSecurityDocumentEmail(input: {
   if (response.error) {
     const detail = await functionErrorMessage(response.error);
     if (/requested function was not found|function not found|404/i.test(detail)) {
-      throw new Error('Le service d’envoi send-security-document-v2 n’est pas déployé dans Supabase. Déploie la fonction fournie avec la V2.6.5 puis réessaie.');
+      throw new Error('Le service d’envoi des documents n’est pas disponible. Contacte l’assistance NCR Suite puis réessaie.');
     }
     throw new Error(detail);
   }

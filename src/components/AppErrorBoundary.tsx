@@ -82,7 +82,7 @@ export class AppErrorBoundary extends Component<Props, State> {
         <section className="app-crash-card">
           <img src="/brand/ncr-suite-icon.png" alt="" />
           <p className="eyebrow">NCR SUITE · RÉCUPÉRATION</p>
-          <h1>Cette page a rencontré un problème.</h1>
+          <h1>Cette page a rencontré un problème</h1>
           <p>Vos données enregistrées ne sont pas supprimées. Réessaie d’abord, puis recharge l’application si le problème persiste.</p>
           <div className="app-crash-actions">
             <button type="button" className="primary-button" onClick={this.retry}>Réessayer</button>

@@ -192,7 +192,7 @@ export function TrainingEvaluationsPage() {
       });
       if (rpcError) throw rpcError;
       const result = (data ?? {}) as { queued?: number; already_completed?: number; without_email?: number };
-      setSuccess(`${result.queued ?? 0} envoi(s) ou relance(s) placé(s) dans Brevo.${result.already_completed ? ` ${result.already_completed} réponse(s) déjà complète(s).` : ''}${result.without_email ? ` ${result.without_email} stagiaire(s) sans adresse e-mail.` : ''}`);
+      setSuccess(`${result.queued ?? 0} envoi(s) ou relance(s) programmé(s).${result.already_completed ? ` ${result.already_completed} réponse(s) déjà complète(s).` : ''}${result.without_email ? ` ${result.without_email} stagiaire(s) sans adresse e-mail.` : ''}`);
       await loadData();
     } catch (caught) {
       setError(`Envoi impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
@@ -215,7 +215,7 @@ export function TrainingEvaluationsPage() {
     <div className="page training-page training-evaluations-page training-evaluations-v2152">
       <header className="page-header training-evaluation-page-header">
         <div><p className="eyebrow">PARCOURS QUALITÉ AUTOMATISÉ</p><h1>Évaluations début & fin</h1><p>Préparez la session, recueillez les retours, relancez automatiquement et déclenchez les attestations.</p></div>
-        <div className="training-evaluation-header-badge"><Icon name="sparkles" size={19} /><span><strong>Brevo connecté</strong><small>Envois et relances automatiques</small></span></div>
+        <div className="training-evaluation-header-badge"><Icon name="sparkles" size={19} /><span><strong>Envois automatisés</strong><small>Envois et relances suivis</small></span></div>
       </header>
 
       {error && <div className="error-message page-message" role="alert">{error}</div>}
@@ -244,10 +244,10 @@ export function TrainingEvaluationsPage() {
           <article className="training-evaluation-settings-wide">
             <div className="training-evaluation-settings-title"><span><Icon name="refresh" size={18} /></span><div><strong>Relances & attestations</strong><small>Clôture sans tâches répétitives</small></div></div>
             <div className="training-evaluation-settings-inline">
-              <label className="toggle-card"><input type="checkbox" checked={settings.reminderEnabled} disabled={!canConfigure} onChange={(event) => setSettings((current) => ({ ...current, reminderEnabled: event.target.checked }))} /><span><strong>Relances automatiques</strong><small>Brevo relance uniquement les questionnaires sans réponse.</small></span></label>
+              <label className="toggle-card"><input type="checkbox" checked={settings.reminderEnabled} disabled={!canConfigure} onChange={(event) => setSettings((current) => ({ ...current, reminderEnabled: event.target.checked }))} /><span><strong>Relances automatiques</strong><small>Seuls les questionnaires sans réponse sont relancés.</small></span></label>
               <label>Délai entre les relances<select value={settings.reminderDelayHours} disabled={!canConfigure || !settings.reminderEnabled} onChange={(event) => setSettings((current) => ({ ...current, reminderDelayHours: event.target.value }))}><option value="12">12 heures</option><option value="24">24 heures</option><option value="48">48 heures</option><option value="72">3 jours</option><option value="168">7 jours</option></select></label>
               <label>Nombre maximal<select value={settings.reminderMaxCount} disabled={!canConfigure || !settings.reminderEnabled} onChange={(event) => setSettings((current) => ({ ...current, reminderMaxCount: event.target.value }))}><option value="0">Aucune</option><option value="1">1 relance</option><option value="2">2 relances</option><option value="3">3 relances</option></select></label>
-              <label className="toggle-card"><input type="checkbox" checked={settings.attestationAutoSend} disabled={!canConfigure} onChange={(event) => setSettings((current) => ({ ...current, attestationAutoSend: event.target.checked }))} /><span><strong>Attestation automatique</strong><small>Générée et envoyée par Brevo après la clôture.</small></span></label>
+              <label className="toggle-card"><input type="checkbox" checked={settings.attestationAutoSend} disabled={!canConfigure} onChange={(event) => setSettings((current) => ({ ...current, attestationAutoSend: event.target.checked }))} /><span><strong>Attestation automatique</strong><small>Générée et envoyée automatiquement après la clôture.</small></span></label>
               <label className="toggle-card"><input type="checkbox" checked={settings.attestationRequiresFinal} disabled={!canConfigure || !settings.attestationAutoSend} onChange={(event) => setSettings((current) => ({ ...current, attestationRequiresFinal: event.target.checked }))} /><span><strong>Après réponse finale</strong><small>L’attestation part dès que le stagiaire valide son évaluation de fin.</small></span></label>
             </div>
           </article>

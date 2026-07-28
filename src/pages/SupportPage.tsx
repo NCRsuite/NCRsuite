@@ -86,7 +86,7 @@ export function SupportPage() {
 
   return <div className="support-center-page">
     <section className="support-center-hero">
-      <div><span className="support-center-icon"><Icon name="headset" size={24} /></span><p className="eyebrow">ASSISTANCE NCR</p><h1>Une vraie conversation avec l’équipe NCR.</h1><p>Ouvre un ticket, échange directement avec nous et autorise une prise en main temporaire seulement lorsque c’est nécessaire.</p></div>
+      <div><span className="support-center-icon"><Icon name="headset" size={24} /></span><p className="eyebrow">ASSISTANCE NCR</p><h1>Une vraie conversation avec l’équipe NCR</h1><p>Ouvre un ticket, échange directement avec nous et autorise une prise en main temporaire seulement lorsque c’est nécessaire.</p></div>
       {canCreate && <button type="button" className="primary-button" onClick={() => setShowForm((current) => !current)}><Icon name={showForm ? 'close' : 'plus'} size={17} />{showForm ? 'Fermer' : 'Nouvelle demande'}</button>}
     </section>
 

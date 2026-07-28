@@ -1,5 +1,16 @@
 # Changelog NCR Suite
 
+## V2.26.2 - Finition premium du cockpit
+
+- Barre d’actions Formation restructurée sur ordinateur avec période segmentée et exports regroupés.
+- Hiérarchie visuelle renforcée sur les indicateurs et cartes du tableau de bord Formation.
+- Titres de l’interface harmonisés sans point final décoratif.
+- Références aux prestataires techniques masquées dans les parcours utilisateurs.
+- Informations techniques conservées dans les outils super-administrateur et les mentions légales.
+- Parcours mobile, données, droits, abonnements et automatisations inchangés.
+- Migration `097` et cache PWA `ncr-suite-shell-v2.26.2-premium-cockpit`.
+- Nouveau bundle autonome `ncr-suite-app-v262.js`.
+
 ## V2.26.1 - Sélecteurs de contexte premium
 
 - Nouveau sélecteur d'entreprise sur ordinateur avec identité visuelle, métier, formule, rôle et état actif.

@@ -117,7 +117,7 @@ export function CleaningClientPortalInvitationPage() {
       {loading ? <div className="security-client-loading"><span/><p>Vérification de l’invitation…</p></div> : details ? <>
         <div className="security-client-invitation-heading">
           <p className="eyebrow">ESPACE CLIENT NETTOYAGE</p>
-          <h1>Votre portail sécurisé est prêt.</h1>
+          <h1>Votre portail sécurisé est prêt</h1>
           <p>{details.organization_name} t’invite à suivre les prestations de nettoyage réalisées pour <strong>{details.client_name}</strong>.</p>
         </div>
 

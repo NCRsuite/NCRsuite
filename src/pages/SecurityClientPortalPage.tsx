@@ -105,7 +105,7 @@ export function SecurityClientPortalPage() {
     <div className="security-client-public-glow" />
     <section className="security-client-login-card">
       <div className="security-client-public-brand"><span><Icon name="shield" size={27}/></span><div><strong>Portail client Sécurité</strong><small>Propulsé par NCR Suite</small></div></div>
-      <div className="security-client-login-copy"><p className="eyebrow">ESPACE SÉCURISÉ</p><h1>Suivez vos prestations en toute transparence.</h1><p>Planning, missions réalisées, main courante, rondes QR, documents et échanges avec votre prestataire.</p></div>
+      <div className="security-client-login-copy"><p className="eyebrow">ESPACE SÉCURISÉ</p><h1>Suivez vos prestations en toute transparence</h1><p>Planning, missions réalisées, main courante, rondes QR, documents et échanges avec votre prestataire.</p></div>
       <form className="security-client-auth-form" onSubmit={login}>
         <label>Adresse e-mail<input type="email" inputMode="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
         <label>Mot de passe<input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>

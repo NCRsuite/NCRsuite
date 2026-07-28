@@ -47,7 +47,7 @@ export function LoginPage() {
         <Link className="showcase-brand" to="/"><img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" /></Link>
         <div className="showcase-copy">
           <p className="eyebrow">UNE PLATEFORME. PLUSIEURS MÉTIERS.</p>
-          <h1>La gestion professionnelle qui s’adapte vraiment à votre activité.</h1>
+          <h1>La gestion professionnelle qui s’adapte vraiment à votre activité</h1>
           <p>Chaque entreprise retrouve uniquement les outils, les menus et les données dont elle a besoin.</p>
         </div>
         <div className="showcase-pills"><span>Multi-entreprises</span><span>Modulaire</span><span>Sécurisée</span></div>
@@ -71,7 +71,7 @@ export function LoginPage() {
           ) : (
             <div className="demo-box">
               <strong>Mode de démonstration local</strong>
-              <p>Supabase n’est pas encore connecté. Tu peux déjà tester la structure et les différents packs métier.</p>
+              <p>Le mode de démonstration est actif. Tu peux déjà tester la structure et les différents packs métier.</p>
               <button className="primary-button full" onClick={startDemo}>Ouvrir la démonstration</button>
             </div>
           )}

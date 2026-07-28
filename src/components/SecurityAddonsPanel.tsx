@@ -145,15 +145,15 @@ export function SecurityAddonsPanel() {
       });
       setBusy('');
       if (stripeError || stripeResponse?.error) {
-        setError(String(stripeResponse?.error || stripeError?.message || 'La modification Stripe n’a pas pu être terminée.'));
+        setError(String(stripeResponse?.error || stripeError?.message || 'La modification de l’abonnement n’a pas pu être terminée.'));
         await load();
         return;
       }
       setMessage(action === 'remove'
-        ? 'Le module est retiré de Stripe. Ses données restent conservées et redeviendront accessibles après réactivation.'
+        ? 'Le module est retiré de l’abonnement. Ses données restent conservées et redeviendront accessibles après réactivation.'
         : stripeResponse?.status === 'active'
-          ? 'Le paiement Stripe est confirmé et le module est actif.'
-          : 'Le module sera activé dès la confirmation du paiement Stripe.');
+          ? 'Le paiement est confirmé et le module est actif.'
+          : 'Le module sera activé dès la confirmation du paiement.');
       await load();
       refreshOrganizations();
       if (stripeResponse?.paymentUrl) window.location.assign(String(stripeResponse.paymentUrl));
@@ -181,13 +181,13 @@ export function SecurityAddonsPanel() {
     });
     setBusy('');
     if (stripeError || data?.error) {
-      setError(String(data?.error || stripeError?.message || 'La demande Stripe n’a pas pu reprendre.'));
+      setError(String(data?.error || stripeError?.message || 'La demande de paiement n’a pas pu reprendre.'));
       return;
     }
     await load();
     refreshOrganizations();
     if (data?.paymentUrl) window.location.assign(String(data.paymentUrl));
-    else setMessage(request.action === 'remove' ? 'Le retrait est confirmé et les données sont conservées.' : 'La synchronisation Stripe est terminée.');
+    else setMessage(request.action === 'remove' ? 'Le retrait est confirmé et les données sont conservées.' : 'La synchronisation de l’abonnement est terminée.');
   }
 
   async function cancelRequest(request: SecurityAddonRequest) {
@@ -276,7 +276,7 @@ export function SecurityAddonsPanel() {
                   <div className="security-addon-request">
                     <small>{requestStatusLabel(request)} · {request.request_reference}</small>
                     {request.checkout_url_snapshot && <a className="primary-button compact-button" href={request.checkout_url_snapshot}>Reprendre le paiement</a>}
-                    {request.provider === 'stripe' && <button type="button" className="primary-button compact-button" onClick={() => void resumeStripeRequest(request)} disabled={!canManage || busy === item.addon_key}>Reprendre avec Stripe</button>}
+                    {request.provider === 'stripe' && <button type="button" className="primary-button compact-button" onClick={() => void resumeStripeRequest(request)} disabled={!canManage || busy === item.addon_key}>Reprendre le paiement</button>}
                     {request.provider !== 'stripe' && <button type="button" className="secondary-button compact-button" onClick={() => void cancelRequest(request)} disabled={!canManage || busy === item.addon_key}>Annuler</button>}
                   </div>
                 ) : item.included_by_plan ? <div className="security-addon-included-note"><Icon name="check" size={15} /> Déjà compris dans la formule {planLabels[portal!.plan]}.</div>
@@ -290,7 +290,7 @@ export function SecurityAddonsPanel() {
 
       <label className="subscription-terms-check security-addon-terms">
         <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} disabled={!canManage} />
-        <span><strong>J’accepte les conditions d’abonnement pour les modules à la carte</strong><small>Stripe gère l’ajout et le retrait. Un retrait coupe le droit sans supprimer les données existantes.</small></span>
+        <span><strong>J’accepte les conditions d’abonnement pour les modules à la carte</strong><small>L’ajout et le retrait sont synchronisés automatiquement. Un retrait coupe le droit sans supprimer les données existantes.</small></span>
       </label>
       {!canManage && <div className="info-message">Seul le propriétaire ou un administrateur peut ajouter ou retirer des modules.</div>}
     </section>

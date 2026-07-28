@@ -301,7 +301,7 @@ export function TrainingDocumentsPage() {
   }
 
   async function openDocument(document: TrainingDocumentRecord) {
-    if (demoMode || !supabase) { setError('La visualisation réelle nécessite Supabase.'); return; }
+    if (demoMode || !supabase) { setError('La visualisation des documents n’est pas disponible dans ce mode.'); return; }
     const target = prepareFileWindow('Ouverture du document', 'NCR Suite prépare un accès sécurisé au fichier…');
     setDownloadingId(`open-${document.id}`); setError('');
     try {
@@ -319,7 +319,7 @@ export function TrainingDocumentsPage() {
   }
 
   async function downloadDocument(document: TrainingDocumentRecord) {
-    if (demoMode || !supabase) { setError('Le téléchargement réel nécessite Supabase.'); return; }
+    if (demoMode || !supabase) { setError('Le téléchargement des documents n’est pas disponible dans ce mode.'); return; }
     const filename = downloadFileName(document);
     const target = prepareFileWindow('Téléchargement du document', 'NCR Suite prépare le téléchargement sécurisé…');
     setDownloadingId(`download-${document.id}`); setError('');

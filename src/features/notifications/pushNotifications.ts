@@ -34,7 +34,7 @@ export async function currentPushSubscription() {
 }
 
 export async function enablePushOnDevice(deviceLabel?: string) {
-  if (!supabase) throw new Error('Supabase n’est pas configuré.');
+  if (!supabase) throw new Error('Le service de notifications n’est pas configuré.');
   if (!pushIsSupported()) throw new Error('Les notifications push ne sont pas disponibles sur ce navigateur.');
 
   const permission = await Notification.requestPermission();
@@ -67,7 +67,7 @@ export async function enablePushOnDevice(deviceLabel?: string) {
 }
 
 export async function disablePushOnDevice() {
-  if (!supabase) throw new Error('Supabase n’est pas configuré.');
+  if (!supabase) throw new Error('Le service de notifications n’est pas configuré.');
   const subscription = await currentPushSubscription();
   if (!subscription) return;
   const endpoint = subscription.endpoint;

@@ -287,7 +287,7 @@ export function AdminTrainingSavPanel() {
       <header className="panel admin-training-sav-hero">
         <div>
           <p className="eyebrow">SAV FORMATION</p>
-          <h2>Automatisations Formation sous contrôle NCR.</h2>
+          <h2>Automatisations Formation sous contrôle NCR</h2>
           <p>Diagnostic super admin des convocations, évaluations, attestations, e-mails et dossiers de session.</p>
         </div>
         <button type="button" className="secondary-button compact" onClick={() => void refreshAll()} disabled={loadingOverview || loadingReport}>

@@ -212,13 +212,23 @@ export function TrainingDashboardPage() {
       <header className="page-header training-quality-header">
         <div>
           <p className="eyebrow">PILOTAGE & CONTRÔLE QUALITÉ</p>
-          <h1>Bonjour, bienvenue sur {organization.name}.</h1>
-          <p>{activeSite ? `Suivi opérationnel de l’établissement ${activeSite.name}.` : 'Visualise immédiatement ce qui est prêt, incomplet ou bloquant.'}</p>
+          <h1>Bonjour, bienvenue sur {organization.name}</h1>
+          <p>{activeSite ? `Suivi opérationnel de l’établissement ${activeSite.name}` : 'Visualise immédiatement ce qui est prêt, incomplet ou bloquant'}</p>
         </div>
         <div className="header-actions training-quality-actions">
-          <label className="training-quality-period">Période<select value={periodDays} onChange={(event) => setPeriodDays(Number(event.target.value) as TrainingQualityPeriod)}><option value="30">30 jours</option><option value="90">90 jours</option><option value="365">12 mois</option></select></label>
-          <button className="secondary-button" type="button" disabled={Boolean(exporting) || loading} onClick={exportCsv}><Icon name="file" size={17} />{exporting === 'csv' ? 'Export…' : 'CSV'}</button>
-          <button className="secondary-button" type="button" disabled={Boolean(exporting) || loading} onClick={() => void exportPdf()}><Icon name="file" size={17} />{exporting === 'pdf' ? 'Préparation…' : 'Rapport PDF'}</button>
+          <div className="training-quality-period-segmented" role="group" aria-label="Période analysée">
+            <span>Période</span>
+            <div>
+              {([[30, '30 j'], [90, '90 j'], [365, '12 mois']] as [TrainingQualityPeriod, string][]).map(([value, label]) => (
+                <button type="button" key={value} className={periodDays === value ? 'active' : ''} aria-pressed={periodDays === value} onClick={() => setPeriodDays(value)}>{label}</button>
+              ))}
+            </div>
+          </div>
+          <label className="training-quality-period training-quality-period-mobile">Période<select value={periodDays} onChange={(event) => setPeriodDays(Number(event.target.value) as TrainingQualityPeriod)}><option value="30">30 jours</option><option value="90">90 jours</option><option value="365">12 mois</option></select></label>
+          <div className="training-quality-export-actions" aria-label="Exporter le tableau de bord">
+            <button className="secondary-button" type="button" disabled={Boolean(exporting) || loading} onClick={exportCsv}><Icon name="file" size={17} />{exporting === 'csv' ? 'Export…' : 'CSV'}</button>
+            <button className="secondary-button" type="button" disabled={Boolean(exporting) || loading} onClick={() => void exportPdf()}><Icon name="file" size={17} />{exporting === 'pdf' ? 'Préparation…' : 'Rapport PDF'}</button>
+          </div>
           <Link className="primary-button" to="/sessions?new=1"><Icon name="calendar" size={18} />Créer une session</Link>
         </div>
       </header>
@@ -242,7 +252,7 @@ export function TrainingDashboardPage() {
       <section className="training-quality-grid">
         <article className="panel training-quality-alerts-panel">
           <div className="panel-header training-quality-panel-header">
-            <div><p className="eyebrow">PLAN D’ACTION</p><h2>Points à traiter</h2><p>Chaque alerte ouvre directement la session ou le document concerné.</p></div>
+            <div><p className="eyebrow">PLAN D’ACTION</p><h2>Points à traiter</h2><p>Chaque alerte ouvre directement la session ou le document concerné</p></div>
             <span className={`training-quality-health ${dashboard.criticalCount > 0 ? 'critical' : dashboard.warningCount > 0 ? 'warning' : 'healthy'}`}>
               {dashboard.criticalCount > 0 ? `${dashboard.criticalCount} bloquant${dashboard.criticalCount > 1 ? 's' : ''}` : dashboard.warningCount > 0 ? `${dashboard.warningCount} vigilance${dashboard.warningCount > 1 ? 's' : ''}` : 'Tout est au point'}
             </span>
@@ -280,7 +290,7 @@ export function TrainingDashboardPage() {
 
         <aside className="training-quality-side">
           <article className="panel training-quality-trend-panel">
-            <div className="panel-header"><div><p className="eyebrow">ACTIVITÉ</p><h2>Six derniers mois</h2><p>Sessions clôturées et stagiaires formés.</p></div></div>
+            <div className="panel-header"><div><p className="eyebrow">ACTIVITÉ</p><h2>Six derniers mois</h2><p>Sessions clôturées et stagiaires formés</p></div></div>
             <div className="training-quality-chart" aria-label="Activité des six derniers mois">
               {dashboard.trend.map((point) => (
                 <div key={point.key} className="training-quality-chart-group">

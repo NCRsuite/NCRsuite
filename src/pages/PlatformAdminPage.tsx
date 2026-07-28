@@ -433,7 +433,7 @@ export function PlatformAdminPage() {
         <section className="platform-admin-hero">
           <div>
             <p className="eyebrow">NCR SUITE CONTROL CENTER</p>
-            <h1>Pilote toutes les entreprises depuis un seul espace.</h1>
+            <h1>Pilote toutes les entreprises depuis un seul espace</h1>
             <p>Ce compte est exclusivement réservé à l’administration NCR. Les espaces métier, rendez-vous, prestations et données clients ne sont jamais affichés ici.</p>
           </div>
           <button type="button" className="secondary-button" onClick={() => loadAll(true)} disabled={loading}>Actualiser</button>

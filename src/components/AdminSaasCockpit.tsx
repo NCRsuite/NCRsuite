@@ -126,7 +126,7 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenSupport, onOpenAct
         <div>
           <span className="admin-live-pill"><i /> Plateforme opérationnelle</span>
           <p className="eyebrow">NCR SUITE · EXPLOITATION SAAS</p>
-          <h1>Tout ce qui mérite ton attention, au même endroit.</h1>
+          <h1>Tout ce qui mérite ton attention, au même endroit</h1>
           <p>Entreprises, revenus, onboarding, support et activité récente sont regroupés dans un cockpit unique.</p>
         </div>
         <div className="admin-cockpit-actions">

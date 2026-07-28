@@ -91,7 +91,7 @@ function CoiffureCommercialBrandingPage() {
   }
 
   async function uploadAsset(file: File, kind: 'logo' | 'banner') {
-    if (!supabase) throw new Error('Supabase n’est pas configuré.');
+    if (!supabase) throw new Error('Le service de données n’est pas disponible.');
     if (!organization) throw new Error('Entreprise introuvable.');
     const path = `${organization.id}/${kind}-${Date.now()}.${extensionFor(file)}`;
     const { error: uploadError } = await supabase.storage
@@ -220,7 +220,7 @@ function CoiffureCommercialBrandingPage() {
               </div>
               <div className="booking-preview-body">
                 <small>PRENEZ RENDEZ-VOUS</small>
-                <h3>{tagline || 'Choisissez le créneau qui vous convient.'}</h3>
+                <h3>{tagline || 'Choisissez le créneau qui vous convient'}</h3>
                 <p>{organization.booking_welcome_text || 'Sélectionnez une prestation et une disponibilité. Aucun compte client n’est nécessaire.'}</p>
                 <div className="booking-preview-choice"><i /><div><strong>Votre prestation</strong><span>Durée et tarif affichés</span></div></div>
                 {(address || hoursText) && <div className="booking-preview-info">{address && <span>📍 {address}</span>}{hoursText && <span>🕘 {hoursText}</span>}</div>}
@@ -278,7 +278,7 @@ function TrainingCommercialBrandingPage() {
   }
 
   async function uploadLogo(file: File) {
-    if (!supabase) throw new Error('Supabase est indisponible.');
+    if (!supabase) throw new Error('Le service de données est indisponible.');
     const path = `${trainingOrganization.id}/training-logo-${crypto.randomUUID()}.${extensionFor(file)}`;
     const { error: uploadError } = await supabase.storage.from('organization-branding').upload(path, file, { contentType: file.type, upsert: false });
     if (uploadError) throw uploadError;
@@ -428,7 +428,7 @@ function SecurityDocumentBrandingPage() {
   }
 
   async function uploadLogo(file: File) {
-    if (!supabase) throw new Error('Supabase est indisponible.');
+    if (!supabase) throw new Error('Le service de données est indisponible.');
     const path = `${securityOrganization.id}/security-logo-${crypto.randomUUID()}.${extensionFor(file)}`;
     const { error: uploadError } = await supabase.storage.from('organization-branding').upload(path, file, { contentType: file.type, upsert: false });
     if (uploadError) throw uploadError;

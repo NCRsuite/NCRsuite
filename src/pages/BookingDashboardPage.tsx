@@ -100,7 +100,7 @@ export function BookingDashboardPage() {
   return (
     <div className="page dashboard-page">
       <header className="page-header">
-        <div><p className="eyebrow">COIFFURE & BEAUTÉ</p><h1>Bonjour, bienvenue sur {activeSite?.name ?? organization.name}.</h1><p>{isPersonalView ? 'Votre planning personnel et vos rendez-vous.' : activeSite ? `Activité de l’établissement ${activeSite.name}.` : organization.plan === 'metier' ? 'Vue consolidée de tous vos établissements.' : 'Votre activité réelle, mise à jour depuis Supabase.'}</p></div>
+        <div><p className="eyebrow">COIFFURE & BEAUTÉ</p><h1>Bonjour, bienvenue sur {activeSite?.name ?? organization.name}</h1><p>{isPersonalView ? 'Votre planning personnel et vos rendez-vous' : activeSite ? `Activité de l’établissement ${activeSite.name}` : organization.plan === 'metier' ? 'Vue consolidée de tous vos établissements' : 'Votre activité réelle, mise à jour automatiquement'}</p></div>
         <div className="header-actions">
           {canManage ? (
             <>

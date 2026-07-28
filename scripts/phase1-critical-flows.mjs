@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-switchers`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-cockpit`;
 const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
 const portalAccessAlertsCache = 'ncr-suite-shell-v2.24.0-portal-access-support-alerts';
 const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
@@ -59,18 +59,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v261.css',
-  '/ncr-suite-app-v261.css',
+  '/ncr-suite-showcase-v262.css',
+  '/ncr-suite-app-v262.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.26.1'
+  'ncr:css-recovery-v2.26.2'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v261.css',
+  '/ncr-suite-app-v262.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v261.js'"
+  "entryFileNames: 'ncr-suite-app-v262.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -435,7 +435,7 @@ requireText('src/features/training/commercialPdf.ts', [
 requireText('src/pages/TrainingCommercialPage.tsx', [
   'queue_training_commercial_document_email',
   'training-documents',
-  'Brevo'
+  'Envoi programmé'
 ]);
 requireText('src/pages/TrainingOrganizationProfilePage.tsx', [
   'update_training_document_branding',
@@ -834,6 +834,11 @@ requireText('supabase/migrations/095_stripe_catalog_lifecycle_paid_activation.sq
 ]);
 requireText('supabase/migrations/096_premium_context_switchers.sql', [
   "'2.26.1'",
+  'ncr-suite-shell-v2.26.1-premium-switchers',
+  'platform_release_state'
+]);
+requireText('supabase/migrations/097_premium_cockpit_polish.sql', [
+  "'2.26.2'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -865,7 +870,16 @@ requireText('src/styles.css', [
   '.context-switcher-trigger',
   '.context-switcher-menu',
   '.context-switcher-options > button.active',
-  '.desktop-context-switchers, .organization-switcher'
+  '.desktop-context-switchers, .organization-switcher',
+  '.training-quality-period-segmented',
+  '.training-quality-period-mobile',
+  '.training-quality-export-actions'
+]);
+requireText('src/pages/TrainingDashboardPage.tsx', [
+  'training-quality-period-segmented',
+  'training-quality-period-mobile',
+  'training-quality-export-actions',
+  '<h1>Bonjour, bienvenue sur {organization.name}</h1>'
 ]);
 requireText('supabase/functions/stripe-webhook/index.ts', [
   'constructEventAsync',
@@ -884,7 +898,7 @@ requireText('src/pages/SubscriptionPage.tsx', [
   'Vos données sont conservées'
 ]);
 requireText('src/pages/OnboardingPage.tsx', [
-  'Créer et payer avec Stripe',
+  'Créer et passer au paiement',
   'L’espace restera verrouillé jusqu’à la confirmation du paiement'
 ]);
 requireText('src/components/BillingAdminPanel.tsx', [

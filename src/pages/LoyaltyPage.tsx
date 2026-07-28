@@ -224,7 +224,7 @@ export function LoyaltyPage() {
     setLoading(true);
     setError('');
     if (!supabase) {
-      setError('Supabase est requis pour utiliser la fidélité.');
+      setError('Le service de fidélité n’est pas disponible dans ce mode.');
       setLoading(false);
       return;
     }

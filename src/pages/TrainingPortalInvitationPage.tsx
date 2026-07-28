@@ -128,7 +128,7 @@ export function TrainingPortalInvitationPage() {
           <>
             <div className="training-portal-auth-heading">
               <p className="eyebrow">ESPACE {trainingPortalSubjectLabels[details.subject_kind].toUpperCase()}</p>
-              <h1>Votre espace personnel est prêt.</h1>
+              <h1>Votre espace personnel est prêt</h1>
               <p>
                 {details.organization_name} vous donne accès aux sessions, aux documents et aux signatures
                 liés à <strong>{details.subject_name}</strong>.
@@ -180,7 +180,7 @@ export function TrainingPortalInvitationPage() {
         ) : (
           <div className="training-portal-auth-heading">
             <p className="eyebrow">INVITATION INDISPONIBLE</p>
-            <h1>Ce lien ne peut pas être utilisé.</h1>
+            <h1>Ce lien ne peut pas être utilisé</h1>
             <p>Demandez une nouvelle invitation à votre organisme de formation.</p>
           </div>
         )}

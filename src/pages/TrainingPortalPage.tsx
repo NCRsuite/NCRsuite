@@ -250,7 +250,7 @@ export function TrainingPortalPage() {
           </div>
           <div className="training-portal-auth-heading">
             <p className="eyebrow">ACCÈS SÉCURISÉ</p>
-            <h1>Retrouvez votre parcours.</h1>
+            <h1>Retrouvez votre parcours</h1>
             <p>Connectez-vous avec l’adresse utilisée pour votre invitation.</p>
           </div>
           <form className="training-portal-auth-form" onSubmit={authenticate}>
@@ -271,7 +271,7 @@ export function TrainingPortalPage() {
           <div className="training-portal-public-brand"><span><Icon name="graduation" size={25} /></span><div><strong>Espace Formation</strong><small>NCR Suite</small></div></div>
           <div className="training-portal-auth-heading">
             <p className="eyebrow">AUCUN ESPACE ACTIF</p>
-            <h1>Votre compte est connecté.</h1>
+            <h1>Votre compte est connecté</h1>
             <p>Utilisez le lien reçu par e-mail pour accepter votre invitation, ou contactez votre organisme.</p>
           </div>
           {error && <div className="training-portal-notice error"><Icon name="alert" size={19} /><span>{error}</span></div>}

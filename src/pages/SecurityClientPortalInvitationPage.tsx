@@ -117,7 +117,7 @@ export function SecurityClientPortalInvitationPage() {
       {loading ? <div className="security-client-loading"><span/><p>Vérification de l’invitation…</p></div> : details ? <>
         <div className="security-client-invitation-heading">
           <p className="eyebrow">ESPACE DONNEUR D’ORDRE</p>
-          <h1>Ton portail sécurisé est prêt.</h1>
+          <h1>Ton portail sécurisé est prêt</h1>
           <p>{details.organization_name} t’invite à suivre les prestations de sécurité réalisées pour <strong>{details.client_name}</strong>.</p>
         </div>
 

@@ -32,7 +32,7 @@ export function ForgotPasswordPage() {
         <section>
           <span className="auth-simple-icon"><Icon name={sent ? 'check' : 'lock'} size={26} /></span>
           <p className="public-section-label">{sent ? 'DEMANDE ENREGISTRÉE' : 'ACCÈS SÉCURISÉ'}</p>
-          <h1>{sent ? 'Consultez votre boîte e-mail.' : 'Réinitialiser votre mot de passe'}</h1>
+          <h1>{sent ? 'Consultez votre boîte e-mail' : 'Réinitialiser votre mot de passe'}</h1>
           {sent ? (
             <>
               <p>Si cette adresse correspond à un compte autorisé, un lien NCR Suite vient d’être envoyé par <strong>contact@ncr-suite.fr</strong>.</p>

@@ -212,7 +212,7 @@ export function PublicBookingManagePage() {
       <main className="public-booking-container booking-manage-container">
         <section className="public-booking-hero compact-hero">
           <p className="eyebrow">VOTRE RENDEZ-VOUS</p>
-          <h1>Bonjour {booking.client_name}.</h1>
+          <h1>Bonjour {booking.client_name}</h1>
           <p>Retrouvez ici les informations de votre rendez-vous et les actions encore disponibles.</p>
         </section>
 

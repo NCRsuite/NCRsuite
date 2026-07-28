@@ -123,7 +123,7 @@ export function OnboardingPage() {
       <main className="saas-onboarding-shell">
         <aside className="saas-onboarding-aside">
           <p className="eyebrow">NOUVEL ESPACE</p>
-          <h1>Configure ton entreprise en quelques minutes.</h1>
+          <h1>Configure ton entreprise en quelques minutes</h1>
           <p>NCR Suite prépare automatiquement les menus, les fonctions et l’interface correspondant à ton activité.</p>
 
           <div className="saas-onboarding-progress" aria-label="Progression de la configuration">
@@ -151,8 +151,8 @@ export function OnboardingPage() {
           <div className="saas-onboarding-card-head">
             <div>
               <span className="saas-step-chip">Étape {step}/4</span>
-              <h2>{step === 1 ? 'Quel est ton métier ?' : step === 2 ? 'Présente ton entreprise.' : step === 3 ? 'Quelle formule t’intéresse ?' : 'Finalise ton identité.'}</h2>
-              <p>{step === 1 ? 'Le métier détermine l’architecture et les outils disponibles.' : step === 2 ? 'Ces informations seront reprises dans l’administration NCR et tes documents.' : step === 3 ? 'Cette formule sera réglée sur la page sécurisée Stripe avant l’ouverture de l’espace.' : 'Choisis ton identité visuelle, vérifie le récapitulatif puis passe au paiement.'}</p>
+              <h2>{step === 1 ? 'Quel est ton métier ?' : step === 2 ? 'Présente ton entreprise' : step === 3 ? 'Quelle formule t’intéresse ?' : 'Finalise ton identité'}</h2>
+              <p>{step === 1 ? 'Le métier détermine l’architecture et les outils disponibles.' : step === 2 ? 'Ces informations seront reprises dans l’administration NCR et tes documents.' : step === 3 ? 'Cette formule sera réglée sur une page de paiement sécurisée avant l’ouverture de l’espace.' : 'Choisis ton identité visuelle, vérifie le récapitulatif puis passe au paiement.'}</p>
             </div>
           </div>
 
@@ -206,7 +206,7 @@ export function OnboardingPage() {
           {step === 4 && (
             <section className="saas-final-step">
               <div className="saas-branding-panel">
-                <div><p className="eyebrow">IDENTITÉ VISUELLE</p><h3>Choisis ta couleur principale.</h3><p>Tu pourras ajouter ton logo et affiner la personnalisation depuis les paramètres.</p></div>
+                <div><p className="eyebrow">IDENTITÉ VISUELLE</p><h3>Choisis ta couleur principale</h3><p>Tu pourras ajouter ton logo et affiner la personnalisation depuis les paramètres.</p></div>
                 <label className="saas-color-picker"><input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} /><span style={{ background: primaryColor }} /><strong>{primaryColor.toUpperCase()}</strong></label>
               </div>
 
@@ -222,7 +222,7 @@ export function OnboardingPage() {
                 <div className="saas-onboarding-assurance"><Icon name="shield" size={18} /><span><strong>Aucune fonction métier ne sera mélangée.</strong><small>Chaque espace conserve ses données, ses droits et son abonnement séparés.</small></span></div>
                 <label className="public-privacy-check">
                   <input type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} required />
-                  <span>J’accepte la souscription de la formule <strong>{selectedPlan.label}</strong> via Stripe. L’espace restera verrouillé jusqu’à la confirmation du paiement.</span>
+                  <span>J’accepte la souscription de la formule <strong>{selectedPlan.label}</strong>. L’espace restera verrouillé jusqu’à la confirmation du paiement.</span>
                 </label>
               </div>
             </section>
@@ -235,7 +235,7 @@ export function OnboardingPage() {
             {step < 4 ? (
               <button type="button" className="primary-button" onClick={nextStep}>Continuer <Icon name="chevronRight" size={17} /></button>
             ) : (
-              <button className="primary-button" disabled={pending}>{pending ? 'Préparation du paiement…' : 'Créer et payer avec Stripe'} <Icon name="creditCard" size={17} /></button>
+              <button className="primary-button" disabled={pending}>{pending ? 'Préparation du paiement…' : 'Créer et passer au paiement'} <Icon name="creditCard" size={17} /></button>
             )}
           </footer>
         </form>

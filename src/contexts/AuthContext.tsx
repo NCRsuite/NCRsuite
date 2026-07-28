@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     demoMode,
     async signIn(email, password) {
-      if (!supabase) throw new Error('Supabase n’est pas encore configuré.');
+      if (!supabase) throw new Error('Le service de connexion n’est pas encore configuré.');
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
     },

@@ -458,7 +458,7 @@ export function MetierWorkspacePage() {
               </section>
               <section className="panel metier-domain-card">
                 <div className="panel-header"><div><p className="eyebrow">DOMAINE PERSONNALISÉ</p><h2>{config?.custom_domain || 'Aucun domaine configuré'}</h2></div><span className={`admin-status-pill ${config?.custom_domain_status === 'active' ? 'positive' : config?.custom_domain_status === 'error' ? 'negative' : 'warning'}`}>{domainStatusLabels[config?.custom_domain_status ?? 'not_configured']}</span></div>
-                <p>Le domaine doit être déclaré dans Cloudflare et validé par NCR avant sa mise en service. Cette étape n’est jamais automatique afin d’éviter une mauvaise configuration DNS.</p>
+                <p>Le domaine doit être configuré puis validé par NCR avant sa mise en service. Cette étape reste contrôlée afin d’éviter une mauvaise configuration.</p>
                 {config?.custom_domain && <code className="metier-domain-url">https://{config.custom_domain}</code>}
               </section>
             </div>

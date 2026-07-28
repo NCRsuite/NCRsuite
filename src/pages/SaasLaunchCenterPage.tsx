@@ -356,7 +356,7 @@ export function SaasLaunchCenterPage() {
       <section className="launch-center-hero">
         <div className="launch-center-hero-copy">
           <span className="launch-center-kicker"><Icon name="sparkles" size={16} /> CENTRE DE DÉMARRAGE</span>
-          <h1>Prépare {organization.name} avant la mise en service.</h1>
+          <h1>Prépare {organization.name} avant la mise en service</h1>
           <p>Une vue unique pour compléter les réglages, importer les données existantes et vérifier le parcours {pack.label.toLowerCase()}.</p>
         </div>
         <div className="launch-progress-card">

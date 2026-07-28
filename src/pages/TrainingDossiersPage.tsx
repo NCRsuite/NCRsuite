@@ -508,7 +508,7 @@ export function TrainingDossiersPage() {
         await loadData();
       }
       setSuccess(launch
-        ? 'La session est terminée. Les évaluations finales sont envoyées par Brevo et les attestations suivront automatiquement.'
+        ? 'La session est terminée. Les évaluations finales sont envoyées et les attestations suivront automatiquement.'
         : 'Le dossier complet est maintenant finalisé.');
       setTab(launch ? 'to_close' : 'closed');
     } catch (caught) {

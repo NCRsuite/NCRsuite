@@ -1,11 +1,10 @@
-# NCR Suite V2.26.1
+# NCR Suite V2.26.2
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version améliore le choix de l'entreprise et de l'établissement dans la
-barre latérale sur ordinateur, sans modifier les parcours mobiles existants.
+Cette version harmonise le cockpit Formation sur ordinateur, nettoie les titres
+et masque les références techniques inutiles dans les parcours utilisateurs.
 
-Les fonctions et garanties de conservation des données de la V2.26.0 restent
-inchangées.
+Les fonctions, droits, données et parcours mobiles restent inchangés.
 
-Consulter uniquement `A_LIRE_INSTALLATION_V2.26.1.txt` avant déploiement.
+Consulter uniquement `A_LIRE_INSTALLATION_V2.26.2.txt` avant déploiement.

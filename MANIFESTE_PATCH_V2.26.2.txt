@@ -1,0 +1,43 @@
+NCR SUITE V2.26.2 - MANIFESTE DU PATCH
+=====================================
+
+VERSION
+-------
+- Frontend : 2.26.2
+- Base : 2.26.2
+- PWA : ncr-suite-shell-v2.26.2-premium-cockpit
+- Bundle : ncr-suite-app-v262.js
+
+PORTÉE
+------
+- Finition premium du cockpit Formation sur ordinateur.
+- Conservation stricte du comportement mobile.
+- Harmonisation des titres de l'interface.
+- Masquage des références techniques dans les parcours utilisateurs.
+- Aucun changement de données, droits, abonnements ou automatisations.
+
+FICHIERS DE DEPLOIEMENT PRINCIPAUX
+---------------------------------
+- supabase/migrations/097_premium_cockpit_polish.sql
+- src/pages/TrainingDashboardPage.tsx
+- src/components/AppShell.tsx
+- src/styles.css
+- src/config/runtime.ts
+- index.html
+- public/sw.js
+- public/_headers
+- public/ncr-suite-showcase-v262.css
+- public/ncr-suite-app-v262.css
+- vite.config.ts
+- package.json
+- package-lock.json
+- scripts/generate-public-showcase-css.mjs
+- scripts/phase1-static-audit.mjs
+- scripts/phase1-critical-flows.mjs
+- scripts/phase1-release-readiness.mjs
+- README.md
+- CHANGELOG.md
+- A_LIRE_INSTALLATION_V2.26.2.txt
+
+Les pages dont les titres ou messages ont été harmonisés sont également
+présentes dans le ZIP. Leur logique métier n'a pas été modifiée.

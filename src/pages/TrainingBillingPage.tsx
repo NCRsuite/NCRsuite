@@ -507,7 +507,7 @@ export function TrainingBillingPage() {
         if (queueError) throw queueError;
         await load();
       }
-      setSuccess(`Document placé dans la file Brevo pour ${email}.`);
+      setSuccess(`Envoi du document programmé pour ${email}.`);
     } catch (caught) {
       setError(`Envoi impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
     } finally { setBusyId(''); }
@@ -578,7 +578,7 @@ export function TrainingBillingPage() {
     setBusyId(row.id); setError(''); setSuccess('');
     try {
       if (demoMode || !supabase) {
-        setSuccess('Simulation : l’avoir doit être créé avec une base Supabase connectée.');
+        setSuccess('Simulation : la création réelle de l’avoir nécessite une connexion au service de données.');
       } else {
         const { error: rpcError } = await supabase.rpc('create_training_credit_note', {
           p_organization_id: organization.id, p_invoice_id: row.id, p_reason: reason || null
@@ -746,7 +746,7 @@ export function TrainingBillingPage() {
           <label>Banque<input value={settingsForm.bankName} onChange={(event) => setSettingsForm({ ...settingsForm, bankName: event.target.value })} /></label>
           <label>IBAN<input value={settingsForm.bankIban} onChange={(event) => setSettingsForm({ ...settingsForm, bankIban: event.target.value })} /></label>
           <label>BIC<input value={settingsForm.bankBic} onChange={(event) => setSettingsForm({ ...settingsForm, bankBic: event.target.value })} /></label>
-          <label className="full-field training-toggle-field"><input type="checkbox" checked={settingsForm.reminderEnabled} onChange={(event) => setSettingsForm({ ...settingsForm, reminderEnabled: event.target.checked })} /><span><strong>Relances automatiques activées</strong><small>Brevo réutilise le PDF envoyé et conserve chaque relance dans la file d’e-mails.</small></span></label>
+        <label className="full-field training-toggle-field"><input type="checkbox" checked={settingsForm.reminderEnabled} onChange={(event) => setSettingsForm({ ...settingsForm, reminderEnabled: event.target.checked })} /><span><strong>Relances automatiques activées</strong><small>Le document envoyé est réutilisé et chaque relance reste tracée dans l’historique des e-mails.</small></span></label>
           <label>Première relance après échéance<input type="number" min={0} max={365} value={settingsForm.reminderFirstDelayDays} onChange={(event) => setSettingsForm({ ...settingsForm, reminderFirstDelayDays: event.target.value })} /></label>
           <label>Intervalle entre relances<input type="number" min={1} max={365} value={settingsForm.reminderIntervalDays} onChange={(event) => setSettingsForm({ ...settingsForm, reminderIntervalDays: event.target.value })} /></label>
           <label>Nombre maximal de relances<input type="number" min={0} max={12} value={settingsForm.reminderMaxCount} onChange={(event) => setSettingsForm({ ...settingsForm, reminderMaxCount: event.target.value })} /></label>
