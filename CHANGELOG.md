@@ -1,5 +1,20 @@
 # Changelog NCR Suite
 
+## V2.27.0 - Recette commerciale d’une entreprise pilote
+
+- Nouvelle section `Recette client` dans l’administration centrale.
+- Sélection d’une entreprise existante sans création automatique de données.
+- Contrôles de l’entreprise, du propriétaire, de la formule et des droits.
+- Vérification de l’abonnement, du tarif, de Checkout et des webhooks Stripe.
+- Contrôle de la conservation des données après rétrogradation ou résiliation.
+- Synthèse des erreurs, e-mails, notifications, versions PWA et portails Formation.
+- Parcours guidé couvrant acquisition, paiement, rôles, invitations, signatures et mobile.
+- Notes de preuve par scénario et observations finales avant clôture.
+- Sauvegarde de l’avancement puis validation stricte uniquement sans blocage.
+- Historique horodaté par entreprise pilote et export JSON.
+- Migration `102` et cache PWA `ncr-suite-shell-v2.27.0-commercial-readiness`.
+- Nouveau bundle autonome `ncr-suite-app-v270.js`.
+
 ## V2.26.6 - Navigation compacte et montée en gamme lisible
 
 - Menus de tous les métiers regroupés en familles repliables.

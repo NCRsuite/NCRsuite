@@ -1,3 +1,4 @@
+/* NCR Suite V2.27.0 - styles complets servis hors du dossier assets */
 :root {
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #1d1d1f;
@@ -19197,3 +19198,4 @@ button { max-width: 100%; }
   .admin-commercial-readiness-summary article:first-child { grid-column: 1; }
   .admin-commercial-readiness-checks > article { grid-template-columns: 32px minmax(0,1fr); }
 }
+

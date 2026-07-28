@@ -11,6 +11,7 @@ import { AdminDiagnosticsPanel } from '../components/AdminDiagnosticsPanel';
 import { AdminMonitoringPanel } from '../components/AdminMonitoringPanel';
 import { AdminTrainingSavPanel } from '../components/AdminTrainingSavPanel';
 import { AdminAccessRequestsPanel } from '../components/AdminAccessRequestsPanel';
+import { AdminCommercialReadinessPanel } from '../components/AdminCommercialReadinessPanel';
 import { AdminNotificationCenter, type AdminNotificationSection } from '../components/AdminNotificationCenter';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
@@ -72,7 +73,7 @@ const emptyMetrics: AdminMetrics = {
 const planValues: Plan[] = ['decouverte', 'essentielle', 'professionnelle', 'metier'];
 const platformAdminSections = [
   'cockpit','access','overview','support','activity','diagnostics',
-  'monitoring','trainingSav','catalogue','billing','metier','push'
+  'monitoring','validation','trainingSav','catalogue','billing','metier','push'
 ] as const;
 type PlatformAdminSection = typeof platformAdminSections[number];
 
@@ -505,6 +506,10 @@ export function PlatformAdminPage() {
             <Icon name="shield" size={19} />
             <span><strong>Surveillance</strong><small>Versions, erreurs et santé globale</small></span>
           </button>
+          <button type="button" className={activeSection === 'validation' ? 'active' : ''} onClick={() => setActiveSection('validation')}>
+            <Icon name="clipboard" size={19} />
+            <span><strong>Recette client</strong><small>Parcours pilote et preuves</small></span>
+          </button>
           <button type="button" className={activeSection === 'trainingSav' ? 'active' : ''} onClick={() => setActiveSection('trainingSav')}>
             <Icon name="graduation" size={19} />
             <span><strong>SAV Formation</strong><small>Automatisations et relances</small></span>
@@ -540,6 +545,7 @@ export function PlatformAdminPage() {
         {activeSection === 'activity' && <AdminActivityPanel />}
         {activeSection === 'diagnostics' && <AdminDiagnosticsPanel onOpenSupport={() => setActiveSection('support')} />}
         {activeSection === 'monitoring' && <AdminMonitoringPanel />}
+        {activeSection === 'validation' && <AdminCommercialReadinessPanel />}
         {activeSection === 'trainingSav' && <AdminTrainingSavPanel />}
 
         {activeSection === 'overview' && (<>

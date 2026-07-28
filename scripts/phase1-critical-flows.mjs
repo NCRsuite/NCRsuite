@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-compact-navigation`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-commercial-readiness`;
 const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
 const portalAccessAlertsCache = 'ncr-suite-shell-v2.24.0-portal-access-support-alerts';
 const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
@@ -59,18 +59,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v266.css',
-  '/ncr-suite-app-v266.css',
+  '/ncr-suite-showcase-v270.css',
+  '/ncr-suite-app-v270.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.26.6'
+  'ncr:css-recovery-v2.27.0'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v266.css',
+  '/ncr-suite-app-v270.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v266.js'"
+  "entryFileNames: 'ncr-suite-app-v270.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -864,9 +864,19 @@ requireText('supabase/migrations/100_premium_workspace_polish.sql', [
 ]);
 requireText('supabase/migrations/101_compact_navigation_subscription_consistency.sql', [
   "'2.26.6'",
-  expectedCache,
+  'ncr-suite-shell-v2.26.6-compact-navigation',
   'security_addon_catalog',
   'training_module_catalog',
+  'platform_release_state'
+]);
+requireText('supabase/migrations/102_commercial_readiness_pilot_validation.sql', [
+  "'2.27.0'",
+  expectedCache,
+  'create table if not exists public.platform_commercial_validation_runs',
+  'create or replace function public.platform_commercial_readiness_report',
+  'create or replace function public.store_platform_commercial_validation',
+  'create or replace function public.platform_commercial_validation_history',
+  'data_retention_mode',
   'platform_release_state'
 ]);
 requireText('supabase/functions/create-stripe-checkout/index.ts', [
@@ -908,6 +918,18 @@ requireText('src/components/AppShell.tsx', [
   ,'grouped-navigation'
   ,'Modules disponibles'
   ,'app-shell-v266'
+  ,'app-shell-v270'
+]);
+requireText('src/components/AdminCommercialReadinessPanel.tsx', [
+  "supabase.rpc('platform_commercial_readiness_report'",
+  "supabase.rpc('store_platform_commercial_validation'",
+  'Entreprise pilote',
+  'Clôturer la recette'
+]);
+requireText('src/pages/PlatformAdminPage.tsx', [
+  "'validation'",
+  '<AdminCommercialReadinessPanel />',
+  'Recette client'
 ]);
 requireText('src/styles.css', [
   '.context-switcher-trigger',

@@ -628,7 +628,7 @@ export function AppShell() {
     : 1;
 
   return (
-    <div className="app-shell app-shell-v265 app-shell-v266">
+    <div className="app-shell app-shell-v265 app-shell-v266 app-shell-v270">
       <input
         id="profile-avatar-upload"
         className="profile-avatar-input"
