@@ -8,6 +8,7 @@ import {
 } from '../features/notifications/pushNotifications';
 import { supabase } from '../lib/supabase';
 import { Icon } from './Icon';
+import { PremiumSkeleton } from './PremiumSkeleton';
 
 export type AdminNotificationSection = 'cockpit' | 'access' | 'support' | 'billing';
 
@@ -211,7 +212,7 @@ export function AdminNotificationCenter({
           {deviceMessage && <p className="admin-notification-success">{deviceMessage}</p>}
           {error && <p className="admin-notification-error">{error}</p>}
           {loading ? (
-            <div className="admin-notification-empty">Chargement…</div>
+            <PremiumSkeleton label="Chargement des notifications" rows={3} compact />
           ) : notifications.length === 0 ? (
             <div className="admin-notification-empty"><Icon name="check" size={22} /><span>Aucune nouvelle demande.</span></div>
           ) : (

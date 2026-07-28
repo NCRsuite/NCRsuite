@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { PremiumSkeleton } from '../components/PremiumSkeleton';
 import { StatCard } from '../components/StatCard';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
@@ -243,10 +244,10 @@ export function TrainingDashboardPage() {
       </section>
 
       <section className="stats-grid training-quality-stats">
-        <StatCard label="Stagiaires formés" value={loading ? '…' : String(dashboard.metrics.trainedTrainees)} detail={qualityPeriodLabel(periodDays)} icon="users" />
-        <StatCard label="Taux de présence" value={loading ? '…' : percentValue(dashboard.metrics.attendanceRate)} detail={digitalAttendanceEnabled ? 'émargements finalisés' : 'selon les données disponibles'} icon="signature" />
-        <StatCard label="Documents complets" value={loading ? '…' : percentValue(dashboard.metrics.documentCompletionRate)} detail="convocations et attestations" icon="file" />
-        <StatCard label="Satisfaction" value={loading ? '…' : dashboard.metrics.satisfactionAverage == null ? '—' : `${dashboard.metrics.satisfactionAverage.toLocaleString('fr-FR')} / 5`} detail={satisfactionEnabled ? `${percentValue(dashboard.metrics.satisfactionResponseRate)} de réponses` : 'disponible avec Professionnelle'} icon="chart" />
+        <StatCard label="Stagiaires formés" value={String(dashboard.metrics.trainedTrainees)} detail={qualityPeriodLabel(periodDays)} icon="users" loading={loading} />
+        <StatCard label="Taux de présence" value={percentValue(dashboard.metrics.attendanceRate)} detail={digitalAttendanceEnabled ? 'émargements finalisés' : 'selon les données disponibles'} icon="signature" loading={loading} />
+        <StatCard label="Documents complets" value={percentValue(dashboard.metrics.documentCompletionRate)} detail="convocations et attestations" icon="file" loading={loading} />
+        <StatCard label="Satisfaction" value={dashboard.metrics.satisfactionAverage == null ? '—' : `${dashboard.metrics.satisfactionAverage.toLocaleString('fr-FR')} / 5`} detail={satisfactionEnabled ? `${percentValue(dashboard.metrics.satisfactionResponseRate)} de réponses` : 'disponible avec Professionnelle'} icon="chart" loading={loading} />
       </section>
 
       <section className="training-quality-grid">
@@ -269,7 +270,7 @@ export function TrainingDashboardPage() {
             ))}
           </div>
 
-          {loading ? <div className="training-empty">Analyse des sessions…</div> : filteredIssues.length === 0 ? (
+          {loading ? <PremiumSkeleton rows={4} label="Analyse des sessions en cours" /> : filteredIssues.length === 0 ? (
             <div className="training-quality-empty"><span><Icon name="check" size={26} /></span><div><strong>Aucun point à traiter dans cette rubrique</strong><p>Les contrôles sont à jour pour la période sélectionnée.</p></div></div>
           ) : (
             <div className="training-quality-issue-list">

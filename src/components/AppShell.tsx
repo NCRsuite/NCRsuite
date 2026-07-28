@@ -628,7 +628,7 @@ export function AppShell() {
     : 1;
 
   return (
-    <div className="app-shell app-shell-v265 app-shell-v266 app-shell-v270">
+    <div className="app-shell app-shell-v265 app-shell-v266 app-shell-v270 app-shell-v271">
       <input
         id="profile-avatar-upload"
         className="profile-avatar-input"
@@ -905,7 +905,9 @@ export function AppShell() {
           </button>
         </header>
 
-        <Outlet />
+        <div className="premium-route-stage" key={`${organization.id}:${location.pathname}`}>
+          <Outlet />
+        </div>
       </main>
 
       <nav className="mobile-bottom-nav" aria-label="Navigation rapide">

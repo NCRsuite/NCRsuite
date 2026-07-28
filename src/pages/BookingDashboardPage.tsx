@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { PremiumSkeleton } from '../components/PremiumSkeleton';
 import { StatCard } from '../components/StatCard';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -115,19 +116,23 @@ export function BookingDashboardPage() {
       </header>
 
       <section className="stats-grid">
-        <StatCard label="Rendez-vous aujourd’hui" value={loading ? '—' : String(todayCount)} detail="hors annulations" icon="calendar" />
-        <StatCard label="Rendez-vous cette semaine" value={loading ? '—' : String(activeAppointments.length)} detail="planning actuel" icon="activity" />
-        <StatCard label={isPersonalView ? "Clients de mes rendez-vous" : activeSite ? "Clients de la semaine" : "Clients actifs"} value={loading ? '—' : String(clientCount)} detail={isPersonalView ? "visibles dans mon planning" : activeSite ? `ayant un rendez-vous à ${activeSite.name}` : "dans votre fichier client"} icon="users" />
-        <StatCard label="Chiffre prévisionnel" value={loading ? '—' : currencyFormatter.format(forecast / 100)} detail="cette semaine" icon="chart" />
+        <StatCard label="Rendez-vous aujourd’hui" value={String(todayCount)} detail="hors annulations" icon="calendar" loading={loading} />
+        <StatCard label="Rendez-vous cette semaine" value={String(activeAppointments.length)} detail="planning actuel" icon="activity" loading={loading} />
+        <StatCard label={isPersonalView ? "Clients de mes rendez-vous" : activeSite ? "Clients de la semaine" : "Clients actifs"} value={String(clientCount)} detail={isPersonalView ? "visibles dans mon planning" : activeSite ? `ayant un rendez-vous à ${activeSite.name}` : "dans votre fichier client"} icon="users" loading={loading} />
+        <StatCard label="Chiffre prévisionnel" value={currencyFormatter.format(forecast / 100)} detail="cette semaine" icon="chart" loading={loading} />
       </section>
 
       <section className="dashboard-grid">
         <article className="panel large-panel">
           <div className="panel-header"><div><p className="eyebrow">ACTIVITÉ RÉELLE</p><h2>Rendez-vous de la semaine</h2></div><Link className="secondary-button" to="/rendez-vous">Voir le planning</Link></div>
-          <div className="chart-placeholder" aria-label="Nombre de rendez-vous par jour">
-            {dayCounts.map((count, index) => <span key={index} title={`${count} rendez-vous`} style={{ height: `${Math.max(8, (count / maxCount) * 100)}%` }} />)}
-          </div>
-          <div className="chart-labels"><span>Lun.</span><span>Mar.</span><span>Mer.</span><span>Jeu.</span><span>Ven.</span><span>Sam.</span><span>Dim.</span></div>
+          {loading ? <PremiumSkeleton variant="chart" label="Chargement de l’activité de la semaine" /> : (
+            <>
+              <div className="chart-placeholder" aria-label="Nombre de rendez-vous par jour">
+                {dayCounts.map((count, index) => <span key={index} title={`${count} rendez-vous`} style={{ height: `${Math.max(8, (count / maxCount) * 100)}%` }} />)}
+              </div>
+              <div className="chart-labels"><span>Lun.</span><span>Mar.</span><span>Mer.</span><span>Jeu.</span><span>Ven.</span><span>Sam.</span><span>Dim.</span></div>
+            </>
+          )}
         </article>
         <article className="panel">
           <div className="panel-header"><div><p className="eyebrow">À TRAITER</p><h2>Priorités</h2></div></div>

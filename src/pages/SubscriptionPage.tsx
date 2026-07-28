@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { PremiumSkeleton } from '../components/PremiumSkeleton';
 import { SecurityAddonsPanel } from '../components/SecurityAddonsPanel';
 import { TrainingModulesPanel } from '../components/TrainingModulesPanel';
 import { businessPacks } from '../config/businessPacks';
@@ -397,7 +398,7 @@ export function SubscriptionPage() {
             <div><p className="eyebrow">TOUS MES DOMAINES</p><h2>Mes abonnements NCR Suite</h2><p>Chaque domaine dispose de sa formule, de son tarif et de son historique séparés.</p></div>
             <div className="subscription-portfolio-total"><small>Total mensuel actif</small><strong>{portfolioLoading ? '…' : money(portfolioMonthlyTotal)}</strong><span>HT / mois</span></div>
           </div>
-          {portfolioLoading && portfolio.length === 0 ? <div className="subscription-loading">Chargement de vos abonnements…</div> : (
+          {portfolioLoading && portfolio.length === 0 ? <PremiumSkeleton label="Chargement de vos abonnements" rows={3} /> : (
             <div className="subscription-portfolio-grid">
               {portfolio.map((item) => {
                 const portal = item.portal;
@@ -423,7 +424,7 @@ export function SubscriptionPage() {
         </section>
       )}
 
-      {loading && <section className="panel subscription-loading">Chargement de l’abonnement…</section>}
+      {loading && <section className="panel subscription-loading"><PremiumSkeleton label="Chargement de l’abonnement" rows={4} /></section>}
 
       {!loading && data && (
         <>

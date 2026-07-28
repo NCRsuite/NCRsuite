@@ -1,5 +1,20 @@
 # Changelog NCR Suite
 
+## V2.27.1 - Interactions et finitions premium
+
+- Transitions courtes et cohérentes lors des changements de page.
+- Apparition progressive des indicateurs et panneaux principaux.
+- États de chargement élégants sur les tableaux de bord métier.
+- Faux zéros supprimés pendant le chargement des statistiques.
+- Chargements harmonisés pour les abonnements, les notifications et les entreprises.
+- Retours immédiats sur les boutons, onglets et filtres.
+- Confirmations et messages rendus plus compacts et plus discrets.
+- Animations réduites automatiquement lorsque le système le demande.
+- Logique métier, droits, abonnements Stripe et données existantes inchangés.
+- Migration `103` limitée à la synchronisation de la release.
+- Cache PWA `ncr-suite-shell-v2.27.1-interactions`.
+- Nouveau bundle autonome `ncr-suite-app-v271.js`.
+
 ## V2.27.0 - Recette commerciale d’une entreprise pilote
 
 - Nouvelle section `Recette client` dans l’administration centrale.

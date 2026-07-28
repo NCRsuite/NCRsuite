@@ -14,6 +14,7 @@ import { AdminAccessRequestsPanel } from '../components/AdminAccessRequestsPanel
 import { AdminCommercialReadinessPanel } from '../components/AdminCommercialReadinessPanel';
 import { AdminNotificationCenter, type AdminNotificationSection } from '../components/AdminNotificationCenter';
 import { Icon } from '../components/Icon';
+import { PremiumSkeleton } from '../components/PremiumSkeleton';
 import { useAuth } from '../contexts/AuthContext';
 import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
 import { businessPacks, businessTypeOptions } from '../config/businessPacks';
@@ -592,7 +593,7 @@ export function PlatformAdminPage() {
             </div>
 
             <div className="admin-organization-list admin-domain-organization-list">
-              {loading && <div className="admin-empty-state">Chargement des entreprises…</div>}
+              {loading && <PremiumSkeleton label="Chargement des entreprises" rows={4} compact />}
               {!loading && visibleOrganizations.length === 0 && <div className="admin-empty-state">Aucune entreprise ne correspond aux filtres.</div>}
               {!loading && organizationGroups.map(({ domain, organizations: domainOrganizations }) => (
                 <section className="admin-domain-group" key={domain.id}>
