@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-stripe-billing`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-switchers`;
 const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
 const portalAccessAlertsCache = 'ncr-suite-shell-v2.24.0-portal-access-support-alerts';
 const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
@@ -59,18 +59,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v260.css',
-  '/ncr-suite-app-v260.css',
+  '/ncr-suite-showcase-v261.css',
+  '/ncr-suite-app-v261.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.26.0'
+  'ncr:css-recovery-v2.26.1'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v260.css',
+  '/ncr-suite-app-v261.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v260.js'"
+  "entryFileNames: 'ncr-suite-app-v261.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -830,7 +830,12 @@ requireText('supabase/migrations/095_stripe_catalog_lifecycle_paid_activation.sq
   "check (data_retention_mode='preserve')",
   "'data_retained',true",
   "'2.26.0'",
-  expectedCache
+  'ncr-suite-shell-v2.26.0-stripe-billing'
+]);
+requireText('supabase/migrations/096_premium_context_switchers.sql', [
+  "'2.26.1'",
+  expectedCache,
+  'platform_release_state'
 ]);
 requireText('supabase/functions/create-stripe-checkout/index.ts', [
   "mode: 'subscription'",
@@ -848,6 +853,19 @@ requireText('supabase/functions/manage-stripe-addon/index.ts', [
 ]);
 requireText('supabase/functions/create-stripe-portal/index.ts', [
   'billingPortal.sessions.create'
+]);
+requireText('src/components/AppShell.tsx', [
+  'desktop-context-switchers',
+  'context-switcher organization-switcher',
+  'context-switcher site-switcher',
+  "desktopContextMenu === 'organization'",
+  "desktopContextMenu === 'site'"
+]);
+requireText('src/styles.css', [
+  '.context-switcher-trigger',
+  '.context-switcher-menu',
+  '.context-switcher-options > button.active',
+  '.desktop-context-switchers, .organization-switcher'
 ]);
 requireText('supabase/functions/stripe-webhook/index.ts', [
   'constructEventAsync',

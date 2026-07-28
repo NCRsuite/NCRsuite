@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.26.0-stripe-billing';
+const CACHE = 'ncr-suite-shell-v2.26.1-premium-switchers';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v260.css',
-  '/ncr-suite-app-v260.css',
-  '/ncr-suite-app-v260.js',
+  '/ncr-suite-showcase-v261.css',
+  '/ncr-suite-app-v261.css',
+  '/ncr-suite-app-v261.js',
   '/brand/ncr-suite-logo-header-v2221.png',
   '/brand/ncr-suite-symbol-v2221.png',
   '/brand/ncr-suite-icon.png',

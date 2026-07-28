@@ -1,5 +1,16 @@
 # Changelog NCR Suite
 
+## V2.26.1 - Sélecteurs de contexte premium
+
+- Nouveau sélecteur d'entreprise sur ordinateur avec identité visuelle, métier, formule, rôle et état actif.
+- Nouveau sélecteur d'établissement cohérent avec distinction entre vue consolidée et site sélectionné.
+- Menus accessibles au clavier et refermés avec Échap, au clic extérieur, après sélection ou navigation.
+- Réutilisation stricte des fonctions existantes de changement d'entreprise et d'établissement.
+- Interface mobile existante conservée et nouveaux sélecteurs masqués sous 900 px.
+- Aucune modification des droits, abonnements, automatisations ou données métier.
+- Migration `096` et cache PWA `ncr-suite-shell-v2.26.1-premium-switchers`.
+- Nouveau bundle autonome `ncr-suite-app-v261.js`.
+
 ## V2.26.0 — Cycle Stripe complet et données conservées
 
 - Catalogue des `price_id` Stripe administrable par métier, formule et module.

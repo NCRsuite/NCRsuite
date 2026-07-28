@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
 import { organizationHasFeature, planLabel } from '../config/planEntitlements';
@@ -18,11 +18,35 @@ export function AppShell() {
   const [mobileAccountOpen, setMobileAccountOpen] = useState(false);
   const [notificationUnread, setNotificationUnread] = useState(0);
   const [endingSupport, setEndingSupport] = useState(false);
+  const [desktopContextMenu, setDesktopContextMenu] = useState<'organization' | 'site' | null>(null);
+  const desktopContextRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMobileMenuOpen(false);
     setMobileAccountOpen(false);
+    setDesktopContextMenu(null);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (!desktopContextMenu) return;
+
+    function onPointerDown(event: PointerEvent) {
+      if (!desktopContextRef.current?.contains(event.target as Node)) {
+        setDesktopContextMenu(null);
+      }
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') setDesktopContextMenu(null);
+    }
+
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [desktopContextMenu]);
 
   useEffect(() => {
     if (!mobileMenuOpen && !mobileAccountOpen) return;
@@ -178,6 +202,7 @@ export function AppShell() {
   function closeMobileLayers() {
     setMobileMenuOpen(false);
     setMobileAccountOpen(false);
+    setDesktopContextMenu(null);
   }
 
   function changeSite(id: string | null) {
@@ -223,22 +248,120 @@ export function AppShell() {
         {supportSession ? <div className="support-sidebar-identity">
           <span><Icon name="headset" size={18} /></span>
           <div><small>ASSISTANCE NCR</small><strong>{organization.name}</strong><em>{pack.label} · session temporaire</em></div>
-        </div> : <div className="organization-switcher">
-          <label htmlFor="organization">Entreprise</label>
-          <select id="organization" value={organization.id} onChange={(event) => changeOrganization(event.target.value)}>
-            {organizations.map((org) => <option key={org.id} value={org.id}>{org.name}</option>)}
-          </select>
-          <small>{pack.label} · {planLabel(organization.plan)} · {organization.custom_role_label || organization.role || 'viewer'}</small>
-        </div>}
+        </div> : (
+          <div className="desktop-context-switchers" ref={desktopContextRef}>
+            <div className={`context-switcher organization-switcher${desktopContextMenu === 'organization' ? ' open' : ''}`}>
+              <div className="context-switcher-label">
+                <span>Entreprise</span>
+                <small>{organizations.length > 1 ? `${organizations.length} espaces` : 'Espace actif'}</small>
+              </div>
+              <button
+                className="context-switcher-trigger"
+                type="button"
+                onClick={() => setDesktopContextMenu((current) => current === 'organization' ? null : 'organization')}
+                aria-expanded={desktopContextMenu === 'organization'}
+                aria-controls="desktop-organization-menu"
+              >
+                <span className="context-switcher-icon organization" style={{ background: organization.primary_color || '#0a84ff' }}>
+                  <Icon name={pack.icon} size={19} />
+                </span>
+                <span className="context-switcher-copy">
+                  <strong>{organization.name}</strong>
+                  <small>{pack.label} · {planLabel(organization.plan)}</small>
+                </span>
+                <span className="context-switcher-chevron"><Icon name="chevronDown" size={17} /></span>
+              </button>
+              <div className="context-switcher-foot">
+                <span><i />{organization.custom_role_label || organization.role || 'viewer'}</span>
+                <small>Actif</small>
+              </div>
 
-        {hasMultiSite && sites.length > 0 && (
-          <div className="site-switcher">
-            <label htmlFor="active-site">Établissement</label>
-            <select id="active-site" value={activeSiteId ?? 'all'} onChange={(event) => changeSite(event.target.value === 'all' ? null : event.target.value)} disabled={sitesLoading}>
-              {canManageOrganization && <option value="all">Tous les établissements</option>}
-              {sites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.is_primary ? ' · Principal' : ''}</option>)}
-            </select>
-            <small>{activeSite ? [activeSite.address, activeSite.city].filter(Boolean).join(' · ') || 'Établissement sélectionné' : 'Vue consolidée de tous les sites'}</small>
+              {desktopContextMenu === 'organization' && (
+                <div className="context-switcher-menu" id="desktop-organization-menu" role="listbox" aria-label="Choisir une entreprise">
+                  <header><span>Vos entreprises</span><small>{organizations.length}</small></header>
+                  <div className="context-switcher-options">
+                    {organizations.map((org) => {
+                      const orgPack = businessPacks[org.business_type];
+                      const active = org.id === organization.id;
+                      return (
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={active}
+                          key={org.id}
+                          className={active ? 'active' : ''}
+                          onClick={() => changeOrganization(org.id)}
+                        >
+                          <span className="context-option-icon" style={{ background: org.primary_color || '#0a84ff' }}>
+                            <Icon name={orgPack.icon} size={17} />
+                          </span>
+                          <span className="context-option-copy">
+                            <strong>{org.name}</strong>
+                            <small>{orgPack.label} · {planLabel(org.plan)}</small>
+                          </span>
+                          {active ? <span className="context-option-check"><Icon name="check" size={15} /></span> : <Icon name="chevronRight" size={15} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {hasMultiSite && sites.length > 0 && (
+              <div className={`context-switcher site-switcher${desktopContextMenu === 'site' ? ' open' : ''}`}>
+                <div className="context-switcher-label">
+                  <span>Établissement</span>
+                  <small>{sites.length} site{sites.length > 1 ? 's' : ''}</small>
+                </div>
+                <button
+                  className="context-switcher-trigger"
+                  type="button"
+                  onClick={() => setDesktopContextMenu((current) => current === 'site' ? null : 'site')}
+                  aria-expanded={desktopContextMenu === 'site'}
+                  aria-controls="desktop-site-menu"
+                  disabled={sitesLoading}
+                >
+                  <span className="context-switcher-icon site"><Icon name="building" size={19} /></span>
+                  <span className="context-switcher-copy">
+                    <strong>{activeSite?.name ?? 'Tous les établissements'}</strong>
+                    <small>{activeSite?.is_primary ? 'Établissement principal' : activeSite ? 'Vue de cet établissement' : 'Vue consolidée'}</small>
+                  </span>
+                  <span className="context-switcher-chevron"><Icon name="chevronDown" size={17} /></span>
+                </button>
+                <div className="context-switcher-foot site">
+                  <span><i />{activeSite ? [activeSite.address, activeSite.city].filter(Boolean).join(' · ') || 'Site sélectionné' : 'Tous les sites réunis'}</span>
+                </div>
+
+                {desktopContextMenu === 'site' && (
+                  <div className="context-switcher-menu" id="desktop-site-menu" role="listbox" aria-label="Choisir un établissement">
+                    <header><span>Vos établissements</span><small>{sites.length}</small></header>
+                    <div className="context-switcher-options">
+                      {canManageOrganization && (
+                        <button type="button" role="option" aria-selected={activeSiteId === null} className={activeSiteId === null ? 'active' : ''} onClick={() => changeSite(null)}>
+                          <span className="context-option-icon all-sites"><Icon name="building" size={17} /></span>
+                          <span className="context-option-copy"><strong>Tous les établissements</strong><small>Vue consolidée de l’entreprise</small></span>
+                          {activeSiteId === null ? <span className="context-option-check"><Icon name="check" size={15} /></span> : <Icon name="chevronRight" size={15} />}
+                        </button>
+                      )}
+                      {sites.map((site) => {
+                        const active = site.id === activeSiteId;
+                        return (
+                          <button type="button" role="option" aria-selected={active} key={site.id} className={active ? 'active' : ''} onClick={() => changeSite(site.id)}>
+                            <span className="context-option-icon site"><Icon name="building" size={17} /></span>
+                            <span className="context-option-copy">
+                              <strong>{site.name}</strong>
+                              <small>{site.is_primary ? 'Principal' : [site.address, site.city].filter(Boolean).join(' · ') || 'Établissement'}</small>
+                            </span>
+                            {active ? <span className="context-option-check"><Icon name="check" size={15} /></span> : <Icon name="chevronRight" size={15} />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
