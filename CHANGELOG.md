@@ -1,5 +1,22 @@
 # Changelog NCR Suite
 
+## V2.28.2 - Direction artistique des pages métier
+
+- Hero enrichi avec un aperçu produit plus crédible et plus proche de l’application.
+- Fin de l’animation flottante permanente de la maquette pour un rendu plus professionnel.
+- Grille de fonctionnalités remplacée par une composition éditoriale asymétrique.
+- Chaque fonctionnalité possède désormais une miniature d’usage dédiée.
+- Grandes zones vides supprimées sur ordinateur et mobile.
+- Numéros décoratifs remplacés par des libellés utiles.
+- Première fonctionnalité mise en avant dans un bloc sombre plus affirmé.
+- Dernière fonctionnalité présentée comme une synthèse visuelle pleine largeur.
+- Cartes d’offres séparées et offre recommandée davantage mise en valeur.
+- Espacement mobile du hero corrigé pour éviter le chevauchement des preuves et de l’aperçu.
+- Parcours, boutons, tarifs, formulaires, SEO et données existantes inchangés.
+- Migration `106` limitée à la synchronisation de la release.
+- Cache PWA `ncr-suite-shell-v2.28.2-solution-art-direction`.
+- Nouveau bundle autonome `ncr-suite-app-v282.js`.
+
 ## V2.28.1 - Pages métier premium
 
 - Hiérarchie typographique renforcée sur les cinq pages métier publiques.

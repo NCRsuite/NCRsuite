@@ -46,6 +46,96 @@ type SeoPage = {
 };
 
 const seoPages = seoPagesData as SeoPage[];
+const featureLabels = ['Piloter', 'Coordonner', 'Connaître', 'Structurer', 'Automatiser', 'Mesurer'];
+
+function SolutionFeaturePreview({
+  feature,
+  index,
+  page
+}: {
+  feature: SeoFeature;
+  index: number;
+  page: SeoPage;
+}) {
+  if (index === 0) {
+    return (
+      <div className="public-solution-feature-preview preview-schedule" aria-hidden="true">
+        <header><span>{feature.title}</span><em>Cette semaine</em></header>
+        <div className="preview-schedule-days"><small>Lun</small><small>Mar</small><small>Mer</small><small>Jeu</small><small>Ven</small></div>
+        <div className="preview-schedule-grid">
+          <i /><i /><i /><i /><i />
+          <span className="slot-a">{page.workflow[0]?.title}</span>
+          <span className="slot-b">{page.workflow[1]?.title}</span>
+          <span className="slot-c">{page.workflow[2]?.title}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (index === 1) {
+    return (
+      <div className="public-solution-feature-preview preview-selection" aria-hidden="true">
+        <header><span>{feature.title}</span><em>Disponible</em></header>
+        <div>
+          <span><i /><strong>{page.workflow[0]?.title}</strong><small>09:30</small></span>
+          <span className="selected"><i /><strong>{page.workflow[1]?.title}</strong><small>11:00</small></span>
+          <span><i /><strong>{page.workflow[2]?.title}</strong><small>14:30</small></span>
+        </div>
+      </div>
+    );
+  }
+
+  if (index === 2) {
+    return (
+      <div className="public-solution-feature-preview preview-people" aria-hidden="true">
+        <header><span>{feature.title}</span><em>À jour</em></header>
+        <div>
+          {page.features.slice(0, 3).map((item, itemIndex) => (
+            <span key={item.title}>
+              <i>{item.title.slice(0, 1)}</i>
+              <strong>{item.title}</strong>
+              <small>{itemIndex === 0 ? 'Actif' : 'Suivi'}</small>
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (index === 3) {
+    return (
+      <div className="public-solution-feature-preview preview-list" aria-hidden="true">
+        <header><span>{feature.title}</span><em>Organisé</em></header>
+        <div>
+          {page.workflow.slice(0, 3).map((item, itemIndex) => (
+            <span key={item.step}><i>{item.step}</i><strong>{item.title}</strong><small>{itemIndex === 2 ? 'À valider' : 'Prêt'}</small></span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (index === 4) {
+    return (
+      <div className="public-solution-feature-preview preview-automation" aria-hidden="true">
+        <header><span>{feature.title}</span><em>Automatique</em></header>
+        <div>
+          <span><Icon name="check" size={14} /><strong>Confirmation</strong><small>Envoyée</small></span>
+          <span><Icon name="activity" size={14} /><strong>Suivi</strong><small>Programmé</small></span>
+          <span><Icon name="check" size={14} /><strong>Historique</strong><small>Conservé</small></span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="public-solution-feature-preview preview-chart" aria-hidden="true">
+      <header><span>{feature.title}</span><em>Vue consolidée</em></header>
+      <div className="preview-chart-bars"><i /><i /><i /><i /><i /><i /><i /><i /></div>
+      <footer><span><i />Activité suivie</span><strong>En temps réel</strong></footer>
+    </div>
+  );
+}
 
 export function PublicSolutionPage({ businessType }: { businessType: BusinessType }) {
   const page = seoPages.find((item) => item.key === businessType) ?? seoPages[0];
@@ -128,7 +218,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
   }), [offers.plans, page]);
 
   return (
-    <div className="public-solution-page public-solution-v281" style={style} ref={pageRef}>
+    <div className="public-solution-page public-solution-v281 public-solution-v282" data-business={page.key} style={style} ref={pageRef}>
       <PageMetadata
         title={page.title}
         description={page.description}
@@ -141,10 +231,10 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
 
       <section className="public-solution-hero">
         <PublicSiteHeader />
-        <div className="public-solution-interface" aria-label={`Aperçu de NCR Suite pour ${page.label}`}>
+        <div className="public-solution-interface" aria-hidden="true">
           <div className="public-solution-interface-top">
             <span><img src="/brand/ncr-suite-icon.png" alt="" /><strong>NCR Suite</strong></span>
-            <span>{page.name}</span>
+            <span className="public-solution-interface-context">{page.name}<em><i /> Espace actif</em></span>
           </div>
           <div className="public-solution-interface-body">
             <nav aria-hidden="true">
@@ -152,15 +242,28 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
               {page.features.slice(0, 5).map((feature) => <span key={feature.title}><Icon name={feature.icon} size={15} /></span>)}
             </nav>
             <div>
-              <header><small>ESPACE {page.name.toUpperCase()}</small><strong>Votre activité en un regard</strong></header>
+              <header className="public-solution-interface-heading">
+                <span><small>ESPACE {page.name.toUpperCase()}</small><strong>Votre activité en un regard</strong></span>
+                <em>Aujourd’hui</em>
+              </header>
               <div className="public-solution-interface-metrics">
                 <span><small>À traiter</small><strong>8</strong><em>priorités identifiées</em></span>
                 <span><small>Planifiés</small><strong>24</strong><em>actions coordonnées</em></span>
                 <span><small>Conformité</small><strong>96 %</strong><em>preuves disponibles</em></span>
               </div>
-              <div className="public-solution-interface-grid">
-                <span><strong>Activité</strong><i /><i /><i /><i /><i /><i /></span>
-                <span><strong>Prochaines actions</strong><small>Valider les dossiers</small><small>Confirmer le planning</small><small>Traiter les alertes</small></span>
+              <div className="public-solution-interface-workspace">
+                <div>
+                  <header><strong>{page.features[0]?.title}</strong><small>Vue opérationnelle</small></header>
+                  {page.workflow.slice(0, 3).map((item, index) => (
+                    <span key={item.step}><small>{index === 0 ? '09:00' : index === 1 ? '11:30' : '15:00'}</small><i /><strong>{item.title}</strong><em>{index === 2 ? 'À suivre' : 'Prêt'}</em></span>
+                  ))}
+                </div>
+                <aside>
+                  <header><strong>À suivre</strong><small>3 priorités</small></header>
+                  {page.features.slice(1, 4).map((feature) => (
+                    <span key={feature.title}><Icon name={feature.icon} size={14} /><strong>{feature.title}</strong><i /></span>
+                  ))}
+                </aside>
               </div>
             </div>
           </div>
@@ -193,10 +296,13 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
           </header>
           <div>
             {page.features.map((feature, index) => (
-              <article key={feature.title}>
-                <header><small>0{index + 1}</small><span><Icon name={feature.icon} size={20} /></span></header>
-                <h3>{feature.title}</h3>
-                <p>{feature.text}</p>
+              <article className={`public-solution-feature-card feature-card-${index + 1}`} key={feature.title}>
+                <header><small>{featureLabels[index]}</small><span><Icon name={feature.icon} size={20} /></span></header>
+                <div className="public-solution-feature-copy">
+                  <h3>{feature.title}</h3>
+                  <p>{feature.text}</p>
+                </div>
+                <SolutionFeaturePreview feature={feature} index={index} page={page} />
               </article>
             ))}
           </div>

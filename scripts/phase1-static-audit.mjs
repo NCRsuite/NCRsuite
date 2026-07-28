@@ -658,6 +658,7 @@ const commercialReadinessMigration = read('supabase/migrations/102_commercial_re
 const interactionsMigration = read('supabase/migrations/103_v2_27_1_interactions_release.sql');
 const seoAcquisitionMigration = read('supabase/migrations/104_seo_acquisition_release.sql');
 const premiumSolutionPagesMigration = read('supabase/migrations/105_premium_solution_pages_release.sql');
+const solutionArtDirectionMigration = read('supabase/migrations/106_solution_art_direction_release.sql');
 const commercialReadinessPanel = read('src/components/AdminCommercialReadinessPanel.tsx');
 const stripeCheckoutFunction = read('supabase/functions/create-stripe-checkout/index.ts');
 const stripePortalFunction = read('supabase/functions/create-stripe-portal/index.ts');
@@ -673,33 +674,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v281.css')
-    || !indexHtml.includes('/ncr-suite-app-v281.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v282.css')
+    || !indexHtml.includes('/ncr-suite-app-v282.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.28.1')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v281.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v281.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.28.2')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v282.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v282.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v281.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v282.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.28.1 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.28.2 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v281.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v281.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.28.1 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v282.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v282.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.28.2 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.28.1'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.28.1-premium-solution-pages")
-    || !serviceWorker.includes("ncr-suite-shell-v2.28.1-premium-solution-pages")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v281.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v281.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v281.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.28.2'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.28.2-solution-art-direction")
+    || !serviceWorker.includes("ncr-suite-shell-v2.28.2-solution-art-direction")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v282.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v282.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v282.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.28.1 est incoherent.');
+  errors.push('La version ou le cache PWA V2.28.2 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.28.1 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.28.2 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -928,6 +929,19 @@ if (!premiumSolutionPagesMigration.includes("'2.28.1'")
     || !publicStyles.includes('.public-solution-v281 .public-primary-action:hover')
     || !publicStyles.includes('.public-solution-v281 a:focus-visible')) {
   errors.push('Les finitions premium des pages metier V2.28.1 sont incompletes.');
+}
+if (!solutionArtDirectionMigration.includes("'2.28.2'")
+    || !solutionArtDirectionMigration.includes('ncr-suite-shell-v2.28.2-solution-art-direction')
+    || !solutionArtDirectionMigration.includes('platform_release_state')
+    || !publicSolutionPage.includes('public-solution-v282')
+    || !publicSolutionPage.includes('public-solution-feature-preview')
+    || !publicSolutionPage.includes('public-solution-interface-workspace')
+    || !publicStyles.includes('NCR Suite V2.28.2 - direction artistique des pages metier')
+    || !publicStyles.includes('.public-solution-v282 .public-solution-features .feature-card-1')
+    || !publicStyles.includes('.preview-schedule-grid')
+    || !publicStyles.includes('.preview-chart-bars')
+    || !publicStyles.includes('@keyframes public-solution-preview-bar')) {
+  errors.push('La direction artistique des pages metier V2.28.2 est incomplete.');
 }
 if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
   source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')
