@@ -1,5 +1,19 @@
 # Changelog NCR Suite
 
+## V2.28.3 - Correctif cartes et espacement des pages métier
+
+- Titres et icônes des cartes rétablis sur ordinateur.
+- Zones de grille déclarées explicitement pour chaque carte standard.
+- Priorité de style corrigée sur la première carte sombre.
+- Aperçus fonctionnels maintenus dans leurs emplacements.
+- Grande transition vide sous l’aperçu produit fortement réduite.
+- Correctif limité aux écrans de plus de `1000 px`.
+- Rendu mobile V2.28.2 conservé sans modification.
+- Parcours, boutons, tarifs, formulaires, SEO et données existantes inchangés.
+- Migration `107` limitée à la synchronisation de la release.
+- Cache PWA `ncr-suite-shell-v2.28.3-solution-layout-fix`.
+- Nouveau bundle autonome `ncr-suite-app-v283.js`.
+
 ## V2.28.2 - Direction artistique des pages métier
 
 - Hero enrichi avec un aperçu produit plus crédible et plus proche de l’application.

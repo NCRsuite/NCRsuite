@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-solution-art-direction`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-solution-layout-fix`;
+const solutionArtDirectionCache = 'ncr-suite-shell-v2.28.2-solution-art-direction';
 const premiumSolutionPagesCache = 'ncr-suite-shell-v2.28.1-premium-solution-pages';
 const seoAcquisitionCache = 'ncr-suite-shell-v2.28.0-seo-acquisition';
 const interactionsCache = 'ncr-suite-shell-v2.27.1-interactions';
@@ -63,18 +64,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v282.css',
-  '/ncr-suite-app-v282.css',
+  '/ncr-suite-showcase-v283.css',
+  '/ncr-suite-app-v283.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.2'
+  'ncr:css-recovery-v2.28.3'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v282.css',
+  '/ncr-suite-app-v283.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v282.js'"
+  "entryFileNames: 'ncr-suite-app-v283.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -902,16 +903,27 @@ requireText('supabase/migrations/105_premium_solution_pages_release.sql', [
 ]);
 requireText('supabase/migrations/106_solution_art_direction_release.sql', [
   "'2.28.2'",
+  solutionArtDirectionCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/107_solution_layout_fix_release.sql', [
+  "'2.28.3'",
   expectedCache,
   'platform_release_state'
 ]);
 requireText('src/pages/PublicSolutionPage.tsx', [
-  'public-solution-v282',
+  'public-solution-v283',
   'data-solution-reveal',
   'IntersectionObserver',
   'public-solution-feature-preview',
   'public-solution-interface-workspace',
   '/brand/ncr-suite-application-icon-v281.png'
+]);
+requireText('src/styles.css', [
+  'NCR Suite V2.28.3 - lisibilite des cartes et rythme vertical desktop',
+  '@media (min-width: 1001px)',
+  'article.public-solution-feature-card',
+  '"outcome-label outcome-title"'
 ]);
 requireText('scripts/generate-seo-pages.mjs', [
   'publicSeoPages.json',

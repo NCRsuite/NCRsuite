@@ -8,7 +8,7 @@ export default defineConfig({
     rolldownOptions: {
       output: {
         codeSplitting: false,
-        entryFileNames: 'ncr-suite-app-v282.js'
+        entryFileNames: 'ncr-suite-app-v283.js'
       }
     }
   },

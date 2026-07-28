@@ -218,7 +218,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
   }), [offers.plans, page]);
 
   return (
-    <div className="public-solution-page public-solution-v281 public-solution-v282" data-business={page.key} style={style} ref={pageRef}>
+    <div className="public-solution-page public-solution-v281 public-solution-v282 public-solution-v283" data-business={page.key} style={style} ref={pageRef}>
       <PageMetadata
         title={page.title}
         description={page.description}
