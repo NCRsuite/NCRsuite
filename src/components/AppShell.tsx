@@ -8,9 +8,14 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import { Icon } from './Icon';
 import { supabase } from '../lib/supabase';
 
+function AvatarContent({ url, initial }: { url: string | null; initial: string }) {
+  return url
+    ? <img src={url} alt="" referrerPolicy="no-referrer" />
+    : <span aria-hidden="true">{initial}</span>;
+}
 
 export function AppShell() {
-  const { signOut, user } = useAuth();
+  const { signOut, user, demoMode } = useAuth();
   const { organization, organizations, selectOrganization, sites, activeSite, activeSiteId, selectSite, sitesLoading, supportSession, endSupportSession } = useOrganization();
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,7 +24,44 @@ export function AppShell() {
   const [notificationUnread, setNotificationUnread] = useState(0);
   const [endingSupport, setEndingSupport] = useState(false);
   const [desktopContextMenu, setDesktopContextMenu] = useState<'organization' | 'site' | null>(null);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+  const [profileAvatarBusy, setProfileAvatarBusy] = useState(false);
+  const [profileAvatarMessage, setProfileAvatarMessage] = useState('');
   const desktopContextRef = useRef<HTMLDivElement>(null);
+  const userInitial = (user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'N').toUpperCase();
+
+  useEffect(() => {
+    if (!user) {
+      setProfileAvatarUrl(null);
+      return;
+    }
+
+    const metadataAvatar = typeof user.user_metadata?.avatar_url === 'string'
+      ? user.user_metadata.avatar_url
+      : null;
+    if (demoMode || !supabase) {
+      setProfileAvatarUrl(metadataAvatar);
+      return;
+    }
+
+    let active = true;
+    void supabase
+      .from('user_profiles')
+      .select('avatar_url')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (active) setProfileAvatarUrl(typeof data?.avatar_url === 'string' ? data.avatar_url : metadataAvatar);
+      });
+
+    return () => { active = false; };
+  }, [user?.id, demoMode]);
+
+  useEffect(() => {
+    if (!profileAvatarMessage) return;
+    const timer = window.setTimeout(() => setProfileAvatarMessage(''), 4500);
+    return () => window.clearTimeout(timer);
+  }, [profileAvatarMessage]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -226,6 +268,54 @@ export function AppShell() {
     await signOut();
   }
 
+  async function handleProfileAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.currentTarget.value = '';
+    if (!file || !user) return;
+    setProfileAvatarMessage('');
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setProfileAvatarMessage('Choisissez une image PNG, JPEG ou WebP');
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setProfileAvatarMessage('La photo doit peser moins de 3 Mo');
+      return;
+    }
+    if (demoMode || !supabase) {
+      setProfileAvatarMessage('La photo de profil est disponible sur un compte connecté');
+      return;
+    }
+
+    setProfileAvatarBusy(true);
+    try {
+      const extension = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+      const path = `${user.id}/avatar-${Date.now()}.${extension}`;
+      const { error: uploadError } = await supabase.storage
+        .from('profile-avatars')
+        .upload(path, file, { contentType: file.type, cacheControl: '31536000', upsert: false });
+      if (uploadError) throw uploadError;
+
+      const publicUrl = supabase.storage.from('profile-avatars').getPublicUrl(path).data.publicUrl;
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+      if (profileError) {
+        await supabase.storage.from('profile-avatars').remove([path]);
+        throw profileError;
+      }
+
+      await supabase.auth.updateUser({ data: { avatar_url: publicUrl } });
+      setProfileAvatarUrl(publicUrl);
+      setProfileAvatarMessage('Photo de profil mise à jour');
+    } catch {
+      setProfileAvatarMessage('La photo n’a pas pu être enregistrée');
+    } finally {
+      setProfileAvatarBusy(false);
+    }
+  }
+
   async function handleEndSupportSession() {
     setEndingSupport(true);
     try {
@@ -239,6 +329,15 @@ export function AppShell() {
 
   return (
     <div className="app-shell">
+      <input
+        id="profile-avatar-upload"
+        className="profile-avatar-input"
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        onChange={(event) => void handleProfileAvatarUpload(event)}
+        disabled={profileAvatarBusy}
+      />
+      {profileAvatarMessage && <div className="profile-avatar-toast" role="status">{profileAvatarMessage}</div>}
       <aside className="sidebar">
         <div className="brand brand-horizontal">
           <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
@@ -262,8 +361,8 @@ export function AppShell() {
                 aria-expanded={desktopContextMenu === 'organization'}
                 aria-controls="desktop-organization-menu"
               >
-                <span className="context-switcher-icon organization" style={{ background: organization.primary_color || '#0a84ff' }}>
-                  <Icon name={pack.icon} size={19} />
+                <span className={`context-switcher-icon organization${organization.logo_url ? ' has-image' : ''}`} style={{ background: organization.logo_url ? '#fff' : organization.primary_color || '#0a84ff' }}>
+                  {organization.logo_url ? <img src={organization.logo_url} alt="" /> : <Icon name={pack.icon} size={19} />}
                 </span>
                 <span className="context-switcher-copy">
                   <strong>{organization.name}</strong>
@@ -292,8 +391,8 @@ export function AppShell() {
                           className={active ? 'active' : ''}
                           onClick={() => changeOrganization(org.id)}
                         >
-                          <span className="context-option-icon" style={{ background: org.primary_color || '#0a84ff' }}>
-                            <Icon name={orgPack.icon} size={17} />
+                          <span className={`context-option-icon${org.logo_url ? ' has-image' : ''}`} style={{ background: org.logo_url ? '#fff' : org.primary_color || '#0a84ff' }}>
+                            {org.logo_url ? <img src={org.logo_url} alt="" /> : <Icon name={orgPack.icon} size={17} />}
                           </span>
                           <span className="context-option-copy">
                             <strong>{org.name}</strong>
@@ -387,7 +486,10 @@ export function AppShell() {
         )}
 
         <div className="sidebar-footer">
-          <div className="user-avatar">{(user?.email?.[0] ?? 'N').toUpperCase()}</div>
+          <label className={`user-avatar user-avatar-upload${profileAvatarBusy ? ' busy' : ''}`} htmlFor="profile-avatar-upload" title="Changer la photo de profil">
+            <AvatarContent url={profileAvatarUrl} initial={userInitial} />
+            <i><Icon name="plus" size={10} /></i>
+          </label>
           <div className="user-summary">
             <strong>{user?.user_metadata?.full_name || 'Utilisateur'}</strong>
             <span>{user?.email}</span>
@@ -432,7 +534,7 @@ export function AppShell() {
             aria-controls="mobile-account-sheet"
             aria-label="Compte et entreprises"
           >
-            {(user?.email?.[0] ?? 'N').toUpperCase()}
+            <AvatarContent url={profileAvatarUrl} initial={userInitial} />
           </button>
         </header>
 
@@ -485,8 +587,8 @@ export function AppShell() {
             </div>
 
             <button className="mobile-drawer-organization" type="button" onClick={() => { setMobileMenuOpen(false); setMobileAccountOpen(true); }}>
-              <span className="mobile-organization-logo" style={{ background: organization.primary_color || '#0a84ff' }}>
-                {organization.name.slice(0, 1).toUpperCase()}
+              <span className={`mobile-organization-logo${organization.logo_url ? ' has-image' : ''}`} style={{ background: organization.logo_url ? '#fff' : organization.primary_color || '#0a84ff' }}>
+                {organization.logo_url ? <img src={organization.logo_url} alt="" /> : organization.name.slice(0, 1).toUpperCase()}
               </span>
               <span>
                 <strong>{organization.name}</strong>
@@ -520,7 +622,7 @@ export function AppShell() {
 
             <div className="mobile-drawer-account">
               <div className="mobile-drawer-user">
-                <span>{(user?.email?.[0] ?? 'N').toUpperCase()}</span>
+                <span className={profileAvatarUrl ? 'has-image' : ''}><AvatarContent url={profileAvatarUrl} initial={userInitial} /></span>
                 <div>
                   <strong>{user?.user_metadata?.full_name || 'Utilisateur'}</strong>
                   <small>{user?.email}</small>
@@ -548,7 +650,10 @@ export function AppShell() {
             <div className="mobile-sheet-handle" />
             <div className="mobile-sheet-header">
               <div className="mobile-sheet-user">
-                <span className="mobile-sheet-avatar">{(user?.email?.[0] ?? 'N').toUpperCase()}</span>
+                <label className={`mobile-sheet-avatar profile-avatar-upload${profileAvatarUrl ? ' has-image' : ''}`} htmlFor="profile-avatar-upload" title="Changer la photo de profil">
+                  <AvatarContent url={profileAvatarUrl} initial={userInitial} />
+                  <i><Icon name="plus" size={10} /></i>
+                </label>
                 <div>
                   <strong>{user?.user_metadata?.full_name || 'Utilisateur'}</strong>
                   <small>{user?.email}</small>
@@ -578,8 +683,8 @@ export function AppShell() {
                       className={`mobile-organization-option${active ? ' active' : ''}`}
                       onClick={() => changeOrganization(org.id)}
                     >
-                      <span className="mobile-organization-logo" style={{ background: org.primary_color || '#0a84ff' }}>
-                        {org.name.slice(0, 1).toUpperCase()}
+                      <span className={`mobile-organization-logo${org.logo_url ? ' has-image' : ''}`} style={{ background: org.logo_url ? '#fff' : org.primary_color || '#0a84ff' }}>
+                        {org.logo_url ? <img src={org.logo_url} alt="" /> : org.name.slice(0, 1).toUpperCase()}
                       </span>
                       <span className="mobile-organization-copy">
                         <strong>{org.name}</strong>

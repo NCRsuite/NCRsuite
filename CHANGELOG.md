@@ -1,5 +1,17 @@
 # Changelog NCR Suite
 
+## V2.26.3 - Identités visuelles dans le menu
+
+- Nouveau fichier de style et nouveau cache PWA pour corriger définitivement le double sélecteur de période.
+- Logo de l’entreprise affiché dans le sélecteur lorsqu’il est renseigné.
+- Icône métier conservée automatiquement lorsqu’aucun logo n’est disponible.
+- Photo de profil personnelle téléversable depuis l’avatar du menu.
+- Photo reprise dans le pied du menu, l’en-tête et les panneaux de compte mobiles.
+- Stockage limité aux images PNG, JPEG ou WebP de moins de 3 Mo et isolé par utilisateur.
+- Aucune modification des droits, abonnements, paiements ou données métier.
+- Migration `098` et cache PWA `ncr-suite-shell-v2.26.3-visual-identities`.
+- Nouveau bundle autonome `ncr-suite-app-v263.js`.
+
 ## V2.26.2 - Finition premium du cockpit
 
 - Barre d’actions Formation restructurée sur ordinateur avec période segmentée et exports regroupés.
