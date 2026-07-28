@@ -778,7 +778,8 @@ if (!premiumCockpitMigration.includes("'2.26.2'")
     || !trainingDashboardPage.includes('training-quality-export-actions')
     || !trainingDashboardPage.includes('<h1>Bonjour, bienvenue sur {organization.name}</h1>')
     || !publicStyles.includes('.training-quality-period-segmented')
-    || !publicStyles.includes('.training-quality-period-mobile')
+    || !publicStyles.includes('.training-quality-period.training-quality-period-mobile { display:none; }')
+    || !publicStyles.includes('.training-quality-period.training-quality-period-mobile { display:grid;grid-column:1/-1; }')
     || !publicStyles.includes('.training-quality-export-actions')
     || !publicStyles.includes('@media (max-width:760px)')) {
   errors.push('La finition premium V2.26.2 ou la protection du parcours mobile est incomplete.');
