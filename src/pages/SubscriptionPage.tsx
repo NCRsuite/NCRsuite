@@ -526,7 +526,7 @@ export function SubscriptionPage() {
             </section>
           )}
 
-          {data.business_type === 'securite' && <SecurityAddonsPanel />}
+          {data.business_type === 'securite' && ['decouverte', 'essentielle'].includes(data.subscription.plan) && <SecurityAddonsPanel />}
           {data.business_type === 'formation' && ['decouverte', 'essentielle'].includes(data.subscription.plan) && <TrainingModulesPanel />}
 
           <section id="subscription-plans" className="subscription-plans-section">

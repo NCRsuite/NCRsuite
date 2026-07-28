@@ -1,5 +1,18 @@
 # Changelog NCR Suite
 
+## V2.26.6 - Navigation compacte et montée en gamme lisible
+
+- Menus de tous les métiers regroupés en familles repliables.
+- Famille de la page active ouverte automatiquement.
+- Recherche instantanée disponible sur ordinateur et dans le menu mobile.
+- Modules non inclus conservés sous cadenas dans `Modules disponibles`.
+- Niveau d’offre requis toujours affiché pour accompagner la montée en gamme.
+- Catalogue Formation conservé pour Découverte et Essentielle, puis masqué en Professionnelle.
+- Catalogue Sécurité aligné sur la même règle pour ne plus afficher des options déjà incluses.
+- Routes, droits, données métier, abonnements Stripe et automatisations inchangés.
+- Migration `101` et cache PWA `ncr-suite-shell-v2.26.6-compact-navigation`.
+- Nouveau bundle autonome `ncr-suite-app-v266.js`.
+
 ## V2.26.5 - Finition premium de l’espace connecté
 
 - Hiérarchie des en-têtes de pages harmonisée entre les métiers.

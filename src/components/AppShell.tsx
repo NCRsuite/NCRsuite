@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { Icon } from './Icon';
 import { supabase } from '../lib/supabase';
+import type { BusinessType, IconName, NavigationItem } from '../types';
 
 function AvatarContent({ url, initial }: { url: string | null; initial: string }) {
   return url
@@ -25,6 +26,57 @@ interface AvatarCropState {
 
 const AVATAR_CROP_SIZE = 280;
 
+type NavigationGroupKey = 'overview' | 'operations' | 'commercial' | 'quality' | 'team' | 'settings' | 'available';
+
+interface NavigationGroupDefinition {
+  key: NavigationGroupKey;
+  label: string;
+  icon: IconName;
+}
+
+const NAVIGATION_GROUPS: NavigationGroupDefinition[] = [
+  { key: 'overview', label: 'Vue d’ensemble', icon: 'home' },
+  { key: 'operations', label: 'Activité', icon: 'activity' },
+  { key: 'commercial', label: 'Clients & revenus', icon: 'creditCard' },
+  { key: 'quality', label: 'Documents & qualité', icon: 'shield' },
+  { key: 'team', label: 'Équipe & accès', icon: 'users' },
+  { key: 'settings', label: 'Réglages', icon: 'settings' },
+  { key: 'available', label: 'Modules disponibles', icon: 'sparkles' }
+];
+
+const NAVIGATION_COMMERCIAL_PATHS = new Set([
+  '/clients', '/commercial', '/devis', '/facturation', '/facturation-formation',
+  '/prestations', '/fidelite', '/reservations', '/commandes'
+]);
+
+const NAVIGATION_QUALITY_PATHS = new Set([
+  '/documents', '/rapports', '/anomalies', '/qualite', '/qualite-formation',
+  '/bpf', '/emargements', '/evaluations', '/attestations', '/dossiers-formation',
+  '/dossiers-vacations', '/main-courante', '/consignes', '/hygiene'
+]);
+
+const NAVIGATION_TEAM_PATHS = new Set([
+  '/equipe', '/agents', '/stagiaires', '/formateurs', '/acces-equipe',
+  '/terrain', '/portail-clients', '/portails-formation', '/supervision',
+  '/geolocalisation', '/pti'
+]);
+
+const NAVIGATION_SETTINGS_PATHS = new Set([
+  '/notifications', '/assistance', '/parametres', '/personnalisation',
+  '/profil-organisme', '/offre-metier', '/demarrage'
+]);
+
+function navigationGroupKey(path: string, businessType: BusinessType, locked: boolean): NavigationGroupKey {
+  if (locked) return 'available';
+  if (path === '/') return 'overview';
+  if (NAVIGATION_COMMERCIAL_PATHS.has(path)) return 'commercial';
+  if (NAVIGATION_QUALITY_PATHS.has(path)) return 'quality';
+  if (NAVIGATION_TEAM_PATHS.has(path)) return 'team';
+  if (NAVIGATION_SETTINGS_PATHS.has(path)) return 'settings';
+  if (businessType === 'formation' && ['/formations', '/sessions', '/parcours-formation'].includes(path)) return 'operations';
+  return 'operations';
+}
+
 export function AppShell() {
   const { signOut, user, demoMode } = useAuth();
   const { organization, organizations, selectOrganization, sites, activeSite, activeSiteId, selectSite, sitesLoading, supportSession, endSupportSession } = useOrganization();
@@ -39,6 +91,8 @@ export function AppShell() {
   const [profileAvatarBusy, setProfileAvatarBusy] = useState(false);
   const [profileAvatarMessage, setProfileAvatarMessage] = useState('');
   const [avatarCrop, setAvatarCrop] = useState<AvatarCropState | null>(null);
+  const [navigationSearch, setNavigationSearch] = useState('');
+  const [expandedNavigationGroups, setExpandedNavigationGroups] = useState<Set<NavigationGroupKey>>(() => new Set(['overview']));
   const desktopContextRef = useRef<HTMLDivElement>(null);
   const avatarCropImageRef = useRef<HTMLImageElement>(null);
   const avatarCropDragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
@@ -96,6 +150,11 @@ export function AppShell() {
     setMobileAccountOpen(false);
     setDesktopContextMenu(null);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    setNavigationSearch('');
+    setExpandedNavigationGroups(new Set(['overview']));
+  }, [organization?.id]);
 
   useEffect(() => {
     if (!desktopContextMenu) return;
@@ -234,7 +293,8 @@ export function AppShell() {
 
   if (!organization) return null;
 
-  const pack = businessPacks[organization.business_type];
+  const activeOrganization = organization;
+  const pack = businessPacks[activeOrganization.business_type];
   const restrictedRole = ['employee', 'viewer'].includes(organization.role ?? 'viewer');
   const canManageOrganization = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
   const hasMultiSite = organizationHasFeature(organization, 'multi_site');
@@ -263,6 +323,82 @@ export function AppShell() {
 
   const hasCommercialBrandingModule = navigation.some((item) => item.path === '/personnalisation');
   const canManageSubscription = !supportSession && ['owner', 'admin'].includes(organization.role ?? 'viewer');
+  const normalizedNavigationSearch = navigationSearch.trim().toLocaleLowerCase('fr-FR');
+  const currentNavigationPath = location.pathname.replace(/\/+$/, '') || '/';
+
+  function navigationItemIsLocked(item: NavigationItem) {
+    return formationPathIsLocked(activeOrganization, item.path)
+      || securityPathIsLocked(activeOrganization, item.path)
+      || cleaningPathIsLocked(activeOrganization, item.path)
+      || restaurantPathIsLocked(activeOrganization, item.path);
+  }
+
+  function requiredPlanForNavigationItem(item: NavigationItem) {
+    if (activeOrganization.business_type === 'formation') return formationRequiredPlanForPath(item.path);
+    if (activeOrganization.business_type === 'nettoyage') return cleaningRequiredPlanForPath(item.path);
+    if (activeOrganization.business_type === 'restauration') return restaurantRequiredPlanForPath(item.path);
+    return securityRequiredPlanForPath(item.path);
+  }
+
+  function navigationItemIsActive(item: NavigationItem) {
+    return item.path === '/'
+      ? currentNavigationPath === '/'
+      : currentNavigationPath === item.path || currentNavigationPath.startsWith(`${item.path}/`);
+  }
+
+  const groupedNavigation = NAVIGATION_GROUPS.map((group) => ({
+    ...group,
+    items: navigation.filter((item) => {
+      if (normalizedNavigationSearch && !item.label.toLocaleLowerCase('fr-FR').includes(normalizedNavigationSearch)) return false;
+      return navigationGroupKey(item.path, activeOrganization.business_type, navigationItemIsLocked(item)) === group.key;
+    })
+  })).filter((group) => group.items.length > 0);
+
+  function navigationGroupIsOpen(group: (typeof groupedNavigation)[number]) {
+    return Boolean(normalizedNavigationSearch)
+      || expandedNavigationGroups.has(group.key)
+      || group.items.some(navigationItemIsActive);
+  }
+
+  function toggleNavigationGroup(groupKey: NavigationGroupKey) {
+    setExpandedNavigationGroups((current) => {
+      const next = new Set(current);
+      if (next.has(groupKey)) next.delete(groupKey);
+      else next.add(groupKey);
+      return next;
+    });
+  }
+
+  function renderNavigationItem(item: NavigationItem, mobile = false) {
+    const locked = navigationItemIsLocked(item);
+    const requiredPlan = requiredPlanForNavigationItem(item);
+    const planBadge = requiredPlan === 'Professionnelle'
+      ? 'Pro'
+      : requiredPlan === 'Essentielle'
+        ? 'Essentiel'
+        : requiredPlan;
+
+    return (
+      <NavLink
+        key={item.path}
+        to={item.path}
+        end={item.path === '/'}
+        onClick={mobile ? () => setMobileMenuOpen(false) : undefined}
+        className={({ isActive }) => `${isActive ? 'active' : ''}${locked ? ' premium-locked' : ''}`}
+      >
+        {mobile && <span className="mobile-drawer-nav-icon"><Icon name={item.icon} size={20} /></span>}
+        {!mobile && <Icon name={item.icon} size={20} />}
+        <span>{item.label}</span>
+        {locked && <Icon name="lock" size={14} />}
+        {locked && requiredPlan
+          ? <b className="nav-badge premium" title={`Disponible avec l’offre ${requiredPlan}`}>{planBadge}</b>
+          : item.path === '/notifications' && notificationUnread > 0
+            ? <b className="nav-badge notification">{notificationUnread > 99 ? '99+' : notificationUnread}</b>
+            : item.badge && <b className="nav-badge">{item.badge}</b>}
+        {mobile && <Icon name="chevronRight" size={17} />}
+      </NavLink>
+    );
+  }
 
   const primaryMobileItem = navigation.find((item) => ['securite', 'restauration'].includes(organization.business_type) && restrictedRole ? item.path === '/terrain' : ['/rendez-vous', '/planning'].includes(item.path))
     ?? navigation.find((item) => item.path !== '/')
@@ -492,7 +628,7 @@ export function AppShell() {
     : 1;
 
   return (
-    <div className="app-shell app-shell-v265">
+    <div className="app-shell app-shell-v265 app-shell-v266">
       <input
         id="profile-avatar-upload"
         className="profile-avatar-input"
@@ -675,17 +811,37 @@ export function AppShell() {
           </div>
         )}
 
-        <nav className="main-nav" aria-label="Navigation principale">
-          {navigation.map((item) => {
-            const locked = formationPathIsLocked(organization, item.path) || securityPathIsLocked(organization, item.path) || cleaningPathIsLocked(organization, item.path) || restaurantPathIsLocked(organization, item.path);
-            const requiredPlan = organization.business_type === 'formation' ? formationRequiredPlanForPath(item.path) : organization.business_type === 'nettoyage' ? cleaningRequiredPlanForPath(item.path) : organization.business_type === 'restauration' ? restaurantRequiredPlanForPath(item.path) : securityRequiredPlanForPath(item.path);
-            return <NavLink key={item.path} to={item.path} end={item.path === '/'} className={({ isActive }) => `${isActive ? 'active' : ''}${locked ? ' premium-locked' : ''}`}>
-              <Icon name={item.icon} size={20} />
-              <span>{item.label}</span>
-              {locked && <Icon name="lock" size={14} />}
-              {locked && requiredPlan ? <b className="nav-badge premium" title={`Disponible avec l’offre ${requiredPlan}`}>{requiredPlan === 'Professionnelle' ? 'Pro' : requiredPlan === 'Essentielle' ? 'Essentiel' : requiredPlan}</b> : item.path === '/notifications' && notificationUnread > 0 ? <b className="nav-badge notification">{notificationUnread > 99 ? '99+' : notificationUnread}</b> : item.badge && <b className="nav-badge">{item.badge}</b>}
-            </NavLink>;
+        <div className="navigation-search">
+          <Icon name="search" size={16} />
+          <input
+            type="search"
+            value={navigationSearch}
+            onChange={(event) => setNavigationSearch(event.target.value)}
+            placeholder="Rechercher une rubrique"
+            aria-label="Rechercher dans le menu"
+          />
+          {navigationSearch && (
+            <button type="button" onClick={() => setNavigationSearch('')} aria-label="Effacer la recherche">
+              <Icon name="close" size={14} />
+            </button>
+          )}
+        </div>
+
+        <nav className="main-nav grouped-navigation" aria-label="Navigation principale">
+          {groupedNavigation.map((group) => {
+            const open = navigationGroupIsOpen(group);
+            return (
+              <section key={group.key} className={`navigation-group${group.key === 'available' ? ' available' : ''}${open ? ' open' : ''}`}>
+                <button type="button" className="navigation-group-trigger" onClick={() => toggleNavigationGroup(group.key)} aria-expanded={open}>
+                  <span><Icon name={group.icon} size={15} />{group.label}</span>
+                  <small>{group.items.length}</small>
+                  <Icon name="chevronDown" size={15} />
+                </button>
+                {open && <div className="navigation-group-items">{group.items.map((item) => renderNavigationItem(item))}</div>}
+              </section>
+            );
           })}
+          {groupedNavigation.length === 0 && <p className="navigation-empty">Aucune rubrique trouvée</p>}
         </nav>
 
         {canManageSubscription && (
@@ -817,18 +973,36 @@ export function AppShell() {
             )}
 
             <div className="mobile-drawer-section-title">Navigation</div>
-            <nav className="mobile-drawer-nav" aria-label="Toutes les rubriques">
-              {navigation.map((item) => {
-                const locked = formationPathIsLocked(organization, item.path) || securityPathIsLocked(organization, item.path) || cleaningPathIsLocked(organization, item.path) || restaurantPathIsLocked(organization, item.path);
-                const requiredPlan = organization.business_type === 'formation' ? formationRequiredPlanForPath(item.path) : organization.business_type === 'nettoyage' ? cleaningRequiredPlanForPath(item.path) : organization.business_type === 'restauration' ? restaurantRequiredPlanForPath(item.path) : securityRequiredPlanForPath(item.path);
-                return <NavLink key={item.path} to={item.path} end={item.path === '/'} onClick={() => setMobileMenuOpen(false)} className={({ isActive }) => `${isActive ? 'active' : ''}${locked ? ' premium-locked' : ''}`}>
-                  <span className="mobile-drawer-nav-icon"><Icon name={item.icon} size={20} /></span>
-                  <span>{item.label}</span>
-                  {locked && <Icon name="lock" size={14} />}
-                  {locked && requiredPlan ? <b className="nav-badge premium">{requiredPlan}</b> : item.path === '/notifications' && notificationUnread > 0 ? <b className="nav-badge notification">{notificationUnread > 99 ? '99+' : notificationUnread}</b> : item.badge && <b className="nav-badge">{item.badge}</b>}
-                  <Icon name="chevronRight" size={17} />
-                </NavLink>;
+            <div className="navigation-search mobile">
+              <Icon name="search" size={17} />
+              <input
+                type="search"
+                value={navigationSearch}
+                onChange={(event) => setNavigationSearch(event.target.value)}
+                placeholder="Rechercher une rubrique"
+                aria-label="Rechercher dans le menu"
+              />
+              {navigationSearch && (
+                <button type="button" onClick={() => setNavigationSearch('')} aria-label="Effacer la recherche">
+                  <Icon name="close" size={14} />
+                </button>
+              )}
+            </div>
+            <nav className="mobile-drawer-nav grouped-navigation" aria-label="Toutes les rubriques">
+              {groupedNavigation.map((group) => {
+                const open = navigationGroupIsOpen(group);
+                return (
+                  <section key={group.key} className={`navigation-group${group.key === 'available' ? ' available' : ''}${open ? ' open' : ''}`}>
+                    <button type="button" className="navigation-group-trigger" onClick={() => toggleNavigationGroup(group.key)} aria-expanded={open}>
+                      <span><Icon name={group.icon} size={16} />{group.label}</span>
+                      <small>{group.items.length}</small>
+                      <Icon name="chevronDown" size={16} />
+                    </button>
+                    {open && <div className="navigation-group-items">{group.items.map((item) => renderNavigationItem(item, true))}</div>}
+                  </section>
+                );
               })}
+              {groupedNavigation.length === 0 && <p className="navigation-empty">Aucune rubrique trouvée</p>}
             </nav>
 
             <div className="mobile-drawer-account">

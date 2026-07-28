@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-workspace`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-compact-navigation`;
 const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
 const portalAccessAlertsCache = 'ncr-suite-shell-v2.24.0-portal-access-support-alerts';
 const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
@@ -59,18 +59,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v265.css',
-  '/ncr-suite-app-v265.css',
+  '/ncr-suite-showcase-v266.css',
+  '/ncr-suite-app-v266.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.26.5'
+  'ncr:css-recovery-v2.26.6'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v265.css',
+  '/ncr-suite-app-v266.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v265.js'"
+  "entryFileNames: 'ncr-suite-app-v266.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -859,7 +859,14 @@ requireText('supabase/migrations/099_profile_avatar_crop_release.sql', [
 ]);
 requireText('supabase/migrations/100_premium_workspace_polish.sql', [
   "'2.26.5'",
+  'ncr-suite-shell-v2.26.5-premium-workspace',
+  'platform_release_state'
+]);
+requireText('supabase/migrations/101_compact_navigation_subscription_consistency.sql', [
+  "'2.26.6'",
   expectedCache,
+  'security_addon_catalog',
+  'training_module_catalog',
   'platform_release_state'
 ]);
 requireText('supabase/functions/create-stripe-checkout/index.ts', [
@@ -897,6 +904,10 @@ requireText('src/components/AppShell.tsx', [
   "canvas.toBlob(resolve, 'image/webp'",
   "canvas.toBlob(resolve, 'image/jpeg'",
   'Utiliser la photo'
+  ,'navigation-search'
+  ,'grouped-navigation'
+  ,'Modules disponibles'
+  ,'app-shell-v266'
 ]);
 requireText('src/styles.css', [
   '.context-switcher-trigger',
@@ -920,7 +931,13 @@ requireText('src/styles.css', [
   '.app-shell-v265 .stat-card:hover',
   '.app-shell-v265 .empty-state',
   '.app-shell-v265 .client-table th',
+  '.navigation-group.available',
+  '.navigation-search',
   '@keyframes premium-page-enter'
+]);
+requireText('src/pages/SubscriptionPage.tsx', [
+  "data.business_type === 'securite' && ['decouverte', 'essentielle'].includes(data.subscription.plan)",
+  "data.business_type === 'formation' && ['decouverte', 'essentielle'].includes(data.subscription.plan)"
 ]);
 requireText('src/pages/TrainingDashboardPage.tsx', [
   'training-quality-period-segmented',
