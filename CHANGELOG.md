@@ -1,5 +1,17 @@
 # Changelog NCR Suite
 
+## V2.26.4 - Recadrage de la photo de profil
+
+- Nouvel éditeur de recadrage ouvert avant l’enregistrement de la photo.
+- Déplacement à la souris ou au doigt dans un cadre circulaire.
+- Zoom réglable avec remise à zéro instantanée.
+- Export optimisé en 512 x 512 pixels, en WebP avec repli JPEG.
+- Avatars circulaires harmonisés dans le menu ordinateur et les panneaux mobiles.
+- Correction du masque de l’avatar situé en bas du menu.
+- Aucun changement des droits, abonnements, paiements ou données métier.
+- Migration `099` et cache PWA `ncr-suite-shell-v2.26.4-avatar-crop`.
+- Nouveau bundle autonome `ncr-suite-app-v264.js`.
+
 ## V2.26.3 - Identités visuelles dans le menu
 
 - Nouveau fichier de style et nouveau cache PWA pour corriger définitivement le double sélecteur de période.

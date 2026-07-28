@@ -14,6 +14,17 @@ function AvatarContent({ url, initial }: { url: string | null; initial: string }
     : <span aria-hidden="true">{initial}</span>;
 }
 
+interface AvatarCropState {
+  sourceUrl: string;
+  naturalWidth: number;
+  naturalHeight: number;
+  zoom: number;
+  offsetX: number;
+  offsetY: number;
+}
+
+const AVATAR_CROP_SIZE = 280;
+
 export function AppShell() {
   const { signOut, user, demoMode } = useAuth();
   const { organization, organizations, selectOrganization, sites, activeSite, activeSiteId, selectSite, sitesLoading, supportSession, endSupportSession } = useOrganization();
@@ -27,7 +38,10 @@ export function AppShell() {
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileAvatarBusy, setProfileAvatarBusy] = useState(false);
   const [profileAvatarMessage, setProfileAvatarMessage] = useState('');
+  const [avatarCrop, setAvatarCrop] = useState<AvatarCropState | null>(null);
   const desktopContextRef = useRef<HTMLDivElement>(null);
+  const avatarCropImageRef = useRef<HTMLImageElement>(null);
+  const avatarCropDragRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number } | null>(null);
   const userInitial = (user?.user_metadata?.full_name?.[0] || user?.email?.[0] || 'N').toUpperCase();
 
   useEffect(() => {
@@ -62,6 +76,20 @@ export function AppShell() {
     const timer = window.setTimeout(() => setProfileAvatarMessage(''), 4500);
     return () => window.clearTimeout(timer);
   }, [profileAvatarMessage]);
+
+  useEffect(() => {
+    if (!avatarCrop) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeAvatarCrop();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [avatarCrop?.sourceUrl]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -268,6 +296,31 @@ export function AppShell() {
     await signOut();
   }
 
+  function avatarCropBounds(crop: AvatarCropState, zoom = crop.zoom) {
+    const baseScale = Math.max(AVATAR_CROP_SIZE / crop.naturalWidth, AVATAR_CROP_SIZE / crop.naturalHeight);
+    return {
+      baseScale,
+      maxX: Math.max(0, (crop.naturalWidth * baseScale * zoom - AVATAR_CROP_SIZE) / 2),
+      maxY: Math.max(0, (crop.naturalHeight * baseScale * zoom - AVATAR_CROP_SIZE) / 2)
+    };
+  }
+
+  function clampAvatarCrop(crop: AvatarCropState, offsetX: number, offsetY: number, zoom = crop.zoom) {
+    const bounds = avatarCropBounds(crop, zoom);
+    return {
+      offsetX: Math.max(-bounds.maxX, Math.min(bounds.maxX, offsetX)),
+      offsetY: Math.max(-bounds.maxY, Math.min(bounds.maxY, offsetY))
+    };
+  }
+
+  function closeAvatarCrop() {
+    setAvatarCrop((current) => {
+      if (current) URL.revokeObjectURL(current.sourceUrl);
+      return null;
+    });
+    avatarCropDragRef.current = null;
+  }
+
   async function handleProfileAvatarUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.currentTarget.value = '';
@@ -278,8 +331,8 @@ export function AppShell() {
       setProfileAvatarMessage('Choisissez une image PNG, JPEG ou WebP');
       return;
     }
-    if (file.size > 3 * 1024 * 1024) {
-      setProfileAvatarMessage('La photo doit peser moins de 3 Mo');
+    if (file.size > 8 * 1024 * 1024) {
+      setProfileAvatarMessage('La photo source doit peser moins de 8 Mo');
       return;
     }
     if (demoMode || !supabase) {
@@ -287,9 +340,30 @@ export function AppShell() {
       return;
     }
 
+    const sourceUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      setAvatarCrop({
+        sourceUrl,
+        naturalWidth: image.naturalWidth,
+        naturalHeight: image.naturalHeight,
+        zoom: 1,
+        offsetX: 0,
+        offsetY: 0
+      });
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(sourceUrl);
+      setProfileAvatarMessage('Cette image ne peut pas être ouverte');
+    };
+    image.src = sourceUrl;
+  }
+
+  async function saveProfileAvatar(file: File) {
+    if (!user || !supabase) return;
     setProfileAvatarBusy(true);
     try {
-      const extension = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+      const extension = file.type === 'image/webp' ? 'webp' : 'jpg';
       const path = `${user.id}/avatar-${Date.now()}.${extension}`;
       const { error: uploadError } = await supabase.storage
         .from('profile-avatars')
@@ -316,6 +390,92 @@ export function AppShell() {
     }
   }
 
+  async function confirmAvatarCrop() {
+    if (!avatarCrop || !avatarCropImageRef.current) return;
+    setProfileAvatarBusy(true);
+    const { baseScale } = avatarCropBounds(avatarCrop);
+    const renderedScale = baseScale * avatarCrop.zoom;
+    const sourceSize = AVATAR_CROP_SIZE / renderedScale;
+    const sourceCenterX = avatarCrop.naturalWidth / 2 - avatarCrop.offsetX / renderedScale;
+    const sourceCenterY = avatarCrop.naturalHeight / 2 - avatarCrop.offsetY / renderedScale;
+    const sourceX = Math.max(0, Math.min(avatarCrop.naturalWidth - sourceSize, sourceCenterX - sourceSize / 2));
+    const sourceY = Math.max(0, Math.min(avatarCrop.naturalHeight - sourceSize, sourceCenterY - sourceSize / 2));
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      setProfileAvatarMessage('Le recadrage n’est pas disponible sur cet appareil');
+      setProfileAvatarBusy(false);
+      return;
+    }
+
+    try {
+      context.drawImage(
+        avatarCropImageRef.current,
+        sourceX,
+        sourceY,
+        sourceSize,
+        sourceSize,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+      let blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/webp', .9));
+      let fileName = 'photo-profil.webp';
+      if (!blob) {
+        blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', .92));
+        fileName = 'photo-profil.jpg';
+      }
+      if (!blob) throw new Error('avatar-export-failed');
+
+      const croppedFile = new File([blob], fileName, { type: blob.type });
+      closeAvatarCrop();
+      await saveProfileAvatar(croppedFile);
+    } catch {
+      setProfileAvatarMessage('La photo n’a pas pu être préparée');
+      setProfileAvatarBusy(false);
+    }
+  }
+
+  function handleAvatarCropPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    if (!avatarCrop) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    avatarCropDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: avatarCrop.offsetX,
+      originY: avatarCrop.offsetY
+    };
+  }
+
+  function handleAvatarCropPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const drag = avatarCropDragRef.current;
+    if (!avatarCrop || !drag || drag.pointerId !== event.pointerId) return;
+    const next = clampAvatarCrop(
+      avatarCrop,
+      drag.originX + event.clientX - drag.startX,
+      drag.originY + event.clientY - drag.startY
+    );
+    setAvatarCrop({ ...avatarCrop, ...next });
+  }
+
+  function handleAvatarCropPointerUp(event: React.PointerEvent<HTMLDivElement>) {
+    if (avatarCropDragRef.current?.pointerId !== event.pointerId) return;
+    avatarCropDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  }
+
+  function changeAvatarCropZoom(zoom: number) {
+    setAvatarCrop((current) => {
+      if (!current) return current;
+      const next = clampAvatarCrop(current, current.offsetX, current.offsetY, zoom);
+      return { ...current, zoom, ...next };
+    });
+  }
+
   async function handleEndSupportSession() {
     setEndingSupport(true);
     try {
@@ -326,6 +486,10 @@ export function AppShell() {
       setEndingSupport(false);
     }
   }
+
+  const avatarCropBaseScale = avatarCrop
+    ? Math.max(AVATAR_CROP_SIZE / avatarCrop.naturalWidth, AVATAR_CROP_SIZE / avatarCrop.naturalHeight)
+    : 1;
 
   return (
     <div className="app-shell">
@@ -338,6 +502,53 @@ export function AppShell() {
         disabled={profileAvatarBusy}
       />
       {profileAvatarMessage && <div className="profile-avatar-toast" role="status">{profileAvatarMessage}</div>}
+      {avatarCrop && (
+        <div className="avatar-crop-overlay" role="presentation" onClick={closeAvatarCrop}>
+          <section className="avatar-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="avatar-crop-title" onClick={(event) => event.stopPropagation()}>
+            <header>
+              <div><p className="eyebrow">RECADRAGE</p><h2 id="avatar-crop-title">Photo de profil</h2></div>
+              <button className="icon-button" type="button" onClick={closeAvatarCrop} aria-label="Fermer"><Icon name="close" size={20} /></button>
+            </header>
+            <div
+              className="avatar-crop-viewport"
+              onPointerDown={handleAvatarCropPointerDown}
+              onPointerMove={handleAvatarCropPointerMove}
+              onPointerUp={handleAvatarCropPointerUp}
+              onPointerCancel={handleAvatarCropPointerUp}
+            >
+              <div
+                className="avatar-crop-image-layer"
+                style={{
+                  width: avatarCrop.naturalWidth * avatarCropBaseScale,
+                  height: avatarCrop.naturalHeight * avatarCropBaseScale,
+                  transform: `translate(calc(-50% + ${avatarCrop.offsetX}px), calc(-50% + ${avatarCrop.offsetY}px))`
+                }}
+              >
+                <img
+                  ref={avatarCropImageRef}
+                  src={avatarCrop.sourceUrl}
+                  alt=""
+                  draggable={false}
+                  style={{ transform: `scale(${avatarCrop.zoom})` }}
+                />
+              </div>
+              <span className="avatar-crop-ring" aria-hidden="true" />
+            </div>
+            <label className="avatar-crop-zoom">
+              <span>Zoom</span>
+              <input type="range" min="1" max="3" step=".01" value={avatarCrop.zoom} onChange={(event) => changeAvatarCropZoom(Number(event.target.value))} />
+              <strong>{Math.round(avatarCrop.zoom * 100)} %</strong>
+            </label>
+            <footer>
+              <button className="secondary-button" type="button" onClick={() => setAvatarCrop({ ...avatarCrop, zoom: 1, offsetX: 0, offsetY: 0 })}>Réinitialiser</button>
+              <div>
+                <button className="secondary-button" type="button" onClick={closeAvatarCrop}>Annuler</button>
+                <button className="primary-button" type="button" onClick={() => void confirmAvatarCrop()} disabled={profileAvatarBusy}>{profileAvatarBusy ? 'Enregistrement…' : 'Utiliser la photo'}</button>
+              </div>
+            </footer>
+          </section>
+        </div>
+      )}
       <aside className="sidebar">
         <div className="brand brand-horizontal">
           <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
@@ -486,7 +697,7 @@ export function AppShell() {
         )}
 
         <div className="sidebar-footer">
-          <label className={`user-avatar user-avatar-upload${profileAvatarBusy ? ' busy' : ''}`} htmlFor="profile-avatar-upload" title="Changer la photo de profil">
+          <label className={`user-avatar profile-avatar-upload${profileAvatarBusy ? ' busy' : ''}`} htmlFor="profile-avatar-upload" title="Changer la photo de profil">
             <AvatarContent url={profileAvatarUrl} initial={userInitial} />
             <i><Icon name="plus" size={10} /></i>
           </label>

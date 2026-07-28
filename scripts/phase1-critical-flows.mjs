@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-visual-identities`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-avatar-crop`;
 const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
 const portalAccessAlertsCache = 'ncr-suite-shell-v2.24.0-portal-access-support-alerts';
 const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
@@ -59,18 +59,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v263.css',
-  '/ncr-suite-app-v263.css',
+  '/ncr-suite-showcase-v264.css',
+  '/ncr-suite-app-v264.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.26.3'
+  'ncr:css-recovery-v2.26.4'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v263.css',
+  '/ncr-suite-app-v264.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v263.js'"
+  "entryFileNames: 'ncr-suite-app-v264.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -844,10 +844,17 @@ requireText('supabase/migrations/097_premium_cockpit_polish.sql', [
 ]);
 requireText('supabase/migrations/098_identity_logos_profile_avatar.sql', [
   "'2.26.3'",
-  expectedCache,
+  'ncr-suite-shell-v2.26.3-visual-identities',
   'add column if not exists avatar_url',
   "'profile-avatars'",
   'profile_avatars_insert_own',
+  'platform_release_state'
+]);
+requireText('supabase/migrations/099_profile_avatar_crop_release.sql', [
+  "'2.26.4'",
+  expectedCache,
+  'avatar_url',
+  "'profile-avatars'",
   'platform_release_state'
 ]);
 requireText('supabase/functions/create-stripe-checkout/index.ts', [
@@ -878,7 +885,12 @@ requireText('src/components/AppShell.tsx', [
   "from('profile-avatars')",
   "from('user_profiles')",
   'profile-avatar-upload',
-  '<AvatarContent'
+  '<AvatarContent',
+  'AVATAR_CROP_SIZE',
+  'handleAvatarCropPointerMove',
+  "canvas.toBlob(resolve, 'image/webp'",
+  "canvas.toBlob(resolve, 'image/jpeg'",
+  'Utiliser la photo'
 ]);
 requireText('src/styles.css', [
   '.context-switcher-trigger',
@@ -891,7 +903,11 @@ requireText('src/styles.css', [
   '.training-quality-export-actions',
   '.context-switcher-icon.has-image',
   '.profile-avatar-upload',
-  '.profile-avatar-toast'
+  '.profile-avatar-toast',
+  '.avatar-crop-overlay',
+  '.avatar-crop-viewport',
+  '.avatar-crop-zoom',
+  '.user-avatar > img'
 ]);
 requireText('src/pages/TrainingDashboardPage.tsx', [
   'training-quality-period-segmented',

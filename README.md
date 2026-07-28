@@ -1,10 +1,10 @@
-# NCR Suite V2.26.3
+# NCR Suite V2.26.4
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version corrige définitivement le sélecteur de période et affiche les
-identités visuelles de l’entreprise et de l’utilisateur dans le menu.
+Cette version ajoute le recadrage manuel de la photo de profil et harmonise
+son affichage circulaire sur ordinateur et mobile.
 
 Les fonctions, droits, données et parcours mobiles restent inchangés.
 
-Consulter uniquement `A_LIRE_INSTALLATION_V2.26.3.txt` avant déploiement.
+Consulter uniquement `A_LIRE_INSTALLATION_V2.26.4.txt` avant déploiement.
