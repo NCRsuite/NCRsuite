@@ -1,5 +1,18 @@
 # Changelog NCR Suite
 
+## V2.26.5 - Finition premium de l’espace connecté
+
+- Hiérarchie des en-têtes de pages harmonisée entre les métiers.
+- Navigation latérale enrichie avec états actifs, survols et focus plus lisibles.
+- Boutons, champs et commandes dotés de micro-interactions cohérentes.
+- Indicateurs visuels renforcés sans modifier leurs données.
+- États vides modernisés et tableau clients plus confortable à parcourir.
+- Navigation clavier et préférence de réduction des animations prises en compte.
+- Couche visuelle limitée à l’espace connecté afin de préserver les pages publiques.
+- Aucun changement des droits, abonnements, paiements ou données métier.
+- Migration `100` et cache PWA `ncr-suite-shell-v2.26.5-premium-workspace`.
+- Nouveau bundle autonome `ncr-suite-app-v265.js`.
+
 ## V2.26.4 - Recadrage de la photo de profil
 
 - Nouvel éditeur de recadrage ouvert avant l’enregistrement de la photo.

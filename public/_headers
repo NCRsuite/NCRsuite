@@ -6,15 +6,15 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-/ncr-suite-showcase-v264.css
+/ncr-suite-showcase-v265.css
   Content-Type: text/css; charset=utf-8
   Cache-Control: public, max-age=86400, must-revalidate
 
-/ncr-suite-app-v264.css
+/ncr-suite-app-v265.css
   Content-Type: text/css; charset=utf-8
   Cache-Control: public, max-age=86400, must-revalidate
 
-/ncr-suite-app-v264.js
+/ncr-suite-app-v265.js
   Content-Type: text/javascript; charset=utf-8
   Cache-Control: public, max-age=86400, must-revalidate
 

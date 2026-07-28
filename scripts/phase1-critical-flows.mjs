@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-avatar-crop`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-premium-workspace`;
 const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
 const portalAccessAlertsCache = 'ncr-suite-shell-v2.24.0-portal-access-support-alerts';
 const showcasePolishCache = 'ncr-suite-shell-v2.23.2-showcase-polish';
@@ -59,18 +59,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v264.css',
-  '/ncr-suite-app-v264.css',
+  '/ncr-suite-showcase-v265.css',
+  '/ncr-suite-app-v265.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.26.4'
+  'ncr:css-recovery-v2.26.5'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v264.css',
+  '/ncr-suite-app-v265.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v264.js'"
+  "entryFileNames: 'ncr-suite-app-v265.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -852,9 +852,14 @@ requireText('supabase/migrations/098_identity_logos_profile_avatar.sql', [
 ]);
 requireText('supabase/migrations/099_profile_avatar_crop_release.sql', [
   "'2.26.4'",
-  expectedCache,
+  'ncr-suite-shell-v2.26.4-avatar-crop',
   'avatar_url',
   "'profile-avatars'",
+  'platform_release_state'
+]);
+requireText('supabase/migrations/100_premium_workspace_polish.sql', [
+  "'2.26.5'",
+  expectedCache,
   'platform_release_state'
 ]);
 requireText('supabase/functions/create-stripe-checkout/index.ts', [
@@ -886,6 +891,7 @@ requireText('src/components/AppShell.tsx', [
   "from('user_profiles')",
   'profile-avatar-upload',
   '<AvatarContent',
+  'app-shell app-shell-v265',
   'AVATAR_CROP_SIZE',
   'handleAvatarCropPointerMove',
   "canvas.toBlob(resolve, 'image/webp'",
@@ -907,7 +913,14 @@ requireText('src/styles.css', [
   '.avatar-crop-overlay',
   '.avatar-crop-viewport',
   '.avatar-crop-zoom',
-  '.user-avatar > img'
+  '.user-avatar > img',
+  '.app-shell-v265 .page > .page-header',
+  '.app-shell-v265 .main-nav a.active::before',
+  '.app-shell-v265 .primary-button',
+  '.app-shell-v265 .stat-card:hover',
+  '.app-shell-v265 .empty-state',
+  '.app-shell-v265 .client-table th',
+  '@keyframes premium-page-enter'
 ]);
 requireText('src/pages/TrainingDashboardPage.tsx', [
   'training-quality-period-segmented',

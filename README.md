@@ -1,10 +1,10 @@
-# NCR Suite V2.26.4
+# NCR Suite V2.26.5
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version ajoute le recadrage manuel de la photo de profil et harmonise
-son affichage circulaire sur ordinateur et mobile.
+Cette version harmonise la finition premium de l’espace connecté tout en
+conservant les parcours métier et le comportement mobile déjà validés.
 
 Les fonctions, droits, données et parcours mobiles restent inchangés.
 
-Consulter uniquement `A_LIRE_INSTALLATION_V2.26.4.txt` avant déploiement.
+Consulter uniquement `A_LIRE_INSTALLATION_V2.26.5.txt` avant déploiement.
