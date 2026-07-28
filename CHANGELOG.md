@@ -1,5 +1,22 @@
 # Changelog NCR Suite
 
+## V2.28.0 - SEO métier et acquisition
+
+- Cinq pages publiques spécialisées pour Formation, Sécurité privée, Nettoyage, Restauration et Coiffure.
+- Titres, descriptions, adresses canoniques et données de partage propres à chaque page.
+- Données structurées `WebPage`, `SoftwareApplication`, fil d’Ariane et FAQ.
+- HTML métier généré au build pour rester lisible avant le chargement de React.
+- Sitemap enrichi avec les six pages publiques à indexer.
+- Redirection permanente de `www.ncr-suite.fr` vers le domaine canonique.
+- Espaces de connexion, administration, activation et portails explicitement exclus de l’indexation.
+- Liens métier ajoutés à la vitrine et au pied de page.
+- Métier et formule présélectionnés depuis les pages publiques.
+- Origine, campagne, page d’entrée et site référent conservés avec les demandes d’accès.
+- Informations d’acquisition visibles uniquement dans l’administration centrale.
+- Migration `104` sans suppression de données.
+- Cache PWA `ncr-suite-shell-v2.28.0-seo-acquisition`.
+- Nouveau bundle autonome `ncr-suite-app-v280.js`.
+
 ## V2.27.1 - Interactions et finitions premium
 
 - Transitions courtes et cohérentes lors des changements de page.

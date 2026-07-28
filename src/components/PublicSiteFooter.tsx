@@ -1,4 +1,7 @@
 import { Link } from 'react-router-dom';
+import seoPagesData from '../config/publicSeoPages.json';
+
+const solutionLinks = seoPagesData as Array<{ key: string; name: string; path: string }>;
 
 export function PublicSiteFooter() {
   return (
@@ -10,7 +13,7 @@ export function PublicSiteFooter() {
         </Link>
         <p>La plateforme professionnelle qui relie les équipes, les clients et les opérations sans complexifier le quotidien.</p>
       </div>
-      <nav aria-label="Informations NCR Suite">
+      <nav className="public-footer-primary" aria-label="Informations NCR Suite">
         <a href="/#plateforme">Plateforme</a>
         <a href="/#catalogue">Solutions métier</a>
         <a href="/#offres">Offres</a>
@@ -19,6 +22,9 @@ export function PublicSiteFooter() {
         <Link to="/confidentialite">Confidentialité</Link>
         <Link to="/mentions-legales">Mentions légales</Link>
         <a href="mailto:contact@ncr-suite.fr">contact@ncr-suite.fr</a>
+      </nav>
+      <nav className="public-footer-solutions" aria-label="Logiciels métier NCR Suite">
+        {solutionLinks.map((item) => <Link to={item.path} key={item.key}>Logiciel {item.name}</Link>)}
       </nav>
       <small>© {new Date().getFullYear()} NCR Suite. Tous droits réservés.</small>
     </footer>

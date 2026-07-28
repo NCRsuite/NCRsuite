@@ -16,6 +16,7 @@ type PublicBusiness = {
   summary: string;
   outcome: string;
   features: string[];
+  path: string;
 };
 
 const businesses: PublicBusiness[] = [
@@ -27,7 +28,8 @@ const businesses: PublicBusiness[] = [
     color: '#0878f9',
     summary: 'Du premier prospect jusqu’au BPF, chaque étape du parcours reste liée et exploitable',
     outcome: 'Commercial, pédagogique, qualité et finance réunis',
-    features: ['CRM et pipeline commercial', 'Catalogue et programmes', 'Sessions et émargements', 'Évaluations automatisées', 'Facturation et BPF', 'Qualiopi et preuves']
+    features: ['CRM et pipeline commercial', 'Catalogue et programmes', 'Sessions et émargements', 'Évaluations automatisées', 'Facturation et BPF', 'Qualiopi et preuves'],
+    path: '/logiciel-gestion-formation'
   },
   {
     key: 'securite',
@@ -37,7 +39,8 @@ const businesses: PublicBusiness[] = [
     color: '#d92d20',
     summary: 'Les équipes du bureau et du terrain partagent enfin le même niveau d’information',
     outcome: 'Des opérations suivies, traçables et facturables',
-    features: ['Clients, sites et contrats', 'Agents et agréments', 'Planning et vacations', 'Rondes QR et PTI', 'Main courante terrain', 'Facturation et portail client']
+    features: ['Clients, sites et contrats', 'Agents et agréments', 'Planning et vacations', 'Rondes QR et PTI', 'Main courante terrain', 'Facturation et portail client'],
+    path: '/logiciel-securite-privee'
   },
   {
     key: 'nettoyage',
@@ -47,7 +50,8 @@ const businesses: PublicBusiness[] = [
     color: '#07865c',
     summary: 'Chaque intervention devient une prestation planifiée, prouvée et mesurable',
     outcome: 'Qualité terrain et rentabilité dans un même flux',
-    features: ['Clients et sites', 'Agents et affectations', 'Pointage et consignes', 'Rapports et anomalies', 'Contrôles qualité', 'Stocks et rentabilité']
+    features: ['Clients et sites', 'Agents et affectations', 'Pointage et consignes', 'Rapports et anomalies', 'Contrôles qualité', 'Stocks et rentabilité'],
+    path: '/logiciel-entreprise-nettoyage'
   },
   {
     key: 'restauration',
@@ -57,7 +61,8 @@ const businesses: PublicBusiness[] = [
     color: '#b36a08',
     summary: 'La salle, la cuisine et la gestion avancent avec une vision commune du service',
     outcome: 'Une exploitation fluide, du couvert jusqu’au stock',
-    features: ['Réservations et plan de salle', 'Carte et recettes', 'Commandes et écran cuisine', 'Planning des équipes', 'Hygiène et traçabilité', 'Stocks et pilotage']
+    features: ['Réservations et plan de salle', 'Carte et recettes', 'Commandes et écran cuisine', 'Planning des équipes', 'Hygiène et traçabilité', 'Stocks et pilotage'],
+    path: '/logiciel-gestion-restaurant'
   },
   {
     key: 'coiffure',
@@ -67,7 +72,8 @@ const businesses: PublicBusiness[] = [
     color: '#9b3db4',
     summary: 'Les rendez-vous, l’équipe et la fidélité client se pilotent sans alourdir l’accueil',
     outcome: 'Une relation client suivie avant et après la visite',
-    features: ['Réservation en ligne', 'Planning du salon', 'Fichier client', 'Prestations et équipe', 'Fidélité personnalisée', 'Espace client']
+    features: ['Réservation en ligne', 'Planning du salon', 'Fichier client', 'Prestations et équipe', 'Fidélité personnalisée', 'Espace client'],
+    path: '/logiciel-coiffure'
   }
 ];
 
@@ -338,6 +344,7 @@ export function PublicHomePage() {
               <p>{activeBusiness.label}</p>
               <h3>{activeBusiness.summary}</h3>
               <strong><Icon name="activity" size={16} />{activeBusiness.outcome}</strong>
+              <Link className="public-business-detail-link" to={activeBusiness.path}>Découvrir la solution {activeBusiness.name} <Icon name="chevronRight" size={15} /></Link>
             </div>
             <div className="public-business-modules">
               <small>MODULES CLÉS</small>

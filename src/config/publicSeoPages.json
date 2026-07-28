@@ -1,0 +1,182 @@
+[
+  {
+    "key": "formation",
+    "name": "Formation",
+    "label": "Organismes de formation",
+    "path": "/logiciel-gestion-formation",
+    "title": "Logiciel de gestion pour organisme de formation | NCR Suite",
+    "description": "Gérez CRM, sessions, émargements, évaluations, facturation, BPF et preuves Qualiopi dans un logiciel conçu pour les organismes de formation.",
+    "eyebrow": "GESTION DES ORGANISMES DE FORMATION",
+    "headline": "Logiciel de gestion pour organismes de formation",
+    "lead": "Reliez le commercial, l’administratif, le pédagogique et la qualité dans un seul parcours, du premier contact jusqu’au bilan annuel.",
+    "outcome": "Moins de ressaisies, des dossiers complets et une activité prête à être pilotée",
+    "color": "#0878f9",
+    "icon": "graduation",
+    "defaultPlan": "essentielle",
+    "proofPoints": ["CRM et conventions", "Émargements et évaluations", "BPF et preuves Qualiopi"],
+    "features": [
+      { "icon": "users", "title": "CRM Formation", "text": "Suivez prospects, entreprises, financeurs, devis, conventions, signatures et relances dans un pipeline commun." },
+      { "icon": "calendar", "title": "Sessions et parcours", "text": "Planifiez les sessions, rattachez stagiaires et formateurs, puis contrôlez chaque dossier jusqu’à sa clôture." },
+      { "icon": "file", "title": "Documents automatisés", "text": "Produisez convocations, attestations, feuilles d’émargement et documents personnalisés depuis les données du dossier." },
+      { "icon": "activity", "title": "Évaluations automatisées", "text": "Envoyez les questionnaires, programmez les relances et consolidez les réponses sans suivi manuel dispersé." },
+      { "icon": "chart", "title": "Facturation et BPF", "text": "Suivez factures et paiements, puis préparez les indicateurs utiles au Bilan Pédagogique et Financier." },
+      { "icon": "shield", "title": "Qualiopi et preuves", "text": "Classez les pièces, signatures, audits et historiques dans le bon dossier pour retrouver rapidement chaque preuve." }
+    ],
+    "workflow": [
+      { "step": "01", "title": "Qualifier", "text": "Le besoin, le financeur et la proposition commerciale restent liés." },
+      { "step": "02", "title": "Former", "text": "La session rassemble planning, participants, documents et présences." },
+      { "step": "03", "title": "Évaluer", "text": "Questionnaires et relances se déclenchent au bon moment." },
+      { "step": "04", "title": "Prouver", "text": "Les résultats alimentent la qualité, la facturation et le BPF." }
+    ],
+    "faq": [
+      { "question": "NCR Suite remplace-t-il plusieurs outils de formation ?", "answer": "NCR Suite réunit le suivi commercial, les sessions, les documents, les présences, les évaluations, la facturation et les preuves qualité dans un environnement cohérent." },
+      { "question": "Le BPF est-il préparé automatiquement ?", "answer": "Les données de chiffre d’affaires, stagiaires, heures, financeurs, formateurs et sous-traitance sont consolidées avec des contrôles de cohérence et un export d’aide à la saisie." },
+      { "question": "Les stagiaires et formateurs disposent-ils de leur espace ?", "answer": "Des portails dédiés peuvent être activés pour les stagiaires, formateurs et clients, avec dépôts de pièces, signatures et historique exploitable." },
+      { "question": "Peut-on commencer avec une petite formule ?", "answer": "Oui. Les formules progressent de Découverte à Métier et les modules disponibles restent visibles afin de choisir le bon niveau au moment utile." }
+    ]
+  },
+  {
+    "key": "securite",
+    "name": "Sécurité privée",
+    "label": "Entreprises de sécurité",
+    "path": "/logiciel-securite-privee",
+    "title": "Logiciel de gestion sécurité privée | NCR Suite",
+    "description": "Pilotez agents, sites, vacations, rondes QR, main courante, PTI, facturation et portail client dans un logiciel de sécurité privée.",
+    "eyebrow": "PILOTAGE DE LA SÉCURITÉ PRIVÉE",
+    "headline": "Logiciel de gestion pour la sécurité privée",
+    "lead": "Donnez au bureau, aux agents et aux clients une information commune, depuis la préparation des vacations jusqu’aux preuves terrain.",
+    "outcome": "Des opérations suivies en temps réel, documentées et prêtes à être facturées",
+    "color": "#d92d20",
+    "icon": "shield",
+    "defaultPlan": "essentielle",
+    "proofPoints": ["Planning des vacations", "Rondes QR et main courante", "PTI et supervision"],
+    "features": [
+      { "icon": "users", "title": "Agents et habilitations", "text": "Centralisez les profils, documents, disponibilités et informations nécessaires à chaque affectation." },
+      { "icon": "briefcase", "title": "Clients, sites et contrats", "text": "Reliez donneurs d’ordre, sites, consignes, tarifs et prestations sans perdre le contexte opérationnel." },
+      { "icon": "calendar", "title": "Planning des vacations", "text": "Planifiez les missions, contrôlez les besoins et partagez les informations utiles avec les agents concernés." },
+      { "icon": "activity", "title": "Rondes et main courante", "text": "Tracez les passages QR, événements, consignes lues et rapports produits pendant chaque vacation." },
+      { "icon": "shield", "title": "PTI et supervision", "text": "Regroupez positions, confirmations périodiques, alertes SOS et vacations en cours sur un poste de contrôle." },
+      { "icon": "file", "title": "Facturation et portail client", "text": "Préparez la facturation depuis l’activité et partagez missions, rapports et documents dans un espace dédié." }
+    ],
+    "workflow": [
+      { "step": "01", "title": "Préparer", "text": "Le contrat, le site, les consignes et les besoins sont cadrés." },
+      { "step": "02", "title": "Affecter", "text": "Les agents reçoivent leurs vacations et informations terrain." },
+      { "step": "03", "title": "Superviser", "text": "Rondes, main courante, positions et alertes restent visibles." },
+      { "step": "04", "title": "Restituer", "text": "Les preuves alimentent les rapports, le client et la facturation." }
+    ],
+    "faq": [
+      { "question": "Les agents peuvent-ils utiliser NCR Suite sur téléphone ?", "answer": "Oui. L’espace terrain permet de consulter planning et consignes, réaliser les rondes, alimenter la main courante et transmettre les preuves depuis une PWA mobile." },
+      { "question": "Le logiciel gère-t-il les rondes par QR code ?", "answer": "Les points de passage peuvent être créés et imprimés, puis chaque lecture est horodatée et rattachée à la vacation concernée." },
+      { "question": "Les clients disposent-ils d’un portail ?", "answer": "Un portail client peut présenter les missions, rapports, rondes, documents et messages autorisés pour chaque donneur d’ordre." },
+      { "question": "Que deviennent les données lors d’une baisse de formule ?", "answer": "Les droits premium sont retirés selon la formule, mais les données existantes sont conservées pour pouvoir être retrouvées lors d’une remontée en gamme." }
+    ]
+  },
+  {
+    "key": "nettoyage",
+    "name": "Nettoyage",
+    "label": "Entreprises de propreté et multiservices",
+    "path": "/logiciel-entreprise-nettoyage",
+    "title": "Logiciel pour entreprise de nettoyage | NCR Suite",
+    "description": "Planifiez interventions, agents, pointages, rapports photo, contrôles qualité, stocks, facturation et rentabilité de votre entreprise de nettoyage.",
+    "eyebrow": "GESTION DES ENTREPRISES DE NETTOYAGE",
+    "headline": "Logiciel de gestion pour entreprise de nettoyage",
+    "lead": "Transformez chaque contrat en interventions planifiées, prouvées et mesurables, sans séparer le bureau de la réalité du terrain.",
+    "outcome": "Une qualité visible pour le client et une rentabilité lisible pour l’entreprise",
+    "color": "#07865c",
+    "icon": "sparkles",
+    "defaultPlan": "essentielle",
+    "proofPoints": ["Planning et pointage", "Rapports photo", "Qualité et rentabilité"],
+    "features": [
+      { "icon": "briefcase", "title": "Clients et sites", "text": "Structurez contrats, fréquences, protocoles, contacts et particularités de chaque lieu d’intervention." },
+      { "icon": "calendar", "title": "Planning des agents", "text": "Affectez les équipes, visualisez les interventions et partagez les consignes utiles avant le passage." },
+      { "icon": "monitor", "title": "Espace terrain", "text": "Les agents consultent leur planning, pointent, suivent les protocoles et transmettent leurs preuves sur mobile." },
+      { "icon": "file", "title": "Rapports et anomalies", "text": "Produisez des fiches de passage illustrées et suivez les écarts jusqu’à la réalisation des actions correctives." },
+      { "icon": "shield", "title": "Contrôles qualité", "text": "Notez les prestations selon vos grilles, conservez l’historique et partagez un suivi clair avec le client." },
+      { "icon": "chart", "title": "Stocks et rentabilité", "text": "Comparez chiffre prévu, temps réalisé, coûts horaires et consommables pour comprendre la marge de chaque chantier." }
+    ],
+    "workflow": [
+      { "step": "01", "title": "Contractualiser", "text": "Le site, les fréquences et les protocoles définissent le service." },
+      { "step": "02", "title": "Planifier", "text": "Les interventions et agents sont coordonnés depuis le même planning." },
+      { "step": "03", "title": "Prouver", "text": "Pointages, photos et rapports confirment le travail réalisé." },
+      { "step": "04", "title": "Améliorer", "text": "Qualité, anomalies et rentabilité orientent les décisions." }
+    ],
+    "faq": [
+      { "question": "Les agents ont-ils besoin d’installer une application ?", "answer": "NCR Suite fonctionne comme une PWA : l’espace terrain peut être ajouté à l’écran du téléphone et utilisé avec une expérience proche d’une application." },
+      { "question": "Peut-on envoyer des rapports aux clients ?", "answer": "Les rapports de visite, photos, anomalies et contrôles qualité peuvent être rattachés au bon site et partagés depuis le portail client selon les droits accordés." },
+      { "question": "Comment la rentabilité d’un chantier est-elle calculée ?", "answer": "Le module compare le chiffre d’affaires prévu avec les temps réalisés, les coûts horaires et les consommables enregistrés." },
+      { "question": "NCR Suite convient-il au multiservice ?", "answer": "Les sites, protocoles, équipes, types d’intervention et modules peuvent être adaptés à une organisation de propreté ou de multiservices." }
+    ]
+  },
+  {
+    "key": "restauration",
+    "name": "Restauration",
+    "label": "Restaurants et établissements",
+    "path": "/logiciel-gestion-restaurant",
+    "title": "Logiciel de gestion pour restaurant | NCR Suite",
+    "description": "Réunissez réservations, plan de salle, carte, recettes, commandes, cuisine, équipe, HACCP, stocks et rentabilité dans un logiciel restaurant.",
+    "eyebrow": "PILOTAGE DES RESTAURANTS",
+    "headline": "Logiciel de gestion pour restaurant",
+    "lead": "Reliez la salle, la cuisine et la gestion dans une seule expérience, du premier couvert réservé jusqu’au suivi des stocks.",
+    "outcome": "Un service plus fluide et une exploitation maîtrisée sans multiplier les outils",
+    "color": "#b36a08",
+    "icon": "utensils",
+    "defaultPlan": "essentielle",
+    "proofPoints": ["Réservations et salle", "Commandes et cuisine", "HACCP et stocks"],
+    "features": [
+      { "icon": "calendar", "title": "Réservations et plan de salle", "text": "Centralisez les réservations, organisez les zones et tables, puis suivez les arrivées pendant le service." },
+      { "icon": "file", "title": "Carte, recettes et allergènes", "text": "Structurez plats, ingrédients, fiches recettes, allergènes, coûts et informations destinées aux clients." },
+      { "icon": "activity", "title": "Commandes et écran cuisine", "text": "Faites circuler les commandes de la salle vers la préparation et suivez leur avancement en temps réel." },
+      { "icon": "users", "title": "Équipe et planning", "text": "Planifiez les employés et donnez à chacun un espace adapté à son rôle pendant l’exploitation." },
+      { "icon": "shield", "title": "Hygiène et traçabilité", "text": "Enregistrez températures, contrôles et checklists HACCP avec un historique exploitable." },
+      { "icon": "chart", "title": "Stocks et pilotage", "text": "Suivez inventaires, fournisseurs, besoins d’achat, coûts matière et indicateurs de rentabilité." }
+    ],
+    "workflow": [
+      { "step": "01", "title": "Préparer", "text": "La carte, les recettes, les équipes et la salle sont organisées." },
+      { "step": "02", "title": "Accueillir", "text": "Les réservations et tables donnent une vision claire du service." },
+      { "step": "03", "title": "Servir", "text": "Les commandes circulent entre la salle et la cuisine." },
+      { "step": "04", "title": "Piloter", "text": "Hygiène, stocks et coûts alimentent les décisions du restaurant." }
+    ],
+    "faq": [
+      { "question": "NCR Suite gère-t-il les réservations en ligne ?", "answer": "Une page publique permet aux clients de réserver, tandis que le restaurant suit les demandes, les confirmations et le plan de salle depuis son espace." },
+      { "question": "Le menu peut-il être publié avec un QR code ?", "answer": "Le menu public peut être diffusé par QR code et présenté en plusieurs langues avec les informations utiles comme les allergènes." },
+      { "question": "Peut-on suivre les commandes en cuisine ?", "answer": "L’écran cuisine reçoit les commandes et permet de suivre les étapes de préparation jusqu’à leur disponibilité pour le service." },
+      { "question": "Les contrôles HACCP sont-ils historisés ?", "answer": "Les températures et checklists d’hygiène sont enregistrées avec leur date et restent consultables dans l’historique de l’établissement." }
+    ]
+  },
+  {
+    "key": "coiffure",
+    "name": "Coiffure & beauté",
+    "label": "Salons de coiffure et instituts",
+    "path": "/logiciel-coiffure",
+    "title": "Logiciel de gestion pour salon de coiffure | NCR Suite",
+    "description": "Gérez rendez-vous, réservation en ligne, clients, prestations, équipe, rappels et fidélité avec un logiciel conçu pour les salons de coiffure.",
+    "eyebrow": "GESTION DES SALONS ET INSTITUTS",
+    "headline": "Logiciel de gestion pour salon de coiffure",
+    "lead": "Simplifiez l’accueil, le planning et la relation client avec un environnement clair qui accompagne l’équipe avant et après chaque rendez-vous.",
+    "outcome": "Un planning mieux rempli et une relation client suivie sans alourdir l’accueil",
+    "color": "#9b3db4",
+    "icon": "scissors",
+    "defaultPlan": "essentielle",
+    "proofPoints": ["Réservation en ligne", "Planning de l’équipe", "Rappels et fidélité"],
+    "features": [
+      { "icon": "calendar", "title": "Planning du salon", "text": "Visualisez les rendez-vous, disponibilités et charges de travail de l’équipe dans un agenda commun." },
+      { "icon": "monitor", "title": "Réservation en ligne", "text": "Permettez aux clients de choisir leur prestation et leur créneau depuis une page publique adaptée au mobile." },
+      { "icon": "users", "title": "Fichier client", "text": "Retrouvez coordonnées, historique de visites, préférences et informations utiles à une relation personnalisée." },
+      { "icon": "briefcase", "title": "Prestations et équipe", "text": "Organisez durées, prix, catégories de services et membres de l’équipe autorisés à les réaliser." },
+      { "icon": "activity", "title": "Rappels automatiques", "text": "Réduisez les oublis grâce aux confirmations et rappels envoyés au bon moment avant le rendez-vous." },
+      { "icon": "chart", "title": "Fidélité et suivi", "text": "Animez la relation après la visite et suivez les habitudes qui contribuent au retour des clients." }
+    ],
+    "workflow": [
+      { "step": "01", "title": "Réserver", "text": "Le client choisit une prestation et un créneau disponible." },
+      { "step": "02", "title": "Préparer", "text": "L’équipe retrouve le planning et le contexte client utile." },
+      { "step": "03", "title": "Accueillir", "text": "La prestation et les informations de visite sont centralisées." },
+      { "step": "04", "title": "Fidéliser", "text": "Rappels et suivi prolongent la relation après le rendez-vous." }
+    ],
+    "faq": [
+      { "question": "Les clients peuvent-ils réserver depuis leur téléphone ?", "answer": "Oui. La page de réservation publique est adaptée au mobile et permet de choisir une prestation, un professionnel et un créneau disponible." },
+      { "question": "Peut-on envoyer des rappels de rendez-vous ?", "answer": "Les confirmations et rappels automatiques peuvent être activés afin de prévenir les clients avant leur rendez-vous." },
+      { "question": "L’équipe dispose-t-elle de plusieurs accès ?", "answer": "Les formules supérieures ajoutent des accès équipe et des rôles adaptés pour organiser le salon sans partager un identifiant unique." },
+      { "question": "Le logiciel convient-il aussi aux instituts de beauté ?", "answer": "Les prestations, durées, équipes, rendez-vous et parcours client peuvent être configurés pour un salon de coiffure comme pour un institut." }
+    ]
+  }
+]

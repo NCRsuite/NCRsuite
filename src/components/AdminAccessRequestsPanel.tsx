@@ -25,6 +25,12 @@ interface AccessRequest {
   invitation_sent_at: string | null;
   invitation_count: number;
   last_invitation_error: string | null;
+  acquisition_source: string | null;
+  acquisition_medium: string | null;
+  acquisition_campaign: string | null;
+  acquisition_content: string | null;
+  landing_path: string | null;
+  referrer_url: string | null;
 }
 
 const statusLabels: Record<AccessRequestStatus, string> = {
@@ -63,7 +69,7 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
 
     let query = supabase
       .from('platform_access_requests')
-      .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,team_size,message,status,submitted_at,reviewed_at,decision_note,invited_user_id,invitation_sent_at,invitation_count,last_invitation_error')
+      .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,team_size,message,status,submitted_at,reviewed_at,decision_note,invited_user_id,invitation_sent_at,invitation_count,last_invitation_error,acquisition_source,acquisition_medium,acquisition_campaign,acquisition_content,landing_path,referrer_url')
       .order('submitted_at', { ascending: false })
       .limit(250);
 
@@ -219,7 +225,17 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
                 <div><dt>Téléphone</dt><dd>{selected.phone || 'Non renseigné'}</dd></div>
                 <div><dt>Formule</dt><dd>{planLabels[selected.requested_plan]}</dd></div>
                 <div><dt>Reçue le</dt><dd>{dateLabel(selected.submitted_at)}</dd></div>
+                <div><dt>Origine</dt><dd>{selected.acquisition_source || 'direct'} · {selected.acquisition_medium || 'none'}</dd></div>
+                <div><dt>Page d’entrée</dt><dd>{selected.landing_path || 'Non identifiée'}</dd></div>
               </dl>
+
+              {(selected.acquisition_campaign || selected.referrer_url) && (
+                <section className="admin-access-acquisition">
+                  <strong>Acquisition</strong>
+                  {selected.acquisition_campaign && <p>Campagne : {selected.acquisition_campaign}{selected.acquisition_content ? ` · ${selected.acquisition_content}` : ''}</p>}
+                  {selected.referrer_url && <p>Référent : {selected.referrer_url}</p>}
+                </section>
+              )}
 
               <section className="admin-access-need">
                 <strong>Besoin exprimé</strong>

@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-interactions`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-seo-acquisition`;
+const interactionsCache = 'ncr-suite-shell-v2.27.1-interactions';
 const commercialReadinessCache = 'ncr-suite-shell-v2.27.0-commercial-readiness';
 const platformAdminLockedPushCache = 'ncr-suite-shell-v2.24.1-platform-admin-locked-screen-push';
 const portalAccessAlertsCache = 'ncr-suite-shell-v2.24.0-portal-access-support-alerts';
@@ -60,18 +61,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v271.css',
-  '/ncr-suite-app-v271.css',
+  '/ncr-suite-showcase-v280.css',
+  '/ncr-suite-app-v280.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.27.1'
+  'ncr:css-recovery-v2.28.0'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v271.css',
+  '/ncr-suite-app-v280.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v271.js'"
+  "entryFileNames: 'ncr-suite-app-v280.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -882,8 +883,40 @@ requireText('supabase/migrations/102_commercial_readiness_pilot_validation.sql',
 ]);
 requireText('supabase/migrations/103_v2_27_1_interactions_release.sql', [
   "'2.27.1'",
-  expectedCache,
+  interactionsCache,
   'platform_release_state'
+]);
+requireText('supabase/migrations/104_seo_acquisition_release.sql', [
+  "'2.28.0'",
+  expectedCache,
+  'acquisition_source',
+  'landing_path',
+  'platform_release_state'
+]);
+requireText('scripts/generate-seo-pages.mjs', [
+  'publicSeoPages.json',
+  'BreadcrumbList',
+  'FAQPage',
+  'sitemap.xml',
+  'ncr-seo-prerender'
+]);
+requireText('src/pages/AccessRequestPage.tsx', [
+  'readAcquisitionContext',
+  'acquisitionSource',
+  'landingPath'
+]);
+requireText('supabase/functions/request-platform-access/index.ts', [
+  'acquisition_source',
+  'landing_path'
+]);
+requireText('functions/_middleware.ts', [
+  'indexablePaths',
+  '/logiciel-gestion-formation',
+  '/logiciel-securite-privee',
+  '/logiciel-entreprise-nettoyage',
+  '/logiciel-gestion-restaurant',
+  '/logiciel-coiffure',
+  'NCR_CANONICAL_REDIRECT_ENABLED'
 ]);
 requireText('supabase/functions/create-stripe-checkout/index.ts', [
   "mode: 'subscription'",

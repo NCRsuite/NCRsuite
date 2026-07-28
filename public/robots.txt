@@ -1,10 +1,17 @@
 User-agent: *
 Allow: /
+Allow: /logiciel-gestion-formation
+Allow: /logiciel-securite-privee
+Allow: /logiciel-entreprise-nettoyage
+Allow: /logiciel-gestion-restaurant
+Allow: /logiciel-coiffure
 Disallow: /activation
 Disallow: /administration-ncr
 Disallow: /configuration
 Disallow: /connexion
 Disallow: /demande-acces
 Disallow: /mot-de-passe-oublie
+Disallow: /invitation
+Disallow: /portail
 
 Sitemap: https://ncr-suite.fr/sitemap.xml

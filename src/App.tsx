@@ -107,6 +107,7 @@ const RestaurantStockPage = lazy(() => import('./pages/RestaurantStockPage').the
 const PublicRestaurantMenuPage = lazy(() => import('./pages/PublicRestaurantMenuPage').then((module) => ({ default: module.PublicRestaurantMenuPage })));
 const PublicRestaurantBookingPage = lazy(() => import('./pages/PublicRestaurantBookingPage').then((module) => ({ default: module.PublicRestaurantBookingPage })));
 const PublicHomePage = lazy(() => import('./pages/PublicHomePage').then((module) => ({ default: module.PublicHomePage })));
+const PublicSolutionPage = lazy(() => import('./pages/PublicSolutionPage').then((module) => ({ default: module.PublicSolutionPage })));
 const AccessRequestPage = lazy(() => import('./pages/AccessRequestPage').then((module) => ({ default: module.AccessRequestPage })));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage').then((module) => ({ default: module.ForgotPasswordPage })));
 const AccountActivationPage = lazy(() => import('./pages/AccountActivationPage').then((module) => ({ default: module.AccountActivationPage })));
@@ -297,6 +298,11 @@ export default function App() {
       <Route path="/activation" element={<AccountActivationPage />} />
       <Route path="/mentions-legales" element={<PublicLegalPage kind="legal" />} />
       <Route path="/confidentialite" element={<PublicLegalPage kind="privacy" />} />
+      <Route path="/logiciel-gestion-formation" element={<PublicSolutionPage businessType="formation" />} />
+      <Route path="/logiciel-securite-privee" element={<PublicSolutionPage businessType="securite" />} />
+      <Route path="/logiciel-entreprise-nettoyage" element={<PublicSolutionPage businessType="nettoyage" />} />
+      <Route path="/logiciel-gestion-restaurant" element={<PublicSolutionPage businessType="restauration" />} />
+      <Route path="/logiciel-coiffure" element={<PublicSolutionPage businessType="coiffure" />} />
       <Route path="/configuration" element={<OnboardingArea />} />
       <Route path="/reserver/:slug" element={<PublicBookingPage />} />
       <Route path="/reservation/:token" element={<PublicBookingManagePage />} />

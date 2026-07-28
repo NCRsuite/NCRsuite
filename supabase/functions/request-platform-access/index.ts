@@ -107,6 +107,12 @@ Deno.serve(async (request) => {
   const message = String(payload.message ?? '').trim().slice(0, 2000);
   const privacyAccepted = payload.privacyAccepted === true;
   const turnstileToken = clean(payload.turnstileToken, 3000);
+  const acquisitionSource = clean(payload.acquisitionSource, 80) || 'direct';
+  const acquisitionMedium = clean(payload.acquisitionMedium, 80) || 'none';
+  const acquisitionCampaign = clean(payload.acquisitionCampaign, 120);
+  const acquisitionContent = clean(payload.acquisitionContent, 120);
+  const landingPath = clean(payload.landingPath, 500);
+  const referrer = clean(payload.referrer, 500);
 
   if (fullName.length < 2 || companyName.length < 2 || !validEmail(email)
     || !allowedBusinesses.has(businessType) || !allowedPlans.has(requestedPlan)
@@ -169,6 +175,12 @@ Deno.serve(async (request) => {
       source_ip_hash: sourceIpHash,
       user_agent: userAgent || null,
       turnstile_verified: turnstileVerified,
+      acquisition_source: acquisitionSource,
+      acquisition_medium: acquisitionMedium,
+      acquisition_campaign: acquisitionCampaign || null,
+      acquisition_content: acquisitionContent || null,
+      landing_path: landingPath || null,
+      referrer_url: referrer || null,
     })
     .select('reference')
     .single();

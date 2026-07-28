@@ -656,6 +656,7 @@ const premiumWorkspaceMigration = read('supabase/migrations/100_premium_workspac
 const compactNavigationMigration = read('supabase/migrations/101_compact_navigation_subscription_consistency.sql');
 const commercialReadinessMigration = read('supabase/migrations/102_commercial_readiness_pilot_validation.sql');
 const interactionsMigration = read('supabase/migrations/103_v2_27_1_interactions_release.sql');
+const seoAcquisitionMigration = read('supabase/migrations/104_seo_acquisition_release.sql');
 const commercialReadinessPanel = read('src/components/AdminCommercialReadinessPanel.tsx');
 const stripeCheckoutFunction = read('supabase/functions/create-stripe-checkout/index.ts');
 const stripePortalFunction = read('supabase/functions/create-stripe-portal/index.ts');
@@ -663,32 +664,40 @@ const stripeWebhookFunction = read('supabase/functions/stripe-webhook/index.ts')
 const stripeAddonFunction = read('supabase/functions/manage-stripe-addon/index.ts');
 const publicOfferCatalog = read('src/config/publicOfferCatalog.ts');
 const trainingDashboardPage = read('src/pages/TrainingDashboardPage.tsx');
-if (!indexHtml.includes('/ncr-suite-showcase-v271.css')
-    || !indexHtml.includes('/ncr-suite-app-v271.css')
+const seoPageConfig = read('src/config/publicSeoPages.json');
+const publicSolutionPage = read('src/pages/PublicSolutionPage.tsx');
+const acquisitionFeature = read('src/features/acquisition.ts');
+const accessRequestFunction = read('supabase/functions/request-platform-access/index.ts');
+const seoGenerator = read('scripts/generate-seo-pages.mjs');
+const sitemap = read('public/sitemap.xml');
+const robots = read('public/robots.txt');
+const cloudflareMiddleware = read('functions/_middleware.ts');
+if (!indexHtml.includes('/ncr-suite-showcase-v280.css')
+    || !indexHtml.includes('/ncr-suite-app-v280.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.27.1')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v271.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v271.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.28.0')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v280.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v280.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v271.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v280.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.27.1 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.28.0 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v271.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v271.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.27.1 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v280.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v280.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.28.0 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.27.1'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.27.1-interactions")
-    || !serviceWorker.includes("ncr-suite-shell-v2.27.1-interactions")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v271.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v271.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v271.js'")) {
-  errors.push('La version ou le cache PWA V2.27.1 est incoherent.');
+if (!runtimeConfig.includes("APP_VERSION = '2.28.0'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.28.0-seo-acquisition")
+    || !serviceWorker.includes("ncr-suite-shell-v2.28.0-seo-acquisition")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v280.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v280.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v280.js'")) {
+  errors.push('La version ou le cache PWA V2.28.0 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.27.1 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.28.0 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -877,6 +886,33 @@ if (!interactionsMigration.includes("'2.27.1'")
     || !publicStyles.includes('.premium-skeleton')
     || !publicStyles.includes('prefers-reduced-motion: reduce')) {
   errors.push('Les interactions et finitions V2.27.1 sont incompletes.');
+}
+if (!seoAcquisitionMigration.includes("'2.28.0'")
+    || !seoAcquisitionMigration.includes('ncr-suite-shell-v2.28.0-seo-acquisition')
+    || !seoAcquisitionMigration.includes('acquisition_source')
+    || !seoAcquisitionMigration.includes('landing_path')
+    || !seoPageConfig.includes('/logiciel-gestion-formation')
+    || !seoPageConfig.includes('/logiciel-securite-privee')
+    || !seoPageConfig.includes('/logiciel-entreprise-nettoyage')
+    || !seoPageConfig.includes('/logiciel-gestion-restaurant')
+    || !seoPageConfig.includes('/logiciel-coiffure')
+    || !publicSolutionPage.includes('structuredData')
+    || !publicSolutionPage.includes('FAQPage')
+    || !acquisitionFeature.includes('utm_source')
+    || !accessRequestPage.includes('acquisitionSource')
+    || !accessRequestFunction.includes('acquisition_source')
+    || !adminAccessRequestsPanel.includes('Origine')
+    || !seoGenerator.includes('ncr-seo-prerender')
+    || !seoGenerator.includes('sitemap.xml')
+    || !sitemap.includes('/logiciel-gestion-formation')
+    || !robots.includes('Sitemap: https://ncr-suite.fr/sitemap.xml')
+    || !cloudflareMiddleware.includes('indexablePaths')
+    || !cloudflareMiddleware.includes('/logiciel-gestion-formation')
+    || !cloudflareMiddleware.includes('/logiciel-securite-privee')
+    || !cloudflareMiddleware.includes('/logiciel-entreprise-nettoyage')
+    || !cloudflareMiddleware.includes('/logiciel-gestion-restaurant')
+    || !cloudflareMiddleware.includes('/logiciel-coiffure')) {
+  errors.push('Le SEO et le suivi d acquisition V2.28.0 sont incomplets.');
 }
 if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
   source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')

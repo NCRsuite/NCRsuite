@@ -6,15 +6,15 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-/ncr-suite-showcase-v271.css
+/ncr-suite-showcase-v280.css
   Content-Type: text/css; charset=utf-8
   Cache-Control: public, max-age=86400, must-revalidate
 
-/ncr-suite-app-v271.css
+/ncr-suite-app-v280.css
   Content-Type: text/css; charset=utf-8
   Cache-Control: public, max-age=86400, must-revalidate
 
-/ncr-suite-app-v271.js
+/ncr-suite-app-v280.js
   Content-Type: text/javascript; charset=utf-8
   Cache-Control: public, max-age=86400, must-revalidate
 
@@ -23,3 +23,27 @@
 
 /index.html
   Cache-Control: no-cache
+
+/connexion
+  X-Robots-Tag: noindex, nofollow
+
+/demande-acces
+  X-Robots-Tag: noindex, nofollow
+
+/mot-de-passe-oublie
+  X-Robots-Tag: noindex, nofollow
+
+/activation*
+  X-Robots-Tag: noindex, nofollow
+
+/administration-ncr*
+  X-Robots-Tag: noindex, nofollow
+
+/configuration*
+  X-Robots-Tag: noindex, nofollow
+
+/invitation*
+  X-Robots-Tag: noindex, nofollow
+
+/portail*
+  X-Robots-Tag: noindex, nofollow

@@ -1,1 +1,2 @@
-/* /index.html 200
+# Les redirections de domaine sont gerees par functions/_middleware.ts.
+# Sans 404.html, Cloudflare Pages conserve son repli SPA natif.

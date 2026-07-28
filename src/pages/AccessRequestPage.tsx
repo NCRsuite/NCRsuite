@@ -1,11 +1,12 @@
 import { FormEvent, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { PageMetadata } from '../components/PageMetadata';
 import { PublicSiteFooter } from '../components/PublicSiteFooter';
 import { PublicSiteHeader } from '../components/PublicSiteHeader';
 import { availableBusinessTypeOptions } from '../config/businessPacks';
 import { getDomainPlans } from '../config/domainPlans';
+import { readAcquisitionContext } from '../features/acquisition';
 import { supabase } from '../lib/supabase';
 import type { BusinessType, Plan } from '../types';
 
@@ -19,6 +20,7 @@ const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | und
 const planOrder: Plan[] = ['decouverte', 'essentielle', 'professionnelle', 'metier'];
 
 export function AccessRequestPage() {
+  const location = useLocation();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -35,6 +37,16 @@ export function AccessRequestPage() {
   const [reference, setReference] = useState('');
   const turnstileHost = useRef<HTMLDivElement | null>(null);
   const turnstileWidget = useRef<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const requestedBusiness = params.get('metier') as BusinessType | null;
+    const requestedOffer = params.get('offre') as Plan | null;
+    if (requestedBusiness && availableBusinessTypeOptions.some((business) => business.id === requestedBusiness)) {
+      setBusinessType(requestedBusiness);
+    }
+    if (requestedOffer && planOrder.includes(requestedOffer)) setRequestedPlan(requestedOffer);
+  }, [location.search]);
 
   useEffect(() => {
     if (!turnstileSiteKey || !turnstileHost.current) return;
@@ -91,6 +103,7 @@ export function AccessRequestPage() {
 
     setPending(true);
     setError('');
+    const acquisition = readAcquisitionContext();
     const { data, error: requestError } = await supabase.functions.invoke('request-platform-access', {
       body: {
         fullName,
@@ -103,7 +116,13 @@ export function AccessRequestPage() {
         message,
         privacyAccepted,
         website,
-        turnstileToken
+        turnstileToken,
+        acquisitionSource: acquisition.source,
+        acquisitionMedium: acquisition.medium,
+        acquisitionCampaign: acquisition.campaign,
+        acquisitionContent: acquisition.content,
+        landingPath: acquisition.landingPath,
+        referrer: acquisition.referrer
       }
     });
 

@@ -9,6 +9,15 @@ export const onRequest = async (context: PagesContext) => {
   const canonicalRedirectEnabled = context.env.NCR_CANONICAL_REDIRECT_ENABLED === 'true';
   const legacyHost = url.hostname === 'ncrsuite.pages.dev';
   const wwwHost = url.hostname === 'www.ncr-suite.fr';
+  const normalizedPath = url.pathname.replace(/\/+$/, '') || '/';
+  const indexablePaths = new Set([
+    '/',
+    '/logiciel-gestion-formation',
+    '/logiciel-securite-privee',
+    '/logiciel-entreprise-nettoyage',
+    '/logiciel-gestion-restaurant',
+    '/logiciel-coiffure',
+  ]);
 
   if (canonicalRedirectEnabled && (legacyHost || wwwHost)) {
     url.protocol = 'https:';
@@ -19,7 +28,7 @@ export const onRequest = async (context: PagesContext) => {
 
   const response = await context.next();
   const headers = new Headers(response.headers);
-  if (url.pathname !== '/') headers.set('X-Robots-Tag', 'noindex, nofollow');
+  if (!indexablePaths.has(normalizedPath)) headers.set('X-Robots-Tag', 'noindex, nofollow');
   headers.set('X-Content-Type-Options', 'nosniff');
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
