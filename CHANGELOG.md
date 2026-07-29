@@ -1,5 +1,17 @@
 # Changelog NCR Suite
 
+## V2.28.7 - Favicon Google Search
+
+- Favicon NCR Suite ajouté à la racine via `/favicon.ico`.
+- Versions PNG carrées `48x48` et `96x96` ajoutées.
+- Déclarations de favicon compatibles avec les recommandations Google.
+- Fichiers disponibles sur la page d'accueil et les cinq pages métier générées.
+- URL, canonical, sitemap, robots.txt et contenus SEO conservés.
+- Contrôles automatiques ajoutés aux audits de build.
+- Migration `111` limitée à la synchronisation de la release.
+- Cache PWA `ncr-suite-shell-v2.28.7-google-favicon`.
+- Nouveau bundle autonome `ncr-suite-app-v287.js`.
+
 ## V2.28.6 - Menu Solutions métier
 
 - Menu déroulant horizontal ajouté dans le header de la vitrine.

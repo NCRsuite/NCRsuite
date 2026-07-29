@@ -6,17 +6,24 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-/ncr-suite-showcase-v286.css
+/ncr-suite-showcase-v287.css
   Content-Type: text/css; charset=utf-8
   Cache-Control: public, max-age=86400, must-revalidate
 
-/ncr-suite-app-v286.css
+/ncr-suite-app-v287.css
   Content-Type: text/css; charset=utf-8
   Cache-Control: public, max-age=86400, must-revalidate
 
-/ncr-suite-app-v286.js
+/ncr-suite-app-v287.js
   Content-Type: text/javascript; charset=utf-8
   Cache-Control: public, max-age=86400, must-revalidate
+
+/favicon.ico
+  Content-Type: image/x-icon
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/icons/favicon-*.png
+  Cache-Control: public, max-age=604800, must-revalidate
 
 /sw.js
   Cache-Control: no-cache, no-store, must-revalidate

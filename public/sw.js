@@ -1,17 +1,20 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.28.6-solutions-menu';
+const CACHE = 'ncr-suite-shell-v2.28.7-google-favicon';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v286.css',
-  '/ncr-suite-app-v286.css',
-  '/ncr-suite-app-v286.js',
+  '/ncr-suite-showcase-v287.css',
+  '/ncr-suite-app-v287.css',
+  '/ncr-suite-app-v287.js',
   '/brand/ncr-suite-logo-header-v2221.png',
   '/brand/ncr-suite-symbol-v2221.png',
   '/brand/ncr-suite-icon.png',
   '/brand/ncr-suite-application-icon-v281.png',
+  '/favicon.ico',
+  '/icons/favicon-48.png',
+  '/icons/favicon-96.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
 ];

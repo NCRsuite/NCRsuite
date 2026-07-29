@@ -16,7 +16,8 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-solutions-menu`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-google-favicon`;
+const publicSolutionsMenuCache = 'ncr-suite-shell-v2.28.6-solutions-menu';
 const universalNotificationAccessCache = 'ncr-suite-shell-v2.28.5-universal-notification-access';
 const enterpriseNotificationShortcutCache = 'ncr-suite-shell-v2.28.4-enterprise-notification-shortcut';
 const solutionLayoutFixCache = 'ncr-suite-shell-v2.28.3-solution-layout-fix';
@@ -37,10 +38,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.28.6') failures.push('package.json doit annoncer la V2.28.6.');
+if (pkg.version !== '2.28.7') failures.push('package.json doit annoncer la V2.28.7.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.28.6 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.28.6 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.28.7 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.28.7 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -274,6 +275,11 @@ requireText('supabase/migrations/109_universal_notification_access.sql', [
 ]);
 requireText('supabase/migrations/110_public_solutions_menu.sql', [
   "'2.28.6'",
+  publicSolutionsMenuCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/111_google_search_favicon.sql', [
+  "'2.28.7'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -343,37 +349,48 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v286.css',
-  'ncr-suite-app-v286.css',
+  'ncr-suite-showcase-v287.css',
+  'ncr-suite-app-v287.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
 
 requireText('index.html', [
-  '/ncr-suite-showcase-v286.css',
-  '/ncr-suite-app-v286.css',
+  '/favicon.ico',
+  '/icons/favicon-96.png',
+  '/icons/favicon-48.png',
+  '/ncr-suite-showcase-v287.css',
+  '/ncr-suite-app-v287.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.6',
+  'ncr:css-recovery-v2.28.7',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v286.css',
-  '/ncr-suite-app-v286.css',
+  '/ncr-suite-showcase-v287.css',
+  '/ncr-suite-app-v287.css',
+  '/favicon.ico',
   'X-Robots-Tag: noindex, nofollow'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v286.css'))) {
-  failures.push('La feuille de style critique V2.28.6 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v287.css'))) {
+  failures.push('La feuille de style critique V2.28.7 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v286.css'))) {
-  failures.push('La feuille de style complète V2.28.6 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v287.css'))) {
+  failures.push('La feuille de style complète V2.28.7 n’a pas été générée.');
+}
+for (const favicon of [
+  'public/favicon.ico',
+  'public/icons/favicon-48.png',
+  'public/icons/favicon-96.png'
+]) {
+  if (!fs.existsSync(path.join(root, favicon))) failures.push(`Favicon Google absent : ${favicon}`);
 }
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v286.js'"
+  "entryFileNames: 'ncr-suite-app-v287.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');

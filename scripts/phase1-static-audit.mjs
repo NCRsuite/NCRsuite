@@ -15,6 +15,17 @@ function walk(directory, extension, output = []) {
   return output;
 }
 
+function readPngDimensions(relativePath) {
+  const absolutePath = path.join(root, relativePath);
+  if (!fs.existsSync(absolutePath)) return null;
+  const image = fs.readFileSync(absolutePath);
+  if (image.length < 24 || image.toString('ascii', 1, 4) !== 'PNG') return null;
+  return {
+    width: image.readUInt32BE(16),
+    height: image.readUInt32BE(20)
+  };
+}
+
 const app = read('src/App.tsx');
 for (const match of app.matchAll(/const\s+(\w+)\s*=\s*lazy\(\(\)\s*=>\s*import\('([^']+)'\)/g)) {
   const [, exportName, importPath] = match;
@@ -663,6 +674,7 @@ const solutionLayoutFixMigration = read('supabase/migrations/107_solution_layout
 const enterpriseNotificationShortcutMigration = read('supabase/migrations/108_enterprise_notification_shortcut.sql');
 const universalNotificationAccessMigration = read('supabase/migrations/109_universal_notification_access.sql');
 const publicSolutionsMenuMigration = read('supabase/migrations/110_public_solutions_menu.sql');
+const googleSearchFaviconMigration = read('supabase/migrations/111_google_search_favicon.sql');
 const commercialReadinessPanel = read('src/components/AdminCommercialReadinessPanel.tsx');
 const stripeCheckoutFunction = read('supabase/functions/create-stripe-checkout/index.ts');
 const stripePortalFunction = read('supabase/functions/create-stripe-portal/index.ts');
@@ -678,33 +690,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v286.css')
-    || !indexHtml.includes('/ncr-suite-app-v286.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v287.css')
+    || !indexHtml.includes('/ncr-suite-app-v287.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.28.6')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v286.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v286.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.28.7')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v287.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v287.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v286.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v287.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.28.6 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.28.7 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v286.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v286.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.28.6 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v287.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v287.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.28.7 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.28.6'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.28.6-solutions-menu")
-    || !serviceWorker.includes("ncr-suite-shell-v2.28.6-solutions-menu")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v286.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v286.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v286.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.28.7'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.28.7-google-favicon")
+    || !serviceWorker.includes("ncr-suite-shell-v2.28.7-google-favicon")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v287.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v287.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v287.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.28.6 est incoherent.');
+  errors.push('La version ou le cache PWA V2.28.7 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.28.6 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.28.7 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -990,6 +1002,27 @@ if (!publicSolutionsMenuMigration.includes("'2.28.6'")
     || !publicStyles.includes('grid-template-columns: repeat(5, minmax(0, 1fr))')
     || !publicStyles.includes('.public-solutions-strip > a:hover')) {
   errors.push('Le menu horizontal des pages metier V2.28.6 est incomplet.');
+}
+const favicon48Dimensions = readPngDimensions('public/icons/favicon-48.png');
+const favicon96Dimensions = readPngDimensions('public/icons/favicon-96.png');
+if (!googleSearchFaviconMigration.includes("'2.28.7'")
+    || !googleSearchFaviconMigration.includes('ncr-suite-shell-v2.28.7-google-favicon')
+    || !googleSearchFaviconMigration.includes('platform_release_state')
+    || !fs.existsSync(path.join(root, 'public/favicon.ico'))
+    || favicon48Dimensions?.width !== 48
+    || favicon48Dimensions?.height !== 48
+    || favicon96Dimensions?.width !== 96
+    || favicon96Dimensions?.height !== 96
+    || !indexHtml.includes('href="/favicon.ico"')
+    || !indexHtml.includes('sizes="96x96" href="/icons/favicon-96.png"')
+    || !indexHtml.includes('sizes="48x48" href="/icons/favicon-48.png"')
+    || !serviceWorker.includes("'/favicon.ico'")
+    || !serviceWorker.includes("'/icons/favicon-48.png'")
+    || !serviceWorker.includes("'/icons/favicon-96.png'")
+    || !cloudflareHeaders.includes('/favicon.ico')
+    || robots.includes('Disallow: /favicon')
+    || robots.includes('Disallow: /icons')) {
+  errors.push('Le favicon Google Search V2.28.7 est absent, mal dimensionne ou non explorable.');
 }
 if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
   source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')

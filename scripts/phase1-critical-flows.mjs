@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-solutions-menu`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-google-favicon`;
+const publicSolutionsMenuCache = 'ncr-suite-shell-v2.28.6-solutions-menu';
 const universalNotificationAccessCache = 'ncr-suite-shell-v2.28.5-universal-notification-access';
 const enterpriseNotificationShortcutCache = 'ncr-suite-shell-v2.28.4-enterprise-notification-shortcut';
 const solutionLayoutFixCache = 'ncr-suite-shell-v2.28.3-solution-layout-fix';
@@ -67,18 +68,22 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v286.css',
-  '/ncr-suite-app-v286.css',
+  '/favicon.ico',
+  '/icons/favicon-96.png',
+  '/icons/favicon-48.png',
+  '/ncr-suite-showcase-v287.css',
+  '/ncr-suite-app-v287.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.6'
+  'ncr:css-recovery-v2.28.7'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v286.css',
+  '/ncr-suite-app-v287.css',
+  '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v286.js'"
+  "entryFileNames: 'ncr-suite-app-v287.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -926,6 +931,11 @@ requireText('supabase/migrations/109_universal_notification_access.sql', [
 ]);
 requireText('supabase/migrations/110_public_solutions_menu.sql', [
   "'2.28.6'",
+  publicSolutionsMenuCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/111_google_search_favicon.sql', [
+  "'2.28.7'",
   expectedCache,
   'platform_release_state'
 ]);
