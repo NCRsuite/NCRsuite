@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-universal-notification-access`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-solutions-menu`;
+const universalNotificationAccessCache = 'ncr-suite-shell-v2.28.5-universal-notification-access';
 const enterpriseNotificationShortcutCache = 'ncr-suite-shell-v2.28.4-enterprise-notification-shortcut';
 const solutionLayoutFixCache = 'ncr-suite-shell-v2.28.3-solution-layout-fix';
 const solutionArtDirectionCache = 'ncr-suite-shell-v2.28.2-solution-art-direction';
@@ -66,18 +67,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v285.css',
-  '/ncr-suite-app-v285.css',
+  '/ncr-suite-showcase-v286.css',
+  '/ncr-suite-app-v286.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.5'
+  'ncr:css-recovery-v2.28.6'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v285.css',
+  '/ncr-suite-app-v286.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v285.js'"
+  "entryFileNames: 'ncr-suite-app-v286.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -920,6 +921,11 @@ requireText('supabase/migrations/108_enterprise_notification_shortcut.sql', [
 ]);
 requireText('supabase/migrations/109_universal_notification_access.sql', [
   "'2.28.5'",
+  universalNotificationAccessCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/110_public_solutions_menu.sql', [
+  "'2.28.6'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -951,6 +957,19 @@ requireText('src/config/moduleAccess.ts', [
   "const UNIVERSAL_MODULE_PATHS = new Set(['/notifications'])",
   'const isUniversalModule = UNIVERSAL_MODULE_PATHS.has(normalized)',
   '!isUniversalModule && organization.plan'
+]);
+requireText('src/components/PublicSiteHeader.tsx', [
+  'public-solutions-trigger',
+  'public-solutions-strip',
+  'publicSeoPages.json',
+  'aria-expanded={solutionsOpen}',
+  'setSolutionsOpen(false)'
+]);
+requireText('src/styles.css', [
+  'NCR Suite V2.28.6 - menu horizontal des solutions metier',
+  '.public-solutions-panel',
+  'grid-template-columns: repeat(5, minmax(0, 1fr))',
+  '.public-solutions-strip > a:hover'
 ]);
 requireText('scripts/generate-seo-pages.mjs', [
   'publicSeoPages.json',

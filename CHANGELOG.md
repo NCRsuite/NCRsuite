@@ -1,5 +1,18 @@
 # Changelog NCR Suite
 
+## V2.28.6 - Menu Solutions métier
+
+- Menu déroulant horizontal ajouté dans le header de la vitrine.
+- Cinq pages indexables accessibles directement : Formation, Sécurité privée, Nettoyage, Restauration et Coiffure & beauté.
+- Surbrillance au survol, au clavier et sur la page métier active.
+- Fermeture après sélection, avec Échap ou par clic extérieur.
+- Navigation mobile conservée sous forme de ligne horizontale glissable.
+- Liens issus du catalogue SEO central pour éviter les incohérences futures.
+- URL, sitemap, métadonnées et données structurées inchangés.
+- Migration `110` limitée à la synchronisation de la release.
+- Cache PWA `ncr-suite-shell-v2.28.6-solutions-menu`.
+- Nouveau bundle autonome `ncr-suite-app-v286.js`.
+
 ## V2.28.5 - Correctif rubrique Notifications
 
 - Cause du problème NCR Solutions identifiée dans le filtrage des modules Métier.
