@@ -16,7 +16,8 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-enterprise-notification-shortcut`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-universal-notification-access`;
+const enterpriseNotificationShortcutCache = 'ncr-suite-shell-v2.28.4-enterprise-notification-shortcut';
 const solutionLayoutFixCache = 'ncr-suite-shell-v2.28.3-solution-layout-fix';
 const solutionArtDirectionCache = 'ncr-suite-shell-v2.28.2-solution-art-direction';
 const premiumSolutionPagesCache = 'ncr-suite-shell-v2.28.1-premium-solution-pages';
@@ -35,10 +36,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.28.4') failures.push('package.json doit annoncer la V2.28.4.');
+if (pkg.version !== '2.28.5') failures.push('package.json doit annoncer la V2.28.5.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.28.4 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.28.4 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.28.5 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.28.5 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -262,6 +263,11 @@ requireText('supabase/migrations/107_solution_layout_fix_release.sql', [
 ]);
 requireText('supabase/migrations/108_enterprise_notification_shortcut.sql', [
   "'2.28.4'",
+  enterpriseNotificationShortcutCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/109_universal_notification_access.sql', [
+  "'2.28.5'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -331,37 +337,37 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v284.css',
-  'ncr-suite-app-v284.css',
+  'ncr-suite-showcase-v285.css',
+  'ncr-suite-app-v285.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
 
 requireText('index.html', [
-  '/ncr-suite-showcase-v284.css',
-  '/ncr-suite-app-v284.css',
+  '/ncr-suite-showcase-v285.css',
+  '/ncr-suite-app-v285.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.4',
+  'ncr:css-recovery-v2.28.5',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v284.css',
-  '/ncr-suite-app-v284.css',
+  '/ncr-suite-showcase-v285.css',
+  '/ncr-suite-app-v285.css',
   'X-Robots-Tag: noindex, nofollow'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v284.css'))) {
-  failures.push('La feuille de style critique V2.28.4 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v285.css'))) {
+  failures.push('La feuille de style critique V2.28.5 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v284.css'))) {
-  failures.push('La feuille de style complète V2.28.4 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v285.css'))) {
+  failures.push('La feuille de style complète V2.28.5 n’a pas été générée.');
 }
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v284.js'"
+  "entryFileNames: 'ncr-suite-app-v285.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');
@@ -420,6 +426,13 @@ requireText('src/styles.css', [
   'NCR Suite V2.28.4 - raccourci permanent des notifications entreprise',
   '.app-shell-v284 .enterprise-notification-shortcut',
   'grid-template-columns: 42px minmax(0, 1fr) 38px 42px'
+]);
+
+requireText('src/config/moduleAccess.ts', [
+  "const UNIVERSAL_MODULE_PATHS = new Set(['/notifications'])",
+  'const isUniversalModule = UNIVERSAL_MODULE_PATHS.has(normalized)',
+  '!isUniversalModule && !isCoiffureLoyaltyBase',
+  '!isUniversalModule && organization.plan'
 ]);
 
 requireText('src/features/acquisition.ts', [

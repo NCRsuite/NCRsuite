@@ -1,9 +1,9 @@
-# NCR Suite V2.28.4
+# NCR Suite V2.28.5
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version ajoute un raccourci permanent vers le centre de notifications
-dans tous les espaces entreprise. La cloche et son compteur restent accessibles
-sur ordinateur, mobile et PWA, indépendamment du métier, de la formule et du menu.
+Cette version rend la rubrique Notifications universelle dans tous les espaces
+entreprise. Une ancienne configuration de modules Métier ne peut plus masquer
+la rubrique ni bloquer la page. La cloche et le compteur V2.28.4 sont conservés.
 
-Consulter uniquement `A_LIRE_INSTALLATION_V2.28.4.txt` pour déployer ce patch.
+Consulter uniquement `A_LIRE_INSTALLATION_V2.28.5.txt` pour déployer ce patch.

@@ -130,6 +130,9 @@ const FORMATION_UPSELL_PATHS = new Set([
   '/etablissements', '/acces-equipe', '/personnalisation'
 ]);
 
+// Les notifications sont un service transversal de la plateforme. Elles ne
+// doivent jamais dépendre d'une ancienne sélection de modules Métier.
+const UNIVERSAL_MODULE_PATHS = new Set(['/notifications']);
 
 export function normalizedModulePath(pathname: string) {
   return normalizeRoutePath(pathname);
@@ -245,8 +248,9 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
   // rester désactivé, mais la rubrique ne doit pas disparaître à cause d'une ancienne
   // sélection de modules Métier. Les restrictions des rôles personnalisés restent actives.
   const isCoiffureLoyaltyBase = organization.business_type === 'coiffure' && normalized === '/fidelite';
-  if (!isCoiffureLoyaltyBase && organization.plan === 'metier' && organization.metier_modules_configured && !(organization.enabled_modules ?? []).includes(moduleKey)) return false;
-  if (organization.plan === 'metier' && organization.custom_role_id && moduleKey !== 'dashboard' && !(organization.custom_module_keys ?? []).includes(moduleKey)) return false;
+  const isUniversalModule = UNIVERSAL_MODULE_PATHS.has(normalized);
+  if (!isUniversalModule && !isCoiffureLoyaltyBase && organization.plan === 'metier' && organization.metier_modules_configured && !(organization.enabled_modules ?? []).includes(moduleKey)) return false;
+  if (!isUniversalModule && organization.plan === 'metier' && organization.custom_role_id && moduleKey !== 'dashboard' && !(organization.custom_module_keys ?? []).includes(moduleKey)) return false;
   return true;
 }
 

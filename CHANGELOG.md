@@ -1,5 +1,18 @@
 # Changelog NCR Suite
 
+## V2.28.5 - Correctif rubrique Notifications
+
+- Cause du problème NCR Solutions identifiée dans le filtrage des modules Métier.
+- Rubrique Notifications déclarée comme accès universel de la plateforme.
+- Anciennes sélections de modules empêchées de masquer la rubrique.
+- Rôles personnalisés empêchés de bloquer le centre de notifications.
+- Contrôles de rôle et d’appartenance à l’entreprise conservés.
+- Cloche permanente et compteur V2.28.4 conservés.
+- Aucun module payant, abonnement Stripe ou contenu client modifié.
+- Migration `109` limitée à la synchronisation de la release.
+- Cache PWA `ncr-suite-shell-v2.28.5-universal-notification-access`.
+- Nouveau bundle autonome `ncr-suite-app-v285.js`.
+
 ## V2.28.4 - Bouton notifications entreprise
 
 - Cloche Notifications permanente dans tous les espaces entreprise.
