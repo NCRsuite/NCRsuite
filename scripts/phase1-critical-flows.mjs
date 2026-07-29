@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-solution-layout-fix`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-enterprise-notification-shortcut`;
+const solutionLayoutFixCache = 'ncr-suite-shell-v2.28.3-solution-layout-fix';
 const solutionArtDirectionCache = 'ncr-suite-shell-v2.28.2-solution-art-direction';
 const premiumSolutionPagesCache = 'ncr-suite-shell-v2.28.1-premium-solution-pages';
 const seoAcquisitionCache = 'ncr-suite-shell-v2.28.0-seo-acquisition';
@@ -64,18 +65,18 @@ requireText('src/components/AppErrorBoundary.tsx', [
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
 requireText('index.html', [
-  '/ncr-suite-showcase-v283.css',
-  '/ncr-suite-app-v283.css',
+  '/ncr-suite-showcase-v284.css',
+  '/ncr-suite-app-v284.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.3'
+  'ncr:css-recovery-v2.28.4'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v283.css',
+  '/ncr-suite-app-v284.css',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v283.js'"
+  "entryFileNames: 'ncr-suite-app-v284.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -908,6 +909,11 @@ requireText('supabase/migrations/106_solution_art_direction_release.sql', [
 ]);
 requireText('supabase/migrations/107_solution_layout_fix_release.sql', [
   "'2.28.3'",
+  solutionLayoutFixCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/108_enterprise_notification_shortcut.sql', [
+  "'2.28.4'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -924,6 +930,16 @@ requireText('src/styles.css', [
   '@media (min-width: 1001px)',
   'article.public-solution-feature-card',
   '"outcome-label outcome-title"'
+]);
+requireText('src/components/AppShell.tsx', [
+  'app-shell-v284',
+  'enterprise-notification-shortcut desktop',
+  'enterprise-notification-shortcut mobile',
+  'to="/notifications"'
+]);
+requireText('src/styles.css', [
+  'NCR Suite V2.28.4 - raccourci permanent des notifications entreprise',
+  '.app-shell-v284 .enterprise-notification-shortcut'
 ]);
 requireText('scripts/generate-seo-pages.mjs', [
   'publicSeoPages.json',

@@ -628,7 +628,7 @@ export function AppShell() {
     : 1;
 
   return (
-    <div className="app-shell app-shell-v265 app-shell-v266 app-shell-v270 app-shell-v271">
+    <div className="app-shell app-shell-v265 app-shell-v266 app-shell-v270 app-shell-v271 app-shell-v284">
       <input
         id="profile-avatar-upload"
         className="profile-avatar-input"
@@ -861,6 +861,15 @@ export function AppShell() {
             <strong>{user?.user_metadata?.full_name || 'Utilisateur'}</strong>
             <span>{user?.email}</span>
           </div>
+          <NavLink
+            className={({ isActive }) => `enterprise-notification-shortcut desktop${isActive ? ' active' : ''}${notificationUnread > 0 ? ' has-unread' : ''}`}
+            to="/notifications"
+            title="Notifications"
+            aria-label={notificationUnread > 0 ? `${notificationUnread} notification(s) non lue(s)` : 'Notifications'}
+          >
+            <Icon name="bell" size={18} />
+            {notificationUnread > 0 && <b>{notificationUnread > 99 ? '99+' : notificationUnread}</b>}
+          </NavLink>
           <button className="icon-button" onClick={handleSignOut} title="Se déconnecter" aria-label="Se déconnecter">
             <Icon name="logout" size={19} />
           </button>
@@ -892,6 +901,15 @@ export function AppShell() {
               <small>{pack.label}</small>
             </span>
           </button>
+
+          <NavLink
+            className={({ isActive }) => `enterprise-notification-shortcut mobile${isActive ? ' active' : ''}${notificationUnread > 0 ? ' has-unread' : ''}`}
+            to="/notifications"
+            aria-label={notificationUnread > 0 ? `${notificationUnread} notification(s) non lue(s)` : 'Notifications'}
+          >
+            <Icon name="bell" size={18} />
+            {notificationUnread > 0 && <b>{notificationUnread > 99 ? '99+' : notificationUnread}</b>}
+          </NavLink>
 
           <button
             className="mobile-account-avatar-button"

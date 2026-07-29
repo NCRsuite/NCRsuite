@@ -1,5 +1,17 @@
 # Changelog NCR Suite
 
+## V2.28.4 - Bouton notifications entreprise
+
+- Cloche Notifications permanente dans tous les espaces entreprise.
+- Accès placé près du profil sur ordinateur et dans l’en-tête mobile.
+- Compteur des notifications non lues mis à jour pour l’entreprise active.
+- Accès indépendant du métier, de la formule, de la recherche et des groupes du menu.
+- Centre de notifications, préférences push et alertes écran verrouillé conservés.
+- Aucun droit, abonnement Stripe, contenu client ou automatisation modifié.
+- Migration `108` limitée à la synchronisation de la release.
+- Cache PWA `ncr-suite-shell-v2.28.4-enterprise-notification-shortcut`.
+- Nouveau bundle autonome `ncr-suite-app-v284.js`.
+
 ## V2.28.3 - Correctif cartes et espacement des pages métier
 
 - Titres et icônes des cartes rétablis sur ordinateur.
