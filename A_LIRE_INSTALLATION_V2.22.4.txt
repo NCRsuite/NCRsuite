@@ -1,6 +1,6 @@
 NCR SUITE V2.22.4 - ORDRE D'INSTALLATION
 
-OBJECTIF
+OBJECTIF 
 Corriger l'echec de chargement du module PublicHomePage et des styles places
 dans /assets, tout en conservant la vitrine animee.
 
