@@ -1,5 +1,20 @@
 # Changelog NCR Suite
 
+## V2.29.0 - Contrat et signature avant activation Stripe
+
+- Contrat de première souscription généré automatiquement avec les informations de l’entreprise et l’offre choisie.
+- PDF exact consultable avant signature puis archivé dans un espace Supabase privé.
+- Consentements distincts pour le contrat, les CGV, les CGU et l’annexe de traitement des données.
+- Signature électronique simple documentée avec code e-mail à six chiffres valable dix minutes.
+- Preuve horodatée comprenant le signataire, sa qualité, l’e-mail vérifié, l’adresse IP, le navigateur et les empreintes SHA-256.
+- Exemplaire signé envoyé automatiquement par e-mail et conservé dans `Mon abonnement`.
+- Première page Stripe inaccessible tant que le contrat complet n’est pas signé.
+- Identifiant du contrat transmis à Checkout, à l’abonnement et aux webhooks Stripe.
+- Statut contractuel synchronisé avec le paiement, l’échec, la résiliation et l’abonnement actif.
+- Données existantes, rétrogradations et changements d’offres des clients déjà abonnés conservés.
+- Migration `114`, Edge Function `subscription-contract` et cache PWA `ncr-suite-shell-v2.29.0-subscription-contract-signature`.
+- Pages publiques, sitemap, canonical, métadonnées et indexation inchangés.
+
 ## V2.28.9 - Espaces externes unifiés et photos dans les rapports
 
 - Une seule entrée `Sécurité` pour les clients et les agents dans les espaces externes.

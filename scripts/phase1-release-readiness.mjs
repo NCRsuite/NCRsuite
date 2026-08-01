@@ -16,7 +16,8 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-unified-external-portals-photo-reports`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-subscription-contract-signature`;
+const unifiedExternalPortalsCache = 'ncr-suite-shell-v2.28.9-unified-external-portals-photo-reports';
 const cleaningAgentCameraCache = 'ncr-suite-shell-v2.28.8-cleaning-agent-camera';
 const googleSearchFaviconCache = 'ncr-suite-shell-v2.28.7-google-favicon';
 const publicSolutionsMenuCache = 'ncr-suite-shell-v2.28.6-solutions-menu';
@@ -40,10 +41,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.28.9') failures.push('package.json doit annoncer la V2.28.9.');
+if (pkg.version !== '2.29.0') failures.push('package.json doit annoncer la V2.29.0.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.28.9 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.28.9 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.29.0 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.29.0 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -314,8 +315,46 @@ requireText('src/pages/LoginPage.tsx', [
 ]);
 requireText('supabase/migrations/113_unified_external_portals_photo_reports.sql', [
   "'2.28.9'",
+  unifiedExternalPortalsCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/114_subscription_contracts_signature.sql', [
+  'create table if not exists public.subscription_contracts',
+  'create table if not exists public.subscription_contract_events',
+  "'subscription-contracts','subscription-contracts',false",
+  'current_contract_id',
+  "'2.29.0'",
   expectedCache,
   'platform_release_state'
+]);
+requireText('supabase/functions/subscription-contract/index.ts', [
+  "action === 'prepare'",
+  "action === 'request_code'",
+  "action === 'sign'",
+  'appendSignaturePage',
+  'signature_payload_sha256',
+  'BREVO_API_KEY'
+]);
+requireText('src/pages/OnboardingPage.tsx', [
+  "invoke('subscription-contract'",
+  'Signer et passer au paiement',
+  'J’ai lu et j’accepte le contrat d’abonnement',
+  'contractId'
+]);
+requireText('supabase/functions/create-stripe-checkout/index.ts', [
+  'Le contrat d abonnement doit etre signe avant le paiement',
+  'ncr_contract_id',
+  "from('subscription_contracts')"
+]);
+requireText('supabase/functions/stripe-webhook/index.ts', [
+  "from('subscription_contracts')",
+  'current_contract_id',
+  'ncr_contract_id'
+]);
+requireText('src/pages/SubscriptionPage.tsx', [
+  "invoke('subscription-contract'",
+  'Mes contrats NCR Suite',
+  'Ouvrir'
 ]);
 requireText('src/App.tsx', [
   'path="/espace-securite"',
@@ -392,8 +431,8 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v289.css',
-  'ncr-suite-app-v289.css',
+  'ncr-suite-showcase-v290.css',
+  'ncr-suite-app-v290.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
@@ -402,26 +441,26 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v289.css',
-  '/ncr-suite-app-v289.css',
+  '/ncr-suite-showcase-v290.css',
+  '/ncr-suite-app-v290.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.9',
+  'ncr:css-recovery-v2.29.0',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v289.css',
-  '/ncr-suite-app-v289.css',
+  '/ncr-suite-showcase-v290.css',
+  '/ncr-suite-app-v290.css',
   '/favicon.ico',
   'X-Robots-Tag: noindex, nofollow'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v289.css'))) {
-  failures.push('La feuille de style critique V2.28.9 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v290.css'))) {
+  failures.push('La feuille de style critique V2.29.0 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v289.css'))) {
-  failures.push('La feuille de style complète V2.28.9 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v290.css'))) {
+  failures.push('La feuille de style complète V2.29.0 n’a pas été générée.');
 }
 for (const favicon of [
   'public/favicon.ico',
@@ -433,7 +472,7 @@ for (const favicon of [
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v289.js'"
+  "entryFileNames: 'ncr-suite-app-v290.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');
@@ -855,7 +894,7 @@ for (const domain of domains) {
 }
 
 const migrationFiles = fs.readdirSync(path.join(root, 'supabase', 'migrations'));
-for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086','087','088','089','090','091','092','093','094','095']) {
+for (const migrationNumber of ['054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069','070','071','072','073','074','075','076','077','078','079','080','081','082','083','084','085','086','087','088','089','090','091','092','093','094','095','096','097','098','099','100','101','102','103','104','105','106','107','108','109','110','111','112','113','114']) {
   if (!migrationFiles.some((file) => file.startsWith(`${migrationNumber}_`))) {
     failures.push(`Migration de production ${migrationNumber} absente.`);
   }

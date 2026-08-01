@@ -115,6 +115,18 @@ interface SubscriptionPortfolioItem {
   error: string | null;
 }
 
+interface SubscriptionContractItem {
+  id: string;
+  reference: string;
+  status: 'awaiting_signature' | 'signed' | 'payment_pending' | 'active' | 'payment_failed' | 'canceled' | 'superseded';
+  planLabel: string;
+  monthlyPriceCents: number;
+  signerName: string | null;
+  signedAt: string | null;
+  paymentStatus: 'not_started' | 'pending' | 'paid' | 'failed' | 'canceled';
+  downloadUrl: string | null;
+}
+
 const statusLabels: Record<SubscriptionStatus, string> = {
   trialing: 'Période d’essai',
   active: 'Actif',
@@ -183,6 +195,8 @@ export function SubscriptionPage() {
   const [pendingPlan, setPendingPlan] = useState<Plan | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [openingPortal, setOpeningPortal] = useState(false);
+  const [contracts, setContracts] = useState<SubscriptionContractItem[]>([]);
+  const [contractsLoading, setContractsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -197,6 +211,14 @@ export function SubscriptionPage() {
     });
     if (requestError) setError(requestError.message);
     else setData(response as BillingPortalData);
+    if (canManage) {
+      setContractsLoading(true);
+      const { data: contractResponse } = await supabase.functions.invoke('subscription-contract', {
+        body: { action: 'list', organizationId: organization.id }
+      });
+      setContracts(Array.isArray(contractResponse?.contracts) ? contractResponse.contracts as SubscriptionContractItem[] : []);
+      setContractsLoading(false);
+    }
     setLoading(false);
   }
 
@@ -585,6 +607,29 @@ export function SubscriptionPage() {
             <p><strong>Résiliation :</strong> {data.terms.cancellation_text}</p>
             {!canManage && <div className="info-message">Seul le propriétaire ou un administrateur peut demander un changement de formule.</div>}
           </section>
+
+          {canManage && (
+            <section className="panel subscription-contracts-panel">
+              <div className="panel-header">
+                <div><p className="eyebrow">DOCUMENTS CONTRACTUELS</p><h2>Mes contrats NCR Suite</h2><p>Les exemplaires signés et leurs preuves restent disponibles dans un stockage privé.</p></div>
+                <span className="subscription-provider-badge"><Icon name="signature" size={17} /> {contracts.length} document{contracts.length > 1 ? 's' : ''}</span>
+              </div>
+              {contractsLoading ? <PremiumSkeleton label="Chargement des contrats" rows={2} /> : contracts.length === 0 ? (
+                <p className="muted">Aucun contrat signé n’est encore rattaché à cet espace.</p>
+              ) : (
+                <div className="subscription-contract-list">
+                  {contracts.map((item) => (
+                    <article key={item.id}>
+                      <span><Icon name="file" size={19} /></span>
+                      <div><strong>{item.reference}</strong><small>{item.planLabel} · {money(item.monthlyPriceCents)} HT/mois{item.signedAt ? ` · signé le ${dateLabel(item.signedAt)}` : ''}</small></div>
+                      <em className={`subscription-contract-status ${item.paymentStatus}`}>{item.paymentStatus === 'paid' ? 'Payé' : item.status === 'signed' ? 'Signé' : item.paymentStatus === 'failed' ? 'À régulariser' : item.status === 'canceled' ? 'Résilié' : 'En cours'}</em>
+                      {item.downloadUrl && <a className="secondary-button compact-button" href={item.downloadUrl} target="_blank" rel="noreferrer"><Icon name="eye" size={16} /> Ouvrir</a>}
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
           <section className="panel subscription-history-panel">
             <div className="panel-header"><div><p className="eyebrow">HISTORIQUE</p><h2>Évolution de l’abonnement</h2></div></div>

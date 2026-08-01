@@ -25,6 +25,9 @@ verify_jwt = true
 [functions.request-account-recovery]
 verify_jwt = false
 
+[functions.subscription-contract]
+verify_jwt = true
+
 [functions.create-stripe-checkout]
 verify_jwt = true
 

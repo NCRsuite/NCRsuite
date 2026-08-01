@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-unified-external-portals-photo-reports`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-subscription-contract-signature`;
+const unifiedExternalPortalsCache = 'ncr-suite-shell-v2.28.9-unified-external-portals-photo-reports';
 const cleaningAgentCameraCache = 'ncr-suite-shell-v2.28.8-cleaning-agent-camera';
 const googleSearchFaviconCache = 'ncr-suite-shell-v2.28.7-google-favicon';
 const publicSolutionsMenuCache = 'ncr-suite-shell-v2.28.6-solutions-menu';
@@ -73,19 +74,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v289.css',
-  '/ncr-suite-app-v289.css',
+  '/ncr-suite-showcase-v290.css',
+  '/ncr-suite-app-v290.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.9'
+  'ncr:css-recovery-v2.29.0'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v289.css',
+  '/ncr-suite-app-v290.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v289.js'"
+  "entryFileNames: 'ncr-suite-app-v290.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -965,8 +966,45 @@ requireText('src/pages/LoginPage.tsx', [
 ]);
 requireText('supabase/migrations/113_unified_external_portals_photo_reports.sql', [
   "'2.28.9'",
+  unifiedExternalPortalsCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/114_subscription_contracts_signature.sql', [
+  'create table if not exists public.subscription_contracts',
+  'create table if not exists public.subscription_contract_events',
+  "'subscription-contracts','subscription-contracts',false",
+  "'2.29.0'",
   expectedCache,
   'platform_release_state'
+]);
+requireText('supabase/functions/subscription-contract/index.ts', [
+  "action === 'prepare'",
+  "action === 'request_code'",
+  "action === 'sign'",
+  'appendSignaturePage',
+  'signature_payload_sha256',
+  'BREVO_API_KEY'
+]);
+requireText('src/pages/OnboardingPage.tsx', [
+  "invoke('subscription-contract'",
+  'Signer et passer au paiement',
+  'J’ai lu et j’accepte le contrat d’abonnement',
+  'contractId'
+]);
+requireText('supabase/functions/create-stripe-checkout/index.ts', [
+  'Le contrat d abonnement doit etre signe avant le paiement',
+  'ncr_contract_id',
+  "from('subscription_contracts')"
+]);
+requireText('supabase/functions/stripe-webhook/index.ts', [
+  "from('subscription_contracts')",
+  'current_contract_id',
+  'ncr_contract_id'
+]);
+requireText('src/pages/SubscriptionPage.tsx', [
+  "invoke('subscription-contract'",
+  'Mes contrats NCR Suite',
+  'Ouvrir'
 ]);
 requireText('src/App.tsx', [
   'path="/espace-securite"',
@@ -1164,7 +1202,8 @@ requireText('src/pages/SubscriptionPage.tsx', [
   'Vos données sont conservées'
 ]);
 requireText('src/pages/OnboardingPage.tsx', [
-  'Créer et passer au paiement',
+  'Créer et préparer le contrat',
+  'Signer et passer au paiement',
   'L’espace restera verrouillé jusqu’à la confirmation du paiement'
 ]);
 requireText('src/components/BillingAdminPanel.tsx', [

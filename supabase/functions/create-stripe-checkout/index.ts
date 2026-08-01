@@ -6,6 +6,7 @@ type CheckoutPayload = {
   organizationId?: string;
   planKey?: string;
   requestId?: string;
+  contractId?: string;
   acceptTerms?: boolean;
 };
 
@@ -222,6 +223,7 @@ Deno.serve(async (request) => {
     const organizationId = String(payload.organizationId ?? '').trim();
     const requestedPlan = String(payload.planKey ?? '').trim();
     let requestId = String(payload.requestId ?? '').trim();
+    let contractId = String(payload.contractId ?? '').trim();
     if (!organizationId || (!requestId && !validPlans.has(requestedPlan))) {
       return jsonResponse(request, 400, { error: 'Entreprise ou formule invalide.' });
     }
@@ -249,7 +251,7 @@ Deno.serve(async (request) => {
 
     const { data: changeRequest, error: changeError } = await service
       .from('subscription_change_requests')
-      .select('id,organization_id,requested_plan,request_type,status,provider,request_reference,stripe_checkout_session_id,stripe_schedule_id,effective_at')
+      .select('id,organization_id,requested_plan,request_type,status,provider,request_reference,stripe_checkout_session_id,stripe_schedule_id,effective_at,contract_id')
       .eq('id', requestId)
       .eq('organization_id', organizationId)
       .eq('status', 'payment_pending')
@@ -408,6 +410,52 @@ Deno.serve(async (request) => {
       });
     }
 
+    contractId = contractId || String(changeRequest.contract_id ?? '');
+    if (!contractId) {
+      const { data: latestContract } = await service
+        .from('subscription_contracts')
+        .select('id')
+        .eq('organization_id', organizationId)
+        .eq('contract_kind', 'initial_subscription')
+        .eq('plan_key', changeRequest.requested_plan)
+        .in('status', ['signed', 'payment_pending'])
+        .order('signed_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      contractId = String(latestContract?.id ?? '');
+    }
+    if (!contractId) throw new Error('Le contrat d abonnement doit etre signe avant le paiement.');
+
+    const { data: signedContract, error: contractError } = await service
+      .from('subscription_contracts')
+      .select('id,organization_id,contract_kind,plan_key,status,signed_at,signed_document_path,signed_document_sha256,signature_payload_sha256,accepted_contract,accepted_cgv,accepted_cgu,accepted_privacy_dpa')
+      .eq('id', contractId)
+      .eq('organization_id', organizationId)
+      .eq('contract_kind', 'initial_subscription')
+      .eq('plan_key', changeRequest.requested_plan)
+      .in('status', ['signed', 'payment_pending'])
+      .maybeSingle();
+    if (
+      contractError
+      || !signedContract
+      || !signedContract.signed_at
+      || !signedContract.signed_document_path
+      || !signedContract.signed_document_sha256
+      || !signedContract.signature_payload_sha256
+      || !signedContract.accepted_contract
+      || !signedContract.accepted_cgv
+      || !signedContract.accepted_cgu
+      || !signedContract.accepted_privacy_dpa
+    ) {
+      throw new Error('Le contrat signe est absent, incomplet ou ne correspond pas a la formule.');
+    }
+    const { error: contractLinkError } = await service
+      .from('subscription_change_requests')
+      .update({ contract_id: contractId })
+      .eq('id', requestId)
+      .eq('status', 'payment_pending');
+    if (contractLinkError) throw new Error('Le contrat n a pas pu etre rattache a la demande Stripe.');
+
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
@@ -415,6 +463,7 @@ Deno.serve(async (request) => {
         metadata: {
           ncr_organization_id: organizationId,
           ncr_business_type: String(organization.business_type),
+          ncr_contract_id: contractId,
         },
       });
       customerId = customer.id;
@@ -445,6 +494,7 @@ Deno.serve(async (request) => {
         ncr_request_id: requestId,
         ncr_plan_key: changeRequest.requested_plan,
         ncr_request_reference: reference,
+        ncr_contract_id: contractId,
       },
       subscription_data: {
         metadata: {
@@ -453,6 +503,7 @@ Deno.serve(async (request) => {
           ncr_plan_key: changeRequest.requested_plan,
           ncr_request_reference: reference,
           ncr_data_retention: 'preserve',
+          ncr_contract_id: contractId,
         },
       },
     }, { idempotencyKey: `ncr-checkout-${requestId}` });
@@ -471,6 +522,28 @@ Deno.serve(async (request) => {
       .eq('status', 'payment_pending');
     if (requestSaveError) throw new Error('La session Stripe n a pas pu etre enregistree.');
 
+    const { error: contractPaymentError } = await service
+      .from('subscription_contracts')
+      .update({
+        status: 'payment_pending',
+        payment_status: 'pending',
+        stripe_checkout_session_id: checkout.id,
+        stripe_customer_id: customerId,
+      })
+      .eq('id', contractId)
+      .in('status', ['signed', 'payment_pending']);
+    if (contractPaymentError) throw new Error('Le paiement n a pas pu etre rattache au contrat signe.');
+
+    await service.from('subscription_contract_events').insert({
+      contract_id: contractId,
+      organization_id: organizationId,
+      event_type: 'stripe_checkout_created',
+      actor_user_id: user.id,
+      source_ip: String(request.headers.get('cf-connecting-ip') ?? request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim().slice(0, 120) || null,
+      user_agent: String(request.headers.get('user-agent') ?? '').slice(0, 500) || null,
+      metadata: { stripe_checkout_session_id: checkout.id, request_id: requestId },
+    });
+
     await service.from('subscription_events').insert({
       organization_id: organizationId,
       request_id: requestId,
@@ -482,6 +555,7 @@ Deno.serve(async (request) => {
         stripe_checkout_session_id: checkout.id,
         stripe_price_id: price.stripe_price_id,
         request_reference: reference,
+        contract_id: contractId,
       },
     });
 

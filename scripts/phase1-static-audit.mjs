@@ -677,6 +677,9 @@ const publicSolutionsMenuMigration = read('supabase/migrations/110_public_soluti
 const googleSearchFaviconMigration = read('supabase/migrations/111_google_search_favicon.sql');
 const cleaningAgentCameraMigration = read('supabase/migrations/112_cleaning_agent_camera_photos.sql');
 const unifiedExternalPortalsMigration = read('supabase/migrations/113_unified_external_portals_photo_reports.sql');
+const subscriptionContractsMigration = read('supabase/migrations/114_subscription_contracts_signature.sql');
+const subscriptionContractFunction = read('supabase/functions/subscription-contract/index.ts');
+const onboardingPage = read('src/pages/OnboardingPage.tsx');
 const cleaningAgentPortalPage = read('src/pages/CleaningAgentPortalPage.tsx');
 const cleaningPhotoUpload = read('src/features/cleaning/photoUpload.ts');
 const cleaningVisitReportPdf = read('src/features/cleaning/visitReportPdf.ts');
@@ -698,33 +701,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v289.css')
-    || !indexHtml.includes('/ncr-suite-app-v289.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v290.css')
+    || !indexHtml.includes('/ncr-suite-app-v290.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.28.9')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v289.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v289.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.0')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v290.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v290.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v289.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v290.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.28.9 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.0 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v289.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v289.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.28.9 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v290.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v290.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.0 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.28.9'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.28.9-unified-external-portals-photo-reports")
-    || !serviceWorker.includes("ncr-suite-shell-v2.28.9-unified-external-portals-photo-reports")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v289.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v289.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v289.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.0'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.0-subscription-contract-signature")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.0-subscription-contract-signature")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v290.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v290.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v290.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.28.9 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.0 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.28.9 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.0 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1068,6 +1071,24 @@ if (!unifiedExternalPortalsMigration.includes("'2.28.9'")
     || !cleaningVisitReportPdf.includes('scaleToFit')
     || !cleaningVisitReportPdf.includes('PREUVES PHOTO')) {
   errors.push('Les espaces externes unifies ou les preuves photo PDF V2.28.9 sont incomplets.');
+}
+if (!subscriptionContractsMigration.includes('create table if not exists public.subscription_contracts')
+    || !subscriptionContractsMigration.includes('create table if not exists public.subscription_contract_events')
+    || !subscriptionContractsMigration.includes("'subscription-contracts','subscription-contracts',false")
+    || !subscriptionContractsMigration.includes("'2.29.0'")
+    || !subscriptionContractsMigration.includes('ncr-suite-shell-v2.29.0-subscription-contract-signature')
+    || !subscriptionContractFunction.includes("action === 'prepare'")
+    || !subscriptionContractFunction.includes("action === 'request_code'")
+    || !subscriptionContractFunction.includes("action === 'sign'")
+    || !subscriptionContractFunction.includes('appendSignaturePage')
+    || !subscriptionContractFunction.includes('signature_payload_sha256')
+    || !onboardingPage.includes("invoke('subscription-contract'")
+    || !onboardingPage.includes('Signer et passer au paiement')
+    || !stripeCheckoutFunction.includes('Le contrat d abonnement doit etre signe avant le paiement')
+    || !stripeCheckoutFunction.includes('ncr_contract_id')
+    || !stripeWebhookFunction.includes("from('subscription_contracts')")
+    || !subscriptionPage.includes('Mes contrats NCR Suite')) {
+  errors.push('Le parcours contrat, signature et activation Stripe V2.29.0 est incomplet.');
 }
 if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
   source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')

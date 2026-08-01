@@ -242,6 +242,7 @@ Deno.serve(async (request) => {
     let subscription: Stripe.Subscription | null = null;
     let organizationId: string | null = null;
     let requestId: string | null = null;
+    let contractId: string | null = null;
     let customerId: string | null = null;
     let paymentConfirmed = false;
     let eventMetadata: Record<string, unknown> = {
@@ -256,6 +257,7 @@ Deno.serve(async (request) => {
       subscription = await stripe.subscriptions.retrieve(subscriptionId);
       organizationId = metadata.ncr_organization_id ?? null;
       requestId = metadata.ncr_request_id ?? null;
+      contractId = metadata.ncr_contract_id ?? null;
       customerId = safeId(checkout.customer);
       paymentConfirmed = checkout.payment_status === 'paid'
         || checkout.payment_status === 'no_payment_required';
@@ -310,6 +312,7 @@ Deno.serve(async (request) => {
     const metadata = safeMetadata(subscription.metadata);
     organizationId = organizationId ?? metadata.ncr_organization_id ?? null;
     requestId = requestId ?? metadata.ncr_request_id ?? null;
+    contractId = contractId ?? metadata.ncr_contract_id ?? null;
     customerId = customerId ?? safeId(subscription.customer);
     organizationId = await resolveOrganization(
       service,
@@ -318,6 +321,15 @@ Deno.serve(async (request) => {
       customerId,
     );
     if (!organizationId) throw new Error('Entreprise Stripe introuvable.');
+
+    if (!contractId) {
+      const { data: billingContract } = await service
+        .from('organization_subscriptions')
+        .select('current_contract_id')
+        .eq('organization_id', organizationId)
+        .maybeSingle();
+      contractId = billingContract?.current_contract_id ? String(billingContract.current_contract_id) : null;
+    }
 
     const base = await basePrice(service, subscription, organizationId, event.livemode);
     const stripeStatus = event.type === 'customer.subscription.deleted'
@@ -360,6 +372,55 @@ Deno.serve(async (request) => {
       p_cancel_at_period_end: subscription.cancel_at_period_end,
     });
     if (lifecycleError) throw lifecycleError;
+
+    if (contractId) {
+      const contractStatus = event.type === 'customer.subscription.deleted'
+        ? 'canceled'
+        : event.type === 'invoice.payment_failed'
+          ? 'payment_failed'
+          : normalizedStatus === 'active'
+            ? 'active'
+            : null;
+      const contractPaymentStatus = event.type === 'customer.subscription.deleted'
+        ? 'canceled'
+        : event.type === 'invoice.payment_failed'
+          ? 'failed'
+          : paymentConfirmed || normalizedStatus === 'active'
+            ? 'paid'
+            : null;
+      const contractUpdate: Record<string, unknown> = {
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscription.id,
+      };
+      if (contractStatus) contractUpdate.status = contractStatus;
+      if (contractPaymentStatus) contractUpdate.payment_status = contractPaymentStatus;
+      if (contractPaymentStatus === 'paid') contractUpdate.payment_confirmed_at = new Date().toISOString();
+      const { error: contractUpdateError } = await service
+        .from('subscription_contracts')
+        .update(contractUpdate)
+        .eq('id', contractId)
+        .eq('organization_id', organizationId);
+      if (contractUpdateError) throw contractUpdateError;
+      const { error: activeContractError } = await service
+        .from('organization_subscriptions')
+        .update({ current_contract_id: contractId })
+        .eq('organization_id', organizationId);
+      if (activeContractError) throw activeContractError;
+      const { error: contractEventError } = await service.from('subscription_contract_events').insert({
+        contract_id: contractId,
+        organization_id: organizationId,
+        event_type: `stripe_${event.type.replaceAll('.', '_')}`,
+        actor_user_id: null,
+        metadata: {
+          stripe_event_id: event.id,
+          stripe_subscription_id: subscription.id,
+          stripe_customer_id: customerId,
+          payment_confirmed: paymentConfirmed,
+          app_status: normalizedStatus,
+        },
+      });
+      if (contractEventError) throw contractEventError;
+    }
 
     let removedIncompatibleAddon = false;
     if (
@@ -409,6 +470,7 @@ Deno.serve(async (request) => {
         stripe_customer_id: customerId,
         stripe_price_id: base.priceId,
         plan_key: appliedPlan,
+        contract_id: contractId,
         data_retained: true,
       },
     });

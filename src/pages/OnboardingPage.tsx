@@ -12,13 +12,24 @@ const steps = [
   { id: 1, label: 'Activité', icon: 'briefcase' as const },
   { id: 2, label: 'Entreprise', icon: 'building' as const },
   { id: 3, label: 'Formule', icon: 'creditCard' as const },
-  { id: 4, label: 'Identité', icon: 'sparkles' as const }
+  { id: 4, label: 'Identité', icon: 'sparkles' as const },
+  { id: 5, label: 'Contrat', icon: 'signature' as const }
 ];
 
 const planOrder: Plan[] = ['decouverte', 'essentielle', 'professionnelle', 'metier'];
 
 function money(cents: number) {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(cents / 100);
+}
+
+interface SubscriptionContract {
+  id: string;
+  reference: string;
+  status: 'awaiting_signature' | 'signed' | 'payment_pending' | 'active';
+  planLabel: string;
+  monthlyPriceCents: number;
+  signerEmail?: string | null;
+  signedAt?: string | null;
 }
 
 export function OnboardingPage() {
@@ -46,19 +57,31 @@ export function OnboardingPage() {
   const [objective, setObjective] = useState(String(user?.user_metadata?.access_request_message ?? ''));
   const [pending, setPending] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [contractOrganizationId, setContractOrganizationId] = useState('');
+  const [contract, setContract] = useState<SubscriptionContract | null>(null);
+  const [contractPreviewUrl, setContractPreviewUrl] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [signerName, setSignerName] = useState(String(user?.user_metadata?.full_name ?? ''));
+  const [signerTitle, setSignerTitle] = useState('Représentant habilité');
+  const [acceptedContract, setAcceptedContract] = useState(false);
+  const [acceptedCgv, setAcceptedCgv] = useState(false);
+  const [acceptedCgu, setAcceptedCgu] = useState(false);
+  const [acceptedPrivacyDpa, setAcceptedPrivacyDpa] = useState(false);
   const [error, setError] = useState('');
 
   const selectedPack = businessPacks[businessType];
   const plans = useMemo(() => getDomainPlans(businessType), [businessType]);
   const selectedPlan = plans[requestedPlan];
 
-  if (organization && !pending) return <Navigate to="/" replace />;
+  if (organization && !pending && !contractOrganizationId) return <Navigate to="/" replace />;
 
   function canContinue() {
     if (step === 1) return Boolean(businessType);
     if (step === 2) return name.trim().length >= 2 && companyEmail.includes('@');
     if (step === 3) return Boolean(requestedPlan);
-    return contactName.trim().length >= 2 && companyEmail.includes('@') && termsAccepted;
+    if (step === 4) return contactName.trim().length >= 2 && companyEmail.includes('@') && termsAccepted;
+    return Boolean(contract);
   }
 
   function nextStep() {
@@ -67,7 +90,7 @@ export function OnboardingPage() {
       setError(step === 2 ? 'Renseigne au minimum le nom de l’entreprise et une adresse e-mail valide.' : 'Complète les informations demandées pour continuer.');
       return;
     }
-    setStep((current) => Math.min(4, current + 1));
+    setStep((current) => Math.min(5, current + 1));
   }
 
   async function submit(event: FormEvent) {
@@ -79,35 +102,107 @@ export function OnboardingPage() {
     setPending(true);
     setError('');
     try {
-      const organizationId = await createOrganization({
-        name: name.trim(),
-        businessType,
-        primaryColor,
-        requestedPlan,
-        contactName: contactName.trim(),
-        companyEmail: companyEmail.trim(),
-        companyPhone: companyPhone.trim(),
-        companyAddress: companyAddress.trim(),
-        companyPostalCode: companyPostalCode.trim(),
-        companyCity: companyCity.trim(),
-        companySiret: companySiret.trim(),
-        objective: objective.trim()
-      });
-      if (!supabase) return;
-      const { data, error: checkoutError } = await supabase.functions.invoke('create-stripe-checkout', {
+      let organizationId = contractOrganizationId;
+      if (!organizationId) {
+        organizationId = await createOrganization({
+          name: name.trim(),
+          businessType,
+          primaryColor,
+          requestedPlan,
+          contactName: contactName.trim(),
+          companyEmail: companyEmail.trim(),
+          companyPhone: companyPhone.trim(),
+          companyAddress: companyAddress.trim(),
+          companyPostalCode: companyPostalCode.trim(),
+          companyCity: companyCity.trim(),
+          companySiret: companySiret.trim(),
+          objective: objective.trim()
+        });
+        setContractOrganizationId(organizationId);
+      }
+      if (!supabase) throw new Error('Le service sécurisé NCR Suite est indisponible.');
+      const { data, error: contractError } = await supabase.functions.invoke('subscription-contract', {
         body: {
+          action: 'prepare',
           organizationId,
-          planKey: requestedPlan,
-          acceptTerms: true
+          planKey: requestedPlan
         }
       });
-      if (checkoutError || data?.error || !data?.url) {
-        window.location.assign('/abonnement?stripe=retry');
-        return;
-      }
-      window.location.assign(String(data.url));
+      if (contractError || data?.error || !data?.contract) throw new Error(data?.error ?? contractError?.message ?? 'Le contrat n’a pas pu être préparé.');
+      setContract(data.contract as SubscriptionContract);
+      setContractPreviewUrl(String(data.previewUrl ?? ''));
+      setStep(5);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Impossible de créer l’espace.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function requestSignatureCode() {
+    if (!supabase || !contract || !contractOrganizationId) return;
+    setPending(true);
+    setError('');
+    try {
+      const { data, error: codeError } = await supabase.functions.invoke('subscription-contract', {
+        body: { action: 'request_code', organizationId: contractOrganizationId, contractId: contract.id }
+      });
+      if (codeError || data?.error) throw new Error(data?.error ?? codeError?.message ?? 'Le code n’a pas pu être envoyé.');
+      setOtpSent(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Le code n’a pas pu être envoyé.');
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function openStripeCheckout(contractId: string) {
+    if (!supabase || !contractOrganizationId) return;
+    const { data, error: checkoutError } = await supabase.functions.invoke('create-stripe-checkout', {
+      body: {
+        organizationId: contractOrganizationId,
+        planKey: requestedPlan,
+        contractId,
+        acceptTerms: true
+      }
+    });
+    if (checkoutError || data?.error || !data?.url) {
+      throw new Error(data?.error ?? checkoutError?.message ?? 'La page de paiement n’a pas pu être ouverte.');
+    }
+    window.location.assign(String(data.url));
+  }
+
+  async function signAndPay() {
+    if (!supabase || !contract || !contractOrganizationId) return;
+    setPending(true);
+    setError('');
+    try {
+      if (contract.status === 'signed' || contract.status === 'payment_pending') {
+        await openStripeCheckout(contract.id);
+        return;
+      }
+      const { data, error: signatureError } = await supabase.functions.invoke('subscription-contract', {
+        body: {
+          action: 'sign',
+          organizationId: contractOrganizationId,
+          contractId: contract.id,
+          code: otpCode,
+          signerName: signerName.trim(),
+          signerTitle: signerTitle.trim(),
+          acceptedContract,
+          acceptedCgv,
+          acceptedCgu,
+          acceptedPrivacyDpa
+        }
+      });
+      if (signatureError || data?.error || !data?.contract) {
+        throw new Error(data?.error ?? signatureError?.message ?? 'La signature n’a pas pu être finalisée.');
+      }
+      setContract(data.contract as SubscriptionContract);
+      setContractPreviewUrl(String(data.downloadUrl ?? contractPreviewUrl));
+      await openStripeCheckout(contract.id);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'La signature n’a pas pu être finalisée.');
     } finally {
       setPending(false);
     }
@@ -136,7 +231,7 @@ export function OnboardingPage() {
                 disabled={item.id > step}
               >
                 <span>{step > item.id ? <Icon name="check" size={17} /> : <Icon name={item.icon} size={17} />}</span>
-                <div><strong>{item.label}</strong><small>Étape {item.id} sur 4</small></div>
+                <div><strong>{item.label}</strong><small>Étape {item.id} sur 5</small></div>
               </button>
             ))}
           </div>
@@ -150,9 +245,9 @@ export function OnboardingPage() {
         <form className="saas-onboarding-card" onSubmit={submit}>
           <div className="saas-onboarding-card-head">
             <div>
-              <span className="saas-step-chip">Étape {step}/4</span>
-              <h2>{step === 1 ? 'Quel est ton métier ?' : step === 2 ? 'Présente ton entreprise' : step === 3 ? 'Quelle formule t’intéresse ?' : 'Finalise ton identité'}</h2>
-              <p>{step === 1 ? 'Le métier détermine l’architecture et les outils disponibles.' : step === 2 ? 'Ces informations seront reprises dans l’administration NCR et tes documents.' : step === 3 ? 'Cette formule sera réglée sur une page de paiement sécurisée avant l’ouverture de l’espace.' : 'Choisis ton identité visuelle, vérifie le récapitulatif puis passe au paiement.'}</p>
+              <span className="saas-step-chip">Étape {step}/5</span>
+              <h2>{step === 1 ? 'Quel est ton métier ?' : step === 2 ? 'Présente ton entreprise' : step === 3 ? 'Quelle formule t’intéresse ?' : step === 4 ? 'Finalise ton identité' : 'Signe ton contrat d’abonnement'}</h2>
+              <p>{step === 1 ? 'Le métier détermine l’architecture et les outils disponibles.' : step === 2 ? 'Ces informations seront reprises dans l’administration NCR et tes documents.' : step === 3 ? 'Cette formule sera réglée sur une page de paiement sécurisée avant l’ouverture de l’espace.' : step === 4 ? 'Choisis ton identité visuelle et vérifie le récapitulatif avant la préparation du contrat.' : 'Consulte le document exact, valide chaque annexe et confirme ta signature avec le code reçu par e-mail.'}</p>
             </div>
           </div>
 
@@ -228,14 +323,64 @@ export function OnboardingPage() {
             </section>
           )}
 
+          {step === 5 && contract && (
+            <section className="saas-contract-step">
+              <article className="saas-contract-document">
+                <span className="saas-contract-icon"><Icon name="file" size={25} /></span>
+                <div>
+                  <p className="eyebrow">DOCUMENT CONTRACTUEL</p>
+                  <h3>{contract.reference}</h3>
+                  <p>Formule <strong>{contract.planLabel}</strong> · {money(contract.monthlyPriceCents)} HT / mois</p>
+                  <small>Le PDF est archivé dans un espace privé. Son empreinte numérique sera jointe à la preuve de signature.</small>
+                </div>
+                <button type="button" className="secondary-button" onClick={() => contractPreviewUrl && window.open(contractPreviewUrl, '_blank', 'noopener,noreferrer')} disabled={!contractPreviewUrl}>
+                  <Icon name="eye" size={17} /> Ouvrir le contrat
+                </button>
+              </article>
+
+              {contract.status === 'signed' || contract.status === 'payment_pending' ? (
+                <div className="saas-contract-signed">
+                  <Icon name="check" size={22} />
+                  <div><strong>Contrat signé et scellé</strong><span>Tu peux maintenant reprendre le paiement sécurisé.</span></div>
+                </div>
+              ) : (
+                <div className="saas-contract-signature-form">
+                  <div className="saas-contract-identity">
+                    <label>Nom complet du signataire<input value={signerName} onChange={(event) => setSignerName(event.target.value)} placeholder="Nom et prénom" /></label>
+                    <label>Qualité du signataire<input value={signerTitle} onChange={(event) => setSignerTitle(event.target.value)} placeholder="Gérant, président, représentant habilité…" /></label>
+                  </div>
+
+                  <div className="saas-contract-consents">
+                    <label><input type="checkbox" checked={acceptedContract} onChange={(event) => setAcceptedContract(event.target.checked)} /><span>J’ai lu et j’accepte le contrat d’abonnement et le bon de commande.</span></label>
+                    <label><input type="checkbox" checked={acceptedCgv} onChange={(event) => setAcceptedCgv(event.target.checked)} /><span>J’accepte les conditions générales de vente.</span></label>
+                    <label><input type="checkbox" checked={acceptedCgu} onChange={(event) => setAcceptedCgu(event.target.checked)} /><span>J’accepte les conditions générales d’utilisation.</span></label>
+                    <label><input type="checkbox" checked={acceptedPrivacyDpa} onChange={(event) => setAcceptedPrivacyDpa(event.target.checked)} /><span>J’accepte les règles de confidentialité et l’annexe de traitement des données.</span></label>
+                  </div>
+
+                  <div className="saas-contract-otp">
+                    <div><strong>Vérification par e-mail</strong><span>Le code est envoyé à {contract.signerEmail || companyEmail} et reste valable 10 minutes.</span></div>
+                    <button type="button" className="secondary-button" onClick={() => void requestSignatureCode()} disabled={pending}>{otpSent ? 'Renvoyer le code' : 'Recevoir mon code'}</button>
+                    <label>Code à 6 chiffres<input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={otpCode} onChange={(event) => setOtpCode(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" /></label>
+                  </div>
+                </div>
+              )}
+
+              <div className="saas-contract-proof"><Icon name="shield" size={18} /><span><strong>Preuve horodatée</strong><small>Le document signé conservera le signataire, l’e-mail vérifié, l’heure, les consentements et les empreintes SHA-256.</small></span></div>
+            </section>
+          )}
+
           {error && <div className="error-message" role="alert">{error}</div>}
 
           <footer className="saas-onboarding-actions">
             <button type="button" className="secondary-button" onClick={() => setStep((current) => Math.max(1, current - 1))} disabled={step === 1 || pending}>Retour</button>
             {step < 4 ? (
               <button type="button" className="primary-button" onClick={nextStep}>Continuer <Icon name="chevronRight" size={17} /></button>
+            ) : step === 4 ? (
+              <button className="primary-button" disabled={pending}>{pending ? 'Préparation du contrat…' : 'Créer et préparer le contrat'} <Icon name="file" size={17} /></button>
             ) : (
-              <button className="primary-button" disabled={pending}>{pending ? 'Préparation du paiement…' : 'Créer et passer au paiement'} <Icon name="creditCard" size={17} /></button>
+              <button type="button" className="primary-button" onClick={() => void signAndPay()} disabled={pending || (contract?.status === 'awaiting_signature' && (!otpSent || otpCode.length !== 6 || !signerName.trim() || !signerTitle.trim() || !acceptedContract || !acceptedCgv || !acceptedCgu || !acceptedPrivacyDpa))}>
+                {pending ? 'Vérification en cours…' : contract?.status === 'signed' || contract?.status === 'payment_pending' ? 'Reprendre le paiement' : 'Signer et passer au paiement'} <Icon name="creditCard" size={17} />
+              </button>
             )}
           </footer>
         </form>
