@@ -400,7 +400,7 @@ export function AppShell() {
     );
   }
 
-  const primaryMobileItem = navigation.find((item) => ['securite', 'restauration'].includes(organization.business_type) && restrictedRole ? item.path === '/terrain' : ['/rendez-vous', '/planning'].includes(item.path))
+  const primaryMobileItem = navigation.find((item) => ['securite', 'nettoyage', 'restauration'].includes(organization.business_type) && restrictedRole ? item.path === '/terrain' : ['/rendez-vous', '/planning'].includes(item.path))
     ?? navigation.find((item) => item.path !== '/')
     ?? navigation[0];
   const quickAction = !restrictedRole ? pack.quickActions[0] : null;

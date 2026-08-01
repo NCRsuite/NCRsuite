@@ -1,5 +1,18 @@
 # Changelog NCR Suite
 
+## V2.28.8 - Espace agent Nettoyage et photos terrain
+
+- Accès Agent Nettoyage clairement proposé depuis l’écran de connexion.
+- Compte agent redirigé vers son espace terrain et accès mobile principal corrigé.
+- Boutons explicites `Prendre la photo avant` et `Prendre la photo après`.
+- Ouverture directe de l’appareil photo arrière sur téléphone compatible.
+- Conversion automatique des formats photo mobiles vers JPEG.
+- Redimensionnement et compression avant envoi pour éviter les refus de taille.
+- Enregistrement sécurisé limité à l’intervention affectée à l’agent.
+- Contrôle Supabase du dossier, de l’offre et de l’affectation avant le dépôt.
+- Migration `112` et cache PWA `ncr-suite-shell-v2.28.8-cleaning-agent-camera`.
+- Pages publiques, sitemap, canonical, métadonnées et indexation inchangés.
+
 ## V2.28.7 - Favicon Google Search
 
 - Favicon NCR Suite ajouté à la racine via `/favicon.ico`.

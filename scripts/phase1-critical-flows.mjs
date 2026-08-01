@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-google-favicon`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-cleaning-agent-camera`;
+const googleSearchFaviconCache = 'ncr-suite-shell-v2.28.7-google-favicon';
 const publicSolutionsMenuCache = 'ncr-suite-shell-v2.28.6-solutions-menu';
 const universalNotificationAccessCache = 'ncr-suite-shell-v2.28.5-universal-notification-access';
 const enterpriseNotificationShortcutCache = 'ncr-suite-shell-v2.28.4-enterprise-notification-shortcut';
@@ -71,19 +72,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v287.css',
-  '/ncr-suite-app-v287.css',
+  '/ncr-suite-showcase-v288.css',
+  '/ncr-suite-app-v288.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.7'
+  'ncr:css-recovery-v2.28.8'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v287.css',
+  '/ncr-suite-app-v288.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v287.js'"
+  "entryFileNames: 'ncr-suite-app-v288.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -936,8 +937,28 @@ requireText('supabase/migrations/110_public_solutions_menu.sql', [
 ]);
 requireText('supabase/migrations/111_google_search_favicon.sql', [
   "'2.28.7'",
-  expectedCache,
+  googleSearchFaviconCache,
   'platform_release_state'
+]);
+requireText('supabase/migrations/112_cleaning_agent_camera_photos.sql', [
+  "'2.28.8'",
+  expectedCache,
+  'can_access_cleaning_intervention_photo',
+  'set_cleaning_intervention_photo',
+  'cleaning_photos_insert',
+  'platform_release_state'
+]);
+requireText('src/pages/CleaningAgentPortalPage.tsx', [
+  'prepareCleaningPhoto',
+  "capture=\"environment\"",
+  "supabase.rpc('set_cleaning_intervention_photo'",
+  'Prendre la photo avant',
+  'Prendre la photo après'
+]);
+requireText('src/pages/LoginPage.tsx', [
+  'agent-nettoyage',
+  'Nettoyage agent',
+  "cleaningAgentMode ? '/terrain' : '/'"
 ]);
 requireText('src/pages/PublicSolutionPage.tsx', [
   'public-solution-v283',

@@ -675,6 +675,10 @@ const enterpriseNotificationShortcutMigration = read('supabase/migrations/108_en
 const universalNotificationAccessMigration = read('supabase/migrations/109_universal_notification_access.sql');
 const publicSolutionsMenuMigration = read('supabase/migrations/110_public_solutions_menu.sql');
 const googleSearchFaviconMigration = read('supabase/migrations/111_google_search_favicon.sql');
+const cleaningAgentCameraMigration = read('supabase/migrations/112_cleaning_agent_camera_photos.sql');
+const cleaningAgentPortalPage = read('src/pages/CleaningAgentPortalPage.tsx');
+const cleaningPhotoUpload = read('src/features/cleaning/photoUpload.ts');
+const loginPage = read('src/pages/LoginPage.tsx');
 const commercialReadinessPanel = read('src/components/AdminCommercialReadinessPanel.tsx');
 const stripeCheckoutFunction = read('supabase/functions/create-stripe-checkout/index.ts');
 const stripePortalFunction = read('supabase/functions/create-stripe-portal/index.ts');
@@ -690,33 +694,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v287.css')
-    || !indexHtml.includes('/ncr-suite-app-v287.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v288.css')
+    || !indexHtml.includes('/ncr-suite-app-v288.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.28.7')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v287.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v287.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.28.8')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v288.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v288.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v287.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v288.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.28.7 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.28.8 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v287.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v287.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.28.7 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v288.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v288.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.28.8 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.28.7'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.28.7-google-favicon")
-    || !serviceWorker.includes("ncr-suite-shell-v2.28.7-google-favicon")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v287.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v287.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v287.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.28.8'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.28.8-cleaning-agent-camera")
+    || !serviceWorker.includes("ncr-suite-shell-v2.28.8-cleaning-agent-camera")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v288.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v288.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v288.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.28.7 est incoherent.');
+  errors.push('La version ou le cache PWA V2.28.8 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.28.7 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.28.8 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1023,6 +1027,23 @@ if (!googleSearchFaviconMigration.includes("'2.28.7'")
     || robots.includes('Disallow: /favicon')
     || robots.includes('Disallow: /icons')) {
   errors.push('Le favicon Google Search V2.28.7 est absent, mal dimensionne ou non explorable.');
+}
+if (!cleaningAgentCameraMigration.includes("'2.28.8'")
+    || !cleaningAgentCameraMigration.includes('ncr-suite-shell-v2.28.8-cleaning-agent-camera')
+    || !cleaningAgentCameraMigration.includes('can_access_cleaning_intervention_photo')
+    || !cleaningAgentCameraMigration.includes('set_cleaning_intervention_photo')
+    || !cleaningAgentCameraMigration.includes('cleaning_photos_insert')
+    || !cleaningAgentPortalPage.includes('prepareCleaningPhoto')
+    || !cleaningAgentPortalPage.includes('capture="environment"')
+    || !cleaningAgentPortalPage.includes("supabase.rpc('set_cleaning_intervention_photo'")
+    || !cleaningAgentPortalPage.includes('Prendre la photo avant')
+    || !cleaningAgentPortalPage.includes('Prendre la photo après')
+    || !cleaningPhotoUpload.includes("type: 'image/jpeg'")
+    || !cleaningPhotoUpload.includes('MAX_OUTPUT_SIZE')
+    || !loginPage.includes('agent-nettoyage')
+    || !loginPage.includes('Nettoyage agent')
+    || !appShell.includes("['securite', 'nettoyage', 'restauration']")) {
+  errors.push('Le parcours camera de l espace agent Nettoyage V2.28.8 est incomplet.');
 }
 if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
   source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')

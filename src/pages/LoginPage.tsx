@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useSearchParams } from 'react-router-dom';
 import { PageMetadata } from '../components/PageMetadata';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,6 +9,7 @@ import { isSupabaseConfigured } from '../lib/supabase';
 export function LoginPage() {
   const { user, signIn, startDemo } = useAuth();
   const { isAdmin, loading: adminLoading } = usePlatformAdmin();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -17,7 +18,9 @@ export function LoginPage() {
   if (user && adminLoading) {
     return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Ouverture de votre espace…</span></div>;
   }
-  if (user) return <Navigate to={isAdmin ? '/administration-ncr' : '/'} replace />;
+  const cleaningAgentMode = searchParams.get('espace') === 'agent-nettoyage';
+
+  if (user) return <Navigate to={isAdmin ? '/administration-ncr' : cleaningAgentMode ? '/terrain' : '/'} replace />;
 
   function releaseMobileKeyboard() {
     const activeElement = document.activeElement;
@@ -56,9 +59,9 @@ export function LoginPage() {
       <section className="auth-panel">
         <div className="auth-card">
           <img className="auth-wordmark" src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
-          <p className="eyebrow">ESPACE PROFESSIONNEL</p>
-          <h2>Connexion</h2>
-          <p className="muted">Accédez à votre environnement métier NCR Suite.</p>
+          <p className="eyebrow">{cleaningAgentMode ? 'ESPACE AGENT NETTOYAGE' : 'ESPACE PROFESSIONNEL'}</p>
+          <h2>{cleaningAgentMode ? 'Accès terrain' : 'Connexion'}</h2>
+          <p className="muted">{cleaningAgentMode ? 'Retrouvez vos interventions, consignes, pointages et preuves terrain.' : 'Accédez à votre environnement métier NCR Suite.'}</p>
 
           {isSupabaseConfigured ? (
             <form onSubmit={submit}>
@@ -101,7 +104,12 @@ export function LoginPage() {
               </Link>
               <Link to="/espace-client-nettoyage">
                 <span><Icon name="sparkles" size={18} /></span>
-                <div><strong>Nettoyage</strong><small>Portail client</small></div>
+                <div><strong>Nettoyage client</strong><small>Suivi des prestations</small></div>
+                <Icon name="chevronRight" size={16} />
+              </Link>
+              <Link to="/connexion?espace=agent-nettoyage">
+                <span><Icon name="camera" size={18} /></span>
+                <div><strong>Nettoyage agent</strong><small>Interventions et preuves</small></div>
                 <Icon name="chevronRight" size={16} />
               </Link>
               <Link to="/espace-client-coiffure">

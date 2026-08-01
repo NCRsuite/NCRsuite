@@ -1,9 +1,9 @@
-# NCR Suite V2.28.7
+# NCR Suite V2.28.8
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version fournit un favicon NCR Suite carré et haute résolution à une URL
-stable pour Google Search. Les URL, les canonical, le sitemap, le contenu SEO et
-le fonctionnement de l'application connectée restent inchangés.
+Cette version fiabilise l'espace agent Nettoyage : accès terrain identifiable,
+capture directe avant/après, optimisation des photos mobiles et enregistrement
+sécurisé dans l'intervention affectée. La vitrine et le référencement restent inchangés.
 
-Consulter uniquement `A_LIRE_INSTALLATION_V2.28.7.txt` pour déployer ce patch.
+Consulter uniquement `A_LIRE_INSTALLATION_V2.28.8.txt` pour déployer ce patch.

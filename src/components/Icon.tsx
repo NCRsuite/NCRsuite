@@ -39,7 +39,8 @@ const paths: Record<IconName, React.ReactNode> = {
   bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></>,
   message: <><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M8 9h8M8 13h5"/></>,
   headset: <><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M18 19h-2a2 2 0 0 1-2-2v-3h6v3a4 4 0 0 1-4 4h-3"/><path d="M4 14h4v5H6a2 2 0 0 1-2-2z"/></>,
-  monitor: <><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></>
+  monitor: <><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></>,
+  camera: <><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3z"/><circle cx="12" cy="13" r="4"/></>
 };
 
 export function Icon({ name, size = 22, strokeWidth = 1.8 }: Props) {

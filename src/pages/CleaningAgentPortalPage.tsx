@@ -1,23 +1,38 @@
-import { ChangeEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { prepareCleaningPhoto } from '../features/cleaning/photoUpload';
 import { formatCleaningDateTime, type CleaningInterventionRecord } from '../features/cleaning/types';
 import { supabase } from '../lib/supabase';
 import { readJsonStorage } from '../lib/safeStorage';
 
 async function uploadCleaningPhoto(organizationId: string, interventionId: string, kind: 'before' | 'after', file: File) {
   if (!supabase) return null;
-  const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-  const path = `${organizationId}/${interventionId}/${kind}-${Date.now()}.${extension}`;
-  const { error } = await supabase.storage.from('cleaning-photos').upload(path, file, { upsert: true, contentType: file.type });
+  const preparedFile = await prepareCleaningPhoto(file, kind);
+  const path = `${organizationId}/${interventionId}/${preparedFile.name}`;
+  const { error } = await supabase.storage.from('cleaning-photos').upload(path, preparedFile, {
+    upsert: true,
+    contentType: 'image/jpeg',
+    cacheControl: '3600'
+  });
   if (error) throw error;
   const { data } = supabase.storage.from('cleaning-photos').getPublicUrl(path);
-  return data.publicUrl;
+  return `${data.publicUrl}?v=${Date.now()}`;
+}
+
+function photoErrorMessage(caught: unknown) {
+  const message = caught instanceof Error ? caught.message : 'Envoi impossible.';
+  if (/mime|content.?type|format/i.test(message)) return 'Le format de cette photo n’est pas accepté. Reprends-la directement avec l’appareil photo.';
+  if (/size|volum|large|payload/i.test(message)) return 'La photo est trop volumineuse. Reprends-la avec une définition plus faible.';
+  if (/row.level|policy|permission|autorisation/i.test(message)) return 'Ton accès agent ne permet pas encore d’enregistrer cette preuve. Demande au responsable de vérifier ton invitation et ton affectation.';
+  return message;
 }
 
 export function CleaningAgentPortalPage() {
   const { organization } = useOrganization(); const { demoMode } = useAuth(); const [rows, setRows] = useState<CleaningInterventionRecord[]>([]); const [selectedId, setSelectedId] = useState(''); const [report, setReport] = useState(''); const [busy, setBusy] = useState(''); const [error, setError] = useState(''); const [success, setSuccess] = useState(''); const [loading, setLoading] = useState(true);
+  const beforePhotoInputRef = useRef<HTMLInputElement>(null);
+  const afterPhotoInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
     if (!organization) return; setLoading(true); setError('');
@@ -61,9 +76,25 @@ export function CleaningAgentPortalPage() {
     const file = event.target.files?.[0]; if (!file || !organization) return; setBusy(`photo-${kind}`); setError('');
     try {
       if (demoMode || !supabase) { const url = URL.createObjectURL(file); const next = rows.map((item) => item.id === row.id ? { ...item, [kind === 'before' ? 'before_photo_url' : 'after_photo_url']: url } : item); setRows(next); }
-      else { const url = await uploadCleaningPhoto(organization.id, row.id, kind, file); const column = kind === 'before' ? 'before_photo_url' : 'after_photo_url'; const { error: updateError } = await supabase.from('cleaning_interventions').update({ [column]: url }).eq('organization_id', organization.id).eq('id', row.id); if (updateError) throw updateError; await load(); }
+      else {
+        const url = await uploadCleaningPhoto(organization.id, row.id, kind, file);
+        const { error: updateError } = await supabase.rpc('set_cleaning_intervention_photo', {
+          p_organization_id: organization.id,
+          p_intervention_id: row.id,
+          p_kind: kind,
+          p_photo_url: url
+        });
+        if (updateError) throw updateError;
+        await load();
+      }
       setSuccess(`Photo ${kind === 'before' ? 'avant' : 'après'} enregistrée.`);
-    } catch (caught) { setError(caught instanceof Error ? caught.message : 'Envoi impossible.'); } finally { setBusy(''); event.target.value = ''; }
+    } catch (caught) { setError(photoErrorMessage(caught)); } finally { setBusy(''); event.target.value = ''; }
+  }
+
+  function openPhotoCapture(kind: 'before' | 'after') {
+    setError('');
+    setSuccess('');
+    (kind === 'before' ? beforePhotoInputRef : afterPhotoInputRef).current?.click();
   }
 
   if (!organization) return null;
@@ -74,7 +105,20 @@ export function CleaningAgentPortalPage() {
         <div className="cleaning-mission-info"><div><Icon name="clock" size={18}/><span><strong>Horaire</strong>{formatCleaningDateTime(selected.starts_at)} → {new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' }).format(new Date(selected.ends_at))}</span></div><div><Icon name="map" size={18}/><span><strong>Adresse</strong>{[selected.cleaning_sites?.address, selected.cleaning_sites?.city].filter(Boolean).join(' · ') || 'Non renseignée'}</span></div></div>
         {selected.cleaning_sites?.instructions && <div className="cleaning-instruction-box"><p className="eyebrow">CONSIGNES DU SITE</p><p>{selected.cleaning_sites.instructions}</p></div>}
         {selectedTasks.length > 0 && <section className="cleaning-agent-checklist"><div className="cleaning-agent-checklist-header"><div><p className="eyebrow">PROTOCOLE À RÉALISER</p><h3>{completedTasks} / {selectedTasks.length} tâche(s) validée(s)</h3></div><span>{Math.round((completedTasks / selectedTasks.length) * 100)} %</span></div><div className="cleaning-checklist-progress"><i style={{ width: `${(completedTasks / selectedTasks.length) * 100}%` }}/></div><div className="cleaning-agent-task-list">{selectedTasks.map((task) => <label key={task.id} className={`${task.completed ? 'completed' : ''}${task.required ? ' required' : ''}`}><input type="checkbox" checked={task.completed} disabled={selected.status !== 'in_progress' || busy === `task-${task.id}`} onChange={(event) => void toggleTask(task.id, event.target.checked)}/><span><strong>{task.label}</strong><small>{task.estimated_minutes ? `${task.estimated_minutes} min` : 'Durée libre'}{task.required ? ' · obligatoire' : ' · facultative'}{task.requires_photo ? ' · photo après requise' : ''}</small></span>{task.completed && <Icon name="check" size={18}/>}</label>)}</div>{selected.status === 'planned' && <p className="cleaning-checklist-hint">Pointe ton arrivée pour commencer à valider les tâches.</p>}</section>}
-        <div className="cleaning-photo-grid"><label className="cleaning-photo-input"><Icon name="file" size={24}/><strong>Photo avant</strong><span>{selected.before_photo_url ? 'Remplacer la photo' : 'Ajouter une preuve'}</span><input type="file" accept="image/*" capture="environment" onChange={(event) => void addPhoto(event, selected, 'before')}/>{selected.before_photo_url && <img src={selected.before_photo_url} alt="Avant intervention"/>}</label><label className="cleaning-photo-input"><Icon name="file" size={24}/><strong>Photo après</strong><span>{selected.after_photo_url ? 'Remplacer la photo' : 'Ajouter une preuve'}</span><input type="file" accept="image/*" capture="environment" onChange={(event) => void addPhoto(event, selected, 'after')}/>{selected.after_photo_url && <img src={selected.after_photo_url} alt="Après intervention"/>}</label></div>
+        <div className="cleaning-photo-grid">
+          <article className={`cleaning-photo-capture${selected.before_photo_url ? ' has-photo' : ''}`}>
+            <div className="cleaning-photo-heading"><span>AVANT</span>{selected.before_photo_url && <em><Icon name="check" size={13}/>Enregistrée</em>}</div>
+            <div className="cleaning-photo-preview">{selected.before_photo_url ? <img src={selected.before_photo_url} alt="Avant intervention"/> : <><Icon name="camera" size={28}/><strong>État avant intervention</strong></>}</div>
+            <input ref={beforePhotoInputRef} className="cleaning-photo-file-input" type="file" accept="image/*" capture="environment" onChange={(event) => void addPhoto(event, selected, 'before')}/>
+            <button className="secondary-button cleaning-photo-button" type="button" disabled={Boolean(busy) || selected.status === 'completed'} onClick={() => openPhotoCapture('before')}><Icon name="camera" size={19}/>{busy === 'photo-before' ? 'Enregistrement…' : selected.status === 'completed' ? 'Photo avant verrouillée' : selected.before_photo_url ? 'Reprendre la photo avant' : 'Prendre la photo avant'}</button>
+          </article>
+          <article className={`cleaning-photo-capture after${selected.after_photo_url ? ' has-photo' : ''}`}>
+            <div className="cleaning-photo-heading"><span>APRÈS</span>{selected.after_photo_url && <em><Icon name="check" size={13}/>Enregistrée</em>}</div>
+            <div className="cleaning-photo-preview">{selected.after_photo_url ? <img src={selected.after_photo_url} alt="Après intervention"/> : <><Icon name="camera" size={28}/><strong>Résultat de l’intervention</strong></>}</div>
+            <input ref={afterPhotoInputRef} className="cleaning-photo-file-input" type="file" accept="image/*" capture="environment" onChange={(event) => void addPhoto(event, selected, 'after')}/>
+            <button className="primary-button cleaning-photo-button" type="button" disabled={Boolean(busy) || selected.status !== 'in_progress'} onClick={() => openPhotoCapture('after')}><Icon name="camera" size={19}/>{busy === 'photo-after' ? 'Enregistrement…' : selected.status === 'planned' ? 'Disponible après l’arrivée' : selected.status === 'completed' ? 'Photo après verrouillée' : selected.after_photo_url ? 'Reprendre la photo après' : 'Prendre la photo après'}</button>
+          </article>
+        </div>
         {selected.status === 'planned' && <button className="primary-button cleaning-large-action" disabled={Boolean(busy)} onClick={() => void updateIntervention(selected, 'start')}><Icon name="clock" size={20}/>{busy === 'start' ? 'Pointage…' : 'Pointer mon arrivée'}</button>}
         {selected.status === 'in_progress' && <><label className="cleaning-report-field">Fiche de passage<textarea rows={5} value={report} onChange={(e) => setReport(e.target.value)} placeholder="Travaux réalisés, observations, matériel utilisé…"/></label><button className="primary-button cleaning-large-action" disabled={Boolean(busy)} onClick={() => void updateIntervention(selected, 'finish')}><Icon name="check" size={20}/>{busy === 'finish' ? 'Validation…' : 'Terminer et pointer mon départ'}</button></>}
         {selected.status === 'completed' && <div className="cleaning-completed-summary"><Icon name="check" size={24}/><div><strong>Intervention terminée</strong><p>{selected.report_text || 'Aucun commentaire ajouté.'}</p></div></div>}
