@@ -95,7 +95,7 @@ export function CleaningClientPortalInvitationPage() {
     try {
       const { error: acceptError } = await supabase.rpc('accept_cleaning_client_portal_invitation', { p_token: token });
       if (acceptError) throw acceptError;
-      navigate('/espace-client-nettoyage', { replace: true });
+      navigate('/espace-nettoyage', { replace: true });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Validation impossible.');
       setPending(false);
@@ -131,7 +131,7 @@ export function CleaningClientPortalInvitationPage() {
           <div className={`security-client-status-box ${details.invitation_status === 'accepted' ? '' : 'error'}`}>
             <Icon name={details.invitation_status === 'accepted' ? 'check' : 'alert'} size={20}/><div><strong>{details.invitation_status === 'accepted' ? 'Invitation déjà activée' : 'Invitation indisponible'}</strong><p>Elle est {details.invitation_status === 'accepted' ? 'déjà associée à votre compte' : details.invitation_status === 'expired' ? 'expirée' : 'révoquée'}.</p></div>
           </div>
-          {details.invitation_status === 'accepted' && <Link className="primary-button full" to="/espace-client-nettoyage">Ouvrir mon portail client</Link>}
+          {details.invitation_status === 'accepted' && <Link className="primary-button full" to="/espace-nettoyage">Ouvrir mon espace</Link>}
         </div> : user ? <div className="security-client-accept-box">
           {emailMatches ? <>
             <div><Icon name="check" size={20}/><p>Connecté avec <strong>{user.email}</strong></p></div>
@@ -156,7 +156,7 @@ export function CleaningClientPortalInvitationPage() {
 
       {error && <div className="error-message page-message" role="alert">{error}</div>}
       {message && <div className="success-message page-message" role="status">{message}</div>}
-      <div className="security-client-public-footer"><Link to="/espace-client-nettoyage">Déjà client ? Ouvrir le portail</Link><span>·</span><a href="mailto:contact@ncr-suite.fr">Assistance NCR Suite</a></div>
+      <div className="security-client-public-footer"><Link to="/espace-nettoyage">Déjà invité ? Ouvrir l’espace</Link><span>·</span><a href="mailto:contact@ncr-suite.fr">Assistance NCR Suite</a></div>
     </section>
   </div>;
 }

@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-cleaning-agent-camera`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-unified-external-portals-photo-reports`;
+const cleaningAgentCameraCache = 'ncr-suite-shell-v2.28.8-cleaning-agent-camera';
 const googleSearchFaviconCache = 'ncr-suite-shell-v2.28.7-google-favicon';
 const publicSolutionsMenuCache = 'ncr-suite-shell-v2.28.6-solutions-menu';
 const universalNotificationAccessCache = 'ncr-suite-shell-v2.28.5-universal-notification-access';
@@ -72,19 +73,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v288.css',
-  '/ncr-suite-app-v288.css',
+  '/ncr-suite-showcase-v289.css',
+  '/ncr-suite-app-v289.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.28.8'
+  'ncr:css-recovery-v2.28.9'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v288.css',
+  '/ncr-suite-app-v289.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v288.js'"
+  "entryFileNames: 'ncr-suite-app-v289.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -942,7 +943,7 @@ requireText('supabase/migrations/111_google_search_favicon.sql', [
 ]);
 requireText('supabase/migrations/112_cleaning_agent_camera_photos.sql', [
   "'2.28.8'",
-  expectedCache,
+  cleaningAgentCameraCache,
   'can_access_cleaning_intervention_photo',
   'set_cleaning_intervention_photo',
   'cleaning_photos_insert',
@@ -957,8 +958,38 @@ requireText('src/pages/CleaningAgentPortalPage.tsx', [
 ]);
 requireText('src/pages/LoginPage.tsx', [
   'agent-nettoyage',
-  'Nettoyage agent',
-  "cleaningAgentMode ? '/terrain' : '/'"
+  "cleaningAgentMode ? '/terrain' : '/'",
+  'to="/espace-securite"',
+  'to="/espace-nettoyage"',
+  'Client · Agent'
+]);
+requireText('supabase/migrations/113_unified_external_portals_photo_reports.sql', [
+  "'2.28.9'",
+  expectedCache,
+  'platform_release_state'
+]);
+requireText('src/App.tsx', [
+  'path="/espace-securite"',
+  'to="/espace-securite"',
+  'path="/espace-nettoyage"',
+  'to="/espace-nettoyage"'
+]);
+requireText('src/pages/SecurityClientPortalPage.tsx', [
+  'agentOrganization',
+  "item.role === 'employee'",
+  '<Navigate to="/terrain" replace />'
+]);
+requireText('src/pages/CleaningClientPortalPage.tsx', [
+  'agentOrganization',
+  "item.role === 'employee'",
+  '<Navigate to="/terrain" replace />'
+]);
+requireText('src/features/cleaning/visitReportPdf.ts', [
+  'embedRemotePhoto',
+  'drawPhotoCard',
+  'scaleToFit',
+  "pdf.addPage([595.28, 841.89])",
+  'PREUVES PHOTO'
 ]);
 requireText('src/pages/PublicSolutionPage.tsx', [
   'public-solution-v283',
@@ -1164,8 +1195,8 @@ requireText('src/pages/LoginPage.tsx', [
   "to=\"/mot-de-passe-oublie\"",
   "to=\"/demande-acces\"",
   "to=\"/espace-formation\"",
-  "to=\"/espace-client-securite\"",
-  "to=\"/espace-client-nettoyage\"",
+  "to=\"/espace-securite\"",
+  "to=\"/espace-nettoyage\"",
   "to=\"/espace-client-coiffure\""
 ]);
 requireText('src/pages/TrainingPortalAdminPage.tsx', [

@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.28.8-cleaning-agent-camera';
+const CACHE = 'ncr-suite-shell-v2.28.9-unified-external-portals-photo-reports';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v288.css',
-  '/ncr-suite-app-v288.css',
-  '/ncr-suite-app-v288.js',
+  '/ncr-suite-showcase-v289.css',
+  '/ncr-suite-app-v289.css',
+  '/ncr-suite-app-v289.js',
   '/brand/ncr-suite-logo-header-v2221.png',
   '/brand/ncr-suite-symbol-v2221.png',
   '/brand/ncr-suite-icon.png',

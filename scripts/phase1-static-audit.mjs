@@ -676,8 +676,12 @@ const universalNotificationAccessMigration = read('supabase/migrations/109_unive
 const publicSolutionsMenuMigration = read('supabase/migrations/110_public_solutions_menu.sql');
 const googleSearchFaviconMigration = read('supabase/migrations/111_google_search_favicon.sql');
 const cleaningAgentCameraMigration = read('supabase/migrations/112_cleaning_agent_camera_photos.sql');
+const unifiedExternalPortalsMigration = read('supabase/migrations/113_unified_external_portals_photo_reports.sql');
 const cleaningAgentPortalPage = read('src/pages/CleaningAgentPortalPage.tsx');
 const cleaningPhotoUpload = read('src/features/cleaning/photoUpload.ts');
+const cleaningVisitReportPdf = read('src/features/cleaning/visitReportPdf.ts');
+const securityClientPortalPage = read('src/pages/SecurityClientPortalPage.tsx');
+const cleaningClientPortalPage = read('src/pages/CleaningClientPortalPage.tsx');
 const loginPage = read('src/pages/LoginPage.tsx');
 const commercialReadinessPanel = read('src/components/AdminCommercialReadinessPanel.tsx');
 const stripeCheckoutFunction = read('supabase/functions/create-stripe-checkout/index.ts');
@@ -694,33 +698,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v288.css')
-    || !indexHtml.includes('/ncr-suite-app-v288.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v289.css')
+    || !indexHtml.includes('/ncr-suite-app-v289.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.28.8')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v288.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v288.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.28.9')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v289.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v289.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v288.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v289.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.28.8 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.28.9 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v288.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v288.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.28.8 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v289.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v289.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.28.9 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.28.8'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.28.8-cleaning-agent-camera")
-    || !serviceWorker.includes("ncr-suite-shell-v2.28.8-cleaning-agent-camera")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v288.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v288.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v288.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.28.9'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.28.9-unified-external-portals-photo-reports")
+    || !serviceWorker.includes("ncr-suite-shell-v2.28.9-unified-external-portals-photo-reports")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v289.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v289.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v289.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.28.8 est incoherent.');
+  errors.push('La version ou le cache PWA V2.28.9 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.28.8 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.28.9 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1041,9 +1045,29 @@ if (!cleaningAgentCameraMigration.includes("'2.28.8'")
     || !cleaningPhotoUpload.includes("type: 'image/jpeg'")
     || !cleaningPhotoUpload.includes('MAX_OUTPUT_SIZE')
     || !loginPage.includes('agent-nettoyage')
-    || !loginPage.includes('Nettoyage agent')
     || !appShell.includes("['securite', 'nettoyage', 'restauration']")) {
   errors.push('Le parcours camera de l espace agent Nettoyage V2.28.8 est incomplet.');
+}
+if (!unifiedExternalPortalsMigration.includes("'2.28.9'")
+    || !unifiedExternalPortalsMigration.includes('ncr-suite-shell-v2.28.9-unified-external-portals-photo-reports')
+    || !loginPage.includes('to="/espace-securite"')
+    || !loginPage.includes('to="/espace-nettoyage"')
+    || !loginPage.includes('Client · Agent')
+    || !app.includes('path="/espace-securite"')
+    || !app.includes('to="/espace-securite"')
+    || !app.includes('path="/espace-nettoyage"')
+    || !app.includes('to="/espace-nettoyage"')
+    || !securityClientPortalPage.includes('agentOrganization')
+    || !securityClientPortalPage.includes("item.role === 'employee'")
+    || !securityClientPortalPage.includes('<Navigate to="/terrain" replace />')
+    || !cleaningClientPortalPage.includes('agentOrganization')
+    || !cleaningClientPortalPage.includes("item.role === 'employee'")
+    || !cleaningClientPortalPage.includes('<Navigate to="/terrain" replace />')
+    || !cleaningVisitReportPdf.includes('embedRemotePhoto')
+    || !cleaningVisitReportPdf.includes('drawPhotoCard')
+    || !cleaningVisitReportPdf.includes('scaleToFit')
+    || !cleaningVisitReportPdf.includes('PREUVES PHOTO')) {
+  errors.push('Les espaces externes unifies ou les preuves photo PDF V2.28.9 sont incomplets.');
 }
 if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
   source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')

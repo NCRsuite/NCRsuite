@@ -1,9 +1,9 @@
-# NCR Suite V2.28.8
+# NCR Suite V2.28.9
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version fiabilise l'espace agent Nettoyage : accès terrain identifiable,
-capture directe avant/après, optimisation des photos mobiles et enregistrement
-sécurisé dans l'intervention affectée. La vitrine et le référencement restent inchangés.
+Cette version regroupe les accès Client et Agent dans un seul espace externe pour
+les métiers Sécurité et Nettoyage. Les photos Avant/Après sont désormais intégrées
+au rapport PDF de passage. La vitrine et le référencement restent inchangés.
 
-Consulter uniquement `A_LIRE_INSTALLATION_V2.28.8.txt` pour déployer ce patch.
+Consulter uniquement `A_LIRE_INSTALLATION_V2.28.9.txt` pour déployer ce patch.

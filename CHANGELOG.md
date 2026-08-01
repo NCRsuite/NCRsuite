@@ -1,5 +1,18 @@
 # Changelog NCR Suite
 
+## V2.28.9 - Espaces externes unifiés et photos dans les rapports
+
+- Une seule entrée `Sécurité` pour les clients et les agents dans les espaces externes.
+- Une seule entrée `Nettoyage` pour les clients et les agents dans les espaces externes.
+- Détection automatique du profil après connexion : portail client ou espace terrain agent.
+- Anciennes invitations client conservées et redirigées vers les nouvelles adresses unifiées.
+- Suppression de la tuile visible `Nettoyage agent` sans supprimer sa compatibilité historique.
+- Photos Avant et Après téléchargées puis intégrées au PDF du rapport de passage.
+- Mise à l’échelle des photos sans déformation et état explicite si une preuve est indisponible.
+- Échec de chargement d’une photo isolé pour ne jamais bloquer la génération du rapport.
+- Migration `113` et cache PWA `ncr-suite-shell-v2.28.9-unified-external-portals-photo-reports`.
+- Pages publiques, sitemap, canonical, métadonnées et indexation inchangés.
+
 ## V2.28.8 - Espace agent Nettoyage et photos terrain
 
 - Accès Agent Nettoyage clairement proposé depuis l’écran de connexion.

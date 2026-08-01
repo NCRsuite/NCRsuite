@@ -313,9 +313,11 @@ export default function App() {
       <Route path="/r/:slug/menu" element={<PublicRestaurantMenuPage />} />
       <Route path="/r/:slug/reserver" element={<PublicRestaurantBookingPage />} />
       <Route path="/client-securite/invitation/:token" element={<SecurityClientPortalInvitationPage />} />
-      <Route path="/espace-client-securite" element={<SecurityClientPortalPage />} />
+      <Route path="/espace-securite" element={<SecurityClientPortalPage />} />
+      <Route path="/espace-client-securite" element={<Navigate to="/espace-securite" replace />} />
       <Route path="/client-nettoyage/invitation/:token" element={<CleaningClientPortalInvitationPage />} />
-      <Route path="/espace-client-nettoyage" element={<CleaningClientPortalPage />} />
+      <Route path="/espace-nettoyage" element={<CleaningClientPortalPage />} />
+      <Route path="/espace-client-nettoyage" element={<Navigate to="/espace-nettoyage" replace />} />
       <Route path="/client-coiffure/invitation/:token" element={<CoiffureClientPortalInvitationPage />} />
       <Route path="/espace-client-coiffure" element={<CoiffureClientPortalPage />} />
       <Route path="/administration-ncr" element={<PlatformAdminArea />} />

@@ -97,19 +97,14 @@ export function LoginPage() {
                 <div><strong>Formation</strong><small>Stagiaire · Formateur · Client</small></div>
                 <Icon name="chevronRight" size={16} />
               </Link>
-              <Link to="/espace-client-securite">
+              <Link to="/espace-securite">
                 <span><Icon name="shield" size={18} /></span>
-                <div><strong>Sécurité</strong><small>Portail client</small></div>
+                <div><strong>Sécurité</strong><small>Client · Agent</small></div>
                 <Icon name="chevronRight" size={16} />
               </Link>
-              <Link to="/espace-client-nettoyage">
+              <Link to="/espace-nettoyage">
                 <span><Icon name="sparkles" size={18} /></span>
-                <div><strong>Nettoyage client</strong><small>Suivi des prestations</small></div>
-                <Icon name="chevronRight" size={16} />
-              </Link>
-              <Link to="/connexion?espace=agent-nettoyage">
-                <span><Icon name="camera" size={18} /></span>
-                <div><strong>Nettoyage agent</strong><small>Interventions et preuves</small></div>
+                <div><strong>Nettoyage</strong><small>Client · Agent</small></div>
                 <Icon name="chevronRight" size={16} />
               </Link>
               <Link to="/espace-client-coiffure">

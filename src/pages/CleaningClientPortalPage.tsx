@@ -1,6 +1,8 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
+import { useOrganization } from '../contexts/OrganizationContext';
 import { closeFileWindow, navigateFileWindow, prepareFileWindow } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
 
@@ -204,6 +206,7 @@ function qualityTone(score: number | null) {
 
 export function CleaningClientPortalPage() {
   const { user, signIn, signOut, loading: authLoading } = useAuth();
+  const { organizations, organization, selectOrganization, loading: organizationLoading } = useOrganization();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [accounts, setAccounts] = useState<PortalAccount[]>([]);
@@ -216,6 +219,7 @@ export function CleaningClientPortalPage() {
   const [appliedToDate, setAppliedToDate] = useState(() => isoDate(60));
   const [messageBody, setMessageBody] = useState('');
   const [loading, setLoading] = useState(false);
+  const [accountsChecked, setAccountsChecked] = useState(false);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
 
@@ -223,10 +227,16 @@ export function CleaningClientPortalPage() {
     () => accounts.find((account) => account.account_id === accountId) ?? accounts[0] ?? null,
     [accounts, accountId]
   );
+  const agentOrganization = useMemo(
+    () => organizations.find((item) => item.business_type === 'nettoyage' && item.role === 'employee') ?? null,
+    [organizations]
+  );
 
   const loadAccounts = useCallback(async () => {
-    if (!user || !supabase) return;
+    if (!user) return;
+    if (!supabase) { setAccounts([]); setAccountsChecked(true); return; }
     setLoading(true);
+    setAccountsChecked(false);
     setError('');
     const { data, error: rpcError } = await supabase.rpc('current_cleaning_client_portal_accounts');
     if (rpcError) setError(rpcError.message);
@@ -236,6 +246,7 @@ export function CleaningClientPortalPage() {
       setAccountId((current) => current && rows.some((row) => row.account_id === current) ? current : rows[0]?.account_id ?? '');
     }
     setLoading(false);
+    setAccountsChecked(true);
   }, [user?.id]);
 
   const loadDashboard = useCallback(async (targetAccountId: string) => {
@@ -263,12 +274,18 @@ export function CleaningClientPortalPage() {
     else {
       setAccounts([]);
       setDashboard(null);
+      setAccountsChecked(false);
     }
   }, [user?.id, loadAccounts]);
 
   useEffect(() => {
     if (selectedAccount?.account_id) void loadDashboard(selectedAccount.account_id);
   }, [selectedAccount?.account_id, loadDashboard]);
+
+  useEffect(() => {
+    if (!user || !accountsChecked || accounts.length > 0 || !agentOrganization) return;
+    if (organization?.id !== agentOrganization.id) selectOrganization(agentOrganization.id);
+  }, [user, accountsChecked, accounts.length, agentOrganization?.id, organization?.id, selectOrganization]);
 
   async function login(event: FormEvent) {
     event.preventDefault();
@@ -313,19 +330,19 @@ export function CleaningClientPortalPage() {
   }
 
   if (authLoading) {
-    return <div className="security-client-loading-screen"><img src="/brand/ncr-suite-icon.png" alt=""/><span>Ouverture du portail client…</span></div>;
+    return <div className="security-client-loading-screen"><img src="/brand/ncr-suite-icon.png" alt=""/><span>Ouverture de l’espace…</span></div>;
   }
 
   if (!user) {
     return <div className="security-client-public-shell cleaning-client-public-shell">
       <div className="security-client-public-glow" />
       <section className="security-client-login-card">
-        <div className="security-client-public-brand"><span><Icon name="sparkles" size={27}/></span><div><strong>Portail client Nettoyage</strong><small>Propulsé par NCR Suite</small></div></div>
-        <div className="security-client-login-copy"><p className="eyebrow">ESPACE SÉCURISÉ</p><h1>Suivez vos prestations en toute transparence</h1><p>Planning, interventions réalisées, rapports de passage, anomalies, contrôles qualité, documents et échanges avec votre prestataire.</p></div>
+        <div className="security-client-public-brand"><span><Icon name="sparkles" size={27}/></span><div><strong>Espace Nettoyage</strong><small>Clients et agents</small></div></div>
+        <div className="security-client-login-copy"><p className="eyebrow">ACCÈS SÉCURISÉ</p><h1>Retrouvez votre espace Nettoyage</h1><p>Clients : suivez les prestations et rapports. Agents : accédez aux interventions, pointages et preuves terrain.</p></div>
         <form className="security-client-auth-form" onSubmit={login}>
           <label>Adresse e-mail<input type="email" inputMode="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <label>Mot de passe<input type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
-          <button className="primary-button full" disabled={busy === 'login'}>{busy === 'login' ? 'Connexion…' : 'Ouvrir mon portail'}</button>
+          <button className="primary-button full" disabled={busy === 'login'}>{busy === 'login' ? 'Connexion…' : 'Me connecter'}</button>
         </form>
         {error && <div className="error-message page-message">{error}</div>}
         <div className="security-client-public-footer"><span>Accès uniquement sur invitation</span><span>·</span><a href="mailto:contact@ncr-suite.fr">Besoin d’aide ?</a></div>
@@ -333,11 +350,22 @@ export function CleaningClientPortalPage() {
     </div>;
   }
 
-  if (!loading && accounts.length === 0) {
+  if (!accountsChecked || organizationLoading) {
+    return <div className="security-client-loading-screen"><img src="/brand/ncr-suite-icon.png" alt=""/><span>Identification de votre accès…</span></div>;
+  }
+
+  if (user && accountsChecked && accounts.length === 0 && agentOrganization) {
+    if (organization?.id !== agentOrganization.id) {
+      return <div className="security-client-loading-screen"><img src="/brand/ncr-suite-icon.png" alt=""/><span>Ouverture de l’espace agent…</span></div>;
+    }
+    return <Navigate to="/terrain" replace />;
+  }
+
+  if (accountsChecked && accounts.length === 0) {
     return <div className="security-client-public-shell cleaning-client-public-shell">
       <section className="security-client-login-card security-client-no-access">
         <span className="security-client-no-access-icon"><Icon name="lock" size={30}/></span>
-        <p className="eyebrow">PORTAIL CLIENT NETTOYAGE</p><h1>Aucun accès actif</h1><p>Cette adresse n’est rattachée à aucun portail client actif. Utilisez le lien d’invitation transmis par votre prestataire de nettoyage.</p>
+        <p className="eyebrow">ESPACE NETTOYAGE</p><h1>Aucun accès actif</h1><p>Cette adresse n’est rattachée à aucun accès client ou agent actif. Utilisez le lien d’invitation qui vous a été transmis.</p>
         {error && <div className="error-message page-message">{error}</div>}
         <button className="secondary-button full" onClick={() => void signOut()}>Se connecter avec une autre adresse</button>
       </section>
