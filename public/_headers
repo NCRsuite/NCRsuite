@@ -22,7 +22,20 @@
   Content-Type: image/x-icon
   Cache-Control: public, max-age=604800, must-revalidate
 
+/favicon-48x48.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/favicon-96x96.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/apple-touch-icon.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=604800, must-revalidate
+
 /icons/favicon-*.png
+  Content-Type: image/png
   Cache-Control: public, max-age=604800, must-revalidate
 
 /sw.js
