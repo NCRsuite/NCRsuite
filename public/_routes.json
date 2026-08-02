@@ -2,18 +2,22 @@
   "version": 1,
   "include": ["/*"],
   "exclude": [
-    "/favicon.ico",
-    "/favicon.png",
-    "/favicon-48x48.png",
-    "/favicon-96x96.png",
-    "/apple-touch-icon.png",
+    "/assets/*",
     "/icons/*",
     "/brand/*",
     "/og/*",
-    "/assets/*",
+    "/favicon.ico",
+    "/favicon.png",
     "/manifest.webmanifest",
     "/robots.txt",
     "/sitemap.xml",
-    "/sw.js"
+    "/sw.js",
+    "/*.css",
+    "/*.js",
+    "/*.png",
+    "/*.webp",
+    "/*.svg",
+    "/*.woff",
+    "/*.woff2"
   ]
 }

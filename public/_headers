@@ -55,14 +55,12 @@
 /portail*
   X-Robots-Tag: noindex, nofollow
 
-/favicon-48x48.png
-  Content-Type: image/png
-  Cache-Control: public, max-age=604800, must-revalidate
+# Les favicons doivent être explorables par Google Search.
+/favicon.png
+  ! X-Robots-Tag
 
-/favicon-96x96.png
-  Content-Type: image/png
-  Cache-Control: public, max-age=604800, must-revalidate
+/favicon.ico
+  ! X-Robots-Tag
 
-/apple-touch-icon.png
-  Content-Type: image/png
-  Cache-Control: public, max-age=604800, must-revalidate
+/icons/*
+  ! X-Robots-Tag

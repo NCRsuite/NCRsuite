@@ -4,6 +4,12 @@ type PagesContext = {
   next: () => Promise<Response>;
 };
 
+const addSecurityHeaders = (headers: Headers) => {
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
+};
+
 export const onRequest = async (context: PagesContext) => {
   const url = new URL(context.request.url);
   const canonicalRedirectEnabled = context.env.NCR_CANONICAL_REDIRECT_ENABLED === 'true';
@@ -31,18 +37,15 @@ export const onRequest = async (context: PagesContext) => {
   const contentType = (headers.get('Content-Type') || '').toLowerCase();
   const isHtmlResponse = contentType.includes('text/html');
 
-  // Le noindex doit protéger uniquement les écrans HTML privés de l'application.
-  // Il ne doit jamais être envoyé sur les favicons, images, fichiers CSS/JS,
-  // robots.txt, sitemap.xml ou autres ressources publiques.
+  // Le noindex protège uniquement les écrans HTML privés.
+  // Les favicons et tous les fichiers publics doivent rester explorables par Google.
   if (isHtmlResponse && !indexablePaths.has(normalizedPath)) {
     headers.set('X-Robots-Tag', 'noindex, nofollow');
-  } else if (!isHtmlResponse) {
+  } else {
     headers.delete('X-Robots-Tag');
   }
 
-  headers.set('X-Content-Type-Options', 'nosniff');
-  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
+  addSecurityHeaders(headers);
 
   return new Response(response.body, {
     status: response.status,
