@@ -1,8 +1,6 @@
 {
   "version": 1,
-  "include": [
-    "/*"
-  ],
+  "include": ["/*"],
   "exclude": [
     "/favicon.ico",
     "/favicon.png",
@@ -12,6 +10,7 @@
     "/icons/*",
     "/brand/*",
     "/og/*",
+    "/assets/*",
     "/manifest.webmanifest",
     "/robots.txt",
     "/sitemap.xml",
