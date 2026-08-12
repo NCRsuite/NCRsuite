@@ -1,5 +1,15 @@
 # Changelog NCR Suite
 
+## V2.29.3 - Alignements et contrastes de la vitrine
+
+- Sections Flux, Catalogue et appel à l'action final centrées à toutes les largeurs ordinateur.
+- Catalogue détaché du grand fond gris et présenté dans une composition blanche plus légère.
+- Badges verts des cartes Collecter, Orchestrer, Prouver et Piloter remplacés par des pastilles sobres sans ligne sombre.
+- Prix, titres, descriptions et listes des offres recommandées rendus lisibles sur les cinq pages métier.
+- Compatibilité mobile conservée sans modification de structure.
+- Aucun changement de route, contenu SEO, formulaire, prix, droit ou fonction métier.
+- Migration `117` de synchronisation et cache PWA `ncr-suite-shell-v2.29.3-public-ui-alignment-contrast`.
+
 ## V2.29.2 - Corrections de cadrage de la vitrine
 
 - Cartes Collecter, Orchestrer, Prouver et Piloter réalignées sur ordinateur.

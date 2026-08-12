@@ -160,7 +160,7 @@ export function AccessRequestPage() {
   }
 
   return (
-    <div className="public-form-page public-form-page-v291 public-form-page-v292">
+    <div className="public-form-page public-form-page-v291 public-form-page-v292 public-form-page-v293">
       <PageMetadata
         title="Demander un accès | NCR Suite"
         description="Présentez votre activité pour obtenir un espace NCR Suite configuré et validé par notre équipe."
