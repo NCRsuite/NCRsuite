@@ -143,7 +143,7 @@ export function AccessRequestPage() {
 
   if (reference) {
     return (
-      <div className="public-form-page public-form-page-v291">
+      <div className="public-form-page public-form-page-v291 public-form-page-v292">
         <PageMetadata title="Demande reçue | NCR Suite" path="/demande-acces" />
         <PublicSiteHeader compact />
         <main className="public-request-success">
@@ -160,7 +160,7 @@ export function AccessRequestPage() {
   }
 
   return (
-    <div className="public-form-page public-form-page-v291">
+    <div className="public-form-page public-form-page-v291 public-form-page-v292">
       <PageMetadata
         title="Demander un accès | NCR Suite"
         description="Présentez votre activité pour obtenir un espace NCR Suite configuré et validé par notre équipe."

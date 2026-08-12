@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.29.1-public-ui-premium';
+const CACHE = 'ncr-suite-shell-v2.29.2-public-ui-spacing-fix';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v291.css',
-  '/ncr-suite-app-v291.css',
-  '/ncr-suite-app-v291.js',
+  '/ncr-suite-showcase-v292.css',
+  '/ncr-suite-app-v292.css',
+  '/ncr-suite-app-v292.js',
   '/fonts/inter-variable.woff2',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-symbol-v2221.png',

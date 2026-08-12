@@ -679,6 +679,7 @@ const cleaningAgentCameraMigration = read('supabase/migrations/112_cleaning_agen
 const unifiedExternalPortalsMigration = read('supabase/migrations/113_unified_external_portals_photo_reports.sql');
 const subscriptionContractsMigration = read('supabase/migrations/114_subscription_contracts_signature.sql');
 const publicUiPremiumMigration = read('supabase/migrations/115_public_ui_premium_trial_cta.sql');
+const publicUiSpacingFixMigration = read('supabase/migrations/116_public_ui_spacing_fix.sql');
 const subscriptionContractFunction = read('supabase/functions/subscription-contract/index.ts');
 const onboardingPage = read('src/pages/OnboardingPage.tsx');
 const cleaningAgentPortalPage = read('src/pages/CleaningAgentPortalPage.tsx');
@@ -702,33 +703,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v291.css')
-    || !indexHtml.includes('/ncr-suite-app-v291.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v292.css')
+    || !indexHtml.includes('/ncr-suite-app-v292.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.29.1')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v291.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v291.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.2')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v292.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v292.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v291.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v292.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.29.1 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.2 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v291.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v291.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.29.1 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v292.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v292.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.2 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.29.1'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.29.1-public-ui-premium")
-    || !serviceWorker.includes("ncr-suite-shell-v2.29.1-public-ui-premium")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v291.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v291.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v291.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.2'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.2-public-ui-spacing-fix")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.2-public-ui-spacing-fix")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v292.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v292.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v292.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.29.1 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.2 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.29.1 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.2 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1103,6 +1104,16 @@ if (!publicUiPremiumMigration.includes("'2.29.1'")
     || !publicStyles.includes('font-family: "NCR Public Inter"')
     || !serviceWorker.includes("'/fonts/inter-variable.woff2'")) {
   errors.push('La refonte publique premium et le parcours d essai V2.29.1 sont incomplets.');
+}
+if (!publicUiSpacingFixMigration.includes("'2.29.2'")
+    || !publicUiSpacingFixMigration.includes('ncr-suite-shell-v2.29.2-public-ui-spacing-fix')
+    || !publicHomePage.includes('public-home-v292')
+    || !publicSolutionPage.includes('public-solution-v292')
+    || !accessRequestPage.includes('public-form-page-v292')
+    || !publicStyles.includes('V2.29.2 - Corrections de cadrage de la vitrine publique')
+    || !publicStyles.includes('.public-home-v292 .public-flow-grid article:nth-child(2)')
+    || !publicStyles.includes('.public-home-v292 .public-site-footer .public-footer-brand img')) {
+  errors.push('Les corrections de cadrage et de lisibilite V2.29.2 sont incompletes.');
 }
 if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
   source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')

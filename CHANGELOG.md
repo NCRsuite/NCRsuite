@@ -1,5 +1,15 @@
 # Changelog NCR Suite
 
+## V2.29.2 - Corrections de cadrage de la vitrine
+
+- Cartes Collecter, Orchestrer, Prouver et Piloter réalignées sur ordinateur.
+- Hauteur du flux et espaces verticaux du catalogue réduits.
+- Dernier appel à l'action resserré et rééquilibré.
+- Pied de page forcé en mode clair pour rendre le logo horizontal officiel lisible.
+- Compatibilité mobile conservée sans modification de structure.
+- Aucun changement de route, contenu SEO, formulaire, prix, droit ou fonction métier.
+- Migration `116` de synchronisation et cache PWA `ncr-suite-shell-v2.29.2-public-ui-spacing-fix`.
+
 ## V2.29.1 - Interface publique premium et essai de 7 jours
 
 - Refonte strictement visuelle de la page principale et des pages Solutions métier en mode clair.
