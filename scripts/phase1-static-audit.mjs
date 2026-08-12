@@ -600,7 +600,7 @@ if (!commercialLaunchMigration.includes('create table if not exists public.platf
   errors.push('La migration V2.22.0 de lancement commercial est incomplete.');
 }
 if (!publicHomePage.includes('<PublicSiteHeader />')
-    || !publicHomePage.includes('Demander un accès')
+    || !publicHomePage.includes('Essai gratuit de 7 jours')
     || !accessRequestPage.includes("functions.invoke('request-platform-access'")
     || !adminAccessRequestsPanel.includes("functions.invoke('admin-review-access-request'")) {
   errors.push('Le parcours V2.22.0 de presentation et de validation des acces est incomplet.');
@@ -621,7 +621,7 @@ const serviceWorker = read('public/sw.js');
 if (!publicHomePage.includes('public-hero-canvas')
     || !publicHomePage.includes('public-business-showcase')
     || !publicHomePage.includes('/og/ncr-suite-og-v2221.webp')
-    || !publicHeader.includes('/brand/ncr-suite-logo-header-v2221.png')
+    || !publicHeader.includes('/brand/ncr-suite-logo-horizontal.png')
     || !publicFooter.includes('public-footer-brand')) {
   errors.push('La vitrine premium V2.22.1 ou son identite officielle est incomplete.');
 }
@@ -678,6 +678,7 @@ const googleSearchFaviconMigration = read('supabase/migrations/111_google_search
 const cleaningAgentCameraMigration = read('supabase/migrations/112_cleaning_agent_camera_photos.sql');
 const unifiedExternalPortalsMigration = read('supabase/migrations/113_unified_external_portals_photo_reports.sql');
 const subscriptionContractsMigration = read('supabase/migrations/114_subscription_contracts_signature.sql');
+const publicUiPremiumMigration = read('supabase/migrations/115_public_ui_premium_trial_cta.sql');
 const subscriptionContractFunction = read('supabase/functions/subscription-contract/index.ts');
 const onboardingPage = read('src/pages/OnboardingPage.tsx');
 const cleaningAgentPortalPage = read('src/pages/CleaningAgentPortalPage.tsx');
@@ -701,33 +702,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v290.css')
-    || !indexHtml.includes('/ncr-suite-app-v290.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v291.css')
+    || !indexHtml.includes('/ncr-suite-app-v291.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.29.0')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v290.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v290.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.1')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v291.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v291.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v290.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v291.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.29.0 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.1 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v290.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v290.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.29.0 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v291.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v291.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.1 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.29.0'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.29.0-subscription-contract-signature")
-    || !serviceWorker.includes("ncr-suite-shell-v2.29.0-subscription-contract-signature")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v290.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v290.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v290.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.1'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.1-public-ui-premium")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.1-public-ui-premium")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v291.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v291.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v291.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.29.0 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.1 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.29.0 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.1 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1089,6 +1090,19 @@ if (!subscriptionContractsMigration.includes('create table if not exists public.
     || !stripeWebhookFunction.includes("from('subscription_contracts')")
     || !subscriptionPage.includes('Mes contrats NCR Suite')) {
   errors.push('Le parcours contrat, signature et activation Stripe V2.29.0 est incomplet.');
+}
+if (!publicUiPremiumMigration.includes("'2.29.1'")
+    || !publicUiPremiumMigration.includes('ncr-suite-shell-v2.29.1-public-ui-premium')
+    || !publicUiPremiumMigration.includes('platform_release_state')
+    || !publicHomePage.includes('public-home-v291')
+    || !publicHomePage.includes('Essai gratuit de 7 jours')
+    || !publicSolutionPage.includes('public-solution-v291')
+    || !publicSolutionPage.includes('essai=7')
+    || !accessRequestPage.includes('trialRequested')
+    || !publicStyles.includes('NCR Suite V2.29.1 - refonte UI publique premium en mode clair')
+    || !publicStyles.includes('font-family: "NCR Public Inter"')
+    || !serviceWorker.includes("'/fonts/inter-variable.woff2'")) {
+  errors.push('La refonte publique premium et le parcours d essai V2.29.1 sont incomplets.');
 }
 if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
   source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')

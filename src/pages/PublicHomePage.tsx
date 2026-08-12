@@ -116,6 +116,7 @@ export function PublicHomePage() {
   const activeOfferBusiness = publicOfferCatalog.find((business) => business.key === activeOfferBusinessKey) ?? publicOfferCatalog[0];
   const businessStyle = { '--business-color': activeBusiness.color } as CSSProperties;
   const offerStyle = { '--offer-color': activeOfferBusiness.color } as CSSProperties;
+  const trialRequestPath = '/demande-acces?essai=7&utm_source=vitrine&utm_medium=cta&utm_campaign=essai-7-jours&utm_content=accueil';
 
   useEffect(() => {
     if (!showIntro) return;
@@ -179,7 +180,7 @@ export function PublicHomePage() {
   }, []);
 
   return (
-    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231 public-home-v232">
+    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231 public-home-v232 public-home-v291">
       <PageMetadata
         title="NCR Suite | La plateforme de gestion conçue pour votre métier"
         description="NCR Suite réunit clients, équipes, planning, documents, facturation, conformité et automatisations dans une plateforme métier claire, modulaire et sécurisée."
@@ -232,7 +233,7 @@ export function PublicHomePage() {
             ))}
           </div>
           <div className="public-hero-actions">
-            <Link className="public-primary-action" to="/demande-acces">Demander un accès <Icon name="chevronRight" size={17} /></Link>
+            <Link className="public-primary-action public-trial-action" to={trialRequestPath}>Essai gratuit de 7 jours <Icon name="chevronRight" size={17} /></Link>
             <Link className="public-secondary-action" to="/connexion"><Icon name="lock" size={16} />Se connecter</Link>
           </div>
           <div className="public-hero-assurance">
@@ -461,7 +462,7 @@ export function PublicHomePage() {
                   <ul>
                     {plan.highlights.map((highlight) => <li key={highlight}><Icon name="check" size={14} />{highlight}</li>)}
                   </ul>
-                  <Link to="/demande-acces">Demander cette offre <Icon name="chevronRight" size={15} /></Link>
+                  <Link to={`/demande-acces?metier=${activeOfferBusiness.key}&offre=${plan.key}&essai=7&utm_source=vitrine&utm_medium=cta&utm_campaign=essai-7-jours&utm_content=offre-${activeOfferBusiness.key}-${plan.key}`}>Essayer cette offre 7 jours <Icon name="chevronRight" size={15} /></Link>
                 </article>
               ))}
             </div>
@@ -477,7 +478,7 @@ export function PublicHomePage() {
           <h2>Votre entreprise mérite mieux qu’un assemblage d’outils</h2>
           <p>Présentez-nous votre activité. Chaque nouvelle demande est examinée avant l’ouverture pour vous livrer un environnement propre, sécurisé et correctement configuré.</p>
           <div>
-            <Link className="public-primary-action" to="/demande-acces">Présenter mon besoin <Icon name="chevronRight" size={17} /></Link>
+            <Link className="public-primary-action public-trial-action" to={trialRequestPath}>Démarrer mon essai gratuit <Icon name="chevronRight" size={17} /></Link>
             <a href="mailto:contact@ncr-suite.fr" className="public-contact-link">contact@ncr-suite.fr</a>
           </div>
         </section>

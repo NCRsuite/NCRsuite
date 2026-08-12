@@ -21,6 +21,7 @@ const planOrder: Plan[] = ['decouverte', 'essentielle', 'professionnelle', 'meti
 
 export function AccessRequestPage() {
   const location = useLocation();
+  const trialRequested = new URLSearchParams(location.search).get('essai') === '7';
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -113,7 +114,9 @@ export function AccessRequestPage() {
         businessType,
         requestedPlan,
         teamSize,
-        message,
+        message: trialRequested
+          ? ['Demande d’essai gratuit de 7 jours.', message.trim()].filter(Boolean).join('\n\n')
+          : message,
         privacyAccepted,
         website,
         turnstileToken,
@@ -140,14 +143,14 @@ export function AccessRequestPage() {
 
   if (reference) {
     return (
-      <div className="public-form-page">
+      <div className="public-form-page public-form-page-v291">
         <PageMetadata title="Demande reçue | NCR Suite" path="/demande-acces" />
         <PublicSiteHeader compact />
         <main className="public-request-success">
           <span><Icon name="check" size={32} /></span>
           <p className="public-section-label">DEMANDE TRANSMISE</p>
           <h1>Merci, votre demande va être étudiée</h1>
-          <p>Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte. Après l’invitation, votre espace sera activé dès la confirmation du paiement sécurisé de la formule choisie. Vous recevrez l’e-mail depuis <strong>contact@ncr-suite.fr</strong>.</p>
+          <p>{trialRequested ? 'Votre demande d’essai gratuit de 7 jours a bien été transmise. Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte.' : 'Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte. Après l’invitation, votre espace sera activé dès la confirmation du paiement sécurisé de la formule choisie.'} Vous recevrez l’e-mail depuis <strong>contact@ncr-suite.fr</strong>.</p>
           <div><small>Référence de suivi</small><strong>{reference}</strong></div>
           <Link className="public-primary-action" to="/">Retourner à l’accueil</Link>
         </main>
@@ -157,7 +160,7 @@ export function AccessRequestPage() {
   }
 
   return (
-    <div className="public-form-page">
+    <div className="public-form-page public-form-page-v291">
       <PageMetadata
         title="Demander un accès | NCR Suite"
         description="Présentez votre activité pour obtenir un espace NCR Suite configuré et validé par notre équipe."
@@ -166,8 +169,8 @@ export function AccessRequestPage() {
       <PublicSiteHeader compact />
       <main className="public-request-layout">
         <section className="public-request-intro">
-          <p className="public-section-label">ACCÈS SUR VALIDATION</p>
-          <h1>Parlons de votre activité avant d’ouvrir votre espace</h1>
+          <p className="public-section-label">{trialRequested ? 'ESSAI GRATUIT DE 7 JOURS' : 'ACCÈS SUR VALIDATION'}</p>
+          <h1>{trialRequested ? 'Découvrez NCR Suite dans votre propre environnement métier' : 'Parlons de votre activité avant d’ouvrir votre espace'}</h1>
           <p>Cette courte demande nous permet de vérifier le métier, le bon niveau d’équipement et la personne qui deviendra propriétaire du compte.</p>
           <ol>
             <li><span>1</span><div><strong>Vous présentez votre besoin</strong><small>Aucun compte n’est créé automatiquement.</small></div></li>
@@ -219,9 +222,9 @@ export function AccessRequestPage() {
           </div>
           {error && <div className="error-message" role="alert">{error}</div>}
           <button className="public-primary-action full" disabled={pending}>
-            {pending ? 'Envoi de la demande…' : 'Transmettre ma demande'} <Icon name="chevronRight" size={17} />
+            {pending ? 'Envoi de la demande…' : trialRequested ? 'Demander mon essai gratuit' : 'Transmettre ma demande'} <Icon name="chevronRight" size={17} />
           </button>
-          <small className="public-form-note">Aucun paiement n’est réalisé à cette étape. Après validation, l’espace sera activé uniquement lorsque la souscription sera confirmée.</small>
+          <small className="public-form-note">Aucun paiement n’est réalisé à cette étape. {trialRequested ? 'L’essai de 7 jours reste soumis à la validation de NCR Suite.' : 'Après validation, l’espace sera activé uniquement lorsque la souscription sera confirmée.'}</small>
         </form>
       </main>
       <PublicSiteFooter />

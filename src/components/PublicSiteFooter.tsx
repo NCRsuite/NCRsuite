@@ -8,8 +8,7 @@ export function PublicSiteFooter() {
     <footer className="public-site-footer">
       <div>
         <Link className="public-footer-brand" to="/" aria-label="Accueil NCR Suite">
-          <img src="/brand/ncr-suite-icon.png" alt="" width="54" height="54" />
-          <span><strong>NCR</strong><em>Suite</em></span>
+          <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
         </Link>
         <p>La plateforme professionnelle qui relie les équipes, les clients et les opérations sans complexifier le quotidien.</p>
       </div>
@@ -18,7 +17,7 @@ export function PublicSiteFooter() {
         <a href="/#catalogue">Solutions métier</a>
         <a href="/#offres">Offres</a>
         <Link to="/connexion">Se connecter</Link>
-        <Link to="/demande-acces">Demander un accès</Link>
+        <Link to="/demande-acces?essai=7&utm_source=footer&utm_medium=cta&utm_campaign=essai-7-jours">Essai gratuit de 7 jours</Link>
         <Link to="/confidentialite">Confidentialité</Link>
         <Link to="/mentions-legales">Mentions légales</Link>
         <a href="mailto:contact@ncr-suite.fr">contact@ncr-suite.fr</a>

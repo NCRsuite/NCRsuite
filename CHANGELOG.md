@@ -1,5 +1,16 @@
 # Changelog NCR Suite
 
+## V2.29.1 - Interface publique premium et essai de 7 jours
+
+- Refonte strictement visuelle de la page principale et des pages Solutions métier en mode clair.
+- Hiérarchie typographique, espacements, contrastes, ombres et interactions harmonisés.
+- Cartes, démonstrations d’interface, offres, FAQ et formulaire d’accès remis au même niveau visuel.
+- CTA `Essai gratuit de 7 jours` intégrés au parcours de demande d’accès existant.
+- Métier et offre sélectionnés transmis au formulaire sans modifier la validation super-administrateur.
+- Aucun accès gratuit automatique et aucun changement Stripe, abonnement, droit, donnée ou fonction métier.
+- Compatibilité mobile et respect de la réduction des animations conservés.
+- Migration `115` de synchronisation de release et cache PWA `ncr-suite-shell-v2.29.1-public-ui-premium`.
+
 ## V2.29.0 - Contrat et signature avant activation Stripe
 
 - Contrat de première souscription généré automatiquement avec les informations de l’entreprise et l’offre choisie.

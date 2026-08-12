@@ -44,9 +44,9 @@ export function PublicSiteHeader({ compact = false }: PublicSiteHeaderProps) {
   }, [solutionsOpen]);
 
   return (
-    <header className={`public-site-header${compact ? ' compact' : ''}`}>
+    <header className={`public-site-header public-site-header-v291${compact ? ' compact' : ''}`}>
       <Link className="public-site-brand" to="/" aria-label="Accueil NCR Suite">
-        <img src="/brand/ncr-suite-logo-header-v2221.png" alt="NCR Suite" />
+        <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
       </Link>
       <nav aria-label="Navigation principale">
         {!compact && <a href="/#plateforme">Plateforme</a>}
@@ -91,7 +91,7 @@ export function PublicSiteHeader({ compact = false }: PublicSiteHeaderProps) {
         )}
         {!compact && <a href="/#offres">Offres</a>}
         <Link className="public-login-link" to="/connexion"><Icon name="lock" size={16} />Se connecter</Link>
-        <Link className="public-access-link" to="/demande-acces">Demander un accès</Link>
+        <Link className="public-access-link public-trial-action" to="/demande-acces?essai=7&utm_source=header&utm_medium=cta&utm_campaign=essai-7-jours">Essai gratuit de 7 jours</Link>
       </nav>
     </header>
   );

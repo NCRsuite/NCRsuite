@@ -141,7 +141,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
   const page = seoPages.find((item) => item.key === businessType) ?? seoPages[0];
   const offers = publicOfferCatalog.find((item) => item.key === page.key) ?? publicOfferCatalog[0];
   const style = { '--solution-color': page.color } as CSSProperties;
-  const defaultRequestPath = `/demande-acces?metier=${page.key}&offre=${page.defaultPlan}`;
+  const defaultRequestPath = `/demande-acces?metier=${page.key}&offre=${page.defaultPlan}&essai=7&utm_source=page-metier&utm_medium=cta&utm_campaign=essai-7-jours&utm_content=${page.key}`;
   const pageRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -218,7 +218,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
   }), [offers.plans, page]);
 
   return (
-    <div className="public-solution-page public-solution-v281 public-solution-v282 public-solution-v283" data-business={page.key} style={style} ref={pageRef}>
+    <div className="public-solution-page public-solution-v281 public-solution-v282 public-solution-v283 public-solution-v291" data-business={page.key} style={style} ref={pageRef}>
       <PageMetadata
         title={page.title}
         description={page.description}
@@ -273,7 +273,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
           <h1>{page.headline}</h1>
           <p>{page.lead}</p>
           <div className="public-solution-actions">
-            <Link className="public-primary-action" to={defaultRequestPath}>Demander un accès <Icon name="chevronRight" size={17} /></Link>
+            <Link className="public-primary-action public-trial-action" to={defaultRequestPath}>Essai gratuit de 7 jours <Icon name="chevronRight" size={17} /></Link>
             <a className="public-secondary-action" href="#fonctionnalites">Voir les fonctionnalités</a>
           </div>
           <div className="public-solution-proof">
@@ -339,7 +339,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
                 <p><strong>{formatPublicMonthlyPrice(plan.monthlyPriceCents)} €</strong><span>HT / mois</span></p>
                 <p>{plan.summary}</p>
                 <ul>{plan.highlights.map((item) => <li key={item}><Icon name="check" size={13} />{item}</li>)}</ul>
-                <Link to={`/demande-acces?metier=${page.key}&offre=${plan.key}`}>Choisir {plan.name} <Icon name="chevronRight" size={14} /></Link>
+                <Link to={`/demande-acces?metier=${page.key}&offre=${plan.key}&essai=7&utm_source=page-metier&utm_medium=cta&utm_campaign=essai-7-jours&utm_content=${page.key}-${plan.key}`}>Essayer {plan.name} 7 jours <Icon name="chevronRight" size={14} /></Link>
               </article>
             ))}
           </div>
@@ -377,7 +377,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
           <p className="public-section-label">OUVERTURE SUR VALIDATION</p>
           <h2>Présentez-nous votre activité</h2>
           <p>Nous vérifions le métier, la formule et la configuration attendue avant l’ouverture de votre espace.</p>
-          <Link className="public-primary-action" to={defaultRequestPath}>Demander mon accès <Icon name="chevronRight" size={17} /></Link>
+          <Link className="public-primary-action public-trial-action" to={defaultRequestPath}>Démarrer mon essai gratuit <Icon name="chevronRight" size={17} /></Link>
         </section>
       </main>
 

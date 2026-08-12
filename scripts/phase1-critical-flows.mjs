@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-subscription-contract-signature`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-public-ui-premium`;
+const subscriptionContractCache = 'ncr-suite-shell-v2.29.0-subscription-contract-signature';
 const unifiedExternalPortalsCache = 'ncr-suite-shell-v2.28.9-unified-external-portals-photo-reports';
 const cleaningAgentCameraCache = 'ncr-suite-shell-v2.28.8-cleaning-agent-camera';
 const googleSearchFaviconCache = 'ncr-suite-shell-v2.28.7-google-favicon';
@@ -70,23 +71,38 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
+requireText('src/pages/PublicHomePage.tsx', [
+  'public-home-v291',
+  'Essai gratuit de 7 jours',
+  'essai=7'
+]);
+requireText('src/pages/PublicSolutionPage.tsx', [
+  'public-solution-v291',
+  'Essai gratuit de 7 jours',
+  'essai=7'
+]);
+requireText('src/pages/AccessRequestPage.tsx', [
+  'trialRequested',
+  "functions.invoke('request-platform-access'",
+  'public-form-page-v291'
+]);
 requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v290.css',
-  '/ncr-suite-app-v290.css',
+  '/ncr-suite-showcase-v291.css',
+  '/ncr-suite-app-v291.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.0'
+  'ncr:css-recovery-v2.29.1'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v290.css',
+  '/ncr-suite-app-v291.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v290.js'"
+  "entryFileNames: 'ncr-suite-app-v291.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -974,6 +990,11 @@ requireText('supabase/migrations/114_subscription_contracts_signature.sql', [
   'create table if not exists public.subscription_contract_events',
   "'subscription-contracts','subscription-contracts',false",
   "'2.29.0'",
+  subscriptionContractCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/115_public_ui_premium_trial_cta.sql', [
+  "'2.29.1'",
   expectedCache,
   'platform_release_state'
 ]);

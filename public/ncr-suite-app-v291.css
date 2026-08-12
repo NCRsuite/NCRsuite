@@ -1,3 +1,4 @@
+/* NCR Suite V2.29.1 - styles complets servis hors du dossier assets */
 @font-face {
   font-family: "NCR Public Inter";
   src: url('/fonts/inter-variable.woff2') format('woff2');
@@ -22569,3 +22570,4 @@ button { max-width: 100%; }
   .public-solution-v291 .public-solution-proof { justify-content: flex-start; }
   .public-solution-v291 .public-solution-features article h3 { font-size: 28px; }
 }
+
