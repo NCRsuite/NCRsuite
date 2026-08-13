@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-public-flow-signal`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-public-motion`;
+const publicFlowSignalCache = 'ncr-suite-shell-v2.29.4-public-flow-signal';
 const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
 const publicUiSpacingFixCache = 'ncr-suite-shell-v2.29.2-public-ui-spacing-fix';
 const publicUiPremiumCache = 'ncr-suite-shell-v2.29.1-public-ui-premium';
@@ -79,6 +80,7 @@ requireText('src/pages/PublicHomePage.tsx', [
   'public-home-v292',
   'public-home-v293',
   'public-home-v294',
+  'public-home-v295',
   'Essai gratuit de 7 jours',
   'essai=7'
 ]);
@@ -86,6 +88,7 @@ requireText('src/pages/PublicSolutionPage.tsx', [
   'public-solution-v291',
   'public-solution-v292',
   'public-solution-v293',
+  'public-solution-v295',
   'Essai gratuit de 7 jours',
   'essai=7'
 ]);
@@ -94,25 +97,26 @@ requireText('src/pages/AccessRequestPage.tsx', [
   "functions.invoke('request-platform-access'",
   'public-form-page-v291',
   'public-form-page-v292',
-  'public-form-page-v293'
+  'public-form-page-v293',
+  'public-form-page-v295'
 ]);
 requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v294.css',
-  '/ncr-suite-app-v294.css',
+  '/ncr-suite-showcase-v295.css',
+  '/ncr-suite-app-v295.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.4'
+  'ncr:css-recovery-v2.29.5'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v294.css',
+  '/ncr-suite-app-v295.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v294.js'"
+  "entryFileNames: 'ncr-suite-app-v295.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -1020,6 +1024,11 @@ requireText('supabase/migrations/117_public_ui_alignment_contrast.sql', [
 ]);
 requireText('supabase/migrations/118_public_flow_signal.sql', [
   "'2.29.4'",
+  publicFlowSignalCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/119_public_motion_override.sql', [
+  "'2.29.5'",
   expectedCache,
   'platform_release_state'
 ]);

@@ -146,8 +146,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
 
   useEffect(() => {
     const elements = Array.from(pageRef.current?.querySelectorAll<HTMLElement>('[data-solution-reveal]') ?? []);
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reducedMotion || typeof IntersectionObserver === 'undefined') {
+    if (typeof IntersectionObserver === 'undefined') {
       elements.forEach((element) => element.classList.add('is-visible'));
       return;
     }
@@ -218,7 +217,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
   }), [offers.plans, page]);
 
   return (
-    <div className="public-solution-page public-solution-v281 public-solution-v282 public-solution-v283 public-solution-v291 public-solution-v292 public-solution-v293" data-business={page.key} style={style} ref={pageRef}>
+    <div className="public-solution-page public-solution-v281 public-solution-v282 public-solution-v283 public-solution-v291 public-solution-v292 public-solution-v293 public-solution-v295" data-business={page.key} style={style} ref={pageRef}>
       <PageMetadata
         title={page.title}
         description={page.description}

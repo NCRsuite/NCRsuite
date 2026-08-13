@@ -26,6 +26,27 @@ function readPngDimensions(relativePath) {
   };
 }
 
+function readCssAtRuleBlocks(source, atRule) {
+  const blocks = [];
+  let cursor = 0;
+  while (cursor < source.length) {
+    const start = source.indexOf(atRule, cursor);
+    if (start < 0) break;
+    const openingBrace = source.indexOf('{', start + atRule.length);
+    if (openingBrace < 0) break;
+    let depth = 0;
+    let end = openingBrace;
+    for (; end < source.length; end += 1) {
+      if (source[end] === '{') depth += 1;
+      if (source[end] === '}') depth -= 1;
+      if (depth === 0) break;
+    }
+    blocks.push(source.slice(start, Math.min(end + 1, source.length)));
+    cursor = Math.max(end + 1, openingBrace + 1);
+  }
+  return blocks;
+}
+
 const app = read('src/App.tsx');
 for (const match of app.matchAll(/const\s+(\w+)\s*=\s*lazy\(\(\)\s*=>\s*import\('([^']+)'\)/g)) {
   const [, exportName, importPath] = match;
@@ -682,6 +703,7 @@ const publicUiPremiumMigration = read('supabase/migrations/115_public_ui_premium
 const publicUiSpacingFixMigration = read('supabase/migrations/116_public_ui_spacing_fix.sql');
 const publicUiAlignmentContrastMigration = read('supabase/migrations/117_public_ui_alignment_contrast.sql');
 const publicFlowSignalMigration = read('supabase/migrations/118_public_flow_signal.sql');
+const publicMotionMigration = read('supabase/migrations/119_public_motion_override.sql');
 const subscriptionContractFunction = read('supabase/functions/subscription-contract/index.ts');
 const onboardingPage = read('src/pages/OnboardingPage.tsx');
 const cleaningAgentPortalPage = read('src/pages/CleaningAgentPortalPage.tsx');
@@ -705,33 +727,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v294.css')
-    || !indexHtml.includes('/ncr-suite-app-v294.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v295.css')
+    || !indexHtml.includes('/ncr-suite-app-v295.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.29.4')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v294.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v294.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.5')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v295.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v295.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v294.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v295.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.29.4 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.5 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v294.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v294.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.29.4 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v295.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v295.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.5 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.29.4'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.29.4-public-flow-signal")
-    || !serviceWorker.includes("ncr-suite-shell-v2.29.4-public-flow-signal")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v294.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v294.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v294.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.5'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.5-public-motion")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.5-public-motion")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v295.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v295.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v295.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.29.4 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.5 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.29.4 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.5 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1132,9 +1154,38 @@ if (!publicFlowSignalMigration.includes("'2.29.4'")
     || !publicHomePage.includes('public-home-v294')
     || !publicStyles.includes('V2.29.4 - Signal automatique du flux public')
     || !publicStyles.includes('@keyframes public-flow-ecg-v294')
-    || !publicStyles.includes('.public-home-v294 .public-flow-rail::after')
-    || !publicStyles.includes('@media (prefers-reduced-motion: reduce)')) {
+    || !publicStyles.includes('.public-home-v294 .public-flow-rail::after')) {
   errors.push('Le signal ECG automatique V2.29.4 est incomplet.');
+}
+if (!publicMotionMigration.includes("'2.29.5'")
+    || !publicMotionMigration.includes('ncr-suite-shell-v2.29.5-public-motion')
+    || !publicHomePage.includes('public-home-v295')
+    || !publicSolutionPage.includes('public-solution-v295')
+    || !accessRequestPage.includes('public-form-page-v295')
+    || !publicStyles.includes('V2.29.5 - animations publiques actives quel que soit le reglage systeme')
+    || publicHomePage.includes("matchMedia('(prefers-reduced-motion: reduce)')")
+    || publicSolutionPage.includes("matchMedia('(prefers-reduced-motion: reduce)')")) {
+  errors.push('Le maintien des animations publiques V2.29.5 est incomplet.');
+}
+const publicReducedMotionOverrides = readCssAtRuleBlocks(
+  publicStyles,
+  '@media (prefers-reduced-motion: reduce)'
+).filter((block) => /\.public-(?:home|solution|form-page|showcase|site-header|site-footer|solutions-menu|hero|product|flow|offer|platform)/.test(block));
+if (publicReducedMotionOverrides.length > 0) {
+  errors.push('Une regle de reduction des mouvements desactive encore une animation publique V2.29.5.');
+}
+for (const publicAnimation of [
+  'public-signal-float',
+  'public-bento-float',
+  'public-flow-progress',
+  'public-preview-float',
+  'public-solution-interface-float',
+  'public-solutions-panel-enter',
+  'public-flow-ecg-v294'
+]) {
+  if (!publicStyles.includes(`@keyframes ${publicAnimation}`)) {
+    errors.push(`Animation publique manquante : ${publicAnimation}.`);
+  }
 }
 if ([subscriptionPage, publicHomePage, app, runtimeConfig].some((source) =>
   source.includes('STRIPE_SECRET_KEY') || source.includes('STRIPE_WEBHOOK_SECRET') || source.includes('rk_test_')

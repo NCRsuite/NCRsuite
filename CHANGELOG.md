@@ -1,5 +1,14 @@
 # Changelog NCR Suite
 
+## V2.29.5 - Animations publiques toujours actives
+
+- Suppression des restrictions de mouvement propres à la vitrine et aux pages Solutions métier.
+- Apparitions au défilement réactivées même lorsque macOS demande moins d'animations.
+- Animations des aperçus, graphiques, cartes, menus, boutons et signal ECG conservées.
+- Périmètre limité aux pages publiques : l'application connectée garde son comportement actuel.
+- Aucun changement de route, contenu SEO, formulaire, prix, droit ou fonction métier.
+- Migration `119` de synchronisation et cache PWA `ncr-suite-shell-v2.29.5-public-motion`.
+
 ## V2.29.4 - Signal automatique du flux public
 
 - Remplacement de la barre bleue fixe par une ligne fine traversée par un battement type électrocardiogramme.

@@ -99,7 +99,7 @@ const heroSignals: Array<{ key: string; icon: IconName; eyebrow: string; metric:
 ];
 
 function introShouldBeVisible() {
-  if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+  if (typeof window === 'undefined') return false;
   try {
     return sessionStorage.getItem('ncr:showcase-intro-v2222') !== 'seen';
   } catch {
@@ -133,7 +133,7 @@ export function PublicHomePage() {
 
   useEffect(() => {
     const sections = Array.from(document.querySelectorAll<HTMLElement>('.public-home-v2222 .public-reveal'));
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+    if (!('IntersectionObserver' in window)) {
       sections.forEach((section) => section.classList.add('is-visible'));
       return;
     }
@@ -180,7 +180,7 @@ export function PublicHomePage() {
   }, []);
 
   return (
-    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231 public-home-v232 public-home-v291 public-home-v292 public-home-v293 public-home-v294">
+    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231 public-home-v232 public-home-v291 public-home-v292 public-home-v293 public-home-v294 public-home-v295">
       <PageMetadata
         title="NCR Suite | La plateforme de gestion conçue pour votre métier"
         description="NCR Suite réunit clients, équipes, planning, documents, facturation, conformité et automatisations dans une plateforme métier claire, modulaire et sécurisée."
