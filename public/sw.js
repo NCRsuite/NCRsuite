@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.29.5-public-motion';
+const CACHE = 'ncr-suite-shell-v2.29.6-public-flow-transmission';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v295.css',
-  '/ncr-suite-app-v295.css',
-  '/ncr-suite-app-v295.js',
+  '/ncr-suite-showcase-v296.css',
+  '/ncr-suite-app-v296.css',
+  '/ncr-suite-app-v296.js',
   '/fonts/inter-variable.woff2',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-symbol-v2221.png',

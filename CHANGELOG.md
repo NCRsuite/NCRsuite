@@ -1,5 +1,16 @@
 # Changelog NCR Suite
 
+## V2.29.6 - Transmission progressive du flux public
+
+- Remplacement visuel du signal ECG par une ligne fine reliant les quatre étapes du parcours.
+- Progression automatique d'un point bleu de Collecter vers Orchestrer, Prouver puis Piloter.
+- Mise en valeur synchronisée de l'icône et de la carte qui reçoit l'information.
+- Alignement du rail sur le centre réel des quatre cartes, avec un cycle calme de huit secondes.
+- Animation limitée à l'affichage ordinateur pour préserver le rendu mobile et tablette validé.
+- Correction du décalage horizontal qui faisait chevaucher le texte et l'aperçu sur les cinq pages Solutions métier.
+- Aucun changement dans l'application connectée, les routes, contenus SEO, offres, droits ou données.
+- Migration `120` de synchronisation et cache PWA `ncr-suite-shell-v2.29.6-public-flow-transmission`.
+
 ## V2.29.5 - Animations publiques toujours actives
 
 - Suppression des restrictions de mouvement propres à la vitrine et aux pages Solutions métier.

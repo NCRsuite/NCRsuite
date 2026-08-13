@@ -1,9 +1,9 @@
-# NCR Suite V2.29.5
+# NCR Suite V2.29.6
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version maintient les animations des pages publiques actives, y compris
-quand le système demande une réduction des mouvements. L'application connectée,
-Stripe, le référencement et les fonctions métier restent inchangés.
+Cette version remplace le signal ECG de la vitrine par une transmission visuelle
+progressive entre Collecter, Orchestrer, Prouver et Piloter. L'application
+connectée, Stripe, le référencement et les fonctions métier restent inchangés.
 
-Consulter uniquement `A_LIRE_INSTALLATION_V2.29.5.txt` pour déployer ce patch.
+Consulter uniquement `A_LIRE_INSTALLATION_V2.29.6.txt` pour déployer ce patch.

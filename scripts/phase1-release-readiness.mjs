@@ -16,7 +16,8 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-public-motion`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-public-flow-transmission`;
+const publicMotionCache = 'ncr-suite-shell-v2.29.5-public-motion';
 const publicFlowSignalCache = 'ncr-suite-shell-v2.29.4-public-flow-signal';
 const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
 const publicUiSpacingFixCache = 'ncr-suite-shell-v2.29.2-public-ui-spacing-fix';
@@ -46,10 +47,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.29.5') failures.push('package.json doit annoncer la V2.29.5.');
+if (pkg.version !== '2.29.6') failures.push('package.json doit annoncer la V2.29.6.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.29.5 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.29.5 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.29.6 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.29.6 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -354,6 +355,11 @@ requireText('supabase/migrations/118_public_flow_signal.sql', [
 ]);
 requireText('supabase/migrations/119_public_motion_override.sql', [
   "'2.29.5'",
+  publicMotionCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/120_public_flow_transmission.sql', [
+  "'2.29.6'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -440,6 +446,8 @@ requireText('src/pages/PublicHomePage.tsx', [
   'public-home-v293',
   'public-home-v294',
   'public-home-v295',
+  'public-home-v296',
+  'public-flow-transmission',
   'public-flow-rail',
   'public-flow-top',
   'public-platform-card',
@@ -453,6 +461,7 @@ requireText('src/pages/PublicSolutionPage.tsx', [
   'public-solution-v292',
   'public-solution-v293',
   'public-solution-v295',
+  'public-solution-v296',
   'essai=7',
   'Essai gratuit de 7 jours'
 ]);
@@ -482,8 +491,8 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v295.css',
-  'ncr-suite-app-v295.css',
+  'ncr-suite-showcase-v296.css',
+  'ncr-suite-app-v296.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
@@ -492,26 +501,26 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v295.css',
-  '/ncr-suite-app-v295.css',
+  '/ncr-suite-showcase-v296.css',
+  '/ncr-suite-app-v296.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.5',
+  'ncr:css-recovery-v2.29.6',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v295.css',
-  '/ncr-suite-app-v295.css',
+  '/ncr-suite-showcase-v296.css',
+  '/ncr-suite-app-v296.css',
   '/favicon.ico',
   'X-Robots-Tag: noindex, nofollow'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v295.css'))) {
-  failures.push('La feuille de style critique V2.29.5 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v296.css'))) {
+  failures.push('La feuille de style critique V2.29.6 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v295.css'))) {
-  failures.push('La feuille de style complète V2.29.5 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v296.css'))) {
+  failures.push('La feuille de style complète V2.29.6 n’a pas été générée.');
 }
 for (const favicon of [
   'public/favicon.ico',
@@ -523,7 +532,7 @@ for (const favicon of [
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v295.js'"
+  "entryFileNames: 'ncr-suite-app-v296.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');
@@ -546,6 +555,11 @@ requireText('src/styles.css', [
   'V2.29.4 - Signal automatique du flux public',
   '@keyframes public-flow-ecg-v294',
   'V2.29.5 - animations publiques actives quel que soit le reglage systeme',
+  'V2.29.6 - transmission progressive du flux public',
+  '@keyframes public-flow-transmission-pulse-v296',
+  '@keyframes public-flow-card-receive-v296',
+  '@keyframes public-solution-interface-enter-v296',
+  '@keyframes public-solution-interface-float-v296',
   'font-family: "NCR Public Inter"',
   '.public-solutions-panel',
   'grid-template-columns: repeat(5, minmax(0, 1fr))',

@@ -704,6 +704,7 @@ const publicUiSpacingFixMigration = read('supabase/migrations/116_public_ui_spac
 const publicUiAlignmentContrastMigration = read('supabase/migrations/117_public_ui_alignment_contrast.sql');
 const publicFlowSignalMigration = read('supabase/migrations/118_public_flow_signal.sql');
 const publicMotionMigration = read('supabase/migrations/119_public_motion_override.sql');
+const publicFlowTransmissionMigration = read('supabase/migrations/120_public_flow_transmission.sql');
 const subscriptionContractFunction = read('supabase/functions/subscription-contract/index.ts');
 const onboardingPage = read('src/pages/OnboardingPage.tsx');
 const cleaningAgentPortalPage = read('src/pages/CleaningAgentPortalPage.tsx');
@@ -727,33 +728,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v295.css')
-    || !indexHtml.includes('/ncr-suite-app-v295.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v296.css')
+    || !indexHtml.includes('/ncr-suite-app-v296.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.29.5')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v295.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v295.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.6')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v296.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v296.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v295.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v296.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.29.5 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.6 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v295.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v295.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.29.5 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v296.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v296.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.6 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.29.5'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.29.5-public-motion")
-    || !serviceWorker.includes("ncr-suite-shell-v2.29.5-public-motion")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v295.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v295.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v295.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.6'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.6-public-flow-transmission")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.6-public-flow-transmission")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v296.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v296.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v296.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.29.5 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.6 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.29.5 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.6 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1167,6 +1168,20 @@ if (!publicMotionMigration.includes("'2.29.5'")
     || publicSolutionPage.includes("matchMedia('(prefers-reduced-motion: reduce)')")) {
   errors.push('Le maintien des animations publiques V2.29.5 est incomplet.');
 }
+if (!publicFlowTransmissionMigration.includes("'2.29.6'")
+    || !publicFlowTransmissionMigration.includes('ncr-suite-shell-v2.29.6-public-flow-transmission')
+    || !publicHomePage.includes('public-home-v296')
+    || !publicHomePage.includes('public-flow-transmission-progress')
+    || !publicHomePage.includes('public-flow-transmission-pulse')
+    || !publicSolutionPage.includes('public-solution-v296')
+    || !publicStyles.includes('V2.29.6 - transmission progressive du flux public')
+    || !publicStyles.includes('@keyframes public-flow-transmission-pulse-v296')
+    || !publicStyles.includes('@keyframes public-flow-card-receive-v296')
+    || !publicStyles.includes('@keyframes public-solution-interface-enter-v296')
+    || !publicStyles.includes('@keyframes public-solution-interface-float-v296')
+    || !publicStyles.includes('.public-home-v296 .public-flow-transmission::after')) {
+  errors.push('La transmission progressive V2.29.6 du flux public est incomplete.');
+}
 const publicReducedMotionOverrides = readCssAtRuleBlocks(
   publicStyles,
   '@media (prefers-reduced-motion: reduce)'
@@ -1181,7 +1196,8 @@ for (const publicAnimation of [
   'public-preview-float',
   'public-solution-interface-float',
   'public-solutions-panel-enter',
-  'public-flow-ecg-v294'
+  'public-flow-transmission-pulse-v296',
+  'public-flow-card-receive-v296'
 ]) {
   if (!publicStyles.includes(`@keyframes ${publicAnimation}`)) {
     errors.push(`Animation publique manquante : ${publicAnimation}.`);

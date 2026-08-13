@@ -1,3 +1,3 @@
-export const APP_VERSION = '2.29.5';
-export const PWA_CACHE_NAME = 'ncr-suite-shell-v2.29.5-public-motion';
+export const APP_VERSION = '2.29.6';
+export const PWA_CACHE_NAME = 'ncr-suite-shell-v2.29.6-public-flow-transmission';
 export const RUNTIME_HEARTBEAT_INTERVAL_MS = 5 * 60 * 1000;

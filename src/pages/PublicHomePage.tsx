@@ -180,7 +180,7 @@ export function PublicHomePage() {
   }, []);
 
   return (
-    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231 public-home-v232 public-home-v291 public-home-v292 public-home-v293 public-home-v294 public-home-v295">
+    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231 public-home-v232 public-home-v291 public-home-v292 public-home-v293 public-home-v294 public-home-v295 public-home-v296">
       <PageMetadata
         title="NCR Suite | La plateforme de gestion conçue pour votre métier"
         description="NCR Suite réunit clients, équipes, planning, documents, facturation, conformité et automatisations dans une plateforme métier claire, modulaire et sécurisée."
@@ -367,10 +367,24 @@ export function PublicHomePage() {
             </div>
             <p>Chaque information poursuit son chemin sans ressaisie et laisse une trace exploitable. Vous savez ce qui entre, ce qui avance et ce qui demande une décision.</p>
           </div>
-          <div className="public-flow-rail" aria-hidden="true" />
+          <div className="public-flow-rail public-flow-transmission" aria-hidden="true">
+            <i className="public-flow-transmission-line" />
+            <i className="public-flow-transmission-progress" />
+            <i className="public-flow-transmission-pulse" />
+            {operatingFlow.map((item, index) => (
+              <i
+                className="public-flow-transmission-stop"
+                key={`transmission-${item.step}`}
+                style={{
+                  '--flow-delay': `${index * 2}s`,
+                  '--flow-position': `calc(${12.5 + (index * 25)}% ${index < 2 ? '-' : '+'} ${Math.abs((index * 3) - 4.5)}px)`
+                } as CSSProperties}
+              />
+            ))}
+          </div>
           <div className="public-flow-grid" aria-label="Parcours opérationnel NCR Suite">
             {operatingFlow.map((item, index) => (
-              <article key={item.step} style={{ '--flow-index': index } as CSSProperties}>
+              <article key={item.step} style={{ '--flow-index': index, '--flow-delay': `${index * 2}s` } as CSSProperties}>
                 <div className="public-flow-top">
                   <small>{item.step}</small>
                   <div className="public-flow-node"><Icon name={item.icon} size={19} /></div>
