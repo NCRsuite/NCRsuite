@@ -1,10 +1,9 @@
-# NCR Suite V2.29.3
+# NCR Suite V2.29.4
 
 Base SaaS multi-métier NCR Suite.
 
-Cette version corrige uniquement la finition de la vitrine publique : centrage
-des sections, présentation du catalogue, badges du flux et contraste des offres
-recommandées. L'application connectée, Stripe, le référencement et les fonctions
-métier restent inchangés.
+Cette version remplace uniquement la barre fixe de la section Flux par un signal
+animé type électrocardiogramme. L'application connectée, Stripe, le
+référencement et les fonctions métier restent inchangés.
 
-Consulter uniquement `A_LIRE_INSTALLATION_V2.29.3.txt` pour déployer ce patch.
+Consulter uniquement `A_LIRE_INSTALLATION_V2.29.4.txt` pour déployer ce patch.

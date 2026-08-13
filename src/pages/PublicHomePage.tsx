@@ -180,7 +180,7 @@ export function PublicHomePage() {
   }, []);
 
   return (
-    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231 public-home-v232 public-home-v291 public-home-v292 public-home-v293">
+    <div className="public-home public-home-v2221 public-home-v2222 public-home-v230 public-home-v231 public-home-v232 public-home-v291 public-home-v292 public-home-v293 public-home-v294">
       <PageMetadata
         title="NCR Suite | La plateforme de gestion conçue pour votre métier"
         description="NCR Suite réunit clients, équipes, planning, documents, facturation, conformité et automatisations dans une plateforme métier claire, modulaire et sécurisée."

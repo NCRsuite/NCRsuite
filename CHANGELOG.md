@@ -1,5 +1,13 @@
 # Changelog NCR Suite
 
+## V2.29.4 - Signal automatique du flux public
+
+- Remplacement de la barre bleue fixe par une ligne fine traversée par un battement type électrocardiogramme.
+- Cycle autonome de gauche à droite avec une courte pause avant redémarrage.
+- Respect du réglage système de réduction des animations.
+- Conservation du rendu mobile validé, où le rail reste masqué.
+- Aucun changement dans l'application connectée, les parcours, les prix ou le référencement.
+
 ## V2.29.3 - Alignements et contrastes de la vitrine
 
 - Sections Flux, Catalogue et appel à l'action final centrées à toutes les largeurs ordinateur.

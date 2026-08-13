@@ -19,7 +19,8 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-public-ui-alignment-contrast`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-public-flow-signal`;
+const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
 const publicUiSpacingFixCache = 'ncr-suite-shell-v2.29.2-public-ui-spacing-fix';
 const publicUiPremiumCache = 'ncr-suite-shell-v2.29.1-public-ui-premium';
 const subscriptionContractCache = 'ncr-suite-shell-v2.29.0-subscription-contract-signature';
@@ -77,6 +78,7 @@ requireText('src/pages/PublicHomePage.tsx', [
   'public-home-v291',
   'public-home-v292',
   'public-home-v293',
+  'public-home-v294',
   'Essai gratuit de 7 jours',
   'essai=7'
 ]);
@@ -98,19 +100,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v293.css',
-  '/ncr-suite-app-v293.css',
+  '/ncr-suite-showcase-v294.css',
+  '/ncr-suite-app-v294.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.3'
+  'ncr:css-recovery-v2.29.4'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v293.css',
+  '/ncr-suite-app-v294.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v293.js'"
+  "entryFileNames: 'ncr-suite-app-v294.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -1013,6 +1015,11 @@ requireText('supabase/migrations/116_public_ui_spacing_fix.sql', [
 ]);
 requireText('supabase/migrations/117_public_ui_alignment_contrast.sql', [
   "'2.29.3'",
+  publicUiAlignmentContrastCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/118_public_flow_signal.sql', [
+  "'2.29.4'",
   expectedCache,
   'platform_release_state'
 ]);

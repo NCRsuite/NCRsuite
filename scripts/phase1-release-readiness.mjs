@@ -16,7 +16,8 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-public-ui-alignment-contrast`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-public-flow-signal`;
+const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
 const publicUiSpacingFixCache = 'ncr-suite-shell-v2.29.2-public-ui-spacing-fix';
 const publicUiPremiumCache = 'ncr-suite-shell-v2.29.1-public-ui-premium';
 const subscriptionContractCache = 'ncr-suite-shell-v2.29.0-subscription-contract-signature';
@@ -44,10 +45,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.29.3') failures.push('package.json doit annoncer la V2.29.3.');
+if (pkg.version !== '2.29.4') failures.push('package.json doit annoncer la V2.29.4.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.29.3 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.29.3 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.29.4 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.29.4 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -342,6 +343,11 @@ requireText('supabase/migrations/116_public_ui_spacing_fix.sql', [
 ]);
 requireText('supabase/migrations/117_public_ui_alignment_contrast.sql', [
   "'2.29.3'",
+  publicUiAlignmentContrastCache,
+  'platform_release_state'
+]);
+requireText('supabase/migrations/118_public_flow_signal.sql', [
+  "'2.29.4'",
   expectedCache,
   'platform_release_state'
 ]);
@@ -426,6 +432,7 @@ requireText('src/pages/PublicHomePage.tsx', [
   'public-home-v291',
   'public-home-v292',
   'public-home-v293',
+  'public-home-v294',
   'public-flow-rail',
   'public-flow-top',
   'public-platform-card',
@@ -466,8 +473,8 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v293.css',
-  'ncr-suite-app-v293.css',
+  'ncr-suite-showcase-v294.css',
+  'ncr-suite-app-v294.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
@@ -476,26 +483,26 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v293.css',
-  '/ncr-suite-app-v293.css',
+  '/ncr-suite-showcase-v294.css',
+  '/ncr-suite-app-v294.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.3',
+  'ncr:css-recovery-v2.29.4',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v293.css',
-  '/ncr-suite-app-v293.css',
+  '/ncr-suite-showcase-v294.css',
+  '/ncr-suite-app-v294.css',
   '/favicon.ico',
   'X-Robots-Tag: noindex, nofollow'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v293.css'))) {
-  failures.push('La feuille de style critique V2.29.3 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v294.css'))) {
+  failures.push('La feuille de style critique V2.29.4 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v293.css'))) {
-  failures.push('La feuille de style complète V2.29.3 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v294.css'))) {
+  failures.push('La feuille de style complète V2.29.4 n’a pas été générée.');
 }
 for (const favicon of [
   'public/favicon.ico',
@@ -507,7 +514,7 @@ for (const favicon of [
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v293.js'"
+  "entryFileNames: 'ncr-suite-app-v294.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');
@@ -527,6 +534,8 @@ requireText('src/styles.css', [
   'NCR Suite V2.29.1 - refonte UI publique premium en mode clair',
   'V2.29.2 - Corrections de cadrage de la vitrine publique',
   'V2.29.3 - Alignements, catalogue et contrastes de la vitrine publique',
+  'V2.29.4 - Signal automatique du flux public',
+  '@keyframes public-flow-ecg-v294',
   'font-family: "NCR Public Inter"',
   '.public-solutions-panel',
   'grid-template-columns: repeat(5, minmax(0, 1fr))',
