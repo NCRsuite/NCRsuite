@@ -23,6 +23,20 @@ import {
 import { supabase } from '../lib/supabase';
 import { readJsonStorage } from '../lib/safeStorage';
 
+const securityQuickLogbookPresets: Array<{
+  category: SecurityLogbookEntryRecord['category'];
+  severity: SecurityLogbookEntryRecord['severity'];
+  label: string;
+  title: string;
+  icon: 'check' | 'shield' | 'alert' | 'map' | 'file' | 'users';
+}> = [
+  { category: 'autre', severity: 'info', label: 'RAS', title: 'RAS', icon: 'check' },
+  { category: 'ronde', severity: 'info', label: 'Ronde', title: 'Ronde effectuée', icon: 'shield' },
+  { category: 'anomalie', severity: 'attention', label: 'Anomalie', title: 'Anomalie constatée', icon: 'alert' },
+  { category: 'autre', severity: 'info', label: 'Passage véhicule', title: 'Passage véhicule', icon: 'map' },
+  { category: 'livraison', severity: 'info', label: 'Livraison', title: 'Livraison', icon: 'file' },
+  { category: 'visiteur', severity: 'attention', label: 'Personne / accès', title: 'Personne / contrôle d’accès', icon: 'users' }
+];
 
 function readableActionError(error: unknown, fallback = 'Action impossible.') {
   if (error && typeof error === 'object' && 'message' in error) {
@@ -62,6 +76,11 @@ export function SecurityDashboardPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [shiftBusy, setShiftBusy] = useState('');
+  const [quickLogCategory, setQuickLogCategory] = useState<SecurityLogbookEntryRecord['category']>('autre');
+  const [quickLogSeverity, setQuickLogSeverity] = useState<SecurityLogbookEntryRecord['severity']>('info');
+  const [quickLogTitle, setQuickLogTitle] = useState('RAS');
+  const [quickLogDetails, setQuickLogDetails] = useState('');
+  const [quickLogBusy, setQuickLogBusy] = useState(false);
   const [refreshNonce, setRefreshNonce] = useState(0);
 
   useEffect(() => {
@@ -244,22 +263,134 @@ export function SecurityDashboardPage() {
     } finally { setShiftBusy(''); }
   }
 
+  function chooseQuickLogbookPreset(preset: (typeof securityQuickLogbookPresets)[number]) {
+    setQuickLogCategory(preset.category);
+    setQuickLogSeverity(preset.severity);
+    setQuickLogTitle(preset.title);
+    setError('');
+    setSuccess('');
+  }
+
+  async function submitQuickLogbookEntry() {
+    if (!organization || !terrainShift || !terrainShift.clocked_in_at || terrainShift.clocked_out_at) {
+      setError('Prends d’abord ton poste avant d’ajouter un événement.');
+      return;
+    }
+    if (terrainShift.logbook_status === 'closed') {
+      setError('La main courante de cette vacation est clôturée.');
+      return;
+    }
+
+    setQuickLogBusy(true);
+    setError('');
+    setSuccess('');
+    const occurredAt = new Date().toISOString();
+
+    try {
+      if (demoMode || !supabase) {
+        const created: SecurityLogbookEntryRecord = {
+          id: crypto.randomUUID(),
+          organization_id: organization.id,
+          site_id: terrainShift.site_id,
+          agent_id: terrainShift.agent_id,
+          shift_id: terrainShift.id,
+          occurred_at: occurredAt,
+          category: quickLogCategory,
+          severity: quickLogSeverity,
+          title: quickLogTitle,
+          details: quickLogDetails.trim() || null,
+          status: 'open',
+          created_at: occurredAt,
+          security_sites: terrainShift.security_sites ? { name: terrainShift.security_sites.name, color_hex: terrainShift.security_sites.color_hex } : null,
+          security_agents: terrainShift.security_agents
+        };
+        setEntries((current) => {
+          const next = [created, ...current];
+          localStorage.setItem(`ncr-suite-security-logbook-${organization.id}`, JSON.stringify(next));
+          return next;
+        });
+      } else {
+        const { error: insertError } = await supabase.rpc('create_security_logbook_entry', {
+          p_organization_id: organization.id,
+          p_shift_id: terrainShift.id,
+          p_category: quickLogCategory,
+          p_severity: quickLogSeverity,
+          p_title: quickLogTitle,
+          p_details: quickLogDetails.trim() || null,
+          p_occurred_at: occurredAt
+        });
+        if (insertError) throw insertError;
+        setRefreshNonce((value) => value + 1);
+      }
+      setQuickLogDetails('');
+      setQuickLogCategory('autre');
+      setQuickLogSeverity('info');
+      setQuickLogTitle('RAS');
+      setSuccess(`« ${quickLogTitle} » ajouté à la main courante.`);
+    } catch (caught) {
+      setError(`Ajout impossible : ${readableActionError(caught)}`);
+    } finally {
+      setQuickLogBusy(false);
+    }
+  }
+
   if (!organization) return null;
 
   if (isAgent) {
     const currentAgent = agents[0];
     return <div className="page security-page security-dashboard-page">
-      <header className="page-header"><div><p className="eyebrow">ESPACE AGENT · SÉCURITÉ PRIVÉE</p><h1>{currentAgent ? `Bonjour ${currentAgent.first_name}` : 'Bonjour, ton terrain est prêt'}</h1><p>Retrouve ton planning, les consignes de tes sites, tes rondes et la main courante.</p></div><Link className="primary-button" to="/consignes"><Icon name="alert" size={18}/>Voir les consignes</Link></header>
+      <header className="page-header security-agent-compact-header"><div><p className="eyebrow">ESPACE AGENT · SÉCURITÉ PRIVÉE</p><h1>{currentAgent ? `Bonjour ${currentAgent.first_name}` : 'Bonjour, ton terrain est prêt'}</h1><p>Retrouve ton planning, les consignes de tes sites, tes rondes et la main courante.</p></div><Link className="primary-button" to="/consignes"><Icon name="alert" size={18}/>Voir les consignes</Link></header>
       {error && <div className="error-message page-message">{error}</div>}{success && <div className="success-message page-message">{success}</div>}
       {criticalAlerts.length > 0 && <div className="security-callout critical"><Icon name="alert" size={21}/><div><strong>{criticalAlerts.length} alerte{criticalAlerts.length > 1 ? 's' : ''} critique{criticalAlerts.length > 1 ? 's' : ''}</strong><span>Consulte les alertes et applique immédiatement les consignes du site.</span></div></div>}
-      {logbookEnabled && <section className={`security-agent-main-action ${terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? 'is-ready' : 'is-waiting'}`}>
-        <div className="security-agent-main-action-copy">
-          <span className="security-agent-main-action-icon"><Icon name="clipboard" size={25}/></span>
-          <div><p className="eyebrow">ACTION PRINCIPALE</p><strong>Main courante</strong><small>{terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? `${terrainShift.security_sites?.name || 'Vacation en cours'} · poste actif` : terrainShift ? 'Prends ton poste pour commencer les saisies' : 'Aucune vacation à traiter actuellement'}</small></div>
+      {logbookEnabled && <section className={`security-agent-field-console ${terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? 'is-live' : 'is-waiting'}`}>
+        <div className="security-agent-field-console-head">
+          <div className="security-agent-field-console-title">
+            <span className="security-agent-field-console-icon"><Icon name="clipboard" size={24}/></span>
+            <div>
+              <div className="security-agent-field-console-statusline"><p className="eyebrow">MAIN COURANTE</p>{terrainShift?.clocked_in_at && !terrainShift.clocked_out_at && <span className="security-live-pill">EN POSTE</span>}</div>
+              <h2>{terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? terrainShift.security_sites?.name || 'Vacation en cours' : 'Action terrain'}</h2>
+              <small>{terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? 'Ajoute un événement ici, sans quitter cet écran.' : terrainShift ? 'Prends ton poste : la saisie apparaîtra ici immédiatement.' : 'Aucune vacation active actuellement.'}</small>
+            </div>
+          </div>
+          {terrainShift?.clocked_in_at && !terrainShift.clocked_out_at && <Link className="security-agent-field-history" to={`/main-courante?shift=${terrainShift.id}`}><Icon name="eye" size={17}/>Historique</Link>}
         </div>
-        {terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? <Link className="security-agent-main-action-button" to={`/main-courante?shift=${terrainShift.id}&add=1`}><Icon name="plus" size={24}/><span><b>Ajouter à la main courante</b><small>RAS, anomalie, passage, livraison, information…</small></span><Icon name="chevronRight" size={21}/></Link> : terrainShift && !terrainShift.clocked_in_at ? <button className="security-agent-main-action-button" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'start')}><Icon name="check" size={24}/><span><b>{shiftBusy ? 'Enregistrement…' : 'Prendre mon poste'}</b><small>La saisie main courante sera disponible immédiatement après</small></span><Icon name="chevronRight" size={21}/></button> : <div className="security-agent-main-action-button is-disabled"><Icon name="clipboard" size={24}/><span><b>Ajouter à la main courante</b><small>Disponible dès qu’une vacation est active</small></span></div>}
+
+        {terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? <div className="security-agent-quick-composer">
+          <div className="security-agent-quick-presets" role="group" aria-label="Type d’événement">
+            {securityQuickLogbookPresets.map((preset) => <button
+              key={`${preset.category}-${preset.title}`}
+              type="button"
+              className={quickLogTitle === preset.title ? 'active' : ''}
+              onClick={() => chooseQuickLogbookPreset(preset)}
+            ><Icon name={preset.icon} size={18}/><span>{preset.label}</span></button>)}
+          </div>
+
+          <label className="security-agent-quick-details">
+            <span>Complément <small>facultatif pour un RAS</small></span>
+            <textarea
+              rows={2}
+              value={quickLogDetails}
+              onChange={(event) => setQuickLogDetails(event.target.value)}
+              placeholder="Ex. portail arrière bloqué, véhicule immatriculé…, remise de clés à…"
+            />
+          </label>
+
+          <div className="security-agent-quick-footer">
+            <div className="security-agent-severity-switch" role="group" aria-label="Gravité">
+              <button type="button" className={quickLogSeverity === 'info' ? 'active' : ''} onClick={() => setQuickLogSeverity('info')}>Normal</button>
+              <button type="button" className={quickLogSeverity === 'attention' ? 'active attention' : ''} onClick={() => setQuickLogSeverity('attention')}>Attention</button>
+              <button type="button" className={quickLogSeverity === 'urgent' ? 'active urgent' : ''} onClick={() => setQuickLogSeverity('urgent')}>Urgent</button>
+            </div>
+            <button className="security-agent-quick-submit" type="button" disabled={quickLogBusy} onClick={() => void submitQuickLogbookEntry()}>
+              <Icon name={quickLogBusy ? 'clock' : 'plus'} size={21}/>
+              <span><b>{quickLogBusy ? 'Ajout en cours…' : 'Ajouter maintenant'}</b><small>{quickLogTitle} · heure automatique</small></span>
+            </button>
+          </div>
+        </div> : terrainShift && !terrainShift.clocked_in_at ? <button className="security-agent-start-shift-hero" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'start')}>
+          <Icon name="check" size={25}/><span><b>{shiftBusy ? 'Enregistrement…' : 'Prendre mon poste'}</b><small>{terrainShift.security_sites?.name || 'Vacation'} · la main courante s’ouvre immédiatement après</small></span><Icon name="chevronRight" size={21}/>
+        </button> : <div className="security-agent-no-shift"><Icon name="calendar" size={22}/><span>Aucune vacation à traiter maintenant.</span></div>}
       </section>}
-      {terrainShift && <section className="panel security-agent-clock-card"><div><p className="eyebrow">VACATION À TRAITER</p><h2>{terrainShift.security_sites?.name || 'Site'}</h2><p>{formatSecurityDateTime(terrainShift.starts_at)} → {new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.ends_at))}</p><span>{terrainShift.clocked_in_at ? `Poste pris à ${new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.clocked_in_at))}` : 'Prise de poste non enregistrée'}</span></div><div className="security-agent-clock-actions">{!terrainShift.clocked_in_at && <button className="primary-button" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'start')}><Icon name="check" size={18}/>{shiftBusy ? 'Enregistrement…' : 'Prendre mon poste'}</button>}{terrainShift.clocked_in_at && !terrainShift.clocked_out_at && <button className="secondary-button" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'end')}><Icon name="check" size={18}/>{shiftBusy ? 'Clôture…' : 'Terminer mon poste'}</button>}{(geolocationEnabled || ptiEnabled) && <Link className="secondary-button" to={`/pti?shift=${terrainShift.id}`}><Icon name="map" size={18}/>{ptiEnabled ? 'GPS / PTI' : 'Géolocalisation'}</Link>}{logbookEnabled && <Link className="secondary-button" to={terrainShift.clocked_in_at && !terrainShift.clocked_out_at ? `/main-courante?shift=${terrainShift.id}` : '/main-courante'}><Icon name="clipboard" size={18}/>Voir la main courante</Link>}</div></section>}
+      {terrainShift && <section className="panel security-agent-clock-card"><div><p className="eyebrow">VACATION À TRAITER</p><h2>{terrainShift.security_sites?.name || 'Site'}</h2><p>{formatSecurityDateTime(terrainShift.starts_at)} → {new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.ends_at))}</p><span>{terrainShift.clocked_in_at ? `Poste pris à ${new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.clocked_in_at))}` : 'Prise de poste non enregistrée'}</span></div><div className="security-agent-clock-actions">{!terrainShift.clocked_in_at && <button className="primary-button" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'start')}><Icon name="check" size={18}/>{shiftBusy ? 'Enregistrement…' : 'Prendre mon poste'}</button>}{terrainShift.clocked_in_at && !terrainShift.clocked_out_at && <button className="secondary-button" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'end')}><Icon name="check" size={18}/>{shiftBusy ? 'Clôture…' : 'Terminer mon poste'}</button>}{(geolocationEnabled || ptiEnabled) && <Link className="secondary-button" to={`/pti?shift=${terrainShift.id}`}><Icon name="map" size={18}/>{ptiEnabled ? 'GPS / PTI' : 'Géolocalisation'}</Link>}{logbookEnabled && <Link className="secondary-button" to={terrainShift.clocked_in_at && !terrainShift.clocked_out_at ? `/main-courante?shift=${terrainShift.id}` : '/main-courante'}><Icon name="clipboard" size={18}/>Historique main courante</Link>}</div></section>}
       <section className="stats-grid"><StatCard label="Missions du mois" value={String(activeShifts.length)} detail="affectées à ton compte" icon="calendar" loading={loading}/><StatCard label="Heures programmées" value={formatSecurityDuration(minutes)} detail="sur le mois en cours" icon="activity" loading={loading}/><StatCard label="Rondes aujourd’hui" value={String(patrols.length)} detail={`${activePatrols.length} en cours`} icon="shield" loading={loading}/><StatCard label="Main courante" value={String(entries.length)} detail="saisies aujourd’hui" icon="clipboard" loading={loading}/></section>
       <section className="dashboard-grid"><article className="panel large-panel security-dashboard-schedule"><div className="panel-header"><div><p className="eyebrow">PROCHAINES MISSIONS</p><h2>Mon planning</h2></div><Link className="secondary-button" to="/planning">Tout voir</Link></div>{loading ? <PremiumSkeleton rows={4} label="Chargement des prochaines missions"/> : upcoming.length === 0 ? <div className="security-empty"><Icon name="calendar" size={30}/><strong>Aucune mission à venir</strong><span>Ton responsable n’a rien planifié sur la période.</span></div> : <div className="security-upcoming-list">{upcoming.map((shift) => <article key={shift.id}><span className="security-record-icon" style={{ background: `${shift.security_sites?.color_hex || '#0A84FF'}22`, color: shift.security_sites?.color_hex || '#0A84FF' }}><Icon name="shield" size={19}/></span><div><strong>{shift.security_sites?.name || 'Site'}</strong><span>{shift.title || 'Mission de sécurité'}</span><small>{formatSecurityDateTime(shift.starts_at)} · {formatSecurityDuration(securityShiftMinutes(shift))}</small></div></article>)}</div>}</article><aside className="panel security-dashboard-actions"><div className="panel-header"><div><p className="eyebrow">ACTIONS TERRAIN</p><h2>Accès rapide</h2></div></div><div className="security-action-list">{qrEnabled && <Link to="/rondes"><span><Icon name="shield" size={19}/></span><div><strong>Mes rondes QR</strong><small>Démarrer ou poursuivre une ronde</small></div><Icon name="chevronRight" size={17}/></Link>}{logbookEnabled && <Link to={terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? `/main-courante?shift=${terrainShift.id}&add=1` : '/main-courante'}><span><Icon name="clipboard" size={19}/></span><div><strong>Ajouter à la main courante</strong><small>{terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? 'Saisie directe sur ta vacation en cours' : 'Prends ton poste pour saisir un événement'}</small></div><Icon name="chevronRight" size={17}/></Link>}{instructionsEnabled && <Link to="/consignes"><span><Icon name="alert" size={19}/></span><div><strong>Consignes & alertes</strong><small>Consulter les informations terrain</small></div><Icon name="chevronRight" size={17}/></Link>}{ptiEnabled && <Link to="/pti"><span><Icon name="shield" size={19}/></span><div><strong>PTI / SOS</strong><small>Activer la protection et la localisation</small></div><Icon name="chevronRight" size={17}/></Link>}</div></aside></section>
     </div>;
