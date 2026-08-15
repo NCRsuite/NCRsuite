@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.29.11-security-vacation-hardening';
+const CACHE = 'ncr-suite-shell-v2.29.12-security-premium-presence';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v2911.css',
-  '/ncr-suite-app-v2911.css',
-  '/ncr-suite-app-v2911.js',
+  '/ncr-suite-showcase-v2912.css',
+  '/ncr-suite-app-v2912.css',
+  '/ncr-suite-app-v2912.js',
   '/fonts/inter-variable.woff2',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-symbol-v2221.png',

@@ -1,3 +1,4 @@
+/* NCR Suite V2.29.12 - styles complets servis hors du dossier assets */
 @font-face {
   font-family: "NCR Public Inter";
   src: url('/fonts/inter-variable.woff2') format('woff2');
@@ -23536,3 +23537,4 @@ button { max-width: 100%; }
 .security-dossier-proof-badges span, .security-dossier-proof-badges a { display:inline-flex;align-items:center;gap:5px;padding:6px 8px;border-radius:999px;background:rgba(10,132,255,.1);color:#0066cc;font-size:10px;font-weight:850;text-decoration:none; }
 .security-dossier-proof-badges a.is-disabled { opacity:.55;pointer-events:none; }
 .security-dossier-premium-proof p { margin:0; font-size:12px; line-height:1.45; color:var(--text-secondary,#6e6e73); }
+

@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-security-vacation-hardening`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-security-premium-presence`;
 const publicMotionCache = 'ncr-suite-shell-v2.29.5-public-motion';
 const publicFlowSignalCache = 'ncr-suite-shell-v2.29.4-public-flow-signal';
 const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
@@ -108,19 +108,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v2911.css',
-  '/ncr-suite-app-v2911.css',
+  '/ncr-suite-showcase-v2912.css',
+  '/ncr-suite-app-v2912.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.11'
+  'ncr:css-recovery-v2.29.12'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v2911.css',
+  '/ncr-suite-app-v2912.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2911.js'"
+  "entryFileNames: 'ncr-suite-app-v2912.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -1065,6 +1065,19 @@ requireText('supabase/migrations/126_security_vacation_hardening.sql', [
   'enforce_single_active_security_shift',
   'security_patrols_agent_insert',
   'ancienne vacation'
+]);
+requireText('supabase/migrations/127_security_premium_shift_presence.sql', [
+  "'2.29.12'",
+  'ncr-suite-shell-v2.29.12-security-premium-presence',
+  'security_shift_proofs',
+  'set_security_shift_presence_event_premium',
+  'get_security_shift_handover'
+]);
+requireText('src/components/SecurityShiftPresenceSheet.tsx', [
+  'Relève précédente',
+  'Signature de fin de poste',
+  'Prendre mon poste',
+  'Terminer et transmettre la relève'
 ]);
 requireText('supabase/functions/subscription-contract/index.ts', [
   "action === 'prepare'",

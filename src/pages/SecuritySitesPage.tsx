@@ -6,8 +6,8 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import { formatSecurityMoney, nullableSecurityText, type SecurityClientRecord, type SecuritySiteRecord } from '../features/security/types';
 import { supabase } from '../lib/supabase';
 
-type FormState = { clientId: string; name: string; code: string; address: string; postalCode: string; city: string; contactName: string; contactPhone: string; hourlyRate: string; colorHex: string; notes: string };
-const emptyForm: FormState = { clientId: '', name: '', code: '', address: '', postalCode: '', city: '', contactName: '', contactPhone: '', hourlyRate: '', colorHex: '#0A84FF', notes: '' };
+type FormState = { clientId: string; name: string; code: string; address: string; postalCode: string; city: string; contactName: string; contactPhone: string; hourlyRate: string; colorHex: string; notes: string; clockInPhoto: boolean; clockOutPhoto: boolean; clockInGps: boolean; clockOutGps: boolean; clockOutSignature: boolean; handoverNote: boolean };
+const emptyForm: FormState = { clientId: '', name: '', code: '', address: '', postalCode: '', city: '', contactName: '', contactPhone: '', hourlyRate: '', colorHex: '#0A84FF', notes: '', clockInPhoto: false, clockOutPhoto: false, clockInGps: false, clockOutGps: false, clockOutSignature: false, handoverNote: false };
 
 export function SecuritySitesPage() {
   const { organization } = useOrganization();
@@ -36,7 +36,7 @@ export function SecuritySitesPage() {
         return;
       }
       const [{ data: siteData, error: siteError }, { data: clientData, error: clientError }] = await Promise.all([
-        supabase.from('security_sites').select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,timezone,notes,status,created_at,security_clients(company_name)').eq('organization_id', organizationId).neq('status', 'archived').order('name'),
+        supabase.from('security_sites').select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,clock_in_photo_required,clock_out_photo_required,clock_in_gps_required,clock_out_gps_required,clock_out_signature_required,handover_note_required,timezone,notes,status,created_at,security_clients(company_name)').eq('organization_id', organizationId).neq('status', 'archived').order('name'),
         supabase.from('security_clients').select('id,organization_id,company_name,contact_name,email,phone,billing_address,postal_code,city,siret,vat_number,payment_terms_days,notes,status,created_at').eq('organization_id', organizationId).eq('status', 'active').order('company_name')
       ]);
       if (!active) return;
@@ -67,6 +67,7 @@ export function SecuritySitesPage() {
       organization_id: organization.id, client_id: form.clientId, name: form.name.trim(), code: nullableSecurityText(form.code),
       address: nullableSecurityText(form.address), postal_code: nullableSecurityText(form.postalCode), city: nullableSecurityText(form.city),
       contact_name: nullableSecurityText(form.contactName), contact_phone: nullableSecurityText(form.contactPhone), hourly_rate_cents: Math.round(rate * 100), color_hex: form.colorHex,
+      clock_in_photo_required: form.clockInPhoto, clock_out_photo_required: form.clockOutPhoto, clock_in_gps_required: form.clockInGps, clock_out_gps_required: form.clockOutGps, clock_out_signature_required: form.clockOutSignature, handover_note_required: form.handoverNote,
       timezone: 'Europe/Paris', notes: nullableSecurityText(form.notes), created_by: user.id
     };
     try {
@@ -77,13 +78,30 @@ export function SecuritySitesPage() {
         localStorage.setItem(`ncr-suite-security-sites-${organization.id}`, JSON.stringify([...rows, created]));
       } else {
         const { data, error: insertError } = await supabase.from('security_sites').insert(payload)
-          .select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,timezone,notes,status,created_at,security_clients(company_name)').single();
+          .select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,clock_in_photo_required,clock_out_photo_required,clock_in_gps_required,clock_out_gps_required,clock_out_signature_required,handover_note_required,timezone,notes,status,created_at,security_clients(company_name)').single();
         if (insertError) throw insertError; created = data as unknown as SecuritySiteRecord;
       }
       setRows((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name, 'fr')));
       setForm({ ...emptyForm, clientId: clients[0]?.id ?? '' }); setSearchParams({}); setSuccess('Le site a bien été ajouté.');
     } catch (caught) { setError(`Création impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
     finally { setSaving(false); }
+  }
+
+  async function updateProofRequirement(row: SecuritySiteRecord, key: 'clock_in_photo_required'|'clock_out_photo_required'|'clock_in_gps_required'|'clock_out_gps_required'|'clock_out_signature_required'|'handover_note_required', value: boolean) {
+    if (!organization) return;
+    setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        const next = rows.map((item) => item.id === row.id ? { ...item, [key]: value } : item);
+        localStorage.setItem(`ncr-suite-security-sites-${organization.id}`, JSON.stringify(next));
+        setRows(next);
+      } else {
+        const { error: updateError } = await supabase.from('security_sites').update({ [key]: value }).eq('organization_id', organization.id).eq('id', row.id);
+        if (updateError) throw updateError;
+        setRows((current) => current.map((item) => item.id === row.id ? { ...item, [key]: value } : item));
+      }
+      setSuccess('Exigences terrain du site mises à jour.');
+    } catch (caught) { setError(`Mise à jour impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
   }
 
   async function archive(row: SecuritySiteRecord) {
@@ -114,12 +132,13 @@ export function SecuritySitesPage() {
         <label>Ville<input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}/></label>
         <label>Contact sur site<input value={form.contactName} onChange={(e) => setForm({ ...form, contactName: e.target.value })}/></label>
         <label>Téléphone du site<input value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })}/></label>
+        <fieldset className="full-field security-site-proof-settings"><legend>Exigences prise / fin de poste</legend><p>Active uniquement les preuves utiles sur ce site.</p><div><label><input type="checkbox" checked={form.clockInGps} onChange={(e) => setForm({ ...form, clockInGps: e.target.checked })}/><span>GPS arrivée</span></label><label><input type="checkbox" checked={form.clockInPhoto} onChange={(e) => setForm({ ...form, clockInPhoto: e.target.checked })}/><span>Photo arrivée</span></label><label><input type="checkbox" checked={form.clockOutGps} onChange={(e) => setForm({ ...form, clockOutGps: e.target.checked })}/><span>GPS sortie</span></label><label><input type="checkbox" checked={form.clockOutPhoto} onChange={(e) => setForm({ ...form, clockOutPhoto: e.target.checked })}/><span>Photo sortie</span></label><label><input type="checkbox" checked={form.clockOutSignature} onChange={(e) => setForm({ ...form, clockOutSignature: e.target.checked })}/><span>Signature fin</span></label><label><input type="checkbox" checked={form.handoverNote} onChange={(e) => setForm({ ...form, handoverNote: e.target.checked })}/><span>Relève obligatoire</span></label></div></fieldset>
         <label className="full-field">Notes<textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}/></label>
         <div className="form-actions full-field"><button className="secondary-button" type="button" onClick={() => setSearchParams({})}>Annuler</button><button className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button></div>
       </form></section>}
     {error && <div className="error-message page-message">{error}</div>}{success && <div className="success-message page-message">{success}</div>}
     <section className="panel security-list-panel"><div className="security-toolbar"><div><p className="eyebrow">SITES SURVEILLÉS</p><h2>{rows.length} site{rows.length > 1 ? 's' : ''}</h2></div><input type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Site, client, ville…"/></div>
-      {loading ? <div className="security-empty">Chargement…</div> : filtered.length === 0 ? <div className="security-empty"><Icon name="map" size={30}/><strong>Aucun site</strong><span>Ajoute un site et son tarif pour calculer la facturation.</span></div> : <div className="security-card-list">{filtered.map((row) => <article className="security-record-card" key={row.id}><span className="security-record-icon" style={{ background: `${row.color_hex || '#0A84FF'}22`, color: row.color_hex || '#0A84FF' }}><Icon name="map" size={20}/></span><div className="security-record-main"><strong>{row.name}</strong><span>{row.security_clients?.company_name || 'Client inconnu'}{row.code ? ` · ${row.code}` : ''}</span><small>{[row.address, row.postal_code, row.city].filter(Boolean).join(' · ') || 'Adresse à compléter'}</small></div><div className="security-rate"><strong>{formatSecurityMoney(row.hourly_rate_cents)}</strong><small>par heure</small></div><button className="secondary-button compact-button" type="button" onClick={() => void archive(row)}>Archiver</button></article>)}</div>}
+      {loading ? <div className="security-empty">Chargement…</div> : filtered.length === 0 ? <div className="security-empty"><Icon name="map" size={30}/><strong>Aucun site</strong><span>Ajoute un site et son tarif pour calculer la facturation.</span></div> : <div className="security-card-list security-site-premium-list">{filtered.map((row) => <article className="security-record-card security-site-premium-card" key={row.id}><div className="security-site-premium-main"><span className="security-record-icon" style={{ background: `${row.color_hex || '#0A84FF'}22`, color: row.color_hex || '#0A84FF' }}><Icon name="map" size={20}/></span><div className="security-record-main"><strong>{row.name}</strong><span>{row.security_clients?.company_name || 'Client inconnu'}{row.code ? ` · ${row.code}` : ''}</span><small>{[row.address, row.postal_code, row.city].filter(Boolean).join(' · ') || 'Adresse à compléter'}</small></div><div className="security-rate"><strong>{formatSecurityMoney(row.hourly_rate_cents)}</strong><small>par heure</small></div><button className="secondary-button compact-button" type="button" onClick={() => void archive(row)}>Archiver</button></div><details className="security-site-proof-details"><summary><Icon name="shield" size={17}/>Preuves prise / fin de poste</summary><div>{([['clock_in_gps_required','GPS arrivée'],['clock_in_photo_required','Photo arrivée'],['clock_out_gps_required','GPS sortie'],['clock_out_photo_required','Photo sortie'],['clock_out_signature_required','Signature fin'],['handover_note_required','Relève obligatoire']] as const).map(([key,label]) => <label key={key}><input type="checkbox" checked={Boolean(row[key])} onChange={(event) => void updateProofRequirement(row,key,event.target.checked)}/><span>{label}</span></label>)}</div></details></article>)}</div>}
     </section>
   </div>;
 }

@@ -1,4 +1,6 @@
-# NCR Suite V2.29.11
+# NCR Suite V2.29.12
+
+Release terrain actuelle : voir `A_LIRE_V2.29.12_PRISE_FIN_POSTE_PREMIUM.md`.
 
 Base SaaS multi-métier NCR Suite.
 

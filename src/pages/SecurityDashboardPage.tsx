@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { PremiumSkeleton } from '../components/PremiumSkeleton';
 import { StatCard } from '../components/StatCard';
+import { SecurityShiftPresenceSheet } from '../components/SecurityShiftPresenceSheet';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -24,6 +25,7 @@ import { supabase } from '../lib/supabase';
 import { readJsonStorage } from '../lib/safeStorage';
 import { loadSecurityLogbookPhotoMap, MAX_SECURITY_LOGBOOK_PHOTOS, prepareSecurityLogbookPhoto, uploadSecurityLogbookPhotos, type SecurityLogbookPhotoRecord } from '../features/security/logbookPhoto';
 import { securityLogbookTextPresets, securityQuickLogbookPresets } from '../features/security/logbookPresets';
+import { uploadSecurityShiftProof } from '../features/security/shiftProof';
 
 function readableActionError(error: unknown, fallback = 'Action impossible.') {
   if (error && typeof error === 'object' && 'message' in error) {
@@ -72,6 +74,14 @@ export function SecurityDashboardPage() {
   const [quickLogPhotos, setQuickLogPhotos] = useState<Array<{ id: string; file: File; previewUrl: string }>>([]);
   const [quickPhotoPreparing, setQuickPhotoPreparing] = useState(false);
   const [refreshNonce, setRefreshNonce] = useState(0);
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  const [presenceFlow, setPresenceFlow] = useState<{ shift: SecurityShiftRecord; action: 'start'|'end' } | null>(null);
+  const [handoverPreview, setHandoverPreview] = useState<{ note?: string | null; recorded_at?: string | null; agent_name?: string | null } | null>(null);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setClockNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!organization) return;
@@ -106,10 +116,10 @@ export function SecurityDashboardPage() {
         return;
       }
 
-      const shiftSelect = 'id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,recurrence_group_id,duplicated_from_id,actual_minutes,clocked_in_at,clocked_in_source,clocked_out_at,clocked_out_source,logbook_status,billing_minutes_override,billing_override_reason,dossier_status,dossier_closed_at,dossier_archived_at,created_at,security_sites(name,hourly_rate_cents,color_hex,city,security_clients(company_name)),security_agents(first_name,last_name)';
+      const shiftSelect = 'id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,recurrence_group_id,duplicated_from_id,actual_minutes,clocked_in_at,clocked_in_source,clocked_out_at,clocked_out_source,logbook_status,billing_minutes_override,billing_override_reason,dossier_status,dossier_closed_at,dossier_archived_at,clock_in_position_id,clock_out_position_id,handover_note,handover_note_at,handover_note_by,created_at,security_sites(name,hourly_rate_cents,color_hex,city,clock_in_photo_required,clock_out_photo_required,clock_in_gps_required,clock_out_gps_required,clock_out_signature_required,handover_note_required,security_clients(company_name)),security_agents(first_name,last_name)';
       const [agentResult, siteResult, shiftResult, activeShiftResult] = await Promise.all([
         supabase.from('security_agents').select('id,organization_id,first_name,last_name,employee_number,email,phone,contract_type,weekly_hours,notes,status,linked_user_id,created_at').eq('organization_id', organizationId).eq('status', 'active'),
-        supabase.from('security_sites').select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,timezone,notes,status,created_at,security_clients(company_name)').eq('organization_id', organizationId).eq('status', 'active'),
+        supabase.from('security_sites').select('id,organization_id,client_id,name,code,address,postal_code,city,contact_name,contact_phone,hourly_rate_cents,color_hex,clock_in_photo_required,clock_out_photo_required,clock_in_gps_required,clock_out_gps_required,clock_out_signature_required,handover_note_required,timezone,notes,status,created_at,security_clients(company_name)').eq('organization_id', organizationId).eq('status', 'active'),
         supabase.from('security_shifts').select(shiftSelect).eq('organization_id', organizationId).gte('starts_at', monthStart).lte('starts_at', monthEnd).order('starts_at'),
         supabase.from('security_shifts').select(shiftSelect).eq('organization_id', organizationId).eq('status', 'in_progress').not('clocked_in_at', 'is', null).is('clocked_out_at', null).order('clocked_in_at')
       ]);
@@ -172,7 +182,7 @@ export function SecurityDashboardPage() {
   const activePatrols = patrols.filter((row) => row.status === 'in_progress');
   const criticalAlerts = alerts.filter((row) => row.severity === 'critical');
   const setupMissing = [agents.length === 0 ? 'un agent' : '', sites.length === 0 ? 'un site' : ''].filter(Boolean);
-  const now = Date.now();
+  const now = clockNow;
   const terrainShift = operationalShifts.find((row) => row.clocked_in_at && !row.clocked_out_at)
     || activeShifts.find((row) => row.status !== 'completed' && new Date(row.starts_at).getTime() <= now + 4 * 60 * 60 * 1000 && new Date(row.ends_at).getTime() >= now - 8 * 60 * 60 * 1000)
     || null;
@@ -185,6 +195,9 @@ export function SecurityDashboardPage() {
   const terrainRecentEntries = terrainShift
     ? entries.filter((entry) => entry.shift_id === terrainShift.id).slice(0, 3)
     : [];
+  const terrainEndMs = terrainShift ? new Date(terrainShift.ends_at).getTime() : 0;
+  const terrainShiftEndingSoon = Boolean(terrainShift?.clocked_in_at && !terrainShift.clocked_out_at && !terrainShiftNeedsRecovery && now >= terrainEndMs - 30 * 60 * 1000);
+  const terrainShiftOverdue = Boolean(terrainShiftEndingSoon && now > terrainEndMs);
 
   const todayShifts = activeShifts.filter((row) => {
     const start = new Date(row.starts_at);
@@ -211,7 +224,7 @@ export function SecurityDashboardPage() {
       if ((firstError as GeolocationPositionError).code === 1) throw firstError;
       position = await locate({ enableHighAccuracy: false, maximumAge: 60000, timeout: 8000 });
     }
-    const { error: positionError } = await supabase.rpc('record_security_agent_position_at', {
+    const { data, error: positionError } = await supabase.rpc('record_security_agent_position_at', {
       p_organization_id: organization!.id,
       p_shift_id: shift.id,
       p_latitude: position.coords.latitude,
@@ -220,10 +233,10 @@ export function SecurityDashboardPage() {
       p_recorded_at: new Date().toISOString()
     });
     if (positionError) throw positionError;
-    return Math.round(position.coords.accuracy);
+    return { id: typeof data === 'string' ? data : String(data ?? ''), accuracy: Math.round(position.coords.accuracy) };
   }
 
-  async function shiftPresenceAction(shift: SecurityShiftRecord, action: 'start' | 'end') {
+  async function openShiftPresence(shift: SecurityShiftRecord, action: 'start' | 'end') {
     if (!organization) return;
     if (action === 'start') {
       const otherActiveShift = shifts.find((row) => row.id !== shift.id && row.status === 'in_progress' && Boolean(row.clocked_in_at) && !row.clocked_out_at);
@@ -232,67 +245,86 @@ export function SecurityDashboardPage() {
         setError(`Une autre vacation est encore active (${otherActiveShift.security_sites?.name || 'site'}). Termine-la avant de prendre un nouveau poste.`);
         return;
       }
+      setHandoverPreview(null);
+      if (!demoMode && supabase) {
+        const { data, error: handoverError } = await supabase.rpc('get_security_shift_handover', { p_organization_id: organization.id, p_shift_id: shift.id });
+        if (!handoverError && data && typeof data === 'object') setHandoverPreview(data as { note?: string | null; recorded_at?: string | null; agent_name?: string | null });
+      }
     }
-    if (action === 'end' && !window.confirm('Terminer le poste et clôturer la main courante de cette vacation ?')) return;
+    setError(''); setSuccess('');
+    setPresenceFlow({ shift, action });
+  }
+
+  async function closeForgottenShift(shift: SecurityShiftRecord) {
+    if (!organization) return;
+    if (!window.confirm('Clôturer cette vacation oubliée ? La fin sera régularisée selon l’heure planifiée.')) return;
+    setShiftBusy(`${shift.id}-end`); setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        const eventTime = new Date().toISOString();
+        setShifts((current) => current.map((row) => row.id === shift.id ? { ...row, status: 'completed', clocked_out_at: row.clocked_out_at || eventTime, clocked_out_source: 'agent', logbook_status: 'closed', completed_at: eventTime } : row));
+      } else {
+        const { error: rpcError } = await supabase.rpc('set_security_shift_presence_event', { p_organization_id: organization.id, p_shift_id: shift.id, p_action: 'end', p_note: 'Vacation oubliée clôturée depuis l’espace agent.', p_force: false });
+        if (rpcError) throw rpcError;
+      }
+      setSuccess('Vacation oubliée clôturée.');
+      setRefreshNonce((value) => value + 1);
+    } catch (caught) { setError(`Clôture impossible : ${readableActionError(caught)}`); }
+    finally { setShiftBusy(''); }
+  }
+
+  async function completeShiftPresence(payload: { photoFile: File | null; signatureFile: File | null; handoverNote: string }) {
+    if (!organization || !presenceFlow) return;
+    const { shift, action } = presenceFlow;
     setShiftBusy(`${shift.id}-${action}`); setError(''); setSuccess('');
 
     if (demoMode || !supabase) {
       const eventTime = new Date().toISOString();
       const updatedShift: SecurityShiftRecord = action === 'start'
         ? { ...shift, status: 'in_progress', clocked_in_at: shift.clocked_in_at || eventTime, clocked_in_source: 'agent', logbook_status: 'open' }
-        : { ...shift, status: 'completed', clocked_out_at: shift.clocked_out_at || eventTime, clocked_out_source: 'agent', logbook_status: 'closed', logbook_closed_at: eventTime, logbook_closed_source: 'agent', completed_at: eventTime };
+        : { ...shift, status: 'completed', clocked_out_at: shift.clocked_out_at || eventTime, clocked_out_source: 'agent', logbook_status: 'closed', logbook_closed_at: eventTime, logbook_closed_source: 'agent', completed_at: eventTime, handover_note: payload.handoverNote || null, handover_note_at: payload.handoverNote ? eventTime : null };
       setShifts((current) => {
         const next = current.map((row) => row.id === shift.id ? updatedShift : row);
         localStorage.setItem(`ncr-suite-security-shifts-${organization.id}`, JSON.stringify(next));
         return next;
       });
-      const created: SecurityLogbookEntryRecord = {
-        id: crypto.randomUUID(),
-        organization_id: organization.id,
-        site_id: shift.site_id,
-        agent_id: shift.agent_id,
-        shift_id: shift.id,
-        occurred_at: eventTime,
-        category: action === 'start' ? 'prise_poste' : 'fin_poste',
-        severity: 'info',
-        title: action === 'start' ? 'Prise de poste' : 'Fin de poste',
-        details: null,
-        status: 'open',
-        created_at: eventTime,
-        security_sites: shift.security_sites ? { name: shift.security_sites.name, color_hex: shift.security_sites.color_hex } : null,
-        security_agents: shift.security_agents
-      };
-      setEntries((current) => {
-        const next = [created, ...current];
-        localStorage.setItem(`ncr-suite-security-logbook-${organization.id}`, JSON.stringify(next));
-        return next;
-      });
-      setSuccess(action === 'start' ? 'Prise de poste enregistrée.' : 'Fin de poste enregistrée et main courante clôturée.');
+      setPresenceFlow(null);
+      setSuccess(action === 'start' ? 'Prise de poste enregistrée.' : 'Fin de poste enregistrée et relève transmise.');
       setShiftBusy('');
       return;
     }
 
+    let optionalGpsWarning = '';
     try {
-      const { error: rpcError } = await supabase.rpc('set_security_shift_presence_event', {
+      if (payload.photoFile) await uploadSecurityShiftProof(organization.id, shift.id, action === 'start' ? 'clock_in_photo' : 'clock_out_photo', payload.photoFile);
+      if (payload.signatureFile) await uploadSecurityShiftProof(organization.id, shift.id, 'clock_out_signature', payload.signatureFile);
+
+      let positionId: string | null = null;
+      let gpsAccuracy: number | null = null;
+      if (geolocationEnabled) {
+        try {
+          const gps = await captureClockPosition(shift);
+          positionId = gps?.id || null;
+          gpsAccuracy = gps?.accuracy ?? null;
+        } catch (gpsError) {
+          const required = action === 'start' ? Boolean(shift.security_sites?.clock_in_gps_required) : Boolean(shift.security_sites?.clock_out_gps_required);
+          if (required) throw new Error(`GPS obligatoire : ${readableGpsError(gpsError)}.`);
+          optionalGpsWarning = ` GPS non transmis (${readableGpsError(gpsError)}).`;
+        }
+      }
+
+      const { error: rpcError } = await supabase.rpc('set_security_shift_presence_event_premium', {
         p_organization_id: organization.id,
         p_shift_id: shift.id,
         p_action: action,
-        p_note: null,
+        p_handover_note: action === 'end' ? payload.handoverNote || null : null,
+        p_position_id: positionId,
         p_force: false
       });
       if (rpcError) throw rpcError;
-      if (action === 'start') {
-        try {
-          const accuracy = await captureClockPosition(shift);
-          setSuccess(accuracy == null ? 'Prise de poste enregistrée.' : `Prise de poste enregistrée et position GPS transmise (précision env. ${accuracy} m).`);
-        } catch (gpsError) {
-          const detail = readableGpsError(gpsError);
-          setSuccess('Prise de poste enregistrée.');
-          setError(`La position GPS n’a pas été transmise : ${detail}. Ouvre GPS / PTI pour tester le suivi.`);
-        }
-      } else {
-        setSuccess('Fin de poste enregistrée et main courante clôturée.');
-      }
+      setPresenceFlow(null);
+      const gpsSuffix = gpsAccuracy == null ? '' : ` GPS ≈ ${gpsAccuracy} m.`;
+      setSuccess(action === 'start' ? `Prise de poste enregistrée.${gpsSuffix}${optionalGpsWarning}` : `Fin de poste enregistrée, main courante clôturée et relève transmise.${gpsSuffix}${optionalGpsWarning}`);
       setRefreshNonce((value) => value + 1);
     } catch (caught) {
       setError(`Action impossible : ${readableActionError(caught)}`);
@@ -458,6 +490,8 @@ export function SecurityDashboardPage() {
           {terrainShift?.clocked_in_at && !terrainShift.clocked_out_at && <Link className="security-agent-field-history" to={`/main-courante?shift=${terrainShift.id}`}><Icon name="eye" size={17}/>Historique</Link>}
         </div>
 
+        {terrainShiftEndingSoon && terrainShift && <button type="button" className={`security-agent-end-shift-hero ${terrainShiftOverdue ? 'is-overdue' : ''}`} disabled={Boolean(shiftBusy)} onClick={() => void openShiftPresence(terrainShift,'end')}><Icon name="clock" size={24}/><span><b>{terrainShiftOverdue ? 'Mission terminée : clôture ton poste' : 'Fin de mission proche'}</b><small>{terrainShiftOverdue ? `Fin prévue ${new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.ends_at))}` : `Terminer mon poste · fin prévue ${new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.ends_at))}`}</small></span><Icon name="chevronRight" size={21}/></button>}
+
         {terrainShift?.clocked_in_at && !terrainShift.clocked_out_at && !terrainShiftNeedsRecovery ? <div className="security-agent-quick-composer">
           <div className="security-agent-quick-presets" role="group" aria-label="Type d’événement">
             {securityQuickLogbookPresets.map((preset) => <button
@@ -520,15 +554,16 @@ export function SecurityDashboardPage() {
               </article>;
             })}</div>
           </div>}
-        </div> : terrainShiftNeedsRecovery && terrainShift ? <button className="security-agent-start-shift-hero" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'end')}>
+        </div> : terrainShiftNeedsRecovery && terrainShift ? <button className="security-agent-start-shift-hero" disabled={Boolean(shiftBusy)} onClick={() => void closeForgottenShift(terrainShift)}>
           <Icon name="alert" size={25}/><span><b>{shiftBusy ? 'Clôture…' : 'Terminer la vacation oubliée'}</b><small>{terrainShift.security_sites?.name || 'Vacation'} · fin prévue {formatSecurityDateTime(terrainShift.ends_at)}</small></span><Icon name="chevronRight" size={21}/>
-        </button> : terrainShift && !terrainShift.clocked_in_at ? <button className="security-agent-start-shift-hero" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'start')}>
+        </button> : terrainShift && !terrainShift.clocked_in_at ? <button className="security-agent-start-shift-hero" disabled={Boolean(shiftBusy)} onClick={() => void openShiftPresence(terrainShift,'start')}>
           <Icon name="check" size={25}/><span><b>{shiftBusy ? 'Enregistrement…' : 'Prendre mon poste'}</b><small>{terrainShift.security_sites?.name || 'Vacation'} · la main courante s’ouvre immédiatement après</small></span><Icon name="chevronRight" size={21}/>
         </button> : <div className="security-agent-no-shift"><Icon name="calendar" size={22}/><span>Aucune vacation à traiter maintenant.</span></div>}
       </section>}
-      {terrainShift && <section className="panel security-agent-clock-card"><div><p className="eyebrow">VACATION À TRAITER</p><h2>{terrainShift.security_sites?.name || 'Site'}</h2><p>{formatSecurityDateTime(terrainShift.starts_at)} → {new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.ends_at))}</p><span>{terrainShift.clocked_in_at ? `Poste pris à ${new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.clocked_in_at))}` : 'Prise de poste non enregistrée'}</span></div><div className="security-agent-clock-actions">{!terrainShift.clocked_in_at && <button className="primary-button" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'start')}><Icon name="check" size={18}/>{shiftBusy ? 'Enregistrement…' : 'Prendre mon poste'}</button>}{terrainShift.clocked_in_at && !terrainShift.clocked_out_at && <button className="secondary-button" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'end')}><Icon name="check" size={18}/>{shiftBusy ? 'Clôture…' : 'Terminer mon poste'}</button>}{(geolocationEnabled || ptiEnabled) && <Link className="secondary-button" to={`/pti?shift=${terrainShift.id}`}><Icon name="map" size={18}/>{ptiEnabled ? 'GPS / PTI' : 'Géolocalisation'}</Link>}{logbookEnabled && <Link className="secondary-button" to={terrainShift.clocked_in_at && !terrainShift.clocked_out_at ? `/main-courante?shift=${terrainShift.id}` : '/main-courante'}><Icon name="clipboard" size={18}/>Historique main courante</Link>}</div></section>}
+      {terrainShift && <section className="panel security-agent-clock-card"><div><p className="eyebrow">VACATION À TRAITER</p><h2>{terrainShift.security_sites?.name || 'Site'}</h2><p>{formatSecurityDateTime(terrainShift.starts_at)} → {new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.ends_at))}</p><span>{terrainShift.clocked_in_at ? `Poste pris à ${new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(terrainShift.clocked_in_at))}` : 'Prise de poste non enregistrée'}</span></div><div className="security-agent-clock-actions">{!terrainShift.clocked_in_at && <button className="primary-button" disabled={Boolean(shiftBusy)} onClick={() => void openShiftPresence(terrainShift,'start')}><Icon name="check" size={18}/>{shiftBusy ? 'Enregistrement…' : 'Prendre mon poste'}</button>}{terrainShift.clocked_in_at && !terrainShift.clocked_out_at && <button className="secondary-button" disabled={Boolean(shiftBusy)} onClick={() => void openShiftPresence(terrainShift,'end')}><Icon name="check" size={18}/>{shiftBusy ? 'Clôture…' : 'Terminer mon poste'}</button>}{(geolocationEnabled || ptiEnabled) && <Link className="secondary-button" to={`/pti?shift=${terrainShift.id}`}><Icon name="map" size={18}/>{ptiEnabled ? 'GPS / PTI' : 'Géolocalisation'}</Link>}{logbookEnabled && <Link className="secondary-button" to={terrainShift.clocked_in_at && !terrainShift.clocked_out_at ? `/main-courante?shift=${terrainShift.id}` : '/main-courante'}><Icon name="clipboard" size={18}/>Historique main courante</Link>}</div></section>}
       <section className="stats-grid"><StatCard label="Missions du mois" value={String(activeShifts.length)} detail="affectées à ton compte" icon="calendar" loading={loading}/><StatCard label="Heures programmées" value={formatSecurityDuration(minutes)} detail="sur le mois en cours" icon="activity" loading={loading}/><StatCard label="Rondes aujourd’hui" value={String(patrols.length)} detail={`${activePatrols.length} en cours`} icon="shield" loading={loading}/><StatCard label="Main courante" value={String(entries.length)} detail="saisies aujourd’hui" icon="clipboard" loading={loading}/></section>
       <section className="dashboard-grid"><article className="panel large-panel security-dashboard-schedule"><div className="panel-header"><div><p className="eyebrow">PROCHAINES MISSIONS</p><h2>Mon planning</h2></div><Link className="secondary-button" to="/planning">Tout voir</Link></div>{loading ? <PremiumSkeleton rows={4} label="Chargement des prochaines missions"/> : upcoming.length === 0 ? <div className="security-empty"><Icon name="calendar" size={30}/><strong>Aucune mission à venir</strong><span>Ton responsable n’a rien planifié sur la période.</span></div> : <div className="security-upcoming-list">{upcoming.map((shift) => <article key={shift.id}><span className="security-record-icon" style={{ background: `${shift.security_sites?.color_hex || '#0A84FF'}22`, color: shift.security_sites?.color_hex || '#0A84FF' }}><Icon name="shield" size={19}/></span><div><strong>{shift.security_sites?.name || 'Site'}</strong><span>{shift.title || 'Mission de sécurité'}</span><small>{formatSecurityDateTime(shift.starts_at)} · {formatSecurityDuration(securityShiftMinutes(shift))}</small></div></article>)}</div>}</article><aside className="panel security-dashboard-actions"><div className="panel-header"><div><p className="eyebrow">ACTIONS TERRAIN</p><h2>Accès rapide</h2></div></div><div className="security-action-list">{qrEnabled && <Link to="/rondes"><span><Icon name="shield" size={19}/></span><div><strong>Mes rondes QR</strong><small>Démarrer ou poursuivre une ronde</small></div><Icon name="chevronRight" size={17}/></Link>}{logbookEnabled && <Link to={terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? `/main-courante?shift=${terrainShift.id}&add=1` : '/main-courante'}><span><Icon name="clipboard" size={19}/></span><div><strong>Ajouter à la main courante</strong><small>{terrainShift?.clocked_in_at && !terrainShift.clocked_out_at ? 'Saisie directe sur ta vacation en cours' : 'Prends ton poste pour saisir un événement'}</small></div><Icon name="chevronRight" size={17}/></Link>}{instructionsEnabled && <Link to="/consignes"><span><Icon name="alert" size={19}/></span><div><strong>Consignes & alertes</strong><small>Consulter les informations terrain</small></div><Icon name="chevronRight" size={17}/></Link>}{ptiEnabled && <Link to="/pti"><span><Icon name="shield" size={19}/></span><div><strong>PTI / SOS</strong><small>Activer la protection et la localisation</small></div><Icon name="chevronRight" size={17}/></Link>}</div></aside></section>
+      {presenceFlow && <SecurityShiftPresenceSheet shift={presenceFlow.shift} action={presenceFlow.action} handover={handoverPreview} geolocationEnabled={geolocationEnabled} busy={Boolean(shiftBusy)} onCancel={() => !shiftBusy && setPresenceFlow(null)} onConfirm={completeShiftPresence}/>}
     </div>;
   }
 

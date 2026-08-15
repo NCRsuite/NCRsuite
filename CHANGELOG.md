@@ -1,3 +1,14 @@
+## V2.29.12 — Prise / fin de poste Premium
+
+- Exigences de preuves configurables par site.
+- GPS arrivée/sortie avec contrôle serveur lorsque requis.
+- Photo de prise et de fin de poste dans un stockage privé.
+- Note de relève transmise à l’agent suivant du même site.
+- Signature de fin de poste configurable.
+- CTA « Terminer mon poste » renforcé 30 minutes avant la fin.
+- Preuves et relève visibles dans les dossiers de vacation QG.
+- Nouveau cache PWA et nouveaux assets `v2912`.
+
 ## V2.29.11 — Vacations Sécurité blindées
 
 - Une seule vacation réellement active par agent, garantie côté serveur avec verrou transactionnel.

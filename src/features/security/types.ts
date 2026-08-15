@@ -29,6 +29,12 @@ export interface SecuritySiteRecord {
   contact_phone: string | null;
   hourly_rate_cents: number;
   color_hex?: string | null;
+  clock_in_photo_required?: boolean;
+  clock_out_photo_required?: boolean;
+  clock_in_gps_required?: boolean;
+  clock_out_gps_required?: boolean;
+  clock_out_signature_required?: boolean;
+  handover_note_required?: boolean;
   timezone: string;
   notes: string | null;
   status: 'active' | 'inactive' | 'archived';
@@ -92,8 +98,13 @@ export interface SecurityShiftRecord {
   dossier_reopened_at?: string | null;
   dossier_reopened_by?: string | null;
   dossier_note?: string | null;
+  clock_in_position_id?: string | null;
+  clock_out_position_id?: string | null;
+  handover_note?: string | null;
+  handover_note_at?: string | null;
+  handover_note_by?: string | null;
   created_at: string;
-  security_sites?: { name: string; hourly_rate_cents: number; color_hex?: string | null; address?: string | null; postal_code?: string | null; city: string | null; security_clients?: { company_name: string } | null } | null;
+  security_sites?: { name: string; hourly_rate_cents: number; color_hex?: string | null; address?: string | null; postal_code?: string | null; city: string | null; clock_in_photo_required?: boolean; clock_out_photo_required?: boolean; clock_in_gps_required?: boolean; clock_out_gps_required?: boolean; clock_out_signature_required?: boolean; handover_note_required?: boolean; security_clients?: { company_name: string } | null } | null;
   security_agents?: { first_name: string; last_name: string } | null;
 }
 

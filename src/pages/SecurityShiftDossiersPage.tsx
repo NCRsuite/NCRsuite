@@ -20,6 +20,7 @@ import { supabase } from '../lib/supabase';
 
 type DossierTab = 'to_complete' | 'ready' | 'closed' | 'archived';
 type DossierRow = SecurityShiftRecord & { readiness: SecurityShiftDossierReadiness };
+type ShiftProofView = { id:string; shift_id:string; proof_type:'clock_in_photo'|'clock_out_photo'|'clock_out_signature'; storage_path:string; signed_url?:string|null };
 
 const emptyReadiness: SecurityShiftDossierReadiness = {
   ready: false,
@@ -58,6 +59,7 @@ export function SecurityShiftDossiersPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [proofsByShift, setProofsByShift] = useState<Map<string, ShiftProofView[]>>(new Map());
 
   async function load() {
     if (!organization || !supabase) return;
@@ -68,7 +70,7 @@ export function SecurityShiftDossiersPage() {
     from.setDate(from.getDate() - 180);
     const { data, error: shiftError } = await client
       .from('security_shifts')
-      .select('id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,actual_minutes,actual_validation_note,completed_at,completed_by,final_invoice_id,clocked_in_at,clocked_in_source,clocked_out_at,clocked_out_source,logbook_status,logbook_closed_at,logbook_closed_source,billing_minutes_override,billing_override_reason,dossier_status,dossier_closed_at,dossier_closed_by,dossier_archived_at,dossier_archived_by,dossier_reopened_at,dossier_reopened_by,dossier_note,created_at,security_sites(name,hourly_rate_cents,color_hex,address,postal_code,city,security_clients(company_name)),security_agents(first_name,last_name)')
+      .select('id,organization_id,site_id,agent_id,title,starts_at,ends_at,break_minutes,status,notes,actual_minutes,actual_validation_note,completed_at,completed_by,final_invoice_id,clocked_in_at,clocked_in_source,clocked_out_at,clocked_out_source,logbook_status,logbook_closed_at,logbook_closed_source,billing_minutes_override,billing_override_reason,dossier_status,dossier_closed_at,dossier_closed_by,dossier_archived_at,dossier_archived_by,dossier_reopened_at,dossier_reopened_by,dossier_note,clock_in_position_id,clock_out_position_id,handover_note,handover_note_at,handover_note_by,created_at,security_sites(name,hourly_rate_cents,color_hex,address,postal_code,city,security_clients(company_name)),security_agents(first_name,last_name)')
       .eq('organization_id', organization.id)
       .neq('status', 'canceled')
       .gte('ends_at', from.toISOString())
@@ -83,6 +85,19 @@ export function SecurityShiftDossiersPage() {
     }
 
     const shifts = (data ?? []) as unknown as SecurityShiftRecord[];
+    if (shifts.length) {
+      const { data: proofRows, error: proofError } = await client.from('security_shift_proofs').select('id,shift_id,proof_type,storage_path').eq('organization_id', organization.id).in('shift_id', shifts.map((shift) => shift.id));
+      if (!proofError) {
+        const proofMap = new Map<string, ShiftProofView[]>();
+        for (const proof of (proofRows ?? []) as ShiftProofView[]) {
+          const { data: signed } = await client.storage.from('security-shift-proofs').createSignedUrl(proof.storage_path, 900);
+          const list = proofMap.get(proof.shift_id) ?? [];
+          list.push({ ...proof, signed_url: signed?.signedUrl ?? null });
+          proofMap.set(proof.shift_id, list);
+        }
+        setProofsByShift(proofMap);
+      } else setProofsByShift(new Map());
+    } else setProofsByShift(new Map());
     const readiness = await Promise.all(shifts.map(async (shift) => {
       const { data: result, error: readinessError } = await client.rpc('security_shift_dossier_readiness', {
         p_organization_id: organization.id,
@@ -248,9 +263,11 @@ export function SecurityShiftDossiersPage() {
         const site = row.security_sites?.name || 'Site';
         const agent = row.security_agents ? securityPersonName(row.security_agents.first_name, row.security_agents.last_name) : 'Agent';
         const busy = busyId === row.id;
+        const shiftProofs = proofsByShift.get(row.id) ?? [];
         return <article className="security-dossier-card" key={row.id}>
           <div className="security-dossier-card-head"><span className="security-record-icon" style={{ background: `${row.security_sites?.color_hex || '#0A84FF'}22`, color: row.security_sites?.color_hex || '#0A84FF' }}><Icon name="shield" size={20}/></span><div><strong>{site}</strong><span>{agent} · {formatSecurityDateTime(row.starts_at)}</span><small>{formatSecurityDuration(row.actual_minutes ?? securityShiftMinutes(row))} réalisée · {row.security_sites?.security_clients?.company_name || 'Client'}</small></div><em className={`security-dossier-status ${dossierBucket(row)}`}>{statusLabel(row)}</em></div>
           <div className="security-dossier-checks"><span className={row.clocked_in_at || row.readiness.has_start ? 'ok' : ''}>Prise de poste</span><span className={row.clocked_out_at || row.readiness.has_end ? 'ok' : ''}>Fin de poste</span><span className={row.readiness.patrol_points === 0 || row.readiness.completed_patrols > 0 ? 'ok' : ''}>Ronde QR</span><span className={row.readiness.active_pti === 0 ? 'ok' : ''}>PTI fermé</span><span className={row.readiness.open_emergencies === 0 ? 'ok' : ''}>Alertes traitées</span></div>
+          {(shiftProofs.length > 0 || row.clock_in_position_id || row.clock_out_position_id || row.handover_note) && <div className="security-dossier-premium-proof"><div className="security-dossier-proof-badges">{row.clock_in_position_id && <span><Icon name="map" size={14}/>GPS arrivée</span>}{row.clock_out_position_id && <span><Icon name="map" size={14}/>GPS sortie</span>}{shiftProofs.map((proof) => <a key={proof.id} href={proof.signed_url || undefined} target="_blank" rel="noreferrer" className={!proof.signed_url ? 'is-disabled' : ''}><Icon name={proof.proof_type === 'clock_out_signature' ? 'signature' : 'camera'} size={14}/>{proof.proof_type === 'clock_in_photo' ? 'Photo arrivée' : proof.proof_type === 'clock_out_photo' ? 'Photo sortie' : 'Signature fin'}</a>)}</div>{row.handover_note && <p><strong>Relève agent :</strong> {row.handover_note}</p>}</div>}
           {row.readiness.reasons.length > 0 && row.dossier_status === 'open' && <div className="security-dossier-reasons">{row.readiness.reasons.map((reason) => <span key={reason}><Icon name="alert" size={14}/>{reason}</span>)}</div>}
           {row.dossier_note && <p className="security-dossier-note"><strong>Note :</strong> {row.dossier_note}</p>}
           <div className="security-dossier-actions"><button className="secondary-button compact-button" disabled={busy} onClick={() => void downloadDossier(row)}><Icon name="file" size={16}/>PDF complet</button>{dossierBucket(row) === 'to_complete' && !row.clocked_in_at && <button className="secondary-button compact-button" disabled={busy} onClick={() => void qgPresenceAction(row, 'start')}><Icon name="check" size={16}/>Prise de poste QG</button>}{dossierBucket(row) === 'to_complete' && (!row.clocked_out_at || row.status !== 'completed' || row.logbook_status !== 'closed') && <button className="primary-button compact-button" disabled={busy} onClick={() => void qgPresenceAction(row, 'end')}><Icon name="check" size={16}/>Clôturer vacation QG</button>}{dossierBucket(row) === 'ready' && <button className="primary-button compact-button" disabled={busy} onClick={() => void closeDossier(row)}><Icon name="check" size={16}/>Clôturer le dossier</button>}{row.logbook_status === 'closed' && row.dossier_status === 'open' && canReopen && <button className="secondary-button compact-button" disabled={busy} onClick={() => void reopenOperations(row)}>Rouvrir les opérations</button>}{dossierBucket(row) === 'closed' && canReopen && <><button className="secondary-button compact-button" disabled={busy} onClick={() => void reopenDossier(row)}>Rouvrir</button><button className="primary-button compact-button" disabled={busy} onClick={() => void archiveDossier(row)}>Archiver</button></>}{dossierBucket(row) === 'archived' && canReopen && <button className="secondary-button compact-button" disabled={busy} onClick={() => void reopenDossier(row)}>Rouvrir</button>}</div>
