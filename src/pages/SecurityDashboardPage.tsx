@@ -245,14 +245,24 @@ export function SecurityDashboardPage() {
         setError(`Une autre vacation est encore active (${otherActiveShift.security_sites?.name || 'site'}). Termine-la avant de prendre un nouveau poste.`);
         return;
       }
-      setHandoverPreview(null);
-      if (!demoMode && supabase) {
+    }
+
+    // Ouvrir la feuille immédiatement. La relève ne doit jamais bloquer l'UX.
+    setError('');
+    setSuccess('');
+    setHandoverPreview(null);
+    setPresenceFlow({ shift, action });
+
+    if (action === 'start' && !demoMode && supabase) {
+      try {
         const { data, error: handoverError } = await supabase.rpc('get_security_shift_handover', { p_organization_id: organization.id, p_shift_id: shift.id });
-        if (!handoverError && data && typeof data === 'object') setHandoverPreview(data as { note?: string | null; recorded_at?: string | null; agent_name?: string | null });
+        if (!handoverError && data && typeof data === 'object') {
+          setHandoverPreview(data as { note?: string | null; recorded_at?: string | null; agent_name?: string | null });
+        }
+      } catch {
+        // La relève est informative : son indisponibilité ne doit pas empêcher la prise de poste.
       }
     }
-    setError(''); setSuccess('');
-    setPresenceFlow({ shift, action });
   }
 
   async function closeForgottenShift(shift: SecurityShiftRecord) {

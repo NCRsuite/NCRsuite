@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from './Icon';
 import { prepareSecurityShiftPhoto, signatureCanvasToFile } from '../features/security/shiftProof';
 import type { SecurityShiftRecord } from '../features/security/types';
@@ -110,7 +111,7 @@ export function SecurityShiftPresenceSheet({ shift, action, handover, geolocatio
     await onConfirm({ photoFile: photo, signatureFile, handoverNote: note.trim() });
   }
 
-  return <div className="security-presence-overlay" role="dialog" aria-modal="true" aria-label={action === 'start' ? 'Prise de poste' : 'Fin de poste'}>
+  return createPortal(<div className="security-presence-overlay" role="dialog" aria-modal="true" aria-label={action === 'start' ? 'Prise de poste' : 'Fin de poste'}>
     <section className="security-presence-sheet">
       <div className="security-presence-sheet-head">
         <div><p className="eyebrow">{action === 'start' ? 'PRISE DE POSTE' : 'FIN DE POSTE'}</p><h2>{site?.name || 'Vacation'}</h2><small>{action === 'start' ? 'Vérifie les éléments du site puis démarre.' : 'Transmets une relève propre avant de quitter le site.'}</small></div>
@@ -140,5 +141,5 @@ export function SecurityShiftPresenceSheet({ shift, action, handover, geolocatio
         <Icon name={busy ? 'clock' : 'check'} size={22}/><span><b>{busy ? 'Enregistrement…' : action === 'start' ? 'Prendre mon poste' : 'Terminer et transmettre la relève'}</b><small>{action === 'start' ? 'La main courante sera disponible immédiatement' : 'La vacation et la main courante seront clôturées'}</small></span>
       </button>
     </section>
-  </div>;
+  </div>, document.body);
 }

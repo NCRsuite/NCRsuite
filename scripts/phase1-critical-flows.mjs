@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-security-premium-presence`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-security-presence-modal-fix`;
 const publicMotionCache = 'ncr-suite-shell-v2.29.5-public-motion';
 const publicFlowSignalCache = 'ncr-suite-shell-v2.29.4-public-flow-signal';
 const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
@@ -108,19 +108,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v2912.css',
-  '/ncr-suite-app-v2912.css',
+  '/ncr-suite-showcase-v2913.css',
+  '/ncr-suite-app-v2913.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.12'
+  'ncr:css-recovery-v2.29.13'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v2912.css',
+  '/ncr-suite-app-v2913.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2912.js'"
+  "entryFileNames: 'ncr-suite-app-v2913.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",

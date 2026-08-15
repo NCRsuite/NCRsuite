@@ -736,33 +736,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v2912.css')
-    || !indexHtml.includes('/ncr-suite-app-v2912.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v2913.css')
+    || !indexHtml.includes('/ncr-suite-app-v2913.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.29.12')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v2912.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v2912.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.13')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v2913.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v2913.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2912.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2913.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.29.12 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.13 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2912.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v2912.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.29.12 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2913.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v2913.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.13 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.29.12'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.29.12-security-premium-presence")
-    || !serviceWorker.includes("ncr-suite-shell-v2.29.12-security-premium-presence")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v2912.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2912.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2912.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.13'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.13-security-presence-modal-fix")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.13-security-presence-modal-fix")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v2913.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2913.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2913.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.29.12 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.13 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.29.12 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.13 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
