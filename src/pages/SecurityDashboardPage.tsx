@@ -22,21 +22,8 @@ import {
 } from '../features/security/types';
 import { supabase } from '../lib/supabase';
 import { readJsonStorage } from '../lib/safeStorage';
-
-const securityQuickLogbookPresets: Array<{
-  category: SecurityLogbookEntryRecord['category'];
-  severity: SecurityLogbookEntryRecord['severity'];
-  label: string;
-  title: string;
-  icon: 'check' | 'shield' | 'alert' | 'map' | 'file' | 'users';
-}> = [
-  { category: 'autre', severity: 'info', label: 'RAS', title: 'RAS', icon: 'check' },
-  { category: 'ronde', severity: 'info', label: 'Ronde', title: 'Ronde effectuée', icon: 'shield' },
-  { category: 'anomalie', severity: 'attention', label: 'Anomalie', title: 'Anomalie constatée', icon: 'alert' },
-  { category: 'autre', severity: 'info', label: 'Passage véhicule', title: 'Passage véhicule', icon: 'map' },
-  { category: 'livraison', severity: 'info', label: 'Livraison', title: 'Livraison', icon: 'file' },
-  { category: 'visiteur', severity: 'attention', label: 'Personne / accès', title: 'Personne / contrôle d’accès', icon: 'users' }
-];
+import { MAX_SECURITY_LOGBOOK_PHOTOS, prepareSecurityLogbookPhoto, uploadSecurityLogbookPhotos } from '../features/security/logbookPhoto';
+import { securityLogbookTextPresets, securityQuickLogbookPresets } from '../features/security/logbookPresets';
 
 function readableActionError(error: unknown, fallback = 'Action impossible.') {
   if (error && typeof error === 'object' && 'message' in error) {
@@ -81,6 +68,8 @@ export function SecurityDashboardPage() {
   const [quickLogTitle, setQuickLogTitle] = useState('RAS');
   const [quickLogDetails, setQuickLogDetails] = useState('');
   const [quickLogBusy, setQuickLogBusy] = useState(false);
+  const [quickLogPhotos, setQuickLogPhotos] = useState<Array<{ id: string; file: File; previewUrl: string }>>([]);
+  const [quickPhotoPreparing, setQuickPhotoPreparing] = useState(false);
   const [refreshNonce, setRefreshNonce] = useState(0);
 
   useEffect(() => {
@@ -263,6 +252,44 @@ export function SecurityDashboardPage() {
     } finally { setShiftBusy(''); }
   }
 
+  const quickTextPresets = securityLogbookTextPresets(quickLogCategory, quickLogTitle);
+
+  function clearQuickPhotos() {
+    setQuickLogPhotos((current) => {
+      current.forEach((photo) => URL.revokeObjectURL(photo.previewUrl));
+      return [];
+    });
+  }
+
+  async function addQuickPhotos(fileList: FileList | null) {
+    if (!fileList?.length) return;
+    const remaining = MAX_SECURITY_LOGBOOK_PHOTOS - quickLogPhotos.length;
+    if (remaining <= 0) { setError(`Maximum ${MAX_SECURITY_LOGBOOK_PHOTOS} photos par événement.`); return; }
+    setQuickPhotoPreparing(true);
+    setError('');
+    try {
+      const selected = Array.from(fileList).slice(0, remaining);
+      const prepared = await Promise.all(selected.map((file, index) => prepareSecurityLogbookPhoto(file, quickLogPhotos.length + index + 1)));
+      setQuickLogPhotos((current) => [...current, ...prepared.map((file) => ({ id: crypto.randomUUID(), file, previewUrl: URL.createObjectURL(file) }))]);
+    } catch (caught) {
+      setError(`Photo impossible : ${readableActionError(caught)}`);
+    } finally {
+      setQuickPhotoPreparing(false);
+    }
+  }
+
+  function removeQuickPhoto(id: string) {
+    setQuickLogPhotos((current) => {
+      const target = current.find((photo) => photo.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      return current.filter((photo) => photo.id !== id);
+    });
+  }
+
+  function applyQuickTextPreset(text: string) {
+    setQuickLogDetails((current) => current.trim() ? `${current.trim()} ${text}` : text);
+  }
+
   function chooseQuickLogbookPreset(preset: (typeof securityQuickLogbookPresets)[number]) {
     setQuickLogCategory(preset.category);
     setQuickLogSeverity(preset.severity);
@@ -310,7 +337,7 @@ export function SecurityDashboardPage() {
           return next;
         });
       } else {
-        const { error: insertError } = await supabase.rpc('create_security_logbook_entry', {
+        const { data: createdEntryId, error: insertError } = await supabase.rpc('create_security_logbook_entry', {
           p_organization_id: organization.id,
           p_shift_id: terrainShift.id,
           p_category: quickLogCategory,
@@ -320,13 +347,23 @@ export function SecurityDashboardPage() {
           p_occurred_at: occurredAt
         });
         if (insertError) throw insertError;
+        const entryId = typeof createdEntryId === 'string' ? createdEntryId : String(createdEntryId ?? '');
+        if (quickLogPhotos.length && entryId) {
+          try {
+            await uploadSecurityLogbookPhotos(organization.id, terrainShift.id, entryId, quickLogPhotos.map((photo) => photo.file));
+          } catch (photoError) {
+            setError(`Événement enregistré, mais photo non transmise : ${readableActionError(photoError)}`);
+          }
+        }
         setRefreshNonce((value) => value + 1);
       }
+      const photoCount = demoMode ? 0 : quickLogPhotos.length;
       setQuickLogDetails('');
       setQuickLogCategory('autre');
       setQuickLogSeverity('info');
       setQuickLogTitle('RAS');
-      setSuccess(`« ${quickLogTitle} » ajouté à la main courante.`);
+      clearQuickPhotos();
+      setSuccess(`« ${quickLogTitle} » ajouté à la main courante${photoCount ? ` avec ${photoCount} photo${photoCount > 1 ? 's' : ''}` : ''}.`);
     } catch (caught) {
       setError(`Ajout impossible : ${readableActionError(caught)}`);
     } finally {
@@ -365,6 +402,11 @@ export function SecurityDashboardPage() {
             ><Icon name={preset.icon} size={18}/><span>{preset.label}</span></button>)}
           </div>
 
+          {quickTextPresets.length > 0 && <div className="security-agent-quick-texts">
+            <div><strong>Textes rapides</strong><small>Appuie pour remplir</small></div>
+            <div>{quickTextPresets.map((text) => <button key={text} type="button" onClick={() => applyQuickTextPreset(text)}>{text}</button>)}</div>
+          </div>}
+
           <label className="security-agent-quick-details">
             <span>Complément <small>facultatif pour un RAS</small></span>
             <textarea
@@ -375,13 +417,25 @@ export function SecurityDashboardPage() {
             />
           </label>
 
+          <div className="security-agent-quick-photo-zone">
+            <label className="security-agent-quick-photo-button">
+              <Icon name="camera" size={19}/>
+              <span><b>{quickPhotoPreparing ? 'Préparation…' : 'Ajouter une photo'}</b><small>{quickLogPhotos.length}/{MAX_SECURITY_LOGBOOK_PHOTOS} · caméra ou galerie</small></span>
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/*" capture="environment" multiple disabled={quickPhotoPreparing || quickLogPhotos.length >= MAX_SECURITY_LOGBOOK_PHOTOS} onChange={(event) => { void addQuickPhotos(event.target.files); event.currentTarget.value = ''; }}/>
+            </label>
+            {quickLogPhotos.length > 0 && <div className="security-agent-quick-photo-previews">{quickLogPhotos.map((photo) => <figure key={photo.id}>
+              <img src={photo.previewUrl} alt="Aperçu de la preuve"/>
+              <button type="button" onClick={() => removeQuickPhoto(photo.id)} aria-label="Retirer cette photo"><Icon name="close" size={15}/></button>
+            </figure>)}</div>}
+          </div>
+
           <div className="security-agent-quick-footer">
             <div className="security-agent-severity-switch" role="group" aria-label="Gravité">
               <button type="button" className={quickLogSeverity === 'info' ? 'active' : ''} onClick={() => setQuickLogSeverity('info')}>Normal</button>
               <button type="button" className={quickLogSeverity === 'attention' ? 'active attention' : ''} onClick={() => setQuickLogSeverity('attention')}>Attention</button>
               <button type="button" className={quickLogSeverity === 'urgent' ? 'active urgent' : ''} onClick={() => setQuickLogSeverity('urgent')}>Urgent</button>
             </div>
-            <button className="security-agent-quick-submit" type="button" disabled={quickLogBusy} onClick={() => void submitQuickLogbookEntry()}>
+            <button className="security-agent-quick-submit" type="button" disabled={quickLogBusy || quickPhotoPreparing} onClick={() => void submitQuickLogbookEntry()}>
               <Icon name={quickLogBusy ? 'clock' : 'plus'} size={21}/>
               <span><b>{quickLogBusy ? 'Ajout en cours…' : 'Ajouter maintenant'}</b><small>{quickLogTitle} · heure automatique</small></span>
             </button>

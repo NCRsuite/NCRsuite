@@ -1,3 +1,4 @@
+/* NCR Suite V2.29.8 - styles complets servis hors du dossier assets */
 @font-face {
   font-family: "NCR Public Inter";
   src: url('/fonts/inter-variable.woff2') format('woff2');
@@ -23430,3 +23431,4 @@ button { max-width: 100%; }
   .security-agent-quick-photo-previews figure { flex-basis: 68px; width: 68px; height: 68px; }
   .security-logbook-photo-gallery a { width: 64px; height: 64px; }
 }
+

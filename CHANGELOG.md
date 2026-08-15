@@ -660,3 +660,17 @@
 
 - Moteur documentaire premium commun.
 - Envois Brevo des documents commerciaux et convocations.
+
+## V2.29.7 — Main courante terrain sans navigation
+- Saisie directe en haut de l’espace Agent.
+- Raccourcis terrain et gravité accessibles sans changer de page.
+- Heure automatique.
+- Historique séparé de la saisie quotidienne.
+
+## V2.29.8 — Photos et textes rapides main courante
+- Ajout de jusqu'à 3 photos privées par événement de main courante Sécurité.
+- Compression mobile avant upload et stockage Supabase privé.
+- Textes prédéfinis contextuels accessibles en un toucher sur l'accueil Agent.
+- Miniatures photo dans l'historique de la main courante.
+- Autorisation caméra PWA corrigée pour le domaine NCR Suite.
+- Nouveau cache PWA et nouveaux assets `v298`.

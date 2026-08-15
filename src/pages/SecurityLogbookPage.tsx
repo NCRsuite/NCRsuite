@@ -4,6 +4,8 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { generateSecurityMissionLogbookPdf } from '../features/security/logbookPdf';
+import { loadSecurityLogbookPhotoMap, MAX_SECURITY_LOGBOOK_PHOTOS, prepareSecurityLogbookPhoto, uploadSecurityLogbookPhotos, type SecurityLogbookPhotoRecord } from '../features/security/logbookPhoto';
+import { securityLogbookTextPresets } from '../features/security/logbookPresets';
 import {
   formatSecurityDate,
   formatSecurityDuration,
@@ -98,8 +100,11 @@ export function SecurityLogbookPage() {
   const [to, setTo] = useState(initial.to);
   const [shifts, setShifts] = useState<SecurityShiftRecord[]>([]);
   const [entries, setEntries] = useState<SecurityLogbookEntryRecord[]>([]);
+  const [entryPhotos, setEntryPhotos] = useState<Map<string, SecurityLogbookPhotoRecord[]>>(new Map());
   const [selectedShiftId, setSelectedShiftId] = useState('');
   const [form, setForm] = useState<FormState>(emptyForm());
+  const [formPhotos, setFormPhotos] = useState<Array<{ id: string; file: File; previewUrl: string }>>([]);
+  const [formPhotoPreparing, setFormPhotoPreparing] = useState(false);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -117,6 +122,7 @@ export function SecurityLogbookPage() {
       const demoEntries = readJsonStorage<SecurityLogbookEntryRecord[]>(`ncr-suite-security-logbook-${organization.id}`, []);
       setShifts(demoShifts.filter((shift) => shift.status !== 'canceled'));
       setEntries(demoEntries);
+      setEntryPhotos(new Map());
       setLoading(false);
       return;
     }
@@ -147,8 +153,14 @@ export function SecurityLogbookPage() {
     if (entryResult.error) {
       setError(`Chargement des mains courantes impossible : ${entryResult.error.message}`);
     } else {
+      const loadedEntries = (entryResult.data ?? []) as unknown as SecurityLogbookEntryRecord[];
       setShifts((shiftResult.data ?? []) as unknown as SecurityShiftRecord[]);
-      setEntries((entryResult.data ?? []) as unknown as SecurityLogbookEntryRecord[]);
+      setEntries(loadedEntries);
+      try {
+        setEntryPhotos(await loadSecurityLogbookPhotoMap(organization.id, loadedEntries.map((entry) => entry.id)));
+      } catch {
+        setEntryPhotos(new Map());
+      }
     }
     setLoading(false);
   }
@@ -181,6 +193,10 @@ export function SecurityLogbookPage() {
 
   useEffect(() => {
     setForm(emptyForm(selectedShift));
+    setFormPhotos((current) => {
+      current.forEach((photo) => URL.revokeObjectURL(photo.previewUrl));
+      return [];
+    });
     setOpen(false);
     setError('');
     setSuccess('');
@@ -251,6 +267,44 @@ export function SecurityLogbookPage() {
     setForm((current) => ({ ...current, category: value, title: label }));
   }
 
+  const formTextPresets = securityLogbookTextPresets(form.category, form.title);
+
+  async function addFormPhotos(fileList: FileList | null) {
+    if (!fileList?.length) return;
+    const remaining = MAX_SECURITY_LOGBOOK_PHOTOS - formPhotos.length;
+    if (remaining <= 0) { setError(`Maximum ${MAX_SECURITY_LOGBOOK_PHOTOS} photos par événement.`); return; }
+    setFormPhotoPreparing(true);
+    setError('');
+    try {
+      const selected = Array.from(fileList).slice(0, remaining);
+      const prepared = await Promise.all(selected.map((file, index) => prepareSecurityLogbookPhoto(file, formPhotos.length + index + 1)));
+      setFormPhotos((current) => [...current, ...prepared.map((file) => ({ id: crypto.randomUUID(), file, previewUrl: URL.createObjectURL(file) }))]);
+    } catch (cause) {
+      setError(`Photo impossible : ${cause instanceof Error ? cause.message : 'format non pris en charge'}`);
+    } finally {
+      setFormPhotoPreparing(false);
+    }
+  }
+
+  function removeFormPhoto(id: string) {
+    setFormPhotos((current) => {
+      const target = current.find((photo) => photo.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      return current.filter((photo) => photo.id !== id);
+    });
+  }
+
+  function clearFormPhotos() {
+    setFormPhotos((current) => {
+      current.forEach((photo) => URL.revokeObjectURL(photo.previewUrl));
+      return [];
+    });
+  }
+
+  function applyFormTextPreset(text: string) {
+    setForm((current) => ({ ...current, details: current.details.trim() ? `${current.details.trim()} ${text}` : text }));
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!organization || !user || !selectedShift) return;
@@ -287,7 +341,7 @@ export function SecurityLogbookPage() {
         localStorage.setItem(`ncr-suite-security-logbook-${organization.id}`, JSON.stringify(next));
         setEntries(next);
       } else {
-        const { error: insertError } = await supabase.rpc('create_security_logbook_entry', {
+        const { data: createdEntryId, error: insertError } = await supabase.rpc('create_security_logbook_entry', {
           p_organization_id: organization.id,
           p_shift_id: selectedShift.id,
           p_category: form.category,
@@ -297,11 +351,21 @@ export function SecurityLogbookPage() {
           p_occurred_at: new Date(form.occurredAt).toISOString()
         });
         if (insertError) throw insertError;
+        const entryId = typeof createdEntryId === 'string' ? createdEntryId : String(createdEntryId ?? '');
+        if (formPhotos.length && entryId) {
+          try {
+            await uploadSecurityLogbookPhotos(organization.id, selectedShift.id, entryId, formPhotos.map((photo) => photo.file));
+          } catch (photoError) {
+            setError(`Événement enregistré, mais photo non transmise : ${photoError instanceof Error ? photoError.message : 'erreur de dépôt'}`);
+          }
+        }
         await load();
       }
+      const photoCount = demoMode ? 0 : formPhotos.length;
       setForm(emptyForm(selectedShift));
+      clearFormPhotos();
       setOpen(false);
-      setSuccess('L’événement a été ajouté à la main courante de cette vacation.');
+      setSuccess(`L’événement a été ajouté à la main courante${photoCount ? ` avec ${photoCount} photo${photoCount > 1 ? 's' : ''}` : ''}.`);
     } catch (cause) {
       setError(`Enregistrement impossible : ${cause instanceof Error ? cause.message : 'erreur inconnue'}`);
     } finally {
@@ -460,8 +524,14 @@ export function SecurityLogbookPage() {
                       <label>Gravité<select value={form.severity} onChange={(event) => setForm({ ...form, severity: event.target.value as SecurityLogbookEntryRecord['severity'] })}><option value="info">Information</option><option value="attention">Attention</option><option value="urgent">Urgent</option></select></label>
                       <label>Date et heure<input type="datetime-local" required value={form.occurredAt} onChange={(event) => setForm({ ...form, occurredAt: event.target.value })} /></label>
                       <label>Titre *<input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} /></label>
+                      {formTextPresets.length > 0 && <div className="full-field security-logbook-form-presets"><strong>Textes prédéfinis</strong><div>{formTextPresets.map((text) => <button type="button" key={text} onClick={() => applyFormTextPreset(text)}>{text}</button>)}</div></div>}
                       <label className="full-field">Détails<textarea rows={4} value={form.details} onChange={(event) => setForm({ ...form, details: event.target.value })} /></label>
-                      <div className="form-actions full-field"><button className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Ajouter à cette vacation'}</button></div>
+                      <div className="full-field security-logbook-form-photo">
+                        <label className="secondary-button"><Icon name="camera" size={18}/>{formPhotoPreparing ? 'Préparation…' : 'Ajouter une photo'}<input hidden type="file" accept="image/jpeg,image/png,image/webp,image/*" capture="environment" multiple disabled={formPhotoPreparing || formPhotos.length >= MAX_SECURITY_LOGBOOK_PHOTOS} onChange={(event) => { void addFormPhotos(event.target.files); event.currentTarget.value = ''; }}/></label>
+                        <small>{formPhotos.length}/{MAX_SECURITY_LOGBOOK_PHOTOS} photo(s)</small>
+                        {formPhotos.length > 0 && <div className="security-agent-quick-photo-previews">{formPhotos.map((photo) => <figure key={photo.id}><img src={photo.previewUrl} alt="Aperçu de la preuve"/><button type="button" onClick={() => removeFormPhoto(photo.id)}><Icon name="close" size={15}/></button></figure>)}</div>}
+                      </div>
+                      <div className="form-actions full-field"><button className="primary-button" disabled={saving || formPhotoPreparing}>{saving ? 'Enregistrement…' : 'Ajouter à cette vacation'}</button></div>
                     </form>
                   </section>
                 )}
@@ -485,6 +555,7 @@ export function SecurityLogbookPage() {
                             <strong>{entry.title}</strong>
                             <span>{categories.find(([value]) => value === entry.category)?.[1] || entry.category}</span>
                             <small>{entry.details || 'Aucun complément.'}</small>
+                            {(entryPhotos.get(entry.id) ?? []).length > 0 && <div className="security-logbook-photo-gallery">{(entryPhotos.get(entry.id) ?? []).map((photo) => photo.signed_url ? <a key={photo.id} href={photo.signed_url} target="_blank" rel="noreferrer"><img src={photo.signed_url} alt="Preuve jointe à la main courante"/></a> : null)}</div>}
                           </div>
                           <span className={`security-status-pill ${entry.status === 'processed' ? 'completed' : ''}`}>{entry.status === 'processed' ? 'Traité' : 'Ouvert'}</span>
                           {canManage && entry.status === 'open' && <button className="secondary-button compact-button" onClick={() => void process(entry.id)}>Marquer traité</button>}

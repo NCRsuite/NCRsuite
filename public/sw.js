@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.29.7-security-agent-logbook-ux';
+const CACHE = 'ncr-suite-shell-v2.29.8-security-logbook-photos';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v297.css',
-  '/ncr-suite-app-v297.css',
-  '/ncr-suite-app-v297.js',
+  '/ncr-suite-showcase-v298.css',
+  '/ncr-suite-app-v298.css',
+  '/ncr-suite-app-v298.js',
   '/fonts/inter-variable.woff2',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-symbol-v2221.png',
