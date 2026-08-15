@@ -1,11 +1,11 @@
-# Hotfix UX Agent — Main courante en haut de l'écran
+# NCR Suite V2.29.14 — à appliquer
 
-Remplacer :
-- `src/pages/SecurityDashboardPage.tsx`
-- `src/styles.css`
+1. Exécuter `supabase/migrations/128_security_presence_photo_release_alignment.sql`.
+2. Remplacer les fichiers du repo par ceux de ce patch.
+3. Déployer.
+4. Fermer complètement la PWA et la rouvrir.
 
-La migration `121_security_agent_logbook_fast_entry.sql` est incluse uniquement par sécurité :
-- si tu l'as déjà appliquée avec le hotfix précédent, NE LA REJOUE PAS ;
-- sinon, applique-la avant de déployer le front.
-
-Aucun autre SQL n'est nécessaire pour cette évolution UX.
+Correctifs :
+- photo arrivée/sortie toujours disponible ; obligatoire seulement si activée dans la fiche site ;
+- alignement `platform_release_state`, frontend et cache sur V2.29.14 ;
+- fin de la demande permanente de V2.29.12.

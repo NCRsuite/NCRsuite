@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.29.13-security-presence-modal-fix';
+const CACHE = 'ncr-suite-shell-v2.29.14-security-presence-photo-release-fix';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v2913.css',
-  '/ncr-suite-app-v2913.css',
-  '/ncr-suite-app-v2913.js',
+  '/ncr-suite-showcase-v2914.css',
+  '/ncr-suite-app-v2914.css',
+  '/ncr-suite-app-v2914.js',
   '/fonts/inter-variable.woff2',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-symbol-v2221.png',

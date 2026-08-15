@@ -122,14 +122,14 @@ export function SecurityShiftPresenceSheet({ shift, action, handover, geolocatio
 
       <div className="security-presence-requirements">
         <div className={gpsRequired ? 'required' : ''}><Icon name="map" size={18}/><span><b>GPS {action === 'start' ? 'd’arrivée' : 'de sortie'}</b><small>{geolocationEnabled ? (gpsRequired ? 'Obligatoire sur ce site' : 'Enregistré si disponible') : 'Géolocalisation non activée'}</small></span>{gpsRequired && <em>REQUIS</em>}</div>
-        {photoRequired && <div className="required"><Icon name="camera" size={18}/><span><b>Photo {action === 'start' ? 'd’arrivée' : 'de sortie'}</b><small>Une preuve photo est demandée par le site</small></span><em>REQUIS</em></div>}
+        <div className={photoRequired ? 'required' : ''}><Icon name="camera" size={18}/><span><b>Photo {action === 'start' ? 'd’arrivée' : 'de sortie'}</b><small>{photoRequired ? 'Une preuve photo est obligatoire sur ce site' : 'Facultative · utile comme preuve de présence'}</small></span>{photoRequired ? <em>REQUIS</em> : <em>FACULTATIF</em>}</div>
         {signatureRequired && <div className="required"><Icon name="signature" size={18}/><span><b>Signature agent</b><small>Signature obligatoire avant clôture</small></span><em>REQUIS</em></div>}
       </div>
 
-      {photoRequired && <div className="security-presence-photo">
-        <label><Icon name="camera" size={21}/><span><b>{photo ? 'Remplacer la photo' : `Prendre la photo ${action === 'start' ? 'd’arrivée' : 'de sortie'}`}</b><small>Caméra ou galerie · compression automatique</small></span><input type="file" accept="image/*" capture="environment" onChange={(event) => { void choosePhoto(event.target.files); event.currentTarget.value=''; }}/></label>
+      <div className={`security-presence-photo ${photoRequired ? 'is-required' : 'is-optional'}`}>
+        <label><Icon name="camera" size={21}/><span><b>{photo ? 'Remplacer la photo' : `Prendre une photo ${action === 'start' ? 'd’arrivée' : 'de sortie'}`}</b><small>{photoRequired ? 'Obligatoire · caméra ou galerie · compression automatique' : 'Facultative · caméra ou galerie · compression automatique'}</small></span><input type="file" accept="image/*" capture="environment" onChange={(event) => { void choosePhoto(event.target.files); event.currentTarget.value=''; }}/></label>
         {photoPreview && <img src={photoPreview} alt="Aperçu de la preuve de poste"/>}
-      </div>}
+      </div>
 
       {action === 'end' && <label className="security-presence-note"><span>Note de relève {noteRequired ? <b>· obligatoire</b> : <small>· facultative</small>}</span><textarea rows={3} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Ex. clés remises au réceptionniste, portail arrière à surveiller, RAS particulier…" maxLength={2000}/></label>}
 
