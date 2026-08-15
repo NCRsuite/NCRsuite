@@ -4,7 +4,7 @@ CORRECTION
 - Suppression de la fragmentation JavaScript au build.
 - Un seul fichier JavaScript initialise la vitrine et l'application.
 - Styles complets servis a la racine du site.
-- Styles critiques animes charges en priorite.
+- Styles critiques animes charges en priorite. 
 - Page de recuperation protegee par les styles complets.
 
 CONSERVE
