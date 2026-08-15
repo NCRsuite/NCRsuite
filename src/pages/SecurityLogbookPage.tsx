@@ -1,4 +1,5 @@
-import { type CSSProperties, type FormEvent, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -87,7 +88,11 @@ function emptyForm(shift?: SecurityShiftRecord | null): FormState {
 export function SecurityLogbookPage() {
   const { organization } = useOrganization();
   const { user, demoMode } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
+  const isAgent = organization?.role === 'employee';
+  const requestedShiftId = searchParams.get('shift') || '';
+  const quickAddRequested = searchParams.get('add') === '1';
   const initial = defaultPeriod();
   const [from, setFrom] = useState(initial.from);
   const [to, setTo] = useState(initial.to);
@@ -100,6 +105,7 @@ export function SecurityLogbookPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const formPanelRef = useRef<HTMLElement | null>(null);
 
   async function load() {
     if (!organization) return;
@@ -156,12 +162,17 @@ export function SecurityLogbookPage() {
       setSelectedShiftId('');
       return;
     }
+    if (requestedShiftId && shifts.some((shift) => shift.id === requestedShiftId)) {
+      if (selectedShiftId !== requestedShiftId) setSelectedShiftId(requestedShiftId);
+      return;
+    }
     if (shifts.some((shift) => shift.id === selectedShiftId)) return;
     const now = Date.now();
+    const onDuty = shifts.find((shift) => Boolean(shift.clocked_in_at) && !shift.clocked_out_at && shift.logbook_status !== 'closed');
     const active = shifts.find((shift) => new Date(shift.starts_at).getTime() <= now && new Date(shift.ends_at).getTime() >= now);
     const upcoming = [...shifts].reverse().find((shift) => new Date(shift.starts_at).getTime() > now);
-    setSelectedShiftId((active || upcoming || shifts[0]).id);
-  }, [shifts, selectedShiftId]);
+    setSelectedShiftId((onDuty || active || upcoming || shifts[0]).id);
+  }, [shifts, selectedShiftId, requestedShiftId]);
 
   const selectedShift = useMemo(
     () => shifts.find((shift) => shift.id === selectedShiftId) ?? null,
@@ -174,6 +185,39 @@ export function SecurityLogbookPage() {
     setError('');
     setSuccess('');
   }, [selectedShift?.id]);
+
+  const agentCanAddEvent = Boolean(
+    selectedShift
+    && selectedShift.logbook_status !== 'closed'
+    && (!isAgent || (selectedShift.clocked_in_at && !selectedShift.clocked_out_at))
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    const frame = window.requestAnimationFrame(() => {
+      formPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [open]);
+
+  useEffect(() => {
+    if (!quickAddRequested || !selectedShift) return;
+    if (requestedShiftId && selectedShift.id !== requestedShiftId) return;
+
+    if (selectedShift.logbook_status === 'closed') {
+      setError('La main courante de cette vacation est clôturée.');
+    } else if (isAgent && !selectedShift.clocked_in_at) {
+      setError('Prends d’abord ton poste avant d’ajouter un événement à la main courante.');
+    } else if (isAgent && selectedShift.clocked_out_at) {
+      setError('Cette vacation est terminée. Le QG peut rouvrir le dossier si une correction est nécessaire.');
+    } else {
+      setOpen(true);
+    }
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('add');
+    setSearchParams(next, { replace: true });
+  }, [quickAddRequested, requestedShiftId, selectedShift?.id, selectedShift?.clocked_in_at, selectedShift?.clocked_out_at, selectedShift?.logbook_status, isAgent]);
 
   const entriesByShift = useMemo(() => {
     const map = new Map<string, SecurityLogbookEntryRecord[]>();
@@ -211,6 +255,8 @@ export function SecurityLogbookPage() {
     event.preventDefault();
     if (!organization || !user || !selectedShift) return;
     if (selectedShift.logbook_status === 'closed') { setError('La main courante de cette vacation est clôturée.'); setOpen(false); return; }
+    if (isAgent && !selectedShift.clocked_in_at) { setError('Prends d’abord ton poste avant d’ajouter un événement.'); return; }
+    if (isAgent && selectedShift.clocked_out_at) { setError('Cette vacation est déjà terminée.'); setOpen(false); return; }
     setSaving(true);
     setError('');
 
@@ -241,7 +287,15 @@ export function SecurityLogbookPage() {
         localStorage.setItem(`ncr-suite-security-logbook-${organization.id}`, JSON.stringify(next));
         setEntries(next);
       } else {
-        const { error: insertError } = await supabase.from('security_logbook_entries').insert(payload);
+        const { error: insertError } = await supabase.rpc('create_security_logbook_entry', {
+          p_organization_id: organization.id,
+          p_shift_id: selectedShift.id,
+          p_category: form.category,
+          p_severity: form.severity,
+          p_title: form.title.trim(),
+          p_details: form.details.trim() || null,
+          p_occurred_at: new Date(form.occurredAt).toISOString()
+        });
         if (insertError) throw insertError;
         await load();
       }
@@ -303,9 +357,9 @@ export function SecurityLogbookPage() {
             <button className="secondary-button" onClick={() => void exportMissionPdf(selectedShift)}>
               <Icon name="file" size={18} /> PDF de la mission
             </button>
-            {selectedShift.logbook_status !== 'closed' ? <button className="primary-button" onClick={() => setOpen(true)}>
+            {agentCanAddEvent ? <button className="primary-button" onClick={() => setOpen(true)}>
               <Icon name="plus" size={18} /> Ajouter un événement
-            </button> : <span className="security-status-pill completed"><Icon name="lock" size={15}/>Main courante clôturée</span>}
+            </button> : selectedShift.logbook_status === 'closed' || selectedShift.clocked_out_at ? <span className="security-status-pill completed"><Icon name="lock" size={15}/>Main courante clôturée</span> : isAgent ? <span className="security-status-pill"><Icon name="clock" size={15}/>Prise de poste requise</span> : null}
           </div>
         )}
       </header>
@@ -383,14 +437,16 @@ export function SecurityLogbookPage() {
                   </div>
                   <div className="security-mission-summary-actions">
                     <button className="secondary-button compact-button" onClick={() => void exportMissionPdf(selectedShift)}><Icon name="file" size={16} />PDF</button>
-                    {selectedShift.logbook_status !== 'closed' ? <button className="primary-button compact-button" onClick={() => setOpen(true)}><Icon name="plus" size={16} />Événement</button> : <span className="security-status-pill completed"><Icon name="lock" size={14}/>Clôturée</span>}
+                    {agentCanAddEvent ? <button className="primary-button compact-button" onClick={() => setOpen(true)}><Icon name="plus" size={16} />Ajouter</button> : selectedShift.logbook_status === 'closed' ? <span className="security-status-pill completed"><Icon name="lock" size={14}/>Clôturée</span> : null}
                   </div>
                 </section>
 
                 {selectedShift.logbook_status === 'closed' && <div className="security-callout"><Icon name="lock" size={20}/><div><strong>Main courante clôturée</strong><span>Aucun nouvel événement ne peut être ajouté. Le QG peut rouvrir les opérations depuis Dossiers de vacation si une correction est nécessaire.</span></div></div>}
+                {isAgent && selectedShift.logbook_status !== 'closed' && !selectedShift.clocked_in_at && <div className="security-callout"><Icon name="clock" size={20}/><div><strong>Prise de poste requise</strong><span>Retourne à l’accueil et prends ton poste. Le bouton d’ajout direct sera ensuite disponible.</span></div></div>}
+                {isAgent && selectedShift.logbook_status !== 'closed' && selectedShift.clocked_out_at && <div className="security-callout"><Icon name="lock" size={20}/><div><strong>Vacation terminée</strong><span>L’agent ne peut plus modifier cette main courante. Le QG peut intervenir depuis le dossier de vacation.</span></div></div>}
 
-                {open && selectedShift.logbook_status !== 'closed' && (
-                  <section className="panel security-form-panel">
+                {open && agentCanAddEvent && (
+                  <section ref={formPanelRef} className="panel security-form-panel">
                     <div className="panel-header">
                       <div><p className="eyebrow">NOUVEL ÉVÉNEMENT</p><h2>{selectedShift.security_sites?.name} · {timeLabel(selectedShift.starts_at)} - {timeLabel(selectedShift.ends_at)}</h2></div>
                       <button className="secondary-button compact-button" onClick={() => setOpen(false)}>Fermer</button>
