@@ -1,3 +1,12 @@
+## V2.29.15 — QG opérationnel temps réel
+
+- Push QG dédupliqués : prise de poste, fin de poste, retard +15 min, fin oubliée +15 min.
+- Push critique immédiat pour MCI urgente ; SOS/PTI continue d’utiliser le moteur existant.
+- Alertes retard/fin oubliée programmées puis annulées automatiquement si l’agent pointe.
+- Dashboard QG temps réel : agents en poste, attendus non pointés, fins oubliées, urgences et dernières relèves.
+- Realtime Supabase + repli par actualisation toutes les 30 secondes.
+- Migration `129_security_qg_operational_notifications.sql` et cache PWA `ncr-suite-shell-v2.29.15-security-qg-operational`.
+
 ## V2.29.11 — Vacations Sécurité blindées
 
 - Une seule vacation réellement active par agent, garantie côté serveur avec verrou transactionnel.

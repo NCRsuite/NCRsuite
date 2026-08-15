@@ -16,6 +16,7 @@ import {
   securityShiftMinutes,
   type SecurityAgentRecord,
   type SecurityAlertRecord,
+  type SecurityEmergencyAlertRecord,
   type SecurityLogbookEntryRecord,
   type SecurityPatrolRecord,
   type SecurityShiftRecord,
@@ -59,8 +60,10 @@ export function SecurityDashboardPage() {
   const [sites, setSites] = useState<SecuritySiteRecord[]>([]);
   const [shifts, setShifts] = useState<SecurityShiftRecord[]>([]);
   const [alerts, setAlerts] = useState<SecurityAlertRecord[]>([]);
+  const [emergencies, setEmergencies] = useState<SecurityEmergencyAlertRecord[]>([]);
   const [patrols, setPatrols] = useState<SecurityPatrolRecord[]>([]);
   const [entries, setEntries] = useState<SecurityLogbookEntryRecord[]>([]);
+  const [urgentEntries, setUrgentEntries] = useState<SecurityLogbookEntryRecord[]>([]);
   const [entryPhotos, setEntryPhotos] = useState<Map<string, SecurityLogbookPhotoRecord[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -109,8 +112,11 @@ export function SecurityDashboardPage() {
             || (row.status === 'in_progress' && Boolean(row.clocked_in_at) && !row.clocked_out_at)
           ));
           setAlerts(readJsonStorage(`ncr-suite-security-alerts-${organizationId}`, []));
+          setEmergencies([]);
           setPatrols(readJsonStorage(`ncr-suite-security-patrols-${organizationId}`, []));
-          setEntries(readJsonStorage(`ncr-suite-security-logbook-${organizationId}`, []));
+          const demoEntries = readJsonStorage<SecurityLogbookEntryRecord[]>(`ncr-suite-security-logbook-${organizationId}`, []);
+          setEntries(demoEntries);
+          setUrgentEntries(demoEntries.filter((entry) => entry.severity === 'urgent' && entry.status === 'open')); 
           setLoading(false);
         }
         return;
@@ -139,13 +145,17 @@ export function SecurityDashboardPage() {
       setShifts(Array.from(new Map(mergedShiftRows.map((row) => [row.id, row])).values()).sort((a, b) => a.starts_at.localeCompare(b.starts_at)));
 
       if (essentialEnabled) {
-        const [alertResult, patrolResult, logbookResult] = await Promise.all([
+        const [alertResult, emergencyResult, patrolResult, logbookResult, urgentLogbookResult] = await Promise.all([
           supabase.from('security_alerts').select('id,organization_id,site_id,agent_id,title,message,severity,status,resolved_at,created_at,security_sites!security_alerts_site_fk(name,color_hex),security_agents!security_alerts_agent_fk(first_name,last_name)').eq('organization_id', organizationId).eq('status', 'open').order('created_at', { ascending: false }).limit(20),
+          supabase.from('security_emergency_alerts').select('id,organization_id,agent_id,shift_id,pti_session_id,alert_type,status,latitude,longitude,accuracy_m,message,triggered_at,acknowledged_at,acknowledged_by,resolved_at,resolved_by,resolution_notes,created_at,updated_at,security_agents(first_name,last_name,phone),security_shifts(starts_at,ends_at,title,security_sites(name,address,city))').eq('organization_id', organizationId).in('status',['open','acknowledged']).order('triggered_at',{ascending:false}).limit(20),
           supabase.from('security_patrols').select('id,organization_id,site_id,agent_id,started_at,completed_at,status,notes,created_at,security_sites!security_alerts_site_fk(name,color_hex),security_agents!security_alerts_agent_fk(first_name,last_name),security_patrol_scans(id,organization_id,patrol_id,point_id,scanned_at,status)').eq('organization_id', organizationId).gte('started_at', todayStart.toISOString()).order('started_at', { ascending: false }).limit(20),
-          supabase.from('security_logbook_entries').select('id,organization_id,site_id,agent_id,shift_id,occurred_at,category,severity,title,details,status,created_at,security_sites!security_alerts_site_fk(name,color_hex),security_agents!security_alerts_agent_fk(first_name,last_name)').eq('organization_id', organizationId).gte('occurred_at', todayStart.toISOString()).order('occurred_at', { ascending: false }).limit(12)
+          supabase.from('security_logbook_entries').select('id,organization_id,site_id,agent_id,shift_id,occurred_at,category,severity,title,details,status,created_at,security_sites!security_alerts_site_fk(name,color_hex),security_agents!security_alerts_agent_fk(first_name,last_name)').eq('organization_id', organizationId).gte('occurred_at', todayStart.toISOString()).order('occurred_at', { ascending: false }).limit(24),
+          supabase.from('security_logbook_entries').select('id,organization_id,site_id,agent_id,shift_id,occurred_at,category,severity,title,details,status,created_at,security_sites!security_alerts_site_fk(name,color_hex),security_agents!security_alerts_agent_fk(first_name,last_name)').eq('organization_id', organizationId).eq('severity','urgent').eq('status','open').gte('occurred_at', todayStart.toISOString()).order('occurred_at', { ascending: false }).limit(20)
         ]);
         if (!alertResult.error) setAlerts((alertResult.data ?? []) as unknown as SecurityAlertRecord[]);
+        if (!emergencyResult.error) setEmergencies((emergencyResult.data ?? []) as unknown as SecurityEmergencyAlertRecord[]);
         if (!patrolResult.error) setPatrols((patrolResult.data ?? []) as unknown as SecurityPatrolRecord[]);
+        if (!urgentLogbookResult.error) setUrgentEntries((urgentLogbookResult.data ?? []) as unknown as SecurityLogbookEntryRecord[]);
         if (!logbookResult.error) {
           const loadedEntries = (logbookResult.data ?? []) as unknown as SecurityLogbookEntryRecord[];
           setEntries(loadedEntries);
@@ -167,6 +177,28 @@ export function SecurityDashboardPage() {
     void load();
     return () => { active = false; };
   }, [organization?.id, organization?.role, organization?.plan, demoMode, essentialEnabled, refreshNonce]);
+
+  useEffect(() => {
+    const client = supabase;
+    if (!organization || !client || demoMode || isAgent || !essentialEnabled) return;
+    let debounceTimer = 0;
+    const requestRefresh = () => {
+      window.clearTimeout(debounceTimer);
+      debounceTimer = window.setTimeout(() => setRefreshNonce((value) => value + 1), 180);
+    };
+    const channel = client.channel(`security-qg-dashboard-${organization.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'security_shifts', filter: `organization_id=eq.${organization.id}` }, requestRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'security_logbook_entries', filter: `organization_id=eq.${organization.id}` }, requestRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'security_alerts', filter: `organization_id=eq.${organization.id}` }, requestRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'security_emergency_alerts', filter: `organization_id=eq.${organization.id}` }, requestRefresh)
+      .subscribe();
+    const fallbackTimer = window.setInterval(requestRefresh, 30_000);
+    return () => {
+      window.clearTimeout(debounceTimer);
+      window.clearInterval(fallbackTimer);
+      void client.removeChannel(channel);
+    };
+  }, [organization?.id, demoMode, isAgent, essentialEnabled]);
 
   const currentMonthRange = monthRange();
   const currentMonthStart = new Date(`${currentMonthRange.start}T00:00:00`).getTime();
@@ -205,14 +237,22 @@ export function SecurityDashboardPage() {
     return start.getFullYear() === today.getFullYear() && start.getMonth() === today.getMonth() && start.getDate() === today.getDate();
   });
   const agentsOnDuty = todayShifts.filter((row) => Boolean(row.clocked_in_at) && !row.clocked_out_at);
-  const lateClockIns = todayShifts.filter((row) => !row.clocked_in_at && row.status !== 'completed' && new Date(row.starts_at).getTime() < now - 15 * 60 * 1000 && new Date(row.ends_at).getTime() > now);
+  const expectedNotClockedIn = todayShifts.filter((row) => !row.clocked_in_at && row.status !== 'completed' && row.status !== 'canceled' && new Date(row.starts_at).getTime() <= now && new Date(row.ends_at).getTime() > now);
+  const lateClockIns = expectedNotClockedIn.filter((row) => new Date(row.starts_at).getTime() < now - 15 * 60 * 1000);
   const forgottenClockOuts = operationalShifts.filter((row) => Boolean(row.clocked_in_at) && !row.clocked_out_at && new Date(row.ends_at).getTime() < now - 15 * 60 * 1000);
   const openDossiers = operationalShifts.filter((row) => row.dossier_status !== 'closed' && row.dossier_status !== 'archived' && new Date(row.ends_at).getTime() < now);
+  const recentHandovers = operationalShifts
+    .filter((row) => Boolean(row.handover_note && row.handover_note_at))
+    .sort((a, b) => new Date(b.handover_note_at!).getTime() - new Date(a.handover_note_at!).getTime())
+    .slice(0, 4);
+  const qgUrgencyCount = urgentEntries.length + emergencies.filter((row) => row.status === 'open').length + criticalAlerts.length;
   const operationalIssues = [
+    ...emergencies.filter((row) => row.status === 'open').map((alert) => ({ id: `emergency-${alert.id}`, tone: 'critical', icon: 'alert' as const, title: alert.alert_type === 'sos' ? 'SOS AGENT' : 'ALERTE PTI', detail: `${alert.security_agents ? securityPersonName(alert.security_agents.first_name, alert.security_agents.last_name) : 'Agent'} · ${alert.security_shifts?.security_sites?.name || 'Site'}`, meta: formatSecurityDateTime(alert.triggered_at), to: '/supervision' })),
+    ...urgentEntries.map((entry) => ({ id: `urgent-${entry.id}`, tone: 'critical', icon: 'clipboard' as const, title: `MCI urgente · ${entry.title}`, detail: `${entry.security_agents ? securityPersonName(entry.security_agents.first_name, entry.security_agents.last_name) : 'Agent'} · ${entry.security_sites?.name || 'Site'}`, meta: formatSecurityDateTime(entry.occurred_at), to: entry.shift_id ? `/main-courante?shift=${entry.shift_id}` : '/main-courante' })),
     ...criticalAlerts.map((alert) => ({ id: `alert-${alert.id}`, tone: 'critical', icon: 'alert' as const, title: alert.title || 'Alerte critique', detail: `${alert.security_agents ? securityPersonName(alert.security_agents.first_name, alert.security_agents.last_name) : 'Agent'} · ${alert.security_sites?.name || 'Site'}`, meta: formatSecurityDateTime(alert.created_at), to: '/consignes' })),
     ...lateClockIns.map((shift) => ({ id: `late-${shift.id}`, tone: 'warning', icon: 'clock' as const, title: 'Prise de poste en retard', detail: `${shift.security_agents ? securityPersonName(shift.security_agents.first_name, shift.security_agents.last_name) : 'Agent'} · ${shift.security_sites?.name || 'Site'}`, meta: `Prévue ${formatSecurityDateTime(shift.starts_at)}`, to: `/dossiers-vacations?shift=${shift.id}` })),
     ...forgottenClockOuts.map((shift) => ({ id: `end-${shift.id}`, tone: 'warning', icon: 'clock' as const, title: 'Fin de poste non enregistrée', detail: `${shift.security_agents ? securityPersonName(shift.security_agents.first_name, shift.security_agents.last_name) : 'Agent'} · ${shift.security_sites?.name || 'Site'}`, meta: `Fin prévue ${formatSecurityDateTime(shift.ends_at)}`, to: `/dossiers-vacations?shift=${shift.id}` }))
-  ].slice(0, 8);
+  ].slice(0, 10);
 
   async function captureClockPosition(shift: SecurityShiftRecord) {
     if (!geolocationEnabled || !supabase || !navigator.geolocation) return null;
@@ -581,19 +621,23 @@ export function SecurityDashboardPage() {
     <header className="page-header"><div><p className="eyebrow">SÉCURITÉ PRIVÉE · {organization.plan.toUpperCase()}</p><h1>Bonjour, bienvenue sur {organization.name}</h1><p>{essentialEnabled ? 'Pilote le bureau et suis les premières opérations terrain.' : 'Pilote les agents, les sites, les heures programmées et la facturation prévisionnelle.'}</p></div><div className="header-actions"><Link className="secondary-button" to="/sites?new=1"><Icon name="map" size={18}/>Ajouter un site</Link><Link className="primary-button" to="/planning"><Icon name="calendar" size={18}/>Planifier</Link></div></header>
     {error && <div className="error-message page-message">{error}</div>}
     {setupMissing.length > 0 && !loading && <div className="security-callout"><Icon name="alert" size={20}/><div><strong>Finalise la configuration</strong><span>Ajoute {setupMissing.join(' et ')} pour exploiter le planning et la facturation.</span></div></div>}
-    {essentialEnabled && criticalAlerts.length > 0 && <div className="security-callout critical"><Icon name="alert" size={21}/><div><strong>{criticalAlerts.length} alerte{criticalAlerts.length > 1 ? 's' : ''} critique{criticalAlerts.length > 1 ? 's' : ''}</strong><span>Une prise en charge immédiate est attendue.</span></div><Link className="secondary-button compact-button" to="/consignes">Traiter</Link></div>}
-    <section className="stats-grid"><StatCard label="Agents actifs" value={String(agents.length)} detail={`${sites.length} site(s) actif(s)`} icon="users" loading={loading}/><StatCard label="Heures programmées" value={formatSecurityDuration(minutes)} detail="ce mois-ci" icon="calendar" loading={loading}/><StatCard label="Prévision HT" value={formatSecurityMoney(forecast)} detail="heures planifiées × tarif site" icon="creditCard" loading={loading}/><StatCard label={essentialEnabled ? 'Alertes ouvertes' : 'Sites actifs'} value={String(essentialEnabled ? alerts.length : sites.length)} detail={essentialEnabled ? `${activePatrols.length} ronde(s) en cours` : 'avec tarif horaire'} icon={essentialEnabled ? 'alert' : 'map'} loading={loading}/></section>
+    {essentialEnabled && qgUrgencyCount > 0 && <div className="security-callout critical"><Icon name="alert" size={21}/><div><strong>{qgUrgencyCount} priorité{qgUrgencyCount > 1 ? 's' : ''} critique{qgUrgencyCount > 1 ? 's' : ''}</strong><span>SOS/PTI, MCI urgente ou alerte critique : une prise en charge QG est attendue.</span></div><Link className="secondary-button compact-button" to={emergencies.some((row) => row.status === 'open') ? '/supervision' : urgentEntries.length ? '/main-courante' : '/consignes'}>Traiter</Link></div>}
+    <section className="stats-grid"><StatCard label="Agents actifs" value={String(agents.length)} detail={`${sites.length} site(s) actif(s)`} icon="users" loading={loading}/><StatCard label="Heures programmées" value={formatSecurityDuration(minutes)} detail="ce mois-ci" icon="calendar" loading={loading}/><StatCard label="Prévision HT" value={formatSecurityMoney(forecast)} detail="heures planifiées × tarif site" icon="creditCard" loading={loading}/><StatCard label={essentialEnabled ? 'Alertes ouvertes' : 'Sites actifs'} value={String(essentialEnabled ? alerts.length + emergencies.length + urgentEntries.length : sites.length)} detail={essentialEnabled ? `${qgUrgencyCount} critique(s) · ${activePatrols.length} ronde(s) en cours` : 'avec tarif horaire'} icon={essentialEnabled ? 'alert' : 'map'} loading={loading}/></section>
     {essentialEnabled && <section className="security-operations-grid">
       <article className="panel security-operations-overview">
         <div className="panel-header"><div><p className="eyebrow">CENTRE OPÉRATIONNEL</p><h2>Situation terrain maintenant</h2></div><Link className="secondary-button" to="/supervision">Ouvrir la supervision</Link></div>
         <div className="security-operations-kpis">
           <div className="is-live"><span><Icon name="activity" size={19}/></span><strong>{agentsOnDuty.length}</strong><small>agent{agentsOnDuty.length > 1 ? 's' : ''} en poste</small></div>
-          <div className={lateClockIns.length ? 'is-warning' : ''}><span><Icon name="clock" size={19}/></span><strong>{lateClockIns.length}</strong><small>prise{lateClockIns.length > 1 ? 's' : ''} en retard</small></div>
-          <div className={forgottenClockOuts.length ? 'is-warning' : ''}><span><Icon name="alert" size={19}/></span><strong>{forgottenClockOuts.length}</strong><small>fin{forgottenClockOuts.length > 1 ? 's' : ''} oubliée{forgottenClockOuts.length > 1 ? 's' : ''}</small></div>
-          <div><span><Icon name="file" size={19}/></span><strong>{openDossiers.length}</strong><small>dossier{openDossiers.length > 1 ? 's' : ''} à clôturer</small></div>
+          <div className={expectedNotClockedIn.length ? 'is-warning' : ''}><span><Icon name="users" size={19}/></span><strong>{expectedNotClockedIn.length}</strong><small>attendu{expectedNotClockedIn.length > 1 ? 's' : ''} non pointé{expectedNotClockedIn.length > 1 ? 's' : ''}{lateClockIns.length ? ` · ${lateClockIns.length} en retard` : ''}</small></div>
+          <div className={forgottenClockOuts.length ? 'is-warning' : ''}><span><Icon name="clock" size={19}/></span><strong>{forgottenClockOuts.length}</strong><small>fin{forgottenClockOuts.length > 1 ? 's' : ''} oubliée{forgottenClockOuts.length > 1 ? 's' : ''}</small></div>
+          <div className={qgUrgencyCount ? 'is-critical' : ''}><span><Icon name="alert" size={19}/></span><strong>{qgUrgencyCount}</strong><small>urgence{qgUrgencyCount > 1 ? 's' : ''} à traiter</small></div>
         </div>
         <div className="security-on-duty-list">
           {agentsOnDuty.length === 0 ? <div className="security-empty compact"><Icon name="shield" size={26}/><strong>Aucun agent en poste</strong><span>Les prises de poste apparaîtront ici en temps réel.</span></div> : agentsOnDuty.slice(0, 5).map((shift) => <Link key={shift.id} to={`/dossiers-vacations?shift=${shift.id}`}><i style={{ background: shift.security_sites?.color_hex || '#0A84FF' }}/><div><strong>{shift.security_agents ? securityPersonName(shift.security_agents.first_name, shift.security_agents.last_name) : 'Agent'}</strong><span>{shift.security_sites?.name || 'Site'} · depuis {new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(shift.clocked_in_at!))}</span></div><span className="security-live-pill">EN POSTE</span><Icon name="chevronRight" size={17}/></Link>)}
+        </div>
+        <div className="security-handover-feed">
+          <div className="security-handover-feed-title"><span><Icon name="clipboard" size={17}/></span><strong>Dernières relèves</strong><small>{openDossiers.length} dossier{openDossiers.length > 1 ? 's' : ''} à clôturer</small></div>
+          {recentHandovers.length === 0 ? <p>Aucune note de relève récente.</p> : recentHandovers.map((shift) => <Link key={`handover-${shift.id}`} to={`/dossiers-vacations?shift=${shift.id}`}><div><strong>{shift.security_sites?.name || 'Site'} · {shift.security_agents ? securityPersonName(shift.security_agents.first_name, shift.security_agents.last_name) : 'Agent'}</strong><span>{shift.handover_note}</span></div><small>{shift.handover_note_at ? formatSecurityDateTime(shift.handover_note_at) : ''}</small></Link>)}
         </div>
       </article>
       <aside className="panel security-operations-issues">
