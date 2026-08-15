@@ -1,3 +1,13 @@
+## V2.29.11 — Vacations Sécurité blindées
+
+- Une seule vacation réellement active par agent, garantie côté serveur avec verrou transactionnel.
+- Les anciennes vacations oubliées sont rechargées même hors du mois courant et remontent en priorité sur l’accueil Agent.
+- Après 8 h de dépassement, l’agent ne peut plus alimenter la MCI de l’ancienne vacation : il doit la clôturer.
+- Une nouvelle prise de poste est refusée tant qu’une autre vacation reste active.
+- Défense RLS supplémentaire sur la création directe de rondes : vacation prise, ouverte et attribuée obligatoire.
+- Le QG conserve les régularisations et clôtures existantes.
+- Nouveau cache PWA et nouveaux assets `v2911`.
+
 ## V2.29.10 — Photos dans le PDF de main courante
 
 - Le PDF de mission recharge les photos de chaque événement avec des URLs signées fraîches.

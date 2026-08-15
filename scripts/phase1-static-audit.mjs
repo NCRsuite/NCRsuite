@@ -710,6 +710,8 @@ const securityLogbookPdfSource = read('src/features/security/logbookPdf.ts');
 const securityLogbookPageSource = read('src/pages/SecurityLogbookPage.tsx');
 const securityLogbookPhotoDisplayFixMigration = read('supabase/migrations/124_security_logbook_photo_display_fix.sql');
 const securityLogbookPdfPhotosMigration = read('supabase/migrations/125_security_logbook_pdf_photos.sql');
+const securityDashboardSource = read('src/pages/SecurityDashboardPage.tsx');
+const securityVacationHardeningMigration = read('supabase/migrations/126_security_vacation_hardening.sql');
 const subscriptionContractFunction = read('supabase/functions/subscription-contract/index.ts');
 const onboardingPage = read('src/pages/OnboardingPage.tsx');
 const cleaningAgentPortalPage = read('src/pages/CleaningAgentPortalPage.tsx');
@@ -733,33 +735,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v2910.css')
-    || !indexHtml.includes('/ncr-suite-app-v2910.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v2911.css')
+    || !indexHtml.includes('/ncr-suite-app-v2911.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.29.10')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v2910.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v2910.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.11')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v2911.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v2911.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2910.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2911.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.29.10 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.11 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2910.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v2910.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.29.10 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2911.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v2911.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.11 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.29.10'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.29.10-security-logbook-photo-display")
-    || !serviceWorker.includes("ncr-suite-shell-v2.29.10-security-logbook-photo-display")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v2910.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2910.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2910.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.11'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.11-security-vacation-hardening")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.11-security-vacation-hardening")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v2911.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2911.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2911.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.29.10 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.11 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.29.10 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.11 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1190,6 +1192,14 @@ if (!securityLogbookPhotoDisplayFixMigration.includes("'2.29.9'")
 if (!securityLogbookPdfPhotosMigration.includes("'2.29.10'")
     || !securityLogbookPdfPhotosMigration.includes('ncr-suite-shell-v2.29.10-security-logbook-photo-display')) {
   errors.push('La release V2.29.10 photos dans le PDF de main courante / cache PWA est incomplete.');
+}
+if (!securityVacationHardeningMigration.includes("'2.29.11'")
+    || !securityVacationHardeningMigration.includes('ncr-suite-shell-v2.29.11-security-vacation-hardening')
+    || !securityVacationHardeningMigration.includes('enforce_single_active_security_shift')
+    || !securityVacationHardeningMigration.includes('security_patrols_agent_insert')
+    || !securityDashboardSource.includes('Terminer la vacation oubliée')
+    || !securityDashboardSource.includes(".eq('status', 'in_progress').not('clocked_in_at', 'is', null).is('clocked_out_at', null)")) {
+  errors.push('Le blindage des vacations Sécurité V2.29.11 est incomplet.');
 }
 if (!publicFlowTransmissionMigration.includes("'2.29.6'")
     || !publicFlowTransmissionMigration.includes('ncr-suite-shell-v2.29.6-public-flow-transmission')
