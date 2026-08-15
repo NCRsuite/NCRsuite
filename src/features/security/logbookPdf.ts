@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
+import { PDFDocument, StandardFonts, rgb, type PDFImage, type PDFFont, type PDFPage } from 'pdf-lib';
 import type { Organization } from '../../types';
 import {
   formatSecurityDate,
@@ -10,6 +10,7 @@ import {
   type SecurityShiftRecord
 } from './types';
 import { embedSecurityLogo, logoDimensions, securityAccent } from './pdfBranding';
+import type { SecurityLogbookPhotoRecord } from './logbookPhoto';
 
 const categoryLabels: Record<SecurityLogbookEntryRecord['category'], string> = {
   prise_poste: 'Prise de poste',
@@ -58,10 +59,28 @@ function timeLabel(value: string) {
   return new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }
 
+
+async function embedLogbookPhoto(pdf: PDFDocument, url?: string | null): Promise<PDFImage | null> {
+  if (!url) return null;
+  try {
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) return null;
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    const contentType = (response.headers.get('content-type') || '').toLowerCase();
+    if (contentType.includes('png')) return await pdf.embedPng(bytes);
+    if (contentType.includes('jpeg') || contentType.includes('jpg')) return await pdf.embedJpg(bytes);
+    try { return await pdf.embedJpg(bytes); }
+    catch { return await pdf.embedPng(bytes); }
+  } catch {
+    return null;
+  }
+}
+
 export async function generateSecurityMissionLogbookPdf(
   organization: Organization,
   shift: SecurityShiftRecord,
-  entries: SecurityLogbookEntryRecord[]
+  entries: SecurityLogbookEntryRecord[],
+  photosByEntry: Map<string, SecurityLogbookPhotoRecord[]> = new Map()
 ) {
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
@@ -178,7 +197,13 @@ export async function generateSecurityMissionLogbookPdf(
   for (const entry of ordered) {
     const details = wrapByWidth(entry.details || 'Aucun complement.', regular, 8.2, contentWidth - 80).slice(0, 7);
     const title = wrapByWidth(entry.title, bold, 9.5, contentWidth - 80).slice(0, 2);
-    const height = 49 + title.length * 11 + details.length * 10;
+    const photoRecords = (photosByEntry.get(entry.id) ?? []).slice(0, 3);
+    const embeddedPhotos = await Promise.all(photoRecords.map(async (record) => ({
+      record,
+      image: await embedLogbookPhoto(pdf, record.signed_url)
+    })));
+    const photoSectionHeight = photoRecords.length ? 126 : 0;
+    const height = 49 + title.length * 11 + details.length * 10 + photoSectionHeight;
     ensureSpace(height + 12);
 
     const severityColor = entry.severity === 'urgent' ? danger : entry.severity === 'attention' ? warning : accent;
@@ -197,6 +222,38 @@ export async function generateSecurityMissionLogbookPdf(
       page.drawText(text, { x: margin + 64, y: textY, size: 8.2, font: regular, color: muted });
       textY -= 10;
     });
+
+    if (photoRecords.length) {
+      const photosX = margin + 64;
+      const photosWidth = contentWidth - 80;
+      const gap = 8;
+      const boxWidth = (photosWidth - gap * 2) / 3;
+      const boxHeight = 88;
+      const labelY = textY - 2;
+      page.drawText(`PHOTOS JOINTES (${photoRecords.length})`, { x: photosX, y: labelY, size: 6.7, font: bold, color: accent });
+      const boxY = labelY - 102;
+
+      embeddedPhotos.forEach(({ record, image }, index) => {
+        const boxX = photosX + index * (boxWidth + gap);
+        page.drawRectangle({ x: boxX, y: boxY, width: boxWidth, height: boxHeight, color: soft, borderColor: line, borderWidth: 0.7 });
+        if (image) {
+          const scale = Math.min((boxWidth - 6) / image.width, (boxHeight - 6) / image.height);
+          const drawWidth = image.width * scale;
+          const drawHeight = image.height * scale;
+          page.drawImage(image, {
+            x: boxX + (boxWidth - drawWidth) / 2,
+            y: boxY + (boxHeight - drawHeight) / 2,
+            width: drawWidth,
+            height: drawHeight
+          });
+        } else {
+          page.drawText('PHOTO', { x: boxX + 9, y: boxY + 48, size: 7, font: bold, color: muted });
+          page.drawText('Apercu indisponible', { x: boxX + 9, y: boxY + 35, size: 6.5, font: regular, color: muted });
+          const fileLabel = cleanPdfText(record.file_name || `photo-${index + 1}.jpg`).slice(0, 22);
+          page.drawText(fileLabel, { x: boxX + 9, y: boxY + 20, size: 5.8, font: regular, color: muted });
+        }
+      });
+    }
     y -= height + 10;
   }
 

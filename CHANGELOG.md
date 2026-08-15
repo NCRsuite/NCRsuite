@@ -1,3 +1,11 @@
+## V2.29.10 — Photos dans le PDF de main courante
+
+- Le PDF de mission recharge les photos de chaque événement avec des URLs signées fraîches.
+- Jusqu’à 3 photos sont intégrées sous l’événement correspondant.
+- Redimensionnement automatique sans déformation.
+- Un aperçu indisponible est signalé explicitement au lieu d’ignorer silencieusement la photo.
+- Nouveau cache PWA et nouveaux assets `v2910`.
+
 # V2.29.9 — Correctif affichage photos main courante
 
 - Affichage des photos des derniers événements directement sur l’accueil Agent.

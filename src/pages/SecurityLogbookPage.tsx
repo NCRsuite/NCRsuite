@@ -405,7 +405,16 @@ export function SecurityLogbookPage() {
     if (!organization) return;
     const target = prepareFileWindow('Préparation de la main courante', 'Le PDF de la vacation est en cours de génération.');
     try {
-      const result = await generateSecurityMissionLogbookPdf(organization, shift, entriesByShift.get(shift.id) ?? []);
+      const missionEntries = entriesByShift.get(shift.id) ?? [];
+      let missionPhotos = new Map<string, SecurityLogbookPhotoRecord[]>();
+      if (missionEntries.length) {
+        if (demoMode || !supabase) {
+          for (const entry of missionEntries) missionPhotos.set(entry.id, entryPhotos.get(entry.id) ?? []);
+        } else {
+          missionPhotos = await loadSecurityLogbookPhotoMap(organization.id, missionEntries.map((entry) => entry.id));
+        }
+      }
+      const result = await generateSecurityMissionLogbookPdf(organization, shift, missionEntries, missionPhotos);
       const url = URL.createObjectURL(result.blob);
       showBlobDownload(target, url, result.filename, 'Main courante de vacation prête');
       setTimeout(() => URL.revokeObjectURL(url), 120000);
