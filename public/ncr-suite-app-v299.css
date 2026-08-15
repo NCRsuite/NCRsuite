@@ -1,3 +1,4 @@
+/* NCR Suite V2.29.9 - styles complets servis hors du dossier assets */
 @font-face {
   font-family: "NCR Public Inter";
   src: url('/fonts/inter-variable.woff2') format('woff2');
@@ -23452,3 +23453,4 @@ button { max-width: 100%; }
 @media (max-width:640px) {
   .security-agent-recent-photo-strip a { width:64px; height:64px; flex-basis:64px; }
 }
+

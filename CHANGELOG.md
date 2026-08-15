@@ -1,3 +1,12 @@
+# V2.29.9 — Correctif affichage photos main courante
+
+- Affichage des photos des derniers événements directement sur l’accueil Agent.
+- Affichage conservé dans l’historique complet de la main courante.
+- Les erreurs d’upload photo ne sont plus remplacées par un faux message de succès.
+- Vérification immédiate du rattachement et de la lisibilité de la photo après dépôt.
+- Lecture Storage privée simplifiée et fiabilisée via la migration 124.
+- Nouveau cache PWA V2.29.9 pour forcer la diffusion du correctif.
+
 # Changelog NCR Suite
 
 ## V2.29.6 - Transmission progressive du flux public

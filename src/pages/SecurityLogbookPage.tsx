@@ -158,8 +158,9 @@ export function SecurityLogbookPage() {
       setEntries(loadedEntries);
       try {
         setEntryPhotos(await loadSecurityLogbookPhotoMap(organization.id, loadedEntries.map((entry) => entry.id)));
-      } catch {
+      } catch (photoError) {
         setEntryPhotos(new Map());
+        setError(`Main courante chargée, mais les photos sont inaccessibles : ${photoError instanceof Error ? photoError.message : 'erreur de lecture Supabase'}`);
       }
     }
     setLoading(false);
@@ -352,20 +353,28 @@ export function SecurityLogbookPage() {
         });
         if (insertError) throw insertError;
         const entryId = typeof createdEntryId === 'string' ? createdEntryId : String(createdEntryId ?? '');
+        let photoFailure = '';
+        let uploadedPhotoCount = 0;
         if (formPhotos.length && entryId) {
           try {
-            await uploadSecurityLogbookPhotos(organization.id, selectedShift.id, entryId, formPhotos.map((photo) => photo.file));
+            const uploaded = await uploadSecurityLogbookPhotos(organization.id, selectedShift.id, entryId, formPhotos.map((photo) => photo.file));
+            uploadedPhotoCount = uploaded.length;
+            if (uploadedPhotoCount !== formPhotos.length) photoFailure = `${formPhotos.length - uploadedPhotoCount} photo(s) n’ont pas été rattachée(s).`;
           } catch (photoError) {
-            setError(`Événement enregistré, mais photo non transmise : ${photoError instanceof Error ? photoError.message : 'erreur de dépôt'}`);
+            photoFailure = photoError instanceof Error ? photoError.message : 'erreur de dépôt';
           }
         }
         await load();
+        if (photoFailure) {
+          setError(`Événement enregistré, mais photo non transmise : ${photoFailure}`);
+          setSuccess('');
+        } else {
+          setSuccess(`L’événement a été ajouté à la main courante${uploadedPhotoCount ? ` avec ${uploadedPhotoCount} photo${uploadedPhotoCount > 1 ? 's' : ''}` : ''}.`);
+        }
       }
-      const photoCount = demoMode ? 0 : formPhotos.length;
       setForm(emptyForm(selectedShift));
       clearFormPhotos();
       setOpen(false);
-      setSuccess(`L’événement a été ajouté à la main courante${photoCount ? ` avec ${photoCount} photo${photoCount > 1 ? 's' : ''}` : ''}.`);
     } catch (cause) {
       setError(`Enregistrement impossible : ${cause instanceof Error ? cause.message : 'erreur inconnue'}`);
     } finally {
@@ -555,7 +564,9 @@ export function SecurityLogbookPage() {
                             <strong>{entry.title}</strong>
                             <span>{categories.find(([value]) => value === entry.category)?.[1] || entry.category}</span>
                             <small>{entry.details || 'Aucun complément.'}</small>
-                            {(entryPhotos.get(entry.id) ?? []).length > 0 && <div className="security-logbook-photo-gallery">{(entryPhotos.get(entry.id) ?? []).map((photo) => photo.signed_url ? <a key={photo.id} href={photo.signed_url} target="_blank" rel="noreferrer"><img src={photo.signed_url} alt="Preuve jointe à la main courante"/></a> : null)}</div>}
+                            {(entryPhotos.get(entry.id) ?? []).length > 0 && <div className="security-logbook-photo-gallery">{(entryPhotos.get(entry.id) ?? []).map((photo) => photo.signed_url
+                              ? <a key={photo.id} href={photo.signed_url} target="_blank" rel="noreferrer"><img src={photo.signed_url} alt="Preuve jointe à la main courante"/></a>
+                              : <span key={photo.id} className="security-logbook-photo-unavailable"><Icon name="camera" size={17}/>Photo jointe · aperçu indisponible</span>)}</div>}
                           </div>
                           <span className={`security-status-pill ${entry.status === 'processed' ? 'completed' : ''}`}>{entry.status === 'processed' ? 'Traité' : 'Ouvert'}</span>
                           {canManage && entry.status === 'open' && <button className="secondary-button compact-button" onClick={() => void process(entry.id)}>Marquer traité</button>}

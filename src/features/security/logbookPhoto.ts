@@ -88,7 +88,13 @@ export async function uploadSecurityLogbookPhotos(
       try { await supabase.storage.from('security-logbook-photos').remove([path]); } catch { /* nettoyage opportuniste */ }
       throw attachError;
     }
-    if (data) uploaded.push(data as SecurityLogbookPhotoRecord);
+    if (data) {
+      const record = data as SecurityLogbookPhotoRecord;
+      const { data: signed, error: signedError } = await supabase.storage
+        .from('security-logbook-photos')
+        .createSignedUrl(record.storage_path, 900);
+      uploaded.push({ ...record, signed_url: signedError ? null : signed?.signedUrl ?? null });
+    }
   }
 
   return uploaded;

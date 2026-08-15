@@ -706,6 +706,7 @@ const publicFlowSignalMigration = read('supabase/migrations/118_public_flow_sign
 const publicMotionMigration = read('supabase/migrations/119_public_motion_override.sql');
 const publicFlowTransmissionMigration = read('supabase/migrations/120_public_flow_transmission.sql');
 const securityAgentLogbookUxReleaseMigration = read('supabase/migrations/123_security_logbook_photos_quick_texts.sql');
+const securityLogbookPhotoDisplayFixMigration = read('supabase/migrations/124_security_logbook_photo_display_fix.sql');
 const subscriptionContractFunction = read('supabase/functions/subscription-contract/index.ts');
 const onboardingPage = read('src/pages/OnboardingPage.tsx');
 const cleaningAgentPortalPage = read('src/pages/CleaningAgentPortalPage.tsx');
@@ -729,33 +730,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v298.css')
-    || !indexHtml.includes('/ncr-suite-app-v298.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v299.css')
+    || !indexHtml.includes('/ncr-suite-app-v299.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.29.8')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v298.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v298.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.9')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v299.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v299.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v298.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v299.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.29.8 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.9 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v298.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v298.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.29.8 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v299.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v299.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.9 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.29.8'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.29.8-security-logbook-photos")
-    || !serviceWorker.includes("ncr-suite-shell-v2.29.8-security-logbook-photos")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v298.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v298.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v298.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.9'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.9-security-logbook-photo-display")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.9-security-logbook-photo-display")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v299.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v299.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v299.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.29.8 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.9 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.29.8 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.9 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1172,6 +1173,11 @@ if (!publicMotionMigration.includes("'2.29.5'")
 if (!securityAgentLogbookUxReleaseMigration.includes("'2.29.8'")
     || !securityAgentLogbookUxReleaseMigration.includes('ncr-suite-shell-v2.29.8-security-logbook-photos')) {
   errors.push('La release V2.29.8 photos main courante / cache PWA est incomplete.');
+}
+if (!securityLogbookPhotoDisplayFixMigration.includes("'2.29.9'")
+    || !securityLogbookPhotoDisplayFixMigration.includes('ncr-suite-shell-v2.29.9-security-logbook-photo-display')
+    || !securityLogbookPhotoDisplayFixMigration.includes('can_read_security_logbook_photo_object')) {
+  errors.push('La release V2.29.9 affichage photos main courante / cache PWA est incomplete.');
 }
 if (!publicFlowTransmissionMigration.includes("'2.29.6'")
     || !publicFlowTransmissionMigration.includes('ncr-suite-shell-v2.29.6-public-flow-transmission')

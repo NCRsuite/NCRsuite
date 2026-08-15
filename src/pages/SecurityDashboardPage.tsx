@@ -22,7 +22,7 @@ import {
 } from '../features/security/types';
 import { supabase } from '../lib/supabase';
 import { readJsonStorage } from '../lib/safeStorage';
-import { MAX_SECURITY_LOGBOOK_PHOTOS, prepareSecurityLogbookPhoto, uploadSecurityLogbookPhotos } from '../features/security/logbookPhoto';
+import { loadSecurityLogbookPhotoMap, MAX_SECURITY_LOGBOOK_PHOTOS, prepareSecurityLogbookPhoto, uploadSecurityLogbookPhotos, type SecurityLogbookPhotoRecord } from '../features/security/logbookPhoto';
 import { securityLogbookTextPresets, securityQuickLogbookPresets } from '../features/security/logbookPresets';
 
 function readableActionError(error: unknown, fallback = 'Action impossible.') {
@@ -59,6 +59,7 @@ export function SecurityDashboardPage() {
   const [alerts, setAlerts] = useState<SecurityAlertRecord[]>([]);
   const [patrols, setPatrols] = useState<SecurityPatrolRecord[]>([]);
   const [entries, setEntries] = useState<SecurityLogbookEntryRecord[]>([]);
+  const [entryPhotos, setEntryPhotos] = useState<Map<string, SecurityLogbookPhotoRecord[]>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -122,11 +123,24 @@ export function SecurityDashboardPage() {
         const [alertResult, patrolResult, logbookResult] = await Promise.all([
           supabase.from('security_alerts').select('id,organization_id,site_id,agent_id,title,message,severity,status,resolved_at,created_at,security_sites!security_alerts_site_fk(name,color_hex),security_agents!security_alerts_agent_fk(first_name,last_name)').eq('organization_id', organizationId).eq('status', 'open').order('created_at', { ascending: false }).limit(20),
           supabase.from('security_patrols').select('id,organization_id,site_id,agent_id,started_at,completed_at,status,notes,created_at,security_sites!security_alerts_site_fk(name,color_hex),security_agents!security_alerts_agent_fk(first_name,last_name),security_patrol_scans(id,organization_id,patrol_id,point_id,scanned_at,status)').eq('organization_id', organizationId).gte('started_at', todayStart.toISOString()).order('started_at', { ascending: false }).limit(20),
-          supabase.from('security_logbook_entries').select('id,organization_id,site_id,agent_id,occurred_at,category,severity,title,details,status,created_at,security_sites!security_alerts_site_fk(name,color_hex),security_agents!security_alerts_agent_fk(first_name,last_name)').eq('organization_id', organizationId).gte('occurred_at', todayStart.toISOString()).order('occurred_at', { ascending: false }).limit(12)
+          supabase.from('security_logbook_entries').select('id,organization_id,site_id,agent_id,shift_id,occurred_at,category,severity,title,details,status,created_at,security_sites!security_alerts_site_fk(name,color_hex),security_agents!security_alerts_agent_fk(first_name,last_name)').eq('organization_id', organizationId).gte('occurred_at', todayStart.toISOString()).order('occurred_at', { ascending: false }).limit(12)
         ]);
         if (!alertResult.error) setAlerts((alertResult.data ?? []) as unknown as SecurityAlertRecord[]);
         if (!patrolResult.error) setPatrols((patrolResult.data ?? []) as unknown as SecurityPatrolRecord[]);
-        if (!logbookResult.error) setEntries((logbookResult.data ?? []) as unknown as SecurityLogbookEntryRecord[]);
+        if (!logbookResult.error) {
+          const loadedEntries = (logbookResult.data ?? []) as unknown as SecurityLogbookEntryRecord[];
+          setEntries(loadedEntries);
+          if (logbookEnabled && loadedEntries.length) {
+            try {
+              setEntryPhotos(await loadSecurityLogbookPhotoMap(organizationId, loadedEntries.map((entry) => entry.id)));
+            } catch (photoError) {
+              setEntryPhotos(new Map());
+              setError(`Événements chargés, mais les photos de main courante sont inaccessibles : ${readableActionError(photoError)}`);
+            }
+          } else {
+            setEntryPhotos(new Map());
+          }
+        }
       }
       setLoading(false);
     }
@@ -146,6 +160,10 @@ export function SecurityDashboardPage() {
   const terrainShift = activeShifts.find((row) => row.clocked_in_at && !row.clocked_out_at)
     || activeShifts.find((row) => row.status !== 'completed' && new Date(row.starts_at).getTime() <= now + 4 * 60 * 60 * 1000 && new Date(row.ends_at).getTime() >= now - 8 * 60 * 60 * 1000)
     || null;
+
+  const terrainRecentEntries = terrainShift
+    ? entries.filter((entry) => entry.shift_id === terrainShift.id).slice(0, 3)
+    : [];
 
   const todayShifts = activeShifts.filter((row) => {
     const start = new Date(row.starts_at);
@@ -348,22 +366,37 @@ export function SecurityDashboardPage() {
         });
         if (insertError) throw insertError;
         const entryId = typeof createdEntryId === 'string' ? createdEntryId : String(createdEntryId ?? '');
+        let uploadedPhotoCount = 0;
+        let unreadablePhotoCount = 0;
         if (quickLogPhotos.length && entryId) {
           try {
-            await uploadSecurityLogbookPhotos(organization.id, terrainShift.id, entryId, quickLogPhotos.map((photo) => photo.file));
+            const uploaded = await uploadSecurityLogbookPhotos(organization.id, terrainShift.id, entryId, quickLogPhotos.map((photo) => photo.file));
+            uploadedPhotoCount = uploaded.length;
+            unreadablePhotoCount = uploaded.filter((photo) => !photo.signed_url).length;
+            if (uploadedPhotoCount !== quickLogPhotos.length) {
+              throw new Error(`${quickLogPhotos.length - uploadedPhotoCount} photo(s) n’ont pas été rattachée(s) à l’événement.`);
+            }
           } catch (photoError) {
-            setError(`Événement enregistré, mais photo non transmise : ${readableActionError(photoError)}`);
+            setError(`Événement enregistré, mais la photo n’a pas été transmise : ${readableActionError(photoError)}`);
+            setSuccess('');
+            setRefreshNonce((value) => value + 1);
+            return;
           }
         }
         setRefreshNonce((value) => value + 1);
+        const photoSuffix = uploadedPhotoCount ? ` avec ${uploadedPhotoCount} photo${uploadedPhotoCount > 1 ? 's' : ''}` : '';
+        if (unreadablePhotoCount) {
+          setError(`La photo est enregistrée, mais son aperçu est actuellement inaccessible (${unreadablePhotoCount}).`);
+          setSuccess(`« ${quickLogTitle} » ajouté à la main courante${photoSuffix}.`);
+        } else {
+          setSuccess(`« ${quickLogTitle} » ajouté à la main courante${photoSuffix}.`);
+        }
       }
-      const photoCount = demoMode ? 0 : quickLogPhotos.length;
       setQuickLogDetails('');
       setQuickLogCategory('autre');
       setQuickLogSeverity('info');
       setQuickLogTitle('RAS');
       clearQuickPhotos();
-      setSuccess(`« ${quickLogTitle} » ajouté à la main courante${photoCount ? ` avec ${photoCount} photo${photoCount > 1 ? 's' : ''}` : ''}.`);
     } catch (caught) {
       setError(`Ajout impossible : ${readableActionError(caught)}`);
     } finally {
@@ -440,6 +473,20 @@ export function SecurityDashboardPage() {
               <span><b>{quickLogBusy ? 'Ajout en cours…' : 'Ajouter maintenant'}</b><small>{quickLogTitle} · heure automatique</small></span>
             </button>
           </div>
+
+          {terrainRecentEntries.length > 0 && <div className="security-agent-recent-logbook">
+            <div className="security-agent-recent-logbook-head"><strong>Derniers événements</strong><Link to={`/main-courante?shift=${terrainShift.id}`}>Tout voir</Link></div>
+            <div className="security-agent-recent-logbook-list">{terrainRecentEntries.map((entry) => {
+              const photos = entryPhotos.get(entry.id) ?? [];
+              return <article key={entry.id} className={`security-agent-recent-logbook-card ${entry.severity}`}>
+                <div><strong>{entry.title}</strong><small>{new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(entry.occurred_at))}{entry.details ? ` · ${entry.details}` : ''}</small></div>
+                {photos.length > 0 && <div className="security-agent-recent-photo-strip">{photos.map((photo) => photo.signed_url
+                  ? <a key={photo.id} href={photo.signed_url} target="_blank" rel="noreferrer"><img src={photo.signed_url} alt="Photo de main courante"/></a>
+                  : <span key={photo.id} className="security-agent-photo-unavailable"><Icon name="camera" size={16}/>Photo jointe</span>)}
+                </div>}
+              </article>;
+            })}</div>
+          </div>}
         </div> : terrainShift && !terrainShift.clocked_in_at ? <button className="security-agent-start-shift-hero" disabled={Boolean(shiftBusy)} onClick={() => void shiftPresenceAction(terrainShift,'start')}>
           <Icon name="check" size={25}/><span><b>{shiftBusy ? 'Enregistrement…' : 'Prendre mon poste'}</b><small>{terrainShift.security_sites?.name || 'Vacation'} · la main courante s’ouvre immédiatement après</small></span><Icon name="chevronRight" size={21}/>
         </button> : <div className="security-agent-no-shift"><Icon name="calendar" size={22}/><span>Aucune vacation à traiter maintenant.</span></div>}

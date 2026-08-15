@@ -3,8 +3,8 @@ import path from 'node:path';
 
 const root = process.cwd();
 const sourcePath = path.join(root, 'src', 'styles.css');
-const showcaseOutputPath = path.join(root, 'public', 'ncr-suite-showcase-v298.css');
-const appOutputPath = path.join(root, 'public', 'ncr-suite-app-v298.css');
+const showcaseOutputPath = path.join(root, 'public', 'ncr-suite-showcase-v299.css');
+const appOutputPath = path.join(root, 'public', 'ncr-suite-app-v299.css');
 const source = fs.readFileSync(sourcePath, 'utf8');
 const resetEnd = source.indexOf('.loading-screen');
 const publicStart = source.indexOf('.public-home,');
@@ -14,7 +14,7 @@ if (resetEnd < 0 || publicStart < 0) {
 }
 
 const output = [
-  '/* NCR Suite V2.29.8 - styles critiques de la vitrine */',
+  '/* NCR Suite V2.29.9 - styles critiques de la vitrine */',
   source.slice(0, resetEnd).trim(),
   source.slice(publicStart).trim(),
   ''
@@ -22,7 +22,7 @@ const output = [
 
 fs.writeFileSync(showcaseOutputPath, output, 'utf8');
 fs.writeFileSync(appOutputPath, [
-  '/* NCR Suite V2.29.8 - styles complets servis hors du dossier assets */',
+  '/* NCR Suite V2.29.9 - styles complets servis hors du dossier assets */',
   source,
   ''
 ].join('\n'), 'utf8');
