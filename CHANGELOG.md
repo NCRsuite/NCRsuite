@@ -771,7 +771,8 @@
 - Alignement platform_release_state sur 2.29.14.
 - Nouveau cache/assets v2914.
 
-## V2.29.21 — Hotfix Assistant BPF guidé
-- Corrige la qualification BPF des sessions clôturées via RPC dédiées.
-- Corrige le classement individuel et en masse des stagiaires après clôture.
-- Ne rouvre jamais les sessions et préserve les données pédagogiques.
+## V2.29.23
+- Refonte premium des feuilles d’émargement.
+- Refonte premium des attestations automatiques.
+- Ajout d’un certificat de réalisation générable depuis le dossier de session.
+- Nouveau cache/assets PWA V2.29.23.

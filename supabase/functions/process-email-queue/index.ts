@@ -369,54 +369,76 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
       y -= boxHeight + 8;
     }
   } else {
-    const fields: Array<[string, string]> = [
-      ['Formation', program], ['Session', session], ['Début', starts], ['Fin', ends],
-      ['Durée prévue', duration > 0 ? `${String(duration).replace('.', ',')} heures` : 'À confirmer'],
-      ['Modalité', modality], ['Lieu / accès', location], ['Formateur', trainer],
+    // Attestation nominative : rendu plus institutionnel et plus lisible qu'un simple tableau.
+    page.drawRectangle({ x: margin, y: y - 112, width: contentWidth, height: 112, color: dark });
+    page.drawRectangle({ x: margin, y: y - 112, width: 7, height: 112, color: accent });
+    drawText('ATTESTATION NOMINATIVE', margin + 22, y - 23, 6.1, bold, accent);
+    drawText('Participation à la formation', margin + 22, y - 50, 10.5, regular, rgb(0.78, 0.82, 0.88));
+    const beneficiaryLines = wrap(traineeName || 'Stagiaire à compléter', 18, contentWidth - 190, bold).slice(0, 2);
+    beneficiaryLines.forEach((lineText, lineIndex) => drawText(lineText, margin + 22, y - 78 - lineIndex * 21, 18, bold, rgb(1, 1, 1)));
+    const checkX = width - margin - 76;
+    page.drawRectangle({ x: checkX, y: y - 88, width: 52, height: 52, color: accent });
+    drawText('OK', checkX + 16, y - 70, 14, bold, rgb(1, 1, 1));
+    y -= 134;
+
+    const statement = `${organization} atteste que ${traineeName}${company ? `, rattaché(e) à ${company}` : ''}, a participé à l'action de formation ci-dessous sur la période indiquée.`;
+    y = drawParagraph(statement, margin, y, 9.7, contentWidth, 5, dark) - 13;
+
+    const facts: Array<[string, string]> = [
+      ['FORMATION', program],
+      ['PÉRIODE', `${formatTrainingDate(payload.starts_at, timezone)} → ${formatTrainingDate(payload.ends_at, timezone)}`],
+      ['DURÉE', duration > 0 ? `${String(duration).replace('.', ',')} heures` : 'À confirmer'],
+      ['MODALITÉ', modality],
+      ['LIEU / ACCÈS', location],
+      ['FORMATEUR', trainer],
     ];
     const columnWidth = (contentWidth - 10) / 2;
-    fields.forEach(([label, value], index) => {
+    facts.forEach(([label, value], index) => {
       const column = index % 2;
       const row = Math.floor(index / 2);
       const x = margin + column * (columnWidth + 10);
-      const fieldY = y - row * 50;
-      page.drawRectangle({ x, y: fieldY - 40, width: columnWidth, height: 40, color: row % 2 === 0 ? surface : rgb(1, 1, 1), borderColor: line, borderWidth: 0.55 });
-      drawText(label.toUpperCase(), x + 11, fieldY - 14, 5.7, bold, accent);
-      const valueLines = wrap(value || 'À confirmer', 8.1, columnWidth - 22, bold).slice(0, 2);
-      valueLines.forEach((lineText, lineIndex) => drawText(lineText, x + 11, fieldY - 29 - lineIndex * 10, 8.1, bold, dark));
+      const fieldY = y - row * 54;
+      page.drawRectangle({ x, y: fieldY - 44, width: columnWidth, height: 44, color: row % 2 === 0 ? surface : rgb(1, 1, 1), borderColor: line, borderWidth: 0.55 });
+      drawText(label, x + 12, fieldY - 15, 5.6, bold, accent);
+      const valueLines = wrap(value || 'À confirmer', 8.3, columnWidth - 24, bold).slice(0, 2);
+      valueLines.forEach((lineText, lineIndex) => drawText(lineText, x + 12, fieldY - 31 - lineIndex * 10, 8.3, bold, dark));
     });
-    y -= Math.ceil(fields.length / 2) * 50 + 10;
+    y -= Math.ceil(facts.length / 2) * 54 + 10;
+
     const present = Number(payload.attendance_present ?? 0);
     const absent = Number(payload.attendance_absent ?? 0);
     const excused = Number(payload.attendance_excused ?? 0);
-    page.drawRectangle({ x: margin, y: y - 70, width: contentWidth, height: 70, color: dark });
+    page.drawRectangle({ x: margin, y: y - 74, width: contentWidth, height: 74, color: accentPale, borderColor: line, borderWidth: 0.6 });
+    drawText('SYNTHÈSE DE PRÉSENCE', margin + 14, y - 19, 6.0, bold, accent);
     const stats = [
       ['PRÉSENCES SIGNÉES', String(present)],
       ['ABSENCES', String(absent)],
       ['JUSTIFIÉES', String(excused)],
     ];
     stats.forEach(([label, value], index) => {
-      const x = margin + 24 + index * 165;
-      drawText(label, x, y - 22, 5.8, bold, index === 0 ? accent : rgb(0.7, 0.75, 0.82));
-      drawText(value, x, y - 51, 18, bold, rgb(1, 1, 1));
+      const x = margin + 15 + index * 165;
+      if (index > 0) page.drawLine({ start: { x: x - 13, y: y - 62 }, end: { x: x - 13, y: y - 29 }, thickness: 0.55, color: line });
+      drawText(label, x, y - 39, 5.5, bold, muted);
+      drawText(value, x, y - 61, 15, bold, dark);
     });
     y -= 94;
+
     const signatoryName = normalizePdfText(payload.signatory_name) || normalizePdfText(payload.organization_legal_representative) || 'Le responsable de l’organisme';
     const signatoryTitle = normalizePdfText(payload.signatory_title) || 'Pour l’organisme de formation';
-    page.drawRectangle({ x: margin, y: y - 98, width: contentWidth, height: 98, color: surface, borderColor: line, borderWidth: 0.7 });
-    drawText('CERTIFICATION DE L’ORGANISME', margin + 14, y - 20, 6.2, bold, accent);
-    drawText(`Fait le ${formatTrainingDate(new Date().toISOString(), timezone)}`, margin + 14, y - 41, 8, regular, muted);
-    drawText(signatoryName, margin + 14, y - 64, 10, bold, dark);
-    drawText(signatoryTitle, margin + 14, y - 80, 7.5, regular, muted);
+    page.drawRectangle({ x: margin, y: y - 105, width: contentWidth, height: 105, color: surface, borderColor: line, borderWidth: 0.7 });
+    page.drawText('CERTIFICATION DE L’ORGANISME', { x: margin + 14, y: y - 21, size: 6.2, font: bold, color: accent });
+    drawText(`Établie le ${formatTrainingDate(new Date().toISOString(), timezone)}`, margin + 14, y - 43, 7.8, regular, muted);
+    drawText(signatoryName, margin + 14, y - 66, 10, bold, dark);
+    drawText(signatoryTitle, margin + 14, y - 83, 7.5, regular, muted);
     const signature = await embedPayloadImage(payload.organization_signature_url);
     const stamp = await embedPayloadImage(payload.organization_stamp_url);
     if (signature) {
-      const scale = Math.min(112 / signature.width, 43 / signature.height, 1);
-      page.drawImage(signature, { x: margin + 252, y: y - 82, width: signature.width * scale, height: signature.height * scale });
+      const scale = Math.min(118 / signature.width, 46 / signature.height, 1);
+      page.drawImage(signature, { x: margin + 255, y: y - 88, width: signature.width * scale, height: signature.height * scale });
     }
     if (stamp) {
-      const scale = Math.min(70 / stamp.width, 55 / stamp.height, 1);
-      page.drawImage(stamp, { x: width - margin - stamp.width * scale - 16, y: y - 84, width: stamp.width * scale, height: stamp.height * scale, opacity: 0.82 });
+      const scale = Math.min(74 / stamp.width, 58 / stamp.height, 1);
+      page.drawImage(stamp, { x: width - margin - stamp.width * scale - 16, y: y - 93, width: stamp.width * scale, height: stamp.height * scale, opacity: 0.82 });
     }
   }
 
@@ -437,7 +459,7 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
   pdf.setAuthor(organization);
   pdf.setSubject(program);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.29.20');
+  pdf.setProducer('NCR Suite V2.29.23');
   return await pdf.save();
 }
 async function processTrainingDocumentJobs(supabase: any) {

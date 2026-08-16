@@ -225,7 +225,7 @@ export function TrainingDossiersPage() {
       programRequest,
       supabase.from('training_trainers').select('id,organization_id,first_name,last_name,email,phone,specialties,notes,status,created_at').eq('organization_id', organizationId).neq('status', 'archived').order('last_name'),
       supabase.from('training_trainees').select('id,organization_id,first_name,last_name,email,phone,company,notes,status,created_at').eq('organization_id', organizationId).neq('status', 'archived').order('last_name'),
-      supabase.from('training_session_enrollments').select('organization_id,session_id,trainee_id,status').eq('organization_id', organizationId),
+      supabase.from('training_session_enrollments').select('organization_id,session_id,trainee_id,status,bpf_trainee_type,bpf_attended_hours').eq('organization_id', organizationId),
       supabase.from('training_documents').select('id,organization_id,site_id,session_id,program_id,trainee_id,title,category,storage_path,mime_type,size_bytes,visibility,status,notes,generated_automatically,automation_key,generated_at,emailed_at,created_at').eq('organization_id', organizationId).neq('status', 'archived'),
       supabase.from('training_attendance').select('id,organization_id,site_id,session_id,trainee_id,attendance_date,period,status,signature_path,signatory_name,signed_at,notes,created_at,updated_at').eq('organization_id', organizationId),
       supabase.from('training_satisfaction_surveys').select('id,organization_id,site_id,session_id,trainee_id,public_token,evaluation_type,status,scheduled_for,emailed_at,completed_at,content_rating,trainer_rating,organization_rating,objectives_rating,recommend,comment,improvement,initial_level,initial_expectations,initial_objectives,initial_needs,reminder_count,last_reminded_at,created_at,updated_at').eq('organization_id', organizationId),
@@ -585,6 +585,41 @@ export function TrainingDossiersPage() {
     }
   }
 
+
+  async function generateRealizationCertificatesPdf(mode: 'preview' | 'download') {
+    if (!organization || !selectedSummary) return;
+    const session = selectedSummary.session;
+    const target = prepareFileWindow(
+      mode === 'preview' ? 'Certificat de réalisation' : 'Téléchargement des certificats',
+      'NCR Suite prépare les certificats de réalisation de la session…'
+    );
+    setBusyAction(`certificate-${session.id}`);
+    setError('');
+    try {
+      const { generateCertificateOfRealizationPdf } = await import('../features/training/certificateOfRealizationPdf');
+      const result = await generateCertificateOfRealizationPdf({
+        organization,
+        site: session.site_id ? sites.find((site) => site.id === session.site_id) ?? null : null,
+        session,
+        program: programMap.get(session.program_id) ?? null,
+        trainer: session.trainer_id ? trainerMap.get(session.trainer_id) ?? null : null,
+        trainees,
+        enrollments: enrollments.filter((row) => row.session_id === session.id),
+        attendance: attendance.filter((row) => row.session_id === session.id)
+      });
+      const buffer = result.bytes.buffer.slice(result.bytes.byteOffset, result.bytes.byteOffset + result.bytes.byteLength) as ArrayBuffer;
+      const url = URL.createObjectURL(new Blob([buffer], { type: 'application/pdf' }));
+      if (mode === 'preview') navigateFileWindow(target, url);
+      else showBlobDownload(target, url, result.filename, 'Certificats de réalisation prêts');
+      window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
+    } catch (caught) {
+      closeFileWindow(target);
+      setError(`Certificat impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+    } finally {
+      setBusyAction('');
+    }
+  }
+
   const selectedProgram = selectedSummary ? programMap.get(selectedSummary.session.program_id) ?? null : null;
   const selectedTrainer = selectedSummary?.session.trainer_id ? trainerMap.get(selectedSummary.session.trainer_id) ?? null : null;
   const selectedSite = selectedSummary?.session.site_id ? sites.find((site) => site.id === selectedSummary.session.site_id) ?? null : null;
@@ -690,7 +725,7 @@ export function TrainingDossiersPage() {
                     <h3>{selectedSummary.missingCount === 0 ? 'Dossier maîtrisé' : `${selectedSummary.missingCount} pièce${selectedSummary.missingCount > 1 ? 's' : ''} à traiter`}</h3>
                     <p>{selectedSummary.phase === 'preparation' ? 'Prépare les éléments nécessaires avant l’accueil des stagiaires.' : selectedSummary.phase === 'delivery' ? 'Les preuves de réalisation se complètent pendant la formation.' : selectedSummary.phase === 'closure' ? 'Finalise les preuves puis clôture la session.' : 'Le dossier reste consultable et peut être exporté.'}</p>
                     <div className="training-dossier-scoreline"><span><i style={{ width: `${selectedSummary.progress}%` }} /></span><b>{selectedSummary.readyCount}/{selectedSummary.requiredCount}</b></div>
-                    <div className="training-dossier-pdf-actions"><button type="button" className="secondary-button" disabled={busyAction === `pdf-${selectedSummary.session.id}`} onClick={() => void generateDossierPdf('preview')}><Icon name="eye" size={16} />Visualiser le PDF</button><button type="button" className="secondary-button" disabled={busyAction === `pdf-${selectedSummary.session.id}`} onClick={() => void generateDossierPdf('download')}><Icon name="file" size={16} />Télécharger</button></div>
+                    <div className="training-dossier-pdf-actions"><button type="button" className="secondary-button" disabled={busyAction === `pdf-${selectedSummary.session.id}`} onClick={() => void generateDossierPdf('preview')}><Icon name="eye" size={16} />Visualiser le dossier</button><button type="button" className="secondary-button" disabled={busyAction === `pdf-${selectedSummary.session.id}`} onClick={() => void generateDossierPdf('download')}><Icon name="file" size={16} />Télécharger le dossier</button>{selectedSummary.session.status === 'completed' && <><button type="button" className="secondary-button" disabled={busyAction === `certificate-${selectedSummary.session.id}`} onClick={() => void generateRealizationCertificatesPdf('preview')}><Icon name="eye" size={16} />Voir certificat de réalisation</button><button type="button" className="secondary-button" disabled={busyAction === `certificate-${selectedSummary.session.id}`} onClick={() => void generateRealizationCertificatesPdf('download')}><Icon name="graduation" size={16} />Certificats de réalisation</button></>}</div>
                     {(selectedSummary.canLaunchClosure || selectedSummary.canFinalize) && canManage && <button type="button" className="training-dossier-close-button" disabled={busyAction === `close-${selectedSummary.session.id}`} onClick={() => void closeSessionDossier()}><Icon name="check" size={17} />{busyAction === `close-${selectedSummary.session.id}` ? 'Traitement…' : selectedSummary.canLaunchClosure ? 'Terminer et lancer la clôture' : 'Finaliser le dossier'}</button>}
                     {selectedSummary.session.status === 'completed' && !selectedSummary.session.training_dossier_finalized_at && !selectedSummary.canFinalize && <div className="training-dossier-automation-note"><Icon name="refresh" size={16} /><span><strong>Clôture automatisée en cours</strong><small>Les évaluations finales, attestations et relances complètent ce dossier automatiquement.</small></span></div>}
                     {selectedSummary.phase === 'closed' && canReopen && <button type="button" className="training-dossier-reopen-button" disabled={busyAction === `reopen-${selectedSummary.session.id}`} onClick={() => void reopenSessionDossier()}><Icon name="activity" size={16} />Rouvrir la session</button>}

@@ -30,10 +30,10 @@ export interface AttendancePdfResult {
 
 const A4_LANDSCAPE: [number, number] = [841.89, 595.28];
 const MARGIN = 34;
-const HEADER_HEIGHT = 148;
-const FOOTER_HEIGHT = 34;
-const ROW_HEIGHT = 54;
-const TABLE_HEADER_HEIGHT = 30;
+const HEADER_HEIGHT = 176;
+const FOOTER_HEIGHT = 42;
+const ROW_HEIGHT = 58;
+const TABLE_HEADER_HEIGHT = 34;
 const PARTICIPANT_WIDTH = 220;
 const PERIOD_WIDTH = (A4_LANDSCAPE[0] - MARGIN * 2 - PARTICIPANT_WIDTH) / 2;
 
@@ -185,66 +185,87 @@ function drawPageHeader(
   const width = page.getWidth();
   const height = page.getHeight();
   const accent = hexToRgb(input.organization.primary_color);
-  const dark = rgb(0.10, 0.11, 0.13);
-  const muted = rgb(0.38, 0.41, 0.46);
+  const dark = rgb(0.07, 0.09, 0.14);
+  const muted = rgb(0.39, 0.43, 0.49);
+  const lightText = rgb(0.78, 0.82, 0.88);
+  const surface = rgb(0.965, 0.972, 0.982);
+  const border = rgb(0.86, 0.88, 0.91);
 
+  page.drawRectangle({ x: 0, y: height - 126, width, height: 126, color: dark });
   page.drawRectangle({ x: 0, y: height - 8, width, height: 8, color: accent });
+  page.drawRectangle({ x: width - 188, y: height - 126, width: 188, height: 126, color: accent, opacity: 0.10 });
 
   let brandX = MARGIN;
   if (logo) {
-    const scale = Math.min(112 / logo.width, 42 / logo.height, 1);
+    const boxW = 112;
+    const boxH = 48;
+    const boxY = height - 69;
+    page.drawRectangle({ x: MARGIN, y: boxY, width: boxW, height: boxH, color: rgb(1, 1, 1), borderColor: border, borderWidth: 0.5 });
+    const scale = Math.min(90 / logo.width, 31 / logo.height, 1);
     const logoWidth = logo.width * scale;
     const logoHeight = logo.height * scale;
-    page.drawImage(logo, { x: MARGIN, y: height - 58, width: logoWidth, height: logoHeight });
-    brandX += logoWidth + 12;
+    page.drawImage(logo, { x: MARGIN + (boxW - logoWidth) / 2, y: boxY + (boxH - logoHeight) / 2, width: logoWidth, height: logoHeight });
+    brandX += boxW + 17;
   }
 
   const organizationName = singleLinePdfText(input.organization.public_name || input.organization.name || 'Organisme de formation');
-  page.drawText(organizationName, { x: brandX, y: height - 34, size: 12, font: bold, color: dark });
-  const address = singleLinePdfText(input.site?.address || input.organization.booking_address || '');
-  if (address) page.drawText(address.slice(0, 95), { x: brandX, y: height - 50, size: 8.5, font: regular, color: muted });
+  page.drawText(organizationName.slice(0, 58), { x: brandX, y: height - 41, size: 11, font: bold, color: rgb(1, 1, 1) });
+  const address = singleLinePdfText(input.site?.address || input.organization.booking_address || [input.organization.company_address, input.organization.company_postal_code, input.organization.company_city].filter(Boolean).join(' '));
+  if (address) page.drawText(address.slice(0, 82), { x: brandX, y: height - 57, size: 7.4, font: regular, color: lightText });
 
-  page.drawText(input.blank ? "FEUILLE D'EMARGEMENT VIERGE" : "FEUILLE D'EMARGEMENT", { x: MARGIN, y: height - 85, size: 19, font: bold, color: dark });
-  page.drawRectangle({ x: MARGIN, y: height - 93, width: 74, height: 3, color: accent });
+  page.drawRectangle({ x: MARGIN, y: height - 116, width: 5, height: 35, color: accent });
+  page.drawText(input.blank ? "FORMATION · FEUILLE À SIGNER" : "FORMATION · PREUVE DE PRÉSENCE", { x: MARGIN + 15, y: height - 88, size: 6.1, font: bold, color: accent });
+  page.drawText(input.blank ? "FEUILLE D'ÉMARGEMENT VIERGE" : "FEUILLE D'ÉMARGEMENT", { x: MARGIN + 15, y: height - 111, size: 18.5, font: bold, color: rgb(1, 1, 1) });
 
-  const title = singleLinePdfText(input.session.title || input.program?.title || 'Session de formation');
-  page.drawText(title.slice(0, 86), { x: MARGIN, y: height - 112, size: 10.5, font: bold, color: dark });
+  const dateBadge = formatDay(input.attendanceDate).toUpperCase();
+  const badgeW = Math.min(188, Math.max(122, bold.widthOfTextAtSize(dateBadge, 7.1) + 24));
+  page.drawRectangle({ x: width - MARGIN - badgeW, y: height - 101, width: badgeW, height: 28, color: accent });
+  page.drawText(dateBadge, { x: width - MARGIN - badgeW + 12, y: height - 92, size: 7.1, font: bold, color: rgb(1, 1, 1) });
 
+  const metaY = height - 142;
+  const gap = 8;
+  const cardW = (width - MARGIN * 2 - gap * 3) / 4;
   const timezone = input.organization.timezone || 'Europe/Paris';
   const trainerName = input.trainer ? personName(input.trainer.first_name, input.trainer.last_name) : 'À définir';
-  const details = [
-    formatDay(input.attendanceDate),
-    `Formateur : ${singleLinePdfText(trainerName)}`,
-    input.session.location ? `Lieu : ${singleLinePdfText(input.session.location)}` : null,
-    `Session : ${formatDateTime(input.session.starts_at, timezone)} - ${formatDateTime(input.session.ends_at, timezone)}`
-  ].filter(Boolean).join('  ·  ');
-  page.drawText(details.slice(0, 155), { x: MARGIN, y: height - 128, size: 8.3, font: regular, color: muted });
+  const cards: Array<[string, string]> = [
+    ['SESSION', input.session.title || input.program?.title || 'Formation'],
+    ['FORMATEUR', trainerName],
+    ['LIEU', input.session.location || input.site?.name || input.site?.address || 'À confirmer'],
+    ['PARTICIPANTS', `${input.trainees.length} stagiaire${input.trainees.length > 1 ? 's' : ''}`]
+  ];
+  cards.forEach(([label, value], index) => {
+    const x = MARGIN + index * (cardW + gap);
+    page.drawRectangle({ x, y: metaY - 30, width: cardW, height: 30, color: surface, borderColor: border, borderWidth: 0.55 });
+    page.drawText(label, { x: x + 9, y: metaY - 10, size: 5.3, font: bold, color: accent });
+    const display = index === 0 ? value : singleLinePdfText(value);
+    const lines = wrapText(display, bold, 7.4, cardW - 18, 2);
+    lines.forEach((line, lineIndex) => page.drawText(line, { x: x + 9, y: metaY - 22 - lineIndex * 8.5, size: 7.4, font: bold, color: dark }));
+  });
 
-  page.drawText(`${pageIndex + 1}/${totalPages}`, {
-    x: width - MARGIN - 20,
-    y: height - 34,
-    size: 8.5,
-    font: bold,
+  page.drawText(`Horaires session : ${formatDateTime(input.session.starts_at, timezone)} → ${formatDateTime(input.session.ends_at, timezone)}`, {
+    x: MARGIN,
+    y: height - 173,
+    size: 6.8,
+    font: regular,
     color: muted
   });
+  page.drawText(`PAGE ${pageIndex + 1}/${totalPages}`, { x: width - MARGIN - 56, y: height - 173, size: 6.8, font: bold, color: muted });
 }
 
 function drawTableHeader(page: PDFPage, regular: PDFFont, bold: PDFFont, y: number, blank = false) {
-  const dark = rgb(0.12, 0.13, 0.15);
-  const muted = rgb(0.39, 0.42, 0.47);
-  const soft = rgb(0.95, 0.96, 0.97);
-  const border = rgb(0.84, 0.86, 0.89);
+  const dark = rgb(0.07, 0.09, 0.14);
+  const accentText = rgb(0.72, 0.78, 0.88);
+  const border = rgb(0.20, 0.23, 0.29);
 
-  page.drawRectangle({ x: MARGIN, y: y - TABLE_HEADER_HEIGHT, width: A4_LANDSCAPE[0] - MARGIN * 2, height: TABLE_HEADER_HEIGHT, color: soft, borderColor: border, borderWidth: 0.8 });
+  page.drawRectangle({ x: MARGIN, y: y - TABLE_HEADER_HEIGHT, width: A4_LANDSCAPE[0] - MARGIN * 2, height: TABLE_HEADER_HEIGHT, color: dark });
   page.drawLine({ start: { x: MARGIN + PARTICIPANT_WIDTH, y }, end: { x: MARGIN + PARTICIPANT_WIDTH, y: y - TABLE_HEADER_HEIGHT }, color: border, thickness: 0.8 });
   page.drawLine({ start: { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH, y }, end: { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH, y: y - TABLE_HEADER_HEIGHT }, color: border, thickness: 0.8 });
 
-  page.drawText('STAGIAIRE', { x: MARGIN + 10, y: y - 19, size: 8.5, font: bold, color: dark });
-  page.drawText('MATIN', { x: MARGIN + PARTICIPANT_WIDTH + 10, y: y - 19, size: 8.5, font: bold, color: dark });
-  page.drawText('APRÈS-MIDI', { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH + 10, y: y - 19, size: 8.5, font: bold, color: dark });
-  const periodHint = blank ? 'Signature du stagiaire' : 'Statut, signature et horodatage';
-  page.drawText(periodHint, { x: MARGIN + PARTICIPANT_WIDTH + 54, y: y - 19, size: 7.6, font: regular, color: muted });
-  page.drawText(periodHint, { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH + 72, y: y - 19, size: 7.6, font: regular, color: muted });
+  page.drawText('STAGIAIRE', { x: MARGIN + 11, y: y - 21, size: 8.1, font: bold, color: rgb(1, 1, 1) });
+  page.drawText('MATIN', { x: MARGIN + PARTICIPANT_WIDTH + 11, y: y - 15, size: 8.1, font: bold, color: rgb(1, 1, 1) });
+  page.drawText(blank ? 'Signature du stagiaire' : 'Statut · signature · heure', { x: MARGIN + PARTICIPANT_WIDTH + 11, y: y - 27, size: 6.1, font: regular, color: accentText });
+  page.drawText('APRÈS-MIDI', { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH + 11, y: y - 15, size: 8.1, font: bold, color: rgb(1, 1, 1) });
+  page.drawText(blank ? 'Signature du stagiaire' : 'Statut · signature · heure', { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH + 11, y: y - 27, size: 6.1, font: regular, color: accentText });
 }
 
 function drawPeriodCell(
@@ -266,7 +287,7 @@ function drawPeriodCell(
   const orange = rgb(0.68, 0.39, 0.03);
   if (blank) {
     page.drawLine({ start: { x: x + 16, y: y - 40 }, end: { x: x + width - 16, y: y - 40 }, color: muted, thickness: 0.65 });
-    page.drawText('Signature', { x: x + 10, y: y - 18, size: 7.8, font: regular, color: muted });
+    page.drawText('SIGNATURE', { x: x + 11, y: y - 17, size: 6.2, font: bold, color: muted });
     return;
   }
 
@@ -274,7 +295,8 @@ function drawPeriodCell(
   const statusColor = status === 'present' ? green : status === 'absent' ? red : status === 'excused' ? orange : muted;
   const label = attendanceStatusLabels[status];
 
-  page.drawText(singleLinePdfText(label), { x: x + 10, y: y - 18, size: 8.5, font: bold, color: statusColor });
+  page.drawRectangle({ x: x + 10, y: y - 24, width: 72, height: 17, color: statusColor, opacity: 0.10 });
+  page.drawText(singleLinePdfText(label).toUpperCase(), { x: x + 17, y: y - 18, size: 6.8, font: bold, color: statusColor });
   if (status === 'present') {
     if (image) {
       const signatureX = x + 98;
@@ -301,13 +323,18 @@ function drawPeriodCell(
 
 function drawFooter(page: PDFPage, regular: PDFFont, bold: PDFFont, input: AttendancePdfInput, pageIndex: number, totalPages: number) {
   const width = page.getWidth();
+  const dark = rgb(0.12, 0.13, 0.15);
   const muted = rgb(0.45, 0.47, 0.51);
-  const text = `Généré le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date())}`;
-  page.drawText(text, { x: MARGIN, y: 18, size: 7.2, font: regular, color: muted });
-  const reference = `Réf. EMG-${input.attendanceDate.replace(/-/g, '')}-${input.session.id.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
-  page.drawText(reference, { x: width / 2 - 60, y: 18, size: 7.2, font: regular, color: muted });
+  const line = rgb(0.86, 0.88, 0.91);
+  const accent = hexToRgb(input.organization.primary_color);
+  page.drawLine({ start: { x: MARGIN, y: 35 }, end: { x: width - MARGIN, y: 35 }, color: line, thickness: 0.75 });
+  const reference = `EMG-${input.attendanceDate.replace(/-/g, '')}-${input.session.id.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+  const generated = `Généré le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date())}`;
+  page.drawText(generated, { x: MARGIN, y: 20, size: 6.6, font: regular, color: muted });
+  page.drawText(reference, { x: width / 2 - bold.widthOfTextAtSize(reference, 6.8) / 2, y: 20, size: 6.8, font: bold, color: dark });
   const right = input.organization.show_ncr_branding === false ? `${pageIndex + 1}/${totalPages}` : `NCR Suite · ${pageIndex + 1}/${totalPages}`;
-  page.drawText(right, { x: width - MARGIN - bold.widthOfTextAtSize(right, 7.2), y: 18, size: 7.2, font: bold, color: muted });
+  page.drawText(right, { x: width - MARGIN - bold.widthOfTextAtSize(right, 6.6), y: 20, size: 6.6, font: bold, color: muted });
+  page.drawRectangle({ x: MARGIN, y: 10, width: 36, height: 2.2, color: accent });
 }
 
 export async function generateAttendanceDayPdf(input: AttendancePdfInput): Promise<AttendancePdfResult> {
@@ -339,8 +366,8 @@ export async function generateAttendanceDayPdf(input: AttendancePdfInput): Promi
     y -= TABLE_HEADER_HEIGHT;
 
     const pageTrainees = input.trainees.slice(pageIndex * rowsPerPage, (pageIndex + 1) * rowsPerPage);
-    for (const trainee of pageTrainees) {
-      page.drawRectangle({ x: MARGIN, y: y - ROW_HEIGHT, width: A4_LANDSCAPE[0] - MARGIN * 2, height: ROW_HEIGHT, borderColor: border, borderWidth: 0.8 });
+    for (const [rowIndex, trainee] of pageTrainees.entries()) {
+      page.drawRectangle({ x: MARGIN, y: y - ROW_HEIGHT, width: A4_LANDSCAPE[0] - MARGIN * 2, height: ROW_HEIGHT, color: rowIndex % 2 === 0 ? rgb(1, 1, 1) : rgb(0.982, 0.986, 0.992), borderColor: border, borderWidth: 0.8 });
       page.drawLine({ start: { x: MARGIN + PARTICIPANT_WIDTH, y }, end: { x: MARGIN + PARTICIPANT_WIDTH, y: y - ROW_HEIGHT }, color: border, thickness: 0.8 });
       page.drawLine({ start: { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH, y }, end: { x: MARGIN + PARTICIPANT_WIDTH + PERIOD_WIDTH, y: y - ROW_HEIGHT }, color: border, thickness: 0.8 });
 
@@ -369,7 +396,7 @@ export async function generateAttendanceDayPdf(input: AttendancePdfInput): Promi
   pdf.setAuthor(input.organization.public_name || input.organization.name);
   pdf.setSubject(input.blank ? 'Feuille vierge à imprimer et signer manuellement.' : `Présences signées : ${totals.present} · Absences : ${totals.absent} · Justifiées : ${totals.excused}`);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.4.9');
+  pdf.setProducer('NCR Suite V2.29.23');
 
   return {
     bytes: await pdf.save(),
