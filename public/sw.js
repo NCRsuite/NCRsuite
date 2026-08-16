@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.29.23-training-closure-documents-premium';
+const CACHE = 'ncr-suite-shell-v2.29.24-attendance-winansi-hotfix';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v2923.css',
-  '/ncr-suite-app-v2923.css',
-  '/ncr-suite-app-v2923.js',
+  '/ncr-suite-showcase-v2924.css',
+  '/ncr-suite-app-v2924.css',
+  '/ncr-suite-app-v2924.js',
   '/fonts/inter-variable.woff2',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-symbol-v2221.png',

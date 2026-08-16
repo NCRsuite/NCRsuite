@@ -44,6 +44,8 @@ function normalizePdfText(value: unknown) {
     .replace(/[’‘]/g, "'")
     .replace(/[“”]/g, '"')
     .replace(/[–—]/g, '-')
+    .replace(/[→⇒⟶➜➝]/g, ' au ')
+    .replace(/[←⇐⟵]/g, ' - ')
     .replace(/•/g, '-')
     .replace(/œ/g, 'oe')
     .replace(/Œ/g, 'OE')
@@ -242,7 +244,7 @@ function drawPageHeader(
     lines.forEach((line, lineIndex) => page.drawText(line, { x: x + 9, y: metaY - 22 - lineIndex * 8.5, size: 7.4, font: bold, color: dark }));
   });
 
-  page.drawText(`Horaires session : ${formatDateTime(input.session.starts_at, timezone)} → ${formatDateTime(input.session.ends_at, timezone)}`, {
+  page.drawText(`Horaires session : ${formatDateTime(input.session.starts_at, timezone)} au ${formatDateTime(input.session.ends_at, timezone)}`, {
     x: MARGIN,
     y: height - 173,
     size: 6.8,
@@ -396,7 +398,7 @@ export async function generateAttendanceDayPdf(input: AttendancePdfInput): Promi
   pdf.setAuthor(input.organization.public_name || input.organization.name);
   pdf.setSubject(input.blank ? 'Feuille vierge à imprimer et signer manuellement.' : `Présences signées : ${totals.present} · Absences : ${totals.absent} · Justifiées : ${totals.excused}`);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.29.23');
+  pdf.setProducer('NCR Suite V2.29.24');
 
   return {
     bytes: await pdf.save(),

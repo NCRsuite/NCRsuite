@@ -90,6 +90,8 @@ function normalizePdfText(value: unknown): string {
     .replace(/[’‘]/g, "'")
     .replace(/[“”]/g, '"')
     .replace(/[–—]/g, '-')
+    .replace(/[→⇒⟶➜➝]/g, ' au ')
+    .replace(/[←⇐⟵]/g, ' - ')
     .replace(/•/g, '-')
     .replace(/œ/g, 'oe')
     .replace(/Œ/g, 'OE')
@@ -386,7 +388,7 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
 
     const facts: Array<[string, string]> = [
       ['FORMATION', program],
-      ['PÉRIODE', `${formatTrainingDate(payload.starts_at, timezone)} → ${formatTrainingDate(payload.ends_at, timezone)}`],
+      ['PÉRIODE', `${formatTrainingDate(payload.starts_at, timezone)} au ${formatTrainingDate(payload.ends_at, timezone)}`],
       ['DURÉE', duration > 0 ? `${String(duration).replace('.', ',')} heures` : 'À confirmer'],
       ['MODALITÉ', modality],
       ['LIEU / ACCÈS', location],
@@ -459,7 +461,7 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
   pdf.setAuthor(organization);
   pdf.setSubject(program);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.29.23');
+  pdf.setProducer('NCR Suite V2.29.24');
   return await pdf.save();
 }
 async function processTrainingDocumentJobs(supabase: any) {

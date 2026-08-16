@@ -205,7 +205,7 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
   keyValue('Formation', input.program?.title || input.session.title);
   keyValue('Code', input.program?.code || '-');
   keyValue('Statut', sessionStatusLabels[input.session.status]);
-  keyValue('Dates', `${formatDateTimeInZone(input.session.starts_at, timezone)} → ${formatDateTimeInZone(input.session.ends_at, timezone)}`);
+  keyValue('Dates', `${formatDateTimeInZone(input.session.starts_at, timezone)} au ${formatDateTimeInZone(input.session.ends_at, timezone)}`);
   keyValue('Formateur', input.trainer ? personName(input.trainer.first_name, input.trainer.last_name) : 'À définir');
   keyValue('Établissement', input.site?.name || 'Site principal');
   keyValue('Lieu', input.session.location || input.site?.address || input.organization.booking_address || '-');
