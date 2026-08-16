@@ -1,4 +1,4 @@
-NCR SUITE V2.22.4 - ORDRE D'INSTALLATION 
+NCR SUITE V2.22.4 - ORDRE D'INSTALLATION  
 
 OBJECTIF   
 Corriger l'echec de chargement du module PublicHomePage et des styles places
