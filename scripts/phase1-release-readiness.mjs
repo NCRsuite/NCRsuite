@@ -16,7 +16,7 @@ const requireText = (file, snippets) => {
 };
 
 const pkg = JSON.parse(read('package.json'));
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-premium-documents`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-bpf-guided-hotfix`;
 const publicMotionCache = 'ncr-suite-shell-v2.29.5-public-motion';
 const publicFlowSignalCache = 'ncr-suite-shell-v2.29.4-public-flow-signal';
 const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
@@ -47,10 +47,10 @@ const finalStabilizationCache = 'ncr-suite-shell-v2.20.0-final-stabilization';
 const runtime = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
 
-if (pkg.version !== '2.29.20') failures.push('package.json doit annoncer la V2.29.20.');
+if (pkg.version !== '2.29.21') failures.push('package.json doit annoncer la V2.29.21.');
 if (!runtime.includes(`APP_VERSION = '${pkg.version}'`)) failures.push('La version runtime ne correspond pas au paquet.');
-if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.29.20 est incohérent.');
-if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.29.20 est incohérent.');
+if (!runtime.includes(`PWA_CACHE_NAME = '${expectedCache}'`)) failures.push('Le cache runtime V2.29.21 est incohérent.');
+if (!serviceWorker.includes(`const CACHE = '${expectedCache}'`)) failures.push('Le Service Worker V2.29.21 est incohérent.');
 if (!serviceWorker.includes("key.startsWith(CACHE_PREFIX)")) failures.push('Le nettoyage PWA doit être limité aux caches NCR Suite.');
 if (!serviceWorker.includes("if (isNavigation) return (await caches.match('/index.html'))")) failures.push('Le repli PWA de navigation a été retiré.');
 for (const asset of [
@@ -526,8 +526,8 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 
 requireText('scripts/generate-public-showcase-css.mjs', [
-  'ncr-suite-showcase-v2920.css',
-  'ncr-suite-app-v2920.css',
+  'ncr-suite-showcase-v2921.css',
+  'ncr-suite-app-v2921.css',
   "source.indexOf('.public-home,')",
   'fs.writeFileSync'
 ]);
@@ -536,26 +536,26 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v2920.css',
-  '/ncr-suite-app-v2920.css',
+  '/ncr-suite-showcase-v2921.css',
+  '/ncr-suite-app-v2921.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.20',
+  'ncr:css-recovery-v2.29.21',
   '--ncr-styles-ready'
 ]);
 
 requireText('public/_headers', [
   'Content-Type: text/css; charset=utf-8',
-  '/ncr-suite-showcase-v2920.css',
-  '/ncr-suite-app-v2920.css',
+  '/ncr-suite-showcase-v2921.css',
+  '/ncr-suite-app-v2921.css',
   '/favicon.ico',
   'X-Robots-Tag: noindex, nofollow'
 ]);
 
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v2920.css'))) {
-  failures.push('La feuille de style critique V2.29.20 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-showcase-v2921.css'))) {
+  failures.push('La feuille de style critique V2.29.21 n’a pas été générée.');
 }
-if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v2920.css'))) {
-  failures.push('La feuille de style complète V2.29.20 n’a pas été générée.');
+if (!fs.existsSync(path.join(root, 'public/ncr-suite-app-v2921.css'))) {
+  failures.push('La feuille de style complète V2.29.21 n’a pas été générée.');
 }
 for (const favicon of [
   'public/favicon.ico',
@@ -567,7 +567,7 @@ for (const favicon of [
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2920.js'"
+  "entryFileNames: 'ncr-suite-app-v2921.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');
@@ -1039,6 +1039,22 @@ requireText('supabase/migrations/134_training_premium_documents_release.sql', [
   "'2.29.20'",
   'ncr-suite-shell-v2.29.20-training-premium-documents',
   'documents Formation premium'
+]);
+
+requireText('supabase/migrations/135_training_bpf_guided_completed_session_fix.sql', [
+  "'2.29.21'",
+  'ncr-suite-shell-v2.29.21-training-bpf-guided-hotfix',
+  'set_training_bpf_session_regulatory_scope',
+  'set_training_bpf_session_delivery_mode',
+  'set_training_bpf_enrollment_trainee_type',
+  'set_training_bpf_session_trainee_type'
+]);
+
+requireText('src/pages/TrainingBpfPage.tsx', [
+  "supabase.rpc('set_training_bpf_session_regulatory_scope'",
+  "supabase.rpc('set_training_bpf_session_delivery_mode'",
+  "supabase.rpc('set_training_bpf_enrollment_trainee_type'",
+  "supabase.rpc('set_training_bpf_session_trainee_type'"
 ]);
 
 requireText('src/components/TrainingBpfAssistant.tsx', [

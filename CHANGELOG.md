@@ -770,3 +770,8 @@
 - Photo arrivée/sortie toujours accessible, obligatoire uniquement si configurée par site.
 - Alignement platform_release_state sur 2.29.14.
 - Nouveau cache/assets v2914.
+
+## V2.29.21 — Hotfix Assistant BPF guidé
+- Corrige la qualification BPF des sessions clôturées via RPC dédiées.
+- Corrige le classement individuel et en masse des stagiaires après clôture.
+- Ne rouvre jamais les sessions et préserve les données pédagogiques.

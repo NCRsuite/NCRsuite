@@ -608,7 +608,11 @@ export function TrainingBpfPage() {
       if (demoMode || !supabase) {
         writeJsonStorage(`ncr-suite-training-sessions-${organization.id}`, readRows<TrainingSessionRecord>(`ncr-suite-training-sessions-${organization.id}`).map((row) => row.id === sessionId ? { ...row, bpf_delivery_mode: deliveryMode } : row));
       } else {
-        const { error: updateError } = await supabase.from('training_sessions').update({ bpf_delivery_mode: deliveryMode }).eq('organization_id', organization.id).eq('id', sessionId);
+        const { error: updateError } = await supabase.rpc('set_training_bpf_session_delivery_mode', {
+          p_organization_id: organization.id,
+          p_session_id: sessionId,
+          p_delivery_mode: deliveryMode
+        });
         if (updateError) throw updateError;
       }
       await loadData(report?.id, true);
@@ -624,7 +628,11 @@ export function TrainingBpfPage() {
       if (demoMode || !supabase) {
         writeJsonStorage(`ncr-suite-training-sessions-${organization.id}`, readRows<TrainingSessionRecord>(`ncr-suite-training-sessions-${organization.id}`).map((row) => row.id === sessionId ? { ...row, bpf_regulatory_scope: regulatoryScope } : row));
       } else {
-        const { error: updateError } = await supabase.from('training_sessions').update({ bpf_regulatory_scope: regulatoryScope }).eq('organization_id', organization.id).eq('id', sessionId);
+        const { error: updateError } = await supabase.rpc('set_training_bpf_session_regulatory_scope', {
+          p_organization_id: organization.id,
+          p_session_id: sessionId,
+          p_scope: regulatoryScope
+        });
         if (updateError) throw updateError;
       }
       await loadData(report?.id, true);
@@ -689,7 +697,11 @@ export function TrainingBpfPage() {
       if (demoMode || !supabase) {
         writeJsonStorage(`ncr-suite-training-enrollments-${organization.id}`, readRows<TrainingEnrollmentRecord>(`ncr-suite-training-enrollments-${organization.id}`).map((row) => row.session_id === sessionId && row.status !== 'canceled' ? { ...row, bpf_trainee_type: traineeType } : row));
       } else {
-        const { error: updateError } = await supabase.from('training_session_enrollments').update({ bpf_trainee_type: traineeType }).eq('organization_id', organization.id).eq('session_id', sessionId).neq('status', 'canceled');
+        const { error: updateError } = await supabase.rpc('set_training_bpf_session_trainee_type', {
+          p_organization_id: organization.id,
+          p_session_id: sessionId,
+          p_trainee_type: traineeType
+        });
         if (updateError) throw updateError;
       }
       await loadData(report?.id, true);
@@ -736,7 +748,12 @@ export function TrainingBpfPage() {
       if (demoMode || !supabase) {
         writeJsonStorage(`ncr-suite-training-enrollments-${organization.id}`, readRows<TrainingEnrollmentRecord>(`ncr-suite-training-enrollments-${organization.id}`).map((row) => row.session_id === sessionId && row.trainee_id === traineeId ? { ...row, bpf_trainee_type: traineeType } : row));
       } else {
-        const { error: updateError } = await supabase.from('training_session_enrollments').update({ bpf_trainee_type: traineeType }).eq('organization_id', organization.id).eq('session_id', sessionId).eq('trainee_id', traineeId);
+        const { error: updateError } = await supabase.rpc('set_training_bpf_enrollment_trainee_type', {
+          p_organization_id: organization.id,
+          p_session_id: sessionId,
+          p_trainee_id: traineeId,
+          p_trainee_type: traineeType
+        });
         if (updateError) throw updateError;
       }
       await loadData(report?.id, true);

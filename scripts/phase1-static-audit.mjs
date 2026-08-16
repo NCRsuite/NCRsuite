@@ -736,33 +736,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v2920.css')
-    || !indexHtml.includes('/ncr-suite-app-v2920.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v2921.css')
+    || !indexHtml.includes('/ncr-suite-app-v2921.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.29.20')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v2920.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v2920.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.21')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v2921.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v2921.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2920.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2921.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.29.20 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.21 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2920.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v2920.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.29.20 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2921.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v2921.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.21 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.29.20'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.29.20-training-premium-documents")
-    || !serviceWorker.includes("ncr-suite-shell-v2.29.20-training-premium-documents")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v2920.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2920.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2920.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.21'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.21-training-bpf-guided-hotfix")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.21-training-bpf-guided-hotfix")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v2921.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2921.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2921.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.29.20 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.21 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.29.20 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.21 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1297,10 +1297,10 @@ for (const match of allSql.matchAll(/grant\s+execute\s+on\s+function\s+public\.(
 const trainingCommercialPdf = read('src/features/training/commercialPdf.ts');
 const trainingDocumentProcessor = read('supabase/functions/process-email-queue/index.ts');
 if (!trainingCommercialPdf.includes('Bon pour accord') || !trainingCommercialPdf.includes('SYNTHÈSE DE L’OFFRE')) {
-  errors.push('Le rendu premium V2.29.20 des devis/conventions est incomplet.');
+  errors.push('Le rendu premium V2.29.21 des devis/conventions est incomplet.');
 }
 if (!trainingDocumentProcessor.includes('VOTRE SESSION EN UN COUP D’ŒIL') || !trainingDocumentProcessor.includes('FORMATION · CONVOCATION PERSONNELLE') || !trainingDocumentProcessor.includes('DOCUMENT_DATA_REQUIRED')) {
-  errors.push('Le rendu premium V2.29.20 des convocations automatiques est incomplet.');
+  errors.push('Le rendu premium V2.29.21 des convocations automatiques est incomplet.');
 }
 
 const packageJson = JSON.parse(read('package.json'));

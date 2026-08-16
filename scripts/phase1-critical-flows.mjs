@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-training-premium-documents`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-bpf-guided-hotfix`;
 const publicMotionCache = 'ncr-suite-shell-v2.29.5-public-motion';
 const publicFlowSignalCache = 'ncr-suite-shell-v2.29.4-public-flow-signal';
 const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
@@ -108,19 +108,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v2920.css',
-  '/ncr-suite-app-v2920.css',
+  '/ncr-suite-showcase-v2921.css',
+  '/ncr-suite-app-v2921.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.20'
+  'ncr:css-recovery-v2.29.21'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v2920.css',
+  '/ncr-suite-app-v2921.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2920.js'"
+  "entryFileNames: 'ncr-suite-app-v2921.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -1518,6 +1518,22 @@ requireText('supabase/migrations/134_training_premium_documents_release.sql', [
   "'2.29.20'",
   'ncr-suite-shell-v2.29.20-training-premium-documents',
   'documents Formation premium'
+]);
+
+requireText('supabase/migrations/135_training_bpf_guided_completed_session_fix.sql', [
+  "'2.29.21'",
+  'ncr-suite-shell-v2.29.21-training-bpf-guided-hotfix',
+  'set_training_bpf_session_regulatory_scope',
+  'set_training_bpf_session_delivery_mode',
+  'set_training_bpf_enrollment_trainee_type',
+  'set_training_bpf_session_trainee_type'
+]);
+
+requireText('src/pages/TrainingBpfPage.tsx', [
+  "supabase.rpc('set_training_bpf_session_regulatory_scope'",
+  "supabase.rpc('set_training_bpf_session_delivery_mode'",
+  "supabase.rpc('set_training_bpf_enrollment_trainee_type'",
+  "supabase.rpc('set_training_bpf_session_trainee_type'"
 ]);
 
 requireText('src/components/TrainingBpfAssistant.tsx', [
