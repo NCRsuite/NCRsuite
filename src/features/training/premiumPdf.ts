@@ -51,10 +51,19 @@ export function trainingPdfText(value: unknown, font: PDFFont) {
 export function drawTrainingPdfText(
   page: PDFPage,
   value: unknown,
-  options: { x: number; y: number; size: number; font: PDFFont; color: RGB; maxWidth?: number }
+  options: { x: number; y: number; size: number; font: PDFFont; color: RGB; maxWidth?: number; lineHeight?: number }
 ) {
-  const { maxWidth: _maxWidth, ...drawOptions } = options;
-  page.drawText(trainingPdfText(value, options.font), drawOptions);
+  const { maxWidth: _maxWidth, lineHeight, ...drawOptions } = options;
+  const text = trainingPdfText(value, options.font);
+  const lines = text.split('\n');
+  const step = lineHeight ?? options.size * 1.3;
+
+  // pdf-lib ne doit jamais recevoir un retour à la ligne comme glyphe.
+  // Chaque ligne est dessinée séparément : aucun « ? » ne peut être produit à la place d'un saut de ligne.
+  lines.forEach((line, index) => {
+    if (!line) return;
+    page.drawText(line, { ...drawOptions, y: options.y - index * step });
+  });
 }
 
 export function wrapTrainingPdfText(value: unknown, font: PDFFont, size: number, maxWidth: number) {

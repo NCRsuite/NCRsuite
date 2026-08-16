@@ -55,6 +55,10 @@ function safe(value: unknown) {
     .trim();
 }
 
+function singleLine(value: unknown) {
+  return safe(value).replace(/\n+/g, ' · ');
+}
+
 function slugify(value: string) {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || 'session';
 }
@@ -151,7 +155,7 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
       page.drawImage(logo, { x: MARGIN, y: y - height + 5, width, height });
       organizationX += width + 10;
     }
-    page.drawText(safe(input.organization.public_name || input.organization.name), { x: organizationX, y, size: 10, font: bold, color: dark });
+    page.drawText(singleLine(input.organization.public_name || input.organization.name), { x: organizationX, y, size: 10, font: bold, color: dark });
     page.drawText(`DOSSIER DE SESSION · ${pageNumber}`, { x: A4[0] - MARGIN - 118, y, size: 8, font: bold, color: muted });
     y -= 28;
   }
@@ -179,7 +183,7 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
   function keyValue(label: string, value: string) {
     const lines = wrap(value || '-', regular, 9, A4[0] - MARGIN * 2 - 145);
     ensure(Math.max(22, lines.length * 12 + 6));
-    page.drawText(safe(label), { x: MARGIN, y, size: 8, font: bold, color: muted });
+    page.drawText(singleLine(label), { x: MARGIN, y, size: 8, font: bold, color: muted });
     lines.forEach((line, index) => page.drawText(line, { x: MARGIN + 145, y: y - index * 12, size: 9, font: regular, color: dark }));
     y -= Math.max(18, lines.length * 12 + 4);
   }
@@ -188,7 +192,7 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
     ensure(34);
     y -= 5;
     page.drawRectangle({ x: MARGIN, y: y - 23, width: A4[0] - MARGIN * 2, height: 27, color: soft });
-    page.drawText(safe(text).toUpperCase(), { x: MARGIN + 10, y: y - 14, size: 9.5, font: bold, color: dark });
+    page.drawText(singleLine(text).toUpperCase(), { x: MARGIN + 10, y: y - 14, size: 9.5, font: bold, color: dark });
     y -= 34;
   }
 
@@ -223,7 +227,7 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
     ensure(46);
     page.drawLine({ start: { x: MARGIN, y: y + 5 }, end: { x: A4[0] - MARGIN, y: y + 5 }, color: border, thickness: 0.6 });
     page.drawText(`${index + 1}. ${safe(personName(trainee.first_name, trainee.last_name))}`, { x: MARGIN, y: y - 8, size: 9, font: bold, color: dark });
-    page.drawText(safe(trainee.company || trainee.email || 'Stagiaire'), { x: MARGIN, y: y - 21, size: 7.8, font: regular, color: muted });
+    page.drawText(singleLine(trainee.company || trainee.email || 'Stagiaire'), { x: MARGIN, y: y - 21, size: 7.8, font: regular, color: muted });
     page.drawText(`Émargement : ${present} signé(s), ${absent} absent(s), ${excused} justifié(s)`, { x: MARGIN + 245, y: y - 8, size: 7.8, font: regular, color: dark });
     page.drawText(evaluation, { x: MARGIN + 245, y: y - 21, size: 7.8, font: regular, color: muted });
     y -= 38;

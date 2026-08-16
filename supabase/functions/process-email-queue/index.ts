@@ -113,6 +113,24 @@ function hexRgb(value: unknown) {
   );
 }
 
+function pdfFontSafeText(value: unknown, font: { encodeText: (value: string) => unknown }): string {
+  const normalized = normalizePdfText(value);
+  let output = '';
+  for (const character of normalized) {
+    if (character === '\n') {
+      output += '\n';
+      continue;
+    }
+    try {
+      font.encodeText(character);
+      output += character;
+    } catch {
+      // Les glyphes non pris en charge sont ignorés plutôt que remplacés par « ? ».
+    }
+  }
+  return output;
+}
+
 function wrapPdfText(text: string, font: { widthOfTextAtSize: (value: string, size: number) => number }, size: number, maxWidth: number): string[] {
   const normalized = normalizePdfText(text);
   if (!normalized) return [];
@@ -198,11 +216,15 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
   const height = page.getHeight();
   const contentWidth = width - margin * 2;
 
-  const drawText = (value: unknown, x: number, y: number, size: number, font = regular, color = dark) => {
-    page.drawText(normalizePdfText(value), { x, y, size, font, color });
+  const drawText = (value: unknown, x: number, y: number, size: number, font = regular, color = dark, lineHeight = size * 1.3) => {
+    const lines = pdfFontSafeText(value, font).split('\n');
+    lines.forEach((lineText, index) => {
+      if (!lineText) return;
+      page.drawText(lineText, { x, y: y - index * lineHeight, size, font, color });
+    });
   };
   const wrap = (value: unknown, size: number, maxWidth: number, font = regular) =>
-    wrapPdfText(normalizePdfText(value), font, size, maxWidth);
+    wrapPdfText(pdfFontSafeText(value, font), font, size, maxWidth);
   const drawParagraph = (value: unknown, x: number, startY: number, size: number, maxWidth: number, maxLines = 12, color = muted) => {
     let currentY = startY;
     for (const lineText of wrap(value, size, maxWidth).slice(0, maxLines)) {

@@ -58,6 +58,10 @@ function normalizePdfText(value: unknown) {
     .trim();
 }
 
+function singleLinePdfText(value: unknown) {
+  return normalizePdfText(value).replace(/\n+/g, ' · ');
+}
+
 function safeHexColor(value: unknown) {
   const color = String(value ?? '');
   return /^#[0-9a-f]{6}$/i.test(color) ? color : '#2997ff';
@@ -195,23 +199,23 @@ function drawPageHeader(
     brandX += logoWidth + 12;
   }
 
-  const organizationName = normalizePdfText(input.organization.public_name || input.organization.name || 'Organisme de formation');
+  const organizationName = singleLinePdfText(input.organization.public_name || input.organization.name || 'Organisme de formation');
   page.drawText(organizationName, { x: brandX, y: height - 34, size: 12, font: bold, color: dark });
-  const address = normalizePdfText(input.site?.address || input.organization.booking_address || '');
+  const address = singleLinePdfText(input.site?.address || input.organization.booking_address || '');
   if (address) page.drawText(address.slice(0, 95), { x: brandX, y: height - 50, size: 8.5, font: regular, color: muted });
 
   page.drawText(input.blank ? "FEUILLE D'EMARGEMENT VIERGE" : "FEUILLE D'EMARGEMENT", { x: MARGIN, y: height - 85, size: 19, font: bold, color: dark });
   page.drawRectangle({ x: MARGIN, y: height - 93, width: 74, height: 3, color: accent });
 
-  const title = normalizePdfText(input.session.title || input.program?.title || 'Session de formation');
+  const title = singleLinePdfText(input.session.title || input.program?.title || 'Session de formation');
   page.drawText(title.slice(0, 86), { x: MARGIN, y: height - 112, size: 10.5, font: bold, color: dark });
 
   const timezone = input.organization.timezone || 'Europe/Paris';
   const trainerName = input.trainer ? personName(input.trainer.first_name, input.trainer.last_name) : 'À définir';
   const details = [
     formatDay(input.attendanceDate),
-    `Formateur : ${normalizePdfText(trainerName)}`,
-    input.session.location ? `Lieu : ${normalizePdfText(input.session.location)}` : null,
+    `Formateur : ${singleLinePdfText(trainerName)}`,
+    input.session.location ? `Lieu : ${singleLinePdfText(input.session.location)}` : null,
     `Session : ${formatDateTime(input.session.starts_at, timezone)} - ${formatDateTime(input.session.ends_at, timezone)}`
   ].filter(Boolean).join('  ·  ');
   page.drawText(details.slice(0, 155), { x: MARGIN, y: height - 128, size: 8.3, font: regular, color: muted });
@@ -270,7 +274,7 @@ function drawPeriodCell(
   const statusColor = status === 'present' ? green : status === 'absent' ? red : status === 'excused' ? orange : muted;
   const label = attendanceStatusLabels[status];
 
-  page.drawText(normalizePdfText(label), { x: x + 10, y: y - 18, size: 8.5, font: bold, color: statusColor });
+  page.drawText(singleLinePdfText(label), { x: x + 10, y: y - 18, size: 8.5, font: bold, color: statusColor });
   if (status === 'present') {
     if (image) {
       const signatureX = x + 98;
@@ -288,10 +292,10 @@ function drawPeriodCell(
     } else {
       page.drawText('Image de signature indisponible', { x: x + 98, y: y - 29, size: 6.9, font: regular, color: muted });
     }
-    if (record?.signatory_name) page.drawText(normalizePdfText(record.signatory_name).slice(0, 34), { x: x + 10, y: y - 33, size: 7.3, font: regular, color: dark });
+    if (record?.signatory_name) page.drawText(singleLinePdfText(record.signatory_name).slice(0, 34), { x: x + 10, y: y - 33, size: 7.3, font: regular, color: dark });
     if (record?.signed_at) page.drawText(formatDateTime(record.signed_at, timezone), { x: x + 10, y: y - 45, size: 6.8, font: regular, color: muted });
   } else if (record?.notes) {
-    page.drawText(normalizePdfText(record.notes).slice(0, 48), { x: x + 10, y: y - 35, size: 7.2, font: regular, color: muted });
+    page.drawText(singleLinePdfText(record.notes).slice(0, 48), { x: x + 10, y: y - 35, size: 7.2, font: regular, color: muted });
   }
 }
 
@@ -345,7 +349,7 @@ export async function generateAttendanceDayPdf(input: AttendancePdfInput): Promi
       wrapText(name, bold, 9.2, PARTICIPANT_WIDTH - 20, 2).forEach((line, index) => {
         page.drawText(line, { x: MARGIN + 10, y: y - 18 - index * 11, size: 9.2, font: bold, color: dark });
       });
-      page.drawText(normalizePdfText(company).slice(0, 42), { x: MARGIN + 10, y: y - 44, size: 7.3, font: regular, color: muted });
+      page.drawText(singleLinePdfText(company).slice(0, 42), { x: MARGIN + 10, y: y - 44, size: 7.3, font: regular, color: muted });
 
       const morning = records.get(recordKey(trainee.id, 'morning'));
       const afternoon = records.get(recordKey(trainee.id, 'afternoon'));

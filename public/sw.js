@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.29.21-training-bpf-guided-hotfix';
+const CACHE = 'ncr-suite-shell-v2.29.22-pdf-multiline-definitive';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v2921.css',
-  '/ncr-suite-app-v2921.css',
-  '/ncr-suite-app-v2921.js',
+  '/ncr-suite-showcase-v2922.css',
+  '/ncr-suite-app-v2922.css',
+  '/ncr-suite-app-v2922.js',
   '/fonts/inter-variable.woff2',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-symbol-v2221.png',

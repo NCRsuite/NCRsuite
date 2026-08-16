@@ -736,33 +736,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v2921.css')
-    || !indexHtml.includes('/ncr-suite-app-v2921.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v2922.css')
+    || !indexHtml.includes('/ncr-suite-app-v2922.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.29.21')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v2921.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v2921.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.22')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v2922.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v2922.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2921.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2922.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.29.21 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.22 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2921.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v2921.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.29.21 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2922.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v2922.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.22 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.29.21'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.29.21-training-bpf-guided-hotfix")
-    || !serviceWorker.includes("ncr-suite-shell-v2.29.21-training-bpf-guided-hotfix")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v2921.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2921.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2921.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.22'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.22-pdf-multiline-definitive")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.22-pdf-multiline-definitive")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v2922.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2922.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2922.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.29.21 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.22 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.29.21 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.22 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1301,6 +1301,18 @@ if (!trainingCommercialPdf.includes('Bon pour accord') || !trainingCommercialPdf
 }
 if (!trainingDocumentProcessor.includes('VOTRE SESSION EN UN COUP D’ŒIL') || !trainingDocumentProcessor.includes('FORMATION · CONVOCATION PERSONNELLE') || !trainingDocumentProcessor.includes('DOCUMENT_DATA_REQUIRED')) {
   errors.push('Le rendu premium V2.29.21 des convocations automatiques est incomplet.');
+}
+
+const trainingPremiumPdfMultiline = read('src/features/training/premiumPdf.ts');
+const trainingAttendancePdfMultiline = read('src/features/training/attendancePdf.ts');
+if (!trainingPremiumPdfMultiline.includes("text.split('\\n')") || !trainingPremiumPdfMultiline.includes('page.drawText(line')) {
+  errors.push('Le correctif PDF multi-ligne V2.29.22 du socle premium est absent.');
+}
+if (!trainingDocumentProcessor.includes("pdfFontSafeText(value, font).split('\\n')") || !trainingDocumentProcessor.includes('page.drawText(lineText')) {
+  errors.push('Le correctif PDF multi-ligne V2.29.22 des documents automatiques est absent.');
+}
+if (!trainingAttendancePdfMultiline.includes("replace(/\\n+/g, ' · ')") ) {
+  errors.push('La sécurisation des champs mono-ligne des émargements V2.29.22 est absente.');
 }
 
 const packageJson = JSON.parse(read('package.json'));
