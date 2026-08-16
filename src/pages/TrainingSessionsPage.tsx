@@ -670,7 +670,7 @@ export function TrainingSessionsPage() {
           <section className="panel training-test-session-modal" role="dialog" aria-modal="true" aria-labelledby="test-session-title" onClick={(event) => event.stopPropagation()}>
             <div className="panel-header"><div><p className="eyebrow">BAC À SABLE FORMATION</p><h2 id="test-session-title">Tester le cycle complet</h2><p>NCR duplique « {testSourceSession.title} » sur une journée déjà terminée, avec un seul stagiaire test.</p></div><button className="icon-button" type="button" onClick={() => setTestSourceSession(null)} disabled={testBusy} aria-label="Fermer"><Icon name="close" size={20} /></button></div>
             <div className="training-test-session-explainer">
-              <article><Icon name="mail" size={18}/><span><strong>Vrais e-mails</strong><small>Convocation, invitation portail, évaluations et documents partiront vers une seule adresse.</small></span></article>
+              <article><Icon name="message" size={18}/><span><strong>Vrais e-mails</strong><small>Convocation, invitation portail, évaluations et documents partiront vers une seule adresse.</small></span></article>
               <article><Icon name="check" size={18}/><span><strong>Vrai parcours stagiaire</strong><small>Émargements et évaluations restent obligatoires avant la clôture.</small></span></article>
               <article><Icon name="shield" size={18}/><span><strong>Sans pollution</strong><small>Session marquée TEST, hors BPF et sans lien commercial/facture.</small></span></article>
             </div>
