@@ -398,7 +398,7 @@ export async function generateAttendanceDayPdf(input: AttendancePdfInput): Promi
   pdf.setAuthor(input.organization.public_name || input.organization.name);
   pdf.setSubject(input.blank ? 'Feuille vierge à imprimer et signer manuellement.' : `Présences signées : ${totals.present} · Absences : ${totals.absent} · Justifiées : ${totals.excused}`);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.29.24');
+  pdf.setProducer('NCR Suite V2.29.25');
 
   return {
     bytes: await pdf.save(),

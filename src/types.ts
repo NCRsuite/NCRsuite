@@ -99,6 +99,8 @@ export interface Organization {
   training_invoice_reminder_max_count?: number;
   training_signature_url?: string | null;
   training_stamp_url?: string | null;
+  training_test_email?: string | null;
+  training_test_trainee_id?: string | null;
   company_contact_name?: string | null;
   company_email?: string | null;
   company_phone?: string | null;

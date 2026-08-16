@@ -281,7 +281,7 @@ export async function generateCertificateOfRealizationPdf(input: TrainingCertifi
   pdf.setAuthor(organizationName);
   pdf.setSubject('Certificat de réalisation d’une action de formation');
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.29.24');
+  pdf.setProducer('NCR Suite V2.29.25');
 
   return {
     bytes: await pdf.save(),

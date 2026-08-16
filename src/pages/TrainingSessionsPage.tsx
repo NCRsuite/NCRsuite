@@ -106,8 +106,12 @@ export function TrainingSessionsPage() {
   const [closureSession, setClosureSession] = useState<TrainingSessionRecord | null>(null);
   const [closureCheck, setClosureCheck] = useState<SessionClosureCheck | null>(null);
   const [closureNotes, setClosureNotes] = useState('');
+  const [testSourceSession, setTestSourceSession] = useState<TrainingSessionRecord | null>(null);
+  const [testEmail, setTestEmail] = useState('');
+  const [testBusy, setTestBusy] = useState(false);
   const handledFocusRef = useRef('');
   const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
+  const canCreateTestSession = ['owner', 'admin'].includes(organization?.role ?? 'viewer');
   const formOpen = canManage && searchParams.get('new') === '1';
   const requestedViewParam = searchParams.get('view');
   const focusSessionId = searchParams.get('focus');
@@ -116,6 +120,10 @@ export function TrainingSessionsPage() {
   useEffect(() => {
     setForm((current) => ({ ...current, siteId: current.siteId || activeSiteId || sites[0]?.id || '' }));
   }, [activeSiteId, sites]);
+
+  useEffect(() => {
+    if (organization?.training_test_email) setTestEmail(organization.training_test_email);
+  }, [organization?.id, organization?.training_test_email]);
 
   async function loadData() {
     if (!organization) return;
@@ -140,7 +148,7 @@ export function TrainingSessionsPage() {
 
     let sessionsQuery = supabase
       .from('training_sessions')
-      .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,created_at')
+      .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,closed_at,closed_by,closure_notes,reopened_at,reopened_by,is_test,test_source_session_id,test_recipient_email,created_at')
       .eq('organization_id', organization.id)
       .order('starts_at', { ascending: true });
     let programsQuery = supabase
@@ -158,7 +166,7 @@ export function TrainingSessionsPage() {
       sessionsQuery,
       programsQuery,
       supabase.from('training_trainers').select('id,organization_id,first_name,last_name,email,phone,specialties,notes,status,created_at').eq('organization_id', organization.id).eq('status', 'active').order('last_name'),
-      supabase.from('training_trainees').select('id,organization_id,first_name,last_name,email,phone,company,notes,status,created_at').eq('organization_id', organization.id).eq('status', 'active').order('last_name'),
+      supabase.from('training_trainees').select('id,organization_id,first_name,last_name,email,phone,company,notes,status,is_test_profile,created_at').eq('organization_id', organization.id).eq('status', 'active').order('last_name'),
       supabase.from('training_session_enrollments').select('organization_id,session_id,trainee_id,status').eq('organization_id', organization.id),
       supabase.from('training_documents').select('id,organization_id,site_id,session_id,program_id,trainee_id,title,category,storage_path,mime_type,size_bytes,visibility,status,notes,generated_automatically,automation_key,generated_at,emailed_at,created_at').eq('organization_id', organization.id).neq('status', 'archived'),
       supabase.from('training_attendance').select('id,organization_id,site_id,session_id,trainee_id,attendance_date,period,status,signature_path,signatory_name,signed_at,notes,created_at,updated_at').eq('organization_id', organization.id)
@@ -324,6 +332,34 @@ export function TrainingSessionsPage() {
     } catch (caught) {
       setError(`Création impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
     } finally { setSaving(false); }
+  }
+
+  function openTestSession(session: TrainingSessionRecord) {
+    setError(''); setSuccess('');
+    setTestEmail(organization?.training_test_email || testEmail || '');
+    setTestSourceSession(session);
+  }
+
+  async function createTestSession() {
+    if (!organization || !supabase || !testSourceSession || !canCreateTestSession) return;
+    const email = testEmail.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { setError('Renseigne une adresse e-mail de test valide.'); return; }
+    setTestBusy(true); setError(''); setSuccess('');
+    try {
+      const { data, error: rpcError } = await supabase.rpc('create_training_test_session', {
+        p_organization_id: organization.id,
+        p_source_session_id: testSourceSession.id,
+        p_test_email: email
+      });
+      if (rpcError) throw rpcError;
+      const payload = (data ?? {}) as { session_id?: string; test_email?: string };
+      await loadData();
+      setTestSourceSession(null);
+      setSuccess(`Session test créée. Les vrais e-mails partent uniquement vers ${payload.test_email || email}.`);
+      if (payload.session_id) setSearchParams({ view: 'current', focus: payload.session_id });
+    } catch (caught) {
+      setError(`Session test impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+    } finally { setTestBusy(false); }
   }
 
   async function generateSessionDossier(session: TrainingSessionRecord, mode: 'preview' | 'download') {
@@ -521,7 +557,7 @@ export function TrainingSessionsPage() {
     <div className="page training-page training-planning-premium">
       <header className="page-header training-planning-hero">
         <div><p className="eyebrow">PACK FORMATION</p><h1>Sessions</h1><p>Planifiez vos sessions et inscrivez les stagiaires en une seule opération.</p></div>
-        {canManage && <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Créer une session</button>}
+        <div className="training-session-hero-actions">{canManage && <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Créer une session</button>}</div>
       </header>
 
       {formOpen && (
@@ -541,7 +577,7 @@ export function TrainingSessionsPage() {
               <label>Capacité *<input type="number" min={1} max={500} required value={form.capacity} onChange={(event) => setForm((current) => ({ ...current, capacity: event.target.value }))} /></label>
               <label>Statut<select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as TrainingSessionStatus }))}><option value="draft">Brouillon</option><option value="scheduled">Planifiée</option><option value="in_progress">En cours</option><option value="canceled">Annulée</option></select></label>
               <label className="full-field">Lieu ou lien de visioconférence<input value={form.location} onChange={(event) => setForm((current) => ({ ...current, location: event.target.value }))} /></label>
-              <fieldset className="full-field training-trainee-picker"><legend>Stagiaires inscrits <small>{form.traineeIds.length}/{form.capacity || 0}</small></legend>{trainees.length === 0 ? <p>Aucun stagiaire actif. Tu peux créer la session sans inscription.</p> : <div>{trainees.map((trainee) => <label key={trainee.id} className={form.traineeIds.includes(trainee.id) ? 'selected' : ''}><input type="checkbox" checked={form.traineeIds.includes(trainee.id)} onChange={() => toggleTrainee(trainee.id)} /><span><strong>{personName(trainee.first_name, trainee.last_name)}</strong><small>{trainee.company || trainee.email || 'Stagiaire'}</small></span></label>)}</div>}</fieldset>
+              <fieldset className="full-field training-trainee-picker"><legend>Stagiaires inscrits <small>{form.traineeIds.length}/{form.capacity || 0}</small></legend>{trainees.length === 0 ? <p>Aucun stagiaire actif. Tu peux créer la session sans inscription.</p> : <div>{trainees.filter((trainee) => !trainee.is_test_profile).map((trainee) => <label key={trainee.id} className={form.traineeIds.includes(trainee.id) ? 'selected' : ''}><input type="checkbox" checked={form.traineeIds.includes(trainee.id)} onChange={() => toggleTrainee(trainee.id)} /><span><strong>{personName(trainee.first_name, trainee.last_name)}</strong><small>{trainee.company || trainee.email || 'Stagiaire'}</small></span></label>)}</div>}</fieldset>
               <label className="full-field">Notes internes<textarea rows={3} value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} /></label>
               <div className="form-actions full-field"><button className="secondary-button" type="button" onClick={() => setSearchParams({})}>Annuler</button><button className="primary-button" type="submit" disabled={saving}>{saving ? 'Création…' : 'Créer la session'}</button></div>
             </form>
@@ -594,7 +630,7 @@ export function TrainingSessionsPage() {
                 <article id={`training-session-${session.id}`} key={session.id} className={`training-session-card${isClosed ? ' closed' : ''}${focusSessionId === session.id ? ' focused' : ''}`}>
                   <div className="training-session-date"><strong>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit' }).format(new Date(session.starts_at))}</strong><span>{new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(new Date(session.starts_at))}</span></div>
                   <div className="training-session-main">
-                    <div><strong>{session.title}</strong><span>{program?.title || 'Formation'} · {modalityLabels[session.modality]}</span></div>
+                    <div><strong>{session.title}</strong>{session.is_test && <em className="training-test-badge">TEST · HORS BPF</em>}<span>{program?.title || 'Formation'} · {modalityLabels[session.modality]}</span></div>
                     <p>{formatDateTime(session.starts_at)} → {formatDateTime(session.ends_at)}</p>
                     <small>{trainer ? `Formateur : ${personName(trainer.first_name, trainer.last_name)}` : 'Formateur à définir'}{session.location ? ` · ${session.location}` : ''}</small>
                     {isClosed && <em className="training-session-closed-meta">Clôturée {session.closed_at ? `le ${formatDateTime(session.closed_at)}` : 'avant la mise en place du suivi de clôture'}{session.closure_notes ? ` · ${session.closure_notes}` : ''}</em>}
@@ -607,6 +643,7 @@ export function TrainingSessionsPage() {
                       </select></label>
                     ) : <span className={`training-status-pill ${trainingStatusClass(session)}`}>{sessionStatusLabels[session.status]}</span>}
                     <div className="training-document-automation-actions">
+                      {canCreateTestSession && !session.is_test && <button className="secondary-button compact-button training-test-copy-button" type="button" onClick={() => openTestSession(session)}><Icon name="activity" size={15} />Tester la clôture</button>}
                       <Link className="secondary-button compact-button" to={`/documents?session=${encodeURIComponent(session.id)}`}>Documents</Link>
                       <Link className="secondary-button compact-button" to={`/documents?session=${encodeURIComponent(session.id)}&category=attestation`}>Attestations</Link>
                       <Link className="secondary-button compact-button" to={`/emargements?session=${encodeURIComponent(session.id)}`}>Émargements</Link>
@@ -627,6 +664,22 @@ export function TrainingSessionsPage() {
         )}
         </div>
       </section>
+
+      {testSourceSession && (
+        <div className="training-closure-modal-backdrop" role="presentation" onClick={() => !testBusy && setTestSourceSession(null)}>
+          <section className="panel training-test-session-modal" role="dialog" aria-modal="true" aria-labelledby="test-session-title" onClick={(event) => event.stopPropagation()}>
+            <div className="panel-header"><div><p className="eyebrow">BAC À SABLE FORMATION</p><h2 id="test-session-title">Tester le cycle complet</h2><p>NCR duplique « {testSourceSession.title} » sur une journée déjà terminée, avec un seul stagiaire test.</p></div><button className="icon-button" type="button" onClick={() => setTestSourceSession(null)} disabled={testBusy} aria-label="Fermer"><Icon name="close" size={20} /></button></div>
+            <div className="training-test-session-explainer">
+              <article><Icon name="mail" size={18}/><span><strong>Vrais e-mails</strong><small>Convocation, invitation portail, évaluations et documents partiront vers une seule adresse.</small></span></article>
+              <article><Icon name="check" size={18}/><span><strong>Vrai parcours stagiaire</strong><small>Émargements et évaluations restent obligatoires avant la clôture.</small></span></article>
+              <article><Icon name="shield" size={18}/><span><strong>Sans pollution</strong><small>Session marquée TEST, hors BPF et sans lien commercial/facture.</small></span></article>
+            </div>
+            <label className="training-test-email-field">Adresse e-mail de test<input type="email" autoComplete="email" value={testEmail} onChange={(event) => setTestEmail(event.target.value)} placeholder="test@exemple.fr"/><small>Cette adresse recevra aussi l’invitation à l’espace stagiaire si le portail Formation est actif.</small></label>
+            <div className="training-test-session-warning"><Icon name="alert" size={17}/><span>La session test est créée sur hier, de 09:00 à 17:00. Elle est donc clôturable immédiatement dès que les émargements obligatoires sont complétés.</span></div>
+            <div className="form-actions"><button className="secondary-button" type="button" onClick={() => setTestSourceSession(null)} disabled={testBusy}>Annuler</button><button className="primary-button" type="button" onClick={() => void createTestSession()} disabled={testBusy || !testEmail.trim()}>{testBusy ? 'Création du test…' : 'Créer et envoyer les e-mails test'}</button></div>
+          </section>
+        </div>
+      )}
 
       {closureSession && closureCheck && (
         <div className="training-closure-modal-backdrop" role="presentation" onClick={() => !closureBusyId && setClosureSession(null)}>

@@ -253,8 +253,8 @@ if (!trainingSessionsV2153.includes("status: 'draft' as TrainingSessionStatus")
     || !trainingSessionsV2153.includes('evaluation_type,status,scheduled_for')) {
   errors.push('La page Sessions Formation doit passer par la validation officielle et lire les champs d’évaluation V2.15.2.');
 }
-if (!trainingEmailProcessor.includes('NCR Suite V2.29.24')) {
-  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.29.24.');
+if (!trainingEmailProcessor.includes('NCR Suite V2.29.25')) {
+  errors.push('Le processeur documentaire Formation doit annoncer NCR Suite V2.29.25.');
 }
 
 // V2.15.4 — SAV Formation réservé au super administrateur NCR.
@@ -736,33 +736,33 @@ const seoGenerator = read('scripts/generate-seo-pages.mjs');
 const sitemap = read('public/sitemap.xml');
 const robots = read('public/robots.txt');
 const cloudflareMiddleware = read('functions/_middleware.ts');
-if (!indexHtml.includes('/ncr-suite-showcase-v2924.css')
-    || !indexHtml.includes('/ncr-suite-app-v2924.css')
+if (!indexHtml.includes('/ncr-suite-showcase-v2925.css')
+    || !indexHtml.includes('/ncr-suite-app-v2925.css')
     || !indexHtml.includes('ncr-style-guard')
-    || !indexHtml.includes('ncr:css-recovery-v2.29.24')
-    || !showcaseGenerator.includes('ncr-suite-showcase-v2924.css')
-    || !showcaseGenerator.includes('ncr-suite-app-v2924.css')
+    || !indexHtml.includes('ncr:css-recovery-v2.29.25')
+    || !showcaseGenerator.includes('ncr-suite-showcase-v2925.css')
+    || !showcaseGenerator.includes('ncr-suite-app-v2925.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2924.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2925.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
-  errors.push('La protection V2.29.24 contre les fragments /assets indisponibles est incomplete.');
+  errors.push('La protection V2.29.25 contre les fragments /assets indisponibles est incomplete.');
 }
 if (!cloudflareHeaders.includes('Content-Type: text/css; charset=utf-8')
-    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2924.css')
-    || !cloudflareHeaders.includes('/ncr-suite-app-v2924.css')) {
-  errors.push('Les en-tetes CSS Cloudflare V2.29.24 sont incomplets.');
+    || !cloudflareHeaders.includes('/ncr-suite-showcase-v2925.css')
+    || !cloudflareHeaders.includes('/ncr-suite-app-v2925.css')) {
+  errors.push('Les en-tetes CSS Cloudflare V2.29.25 sont incomplets.');
 }
-if (!runtimeConfig.includes("APP_VERSION = '2.29.24'")
-    || !runtimeConfig.includes("ncr-suite-shell-v2.29.24-attendance-winansi-hotfix")
-    || !serviceWorker.includes("ncr-suite-shell-v2.29.24-attendance-winansi-hotfix")
-    || !serviceWorker.includes("'/ncr-suite-showcase-v2924.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2924.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2924.js'")
+if (!runtimeConfig.includes("APP_VERSION = '2.29.25'")
+    || !runtimeConfig.includes("ncr-suite-shell-v2.29.25-training-test-sandbox")
+    || !serviceWorker.includes("ncr-suite-shell-v2.29.25-training-test-sandbox")
+    || !serviceWorker.includes("'/ncr-suite-showcase-v2925.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2925.css'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2925.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
-  errors.push('La version ou le cache PWA V2.29.24 est incoherent.');
+  errors.push('La version ou le cache PWA V2.29.25 est incoherent.');
 }
 if (read('src/main.tsx').includes("import './styles.css'")) {
-  errors.push('Le style complet V2.29.24 ne doit pas etre fragmente dans /assets.');
+  errors.push('Le style complet V2.29.25 ne doit pas etre fragmente dans /assets.');
 }
 if (!publicHomePage.includes('public-home-v232')
     || !publicHomePage.includes('public-offer-business-tabs')
@@ -1306,13 +1306,13 @@ if (!trainingDocumentProcessor.includes('VOTRE SESSION EN UN COUP D’ŒIL') || 
 const trainingPremiumPdfMultiline = read('src/features/training/premiumPdf.ts');
 const trainingAttendancePdfMultiline = read('src/features/training/attendancePdf.ts');
 if (!trainingPremiumPdfMultiline.includes("text.split('\\n')") || !trainingPremiumPdfMultiline.includes('page.drawText(line')) {
-  errors.push('Le correctif PDF multi-ligne V2.29.24 du socle premium est absent.');
+  errors.push('Le correctif PDF multi-ligne V2.29.25 du socle premium est absent.');
 }
 if (!trainingDocumentProcessor.includes("pdfFontSafeText(value, font).split('\\n')") || !trainingDocumentProcessor.includes('page.drawText(lineText')) {
-  errors.push('Le correctif PDF multi-ligne V2.29.24 des documents automatiques est absent.');
+  errors.push('Le correctif PDF multi-ligne V2.29.25 des documents automatiques est absent.');
 }
 if (!trainingAttendancePdfMultiline.includes("replace(/\\n+/g, ' · ')") ) {
-  errors.push('La sécurisation des champs mono-ligne des émargements V2.29.24 est absente.');
+  errors.push('La sécurisation des champs mono-ligne des émargements V2.29.25 est absente.');
 }
 
 const packageJson = JSON.parse(read('package.json'));

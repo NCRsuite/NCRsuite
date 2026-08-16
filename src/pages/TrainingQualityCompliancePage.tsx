@@ -154,8 +154,8 @@ export function TrainingQualityCompliancePage() {
         .select('id,organization_id,audit_type,status,planned_date,completed_date,auditor_name,scope,notes,result,summary_snapshot,created_at,updated_at')
         .eq('organization_id', organization.id).order('planned_date', { ascending: false }),
       supabase.from('training_sessions')
-        .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,created_at')
-        .eq('organization_id', organization.id).order('starts_at', { ascending: false })
+        .select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,is_test,created_at')
+        .eq('organization_id', organization.id).eq('is_test', false).order('starts_at', { ascending: false })
     ]);
     const firstError = controlsResult.error || evidenceResult.error || auditsResult.error || sessionsResult.error;
     if (firstError) setError(`Chargement du dossier qualité impossible : ${firstError.message}`);

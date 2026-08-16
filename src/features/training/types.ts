@@ -63,6 +63,7 @@ export interface TrainingTraineeRecord {
   company: string | null;
   notes: string | null;
   status: TrainingEntityStatus;
+  is_test_profile?: boolean;
   created_at: string;
 }
 
@@ -93,6 +94,9 @@ export interface TrainingSessionRecord {
   location: string | null;
   modality: TrainingModality;
   status: TrainingSessionStatus;
+  is_test?: boolean;
+  test_source_session_id?: string | null;
+  test_recipient_email?: string | null;
   notes: string | null;
   closed_at?: string | null;
   closed_by?: string | null;

@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-attendance-winansi-hotfix`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-test-sandbox`;
 const publicMotionCache = 'ncr-suite-shell-v2.29.5-public-motion';
 const publicFlowSignalCache = 'ncr-suite-shell-v2.29.4-public-flow-signal';
 const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
@@ -108,19 +108,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v2924.css',
-  '/ncr-suite-app-v2924.css',
+  '/ncr-suite-showcase-v2925.css',
+  '/ncr-suite-app-v2925.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.24'
+  'ncr:css-recovery-v2.29.25'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v2924.css',
+  '/ncr-suite-app-v2925.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2924.js'"
+  "entryFileNames: 'ncr-suite-app-v2925.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -504,7 +504,7 @@ requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'training_commercial_document'",
   "item.template_key === 'training_commercial_document'",
   'Convocation à une formation',
-  'NCR Suite V2.29.24'
+  'NCR Suite V2.29.25'
 ]);
 requireText('supabase/migrations/073_training_delivery_closure_automation.sql', [
   'update_training_evaluation_settings',
@@ -1565,18 +1565,27 @@ requireText('supabase/functions/process-email-queue/index.ts', [
   'FORMATION · CONVOCATION PERSONNELLE',
   'VOTRE SESSION EN UN COUP D’ŒIL',
   'DOCUMENT_DATA_REQUIRED',
-  "NCR Suite V2.29.24",
+  "NCR Suite V2.29.25",
   'ATTESTATION NOMINATIVE',
   'SYNTHÈSE DE PRÉSENCE'
 ]);
 requireText('src/features/training/certificateOfRealizationPdf.ts', [
   'Certificat de réalisation',
   'Durée réalisée',
-  'NCR Suite V2.29.24'
+  'NCR Suite V2.29.25'
 ]);
-requireText('supabase/migrations/138_training_attendance_winansi_hotfix.sql', [
-  "'2.29.24'",
-  'ncr-suite-shell-v2.29.24-attendance-winansi-hotfix'
+requireText('supabase/migrations/139_training_test_session_sandbox.sql', [
+  "'2.29.25'",
+  'ncr-suite-shell-v2.29.25-training-test-sandbox',
+  'create_training_test_session',
+  'configure_training_test_recipient',
+  'is_test'
+]);
+requireText('src/pages/TrainingSessionsPage.tsx', [
+  'Tester la clôture',
+  'BAC À SABLE FORMATION',
+  'create_training_test_session',
+  'TEST · HORS BPF'
 ]);
 
 if (failures.length) {

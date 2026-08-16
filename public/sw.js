@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.29.24-attendance-winansi-hotfix';
+const CACHE = 'ncr-suite-shell-v2.29.25-training-test-sandbox';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v2924.css',
-  '/ncr-suite-app-v2924.css',
-  '/ncr-suite-app-v2924.js',
+  '/ncr-suite-showcase-v2925.css',
+  '/ncr-suite-app-v2925.css',
+  '/ncr-suite-app-v2925.js',
   '/fonts/inter-variable.woff2',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-symbol-v2221.png',
