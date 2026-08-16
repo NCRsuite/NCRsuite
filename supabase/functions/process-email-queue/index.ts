@@ -85,6 +85,7 @@ function formatPrice(cents: unknown): string | null {
 
 function normalizePdfText(value: unknown): string {
   return String(value ?? '')
+    .normalize('NFKC')
     .replaceAll('\u00a0', ' ')
     .replace(/[’‘]/g, "'")
     .replace(/[“”]/g, '"')
@@ -93,8 +94,13 @@ function normalizePdfText(value: unknown): string {
     .replace(/œ/g, 'oe')
     .replace(/Œ/g, 'OE')
     .replace(/…/g, '...')
-    .replace(/[^\u0000-\u00ff]/g, '?')
-    .replace(/\s+/g, ' ')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\u2028\u2029]/g, '\n')
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .replace(/[^\S\n]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
@@ -110,18 +116,24 @@ function hexRgb(value: unknown) {
 function wrapPdfText(text: string, font: { widthOfTextAtSize: (value: string, size: number) => number }, size: number, maxWidth: number): string[] {
   const normalized = normalizePdfText(text);
   if (!normalized) return [];
-  const words = normalized.split(' ');
   const lines: string[] = [];
-  let current = '';
-  for (const word of words) {
-    const candidate = current ? `${current} ${word}` : word;
-    if (!current || font.widthOfTextAtSize(candidate, size) <= maxWidth) current = candidate;
-    else {
-      lines.push(current);
-      current = word;
+  for (const paragraph of normalized.split('\n')) {
+    if (!paragraph.trim()) {
+      if (lines.length && lines[lines.length - 1] !== '') lines.push('');
+      continue;
     }
+    const words = paragraph.trim().split(/\s+/).filter(Boolean);
+    let current = '';
+    for (const word of words) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (!current || font.widthOfTextAtSize(candidate, size) <= maxWidth) current = candidate;
+      else {
+        lines.push(current);
+        current = word;
+      }
+    }
+    if (current) lines.push(current);
   }
-  if (current) lines.push(current);
   return lines;
 }
 

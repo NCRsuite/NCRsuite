@@ -39,6 +39,7 @@ const PERIOD_WIDTH = (A4_LANDSCAPE[0] - MARGIN * 2 - PARTICIPANT_WIDTH) / 2;
 
 function normalizePdfText(value: unknown) {
   return String(value ?? '')
+    .normalize('NFKC')
     .replace(/\u00a0/g, ' ')
     .replace(/[’‘]/g, "'")
     .replace(/[“”]/g, '"')
@@ -47,8 +48,13 @@ function normalizePdfText(value: unknown) {
     .replace(/œ/g, 'oe')
     .replace(/Œ/g, 'OE')
     .replace(/…/g, '...')
-    .replace(/[^\u0000-\u00ff]/g, '?')
-    .replace(/\s+/g, ' ')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\u2028\u2029]/g, '\n')
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .replace(/[^\S\n]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
@@ -99,23 +105,31 @@ function formatDateTime(value: string, timezone: string) {
 }
 
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number, maxLines = 2) {
-  const words = normalizePdfText(text).split(' ').filter(Boolean);
+  const normalized = normalizePdfText(text);
   const lines: string[] = [];
-  let current = '';
-  for (const word of words) {
-    const candidate = current ? `${current} ${word}` : word;
-    if (!current || font.widthOfTextAtSize(candidate, size) <= maxWidth) {
-      current = candidate;
-    } else {
-      lines.push(current);
-      current = word;
-      if (lines.length >= maxLines) break;
+  let truncated = false;
+  for (const paragraph of normalized.split('\n')) {
+    if (lines.length >= maxLines) { truncated = true; break; }
+    if (!paragraph.trim()) {
+      if (lines.length && lines[lines.length - 1] !== '') lines.push('');
+      continue;
     }
+    let current = '';
+    for (const word of paragraph.trim().split(/\s+/).filter(Boolean)) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (!current || font.widthOfTextAtSize(candidate, size) <= maxWidth) current = candidate;
+      else {
+        lines.push(current);
+        current = word;
+        if (lines.length >= maxLines) { truncated = true; break; }
+      }
+    }
+    if (current && lines.length < maxLines) lines.push(current);
+    if (truncated) break;
   }
-  if (current && lines.length < maxLines) lines.push(current);
-  if (lines.length === maxLines && words.length > 0) {
+  if (truncated && lines.length) {
     const last = lines[lines.length - 1];
-    if (font.widthOfTextAtSize(`${last}...`, size) <= maxWidth) lines[lines.length - 1] = `${last}...`;
+    if (last && font.widthOfTextAtSize(`${last}...`, size) <= maxWidth) lines[lines.length - 1] = `${last}...`;
   }
   return lines;
 }

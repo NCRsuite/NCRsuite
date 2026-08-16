@@ -19,6 +19,8 @@ export function normalizeTrainingPdfText(value: unknown) {
     .replace(/ß/g, 'ss')
     .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
     .replace(/\r\n?/g, '\n')
+    .replace(/[\u2028\u2029]/g, '\n')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
     .replace(/[^\S\n]+/g, ' ')
     .replace(/ *\n */g, '\n')
     .replace(/\n{3,}/g, '\n\n')
@@ -29,11 +31,18 @@ export function trainingPdfText(value: unknown, font: PDFFont) {
   const normalized = normalizeTrainingPdfText(value);
   let output = '';
   for (const character of normalized) {
+    // Un saut de ligne est une instruction de mise en page, pas un glyphe à encoder.
+    // Le passer à encodeText() le transformait en « ? » avec les polices StandardFonts.
+    if (character === '\n') {
+      output += '\n';
+      continue;
+    }
     try {
       font.encodeText(character);
       output += character;
     } catch {
-      output += '?';
+      // Un caractère exotique non pris en charge ne doit jamais polluer le PDF avec « ? ».
+      output += '';
     }
   }
   return output;

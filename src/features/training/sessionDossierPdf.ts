@@ -36,6 +36,7 @@ const BOTTOM = 48;
 
 function safe(value: unknown) {
   return String(value ?? '')
+    .normalize('NFKC')
     .replace(/\u00a0/g, ' ')
     .replace(/[’‘]/g, "'")
     .replace(/[“”]/g, '"')
@@ -44,8 +45,13 @@ function safe(value: unknown) {
     .replace(/œ/g, 'oe')
     .replace(/Œ/g, 'OE')
     .replace(/…/g, '...')
-    .replace(/[^\u0000-\u00ff]/g, '?')
-    .replace(/\s+/g, ' ')
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\u2028\u2029]/g, '\n')
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
+    .replace(/[^\S\n]+/g, ' ')
+    .replace(/ *\n */g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
@@ -54,15 +60,21 @@ function slugify(value: string) {
 }
 
 function wrap(text: string, font: PDFFont, size: number, width: number) {
-  const words = safe(text).split(' ').filter(Boolean);
+  const normalized = safe(text);
   const lines: string[] = [];
-  let line = '';
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word;
-    if (!line || font.widthOfTextAtSize(candidate, size) <= width) line = candidate;
-    else { lines.push(line); line = word; }
+  for (const paragraph of normalized.split('\n')) {
+    if (!paragraph.trim()) {
+      if (lines.length && lines[lines.length - 1] !== '') lines.push('');
+      continue;
+    }
+    let line = '';
+    for (const word of paragraph.trim().split(/\s+/).filter(Boolean)) {
+      const candidate = line ? `${line} ${word}` : word;
+      if (!line || font.widthOfTextAtSize(candidate, size) <= width) line = candidate;
+      else { lines.push(line); line = word; }
+    }
+    if (line) lines.push(line);
   }
-  if (line) lines.push(line);
   return lines.length ? lines : ['-'];
 }
 
