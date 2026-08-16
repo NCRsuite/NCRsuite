@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-trainer-personal-bpf`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-bpf-mixed-activity`;
 const publicMotionCache = 'ncr-suite-shell-v2.29.5-public-motion';
 const publicFlowSignalCache = 'ncr-suite-shell-v2.29.4-public-flow-signal';
 const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
@@ -108,19 +108,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v2917.css',
-  '/ncr-suite-app-v2917.css',
+  '/ncr-suite-showcase-v2918.css',
+  '/ncr-suite-app-v2918.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.17'
+  'ncr:css-recovery-v2.29.18'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v2917.css',
+  '/ncr-suite-app-v2918.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2917.js'"
+  "entryFileNames: 'ncr-suite-app-v2918.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -1497,9 +1497,20 @@ requireText('supabase/migrations/131_training_trainer_personal_bpf.sql', [
   "subject_kind='trainer'",
   "bpf_relationship,'internal')='external'"
 ]);
+
+requireText('supabase/migrations/132_training_bpf_mixed_activity_scope.sql', [
+  'bpf_regulatory_scope',
+  "'professional_continuing','apprenticeship'",
+  'training_trainer_bpf_preferences',
+  'set_training_trainer_bpf_reporting_organization',
+  'training_reporting_org_external_bpf_rows',
+  "'2.29.18'",
+  'ncr-suite-shell-v2.29.18-bpf-mixed-activity'
+]);
+
 requireText('src/components/TrainingTrainerBpfPanel.tsx', [
   'Mon BPF',
-  'Vue personnelle, séparée du BPF des centres',
+  'Un seul BPF pour votre propre organisme',
   'Montant HT facturé au centre'
 ]);
 

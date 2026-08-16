@@ -1,4 +1,9 @@
-# NCR Suite V2.29.11
+# NCR Suite V2.29.18
+
+## Release V2.29.18
+
+Le BPF Formation gère désormais l’activité mixte : formation professionnelle continue, apprentissage, formation initiale et hors champ sont séparés. Les sous-traitances éligibles d’un formateur peuvent être consolidées dans son propre organisme déclarant NCR Suite sans mélanger le BPF du centre donneur d’ordre. Appliquer `132_training_bpf_mixed_activity_scope.sql` après la V2.29.17. Voir `A_LIRE_V2.29.18_BPF_ACTIVITE_MIXTE.md`.
+
 
 ## Release V2.29.17
 

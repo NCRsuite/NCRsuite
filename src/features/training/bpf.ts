@@ -4,6 +4,7 @@ import type {
   TrainingBpfDeliveryMode,
   TrainingBpfObjective,
   TrainingBpfRevenueCategory,
+  TrainingBpfRegulatoryScope,
   TrainingBpfRncpLevel,
   TrainingBpfTraineeType,
   TrainingBpfTrainerRelationship,
@@ -21,6 +22,7 @@ export type {
   TrainingBpfDeliveryMode,
   TrainingBpfObjective,
   TrainingBpfRevenueCategory,
+  TrainingBpfRegulatoryScope,
   TrainingBpfRncpLevel,
   TrainingBpfTraineeType,
   TrainingBpfTrainerRelationship
@@ -136,6 +138,10 @@ export interface TrainingBpfCalculation {
     revenue_source?: 'commercial_documents' | 'invoices';
     issued_invoices?: number;
     issued_credit_notes?: number;
+    excluded_sessions?: number;
+    pending_scope_sessions?: number;
+    personal_external_interventions?: number;
+    personal_external_revenue_cents?: number;
   };
 }
 
@@ -206,6 +212,17 @@ export const trainingBpfRncpLevelLabels: Record<TrainingBpfRncpLevel, string> = 
   level_2: 'Niveau 2',
   cqp_no_level: 'CQP sans niveau'
 };
+
+
+export const trainingBpfRegulatoryScopeLabels: Record<TrainingBpfRegulatoryScope, string> = {
+  review_required: 'À qualifier',
+  professional_continuing: 'Formation professionnelle continue',
+  apprenticeship: 'Apprentissage',
+  initial_education: 'Formation initiale scolaire / universitaire',
+  out_of_scope: 'Hors champ BPF'
+};
+
+export const trainingBpfEligibleRegulatoryScopes: TrainingBpfRegulatoryScope[] = ['professional_continuing', 'apprenticeship'];
 
 export const trainingBpfDeliveryModeLabels: Record<TrainingBpfDeliveryMode, string> = {
   direct: 'Réalisée directement',
@@ -302,12 +319,16 @@ export function calculateDemoTrainingBpf({
   const trainerById = new Map(trainers.map((row) => [row.id, row]));
   const customerById = new Map(customers.map((row) => [row.id, row]));
   const funderById = new Map(funders.map((row) => [row.id, row]));
-  const linkedDocumentIds = new Set(sessions.map((row) => row.source_commercial_document_id).filter(Boolean) as string[]);
-  const periodSessions = sessions.filter((row) => row.status === 'completed' && dateInPeriod(row.ends_at, report.exercise_start, report.exercise_end));
+  const allPeriodSessions = sessions.filter((row) => row.status === 'completed' && dateInPeriod(row.ends_at, report.exercise_start, report.exercise_end));
+  const pendingScopeSessions = allPeriodSessions.filter((row) => !row.bpf_regulatory_scope || row.bpf_regulatory_scope === 'review_required');
+  const excludedScopeSessions = allPeriodSessions.filter((row) => ['initial_education', 'out_of_scope'].includes(row.bpf_regulatory_scope ?? 'review_required'));
+  const periodSessions = allPeriodSessions.filter((row) => trainingBpfEligibleRegulatoryScopes.includes(row.bpf_regulatory_scope ?? 'review_required'));
   const periodSessionIds = new Set(periodSessions.map((row) => row.id));
+  const linkedDocumentIds = new Set(periodSessions.map((row) => row.source_commercial_document_id).filter(Boolean) as string[]);
   const warnings: TrainingBpfWarning[] = [];
 
   const warn = (warning: TrainingBpfWarning) => warnings.push(warning);
+  for (const session of pendingScopeSessions) warn({ severity: 'critical', code: 'session_regulatory_scope', label: 'Nature réglementaire de la session à qualifier', entity_type: 'session', entity_id: session.id });
   if (!organization.training_nda_number?.trim()) warn({ severity: 'critical', code: 'identity_nda', label: 'Numéro de déclaration d’activité manquant', entity_type: 'organization', entity_id: organization.id });
   if (!organization.company_siret?.trim()) warn({ severity: 'critical', code: 'identity_siret', label: 'SIRET manquant', entity_type: 'organization', entity_id: organization.id });
   if (!report.legal_form?.trim()) warn({ severity: 'critical', code: 'identity_legal_form', label: 'Forme juridique manquante', entity_type: 'report', entity_id: report.id });
@@ -413,6 +434,7 @@ export function calculateDemoTrainingBpf({
   let unreviewedDocuments = 0;
   const periodInvoices = invoices.filter((row) => (
     ['issued', 'sent', 'partial', 'paid', 'overdue'].includes(row.status)
+    && row.bpf_included !== false
     && dateInPeriod(row.issue_date, report.exercise_start, report.exercise_end)
   ));
   if (periodInvoices.length > 0) {
@@ -526,7 +548,9 @@ export function calculateDemoTrainingBpf({
       unreviewed_revenue_documents: unreviewedDocuments,
       revenue_source: periodInvoices.length > 0 ? 'invoices' : 'commercial_documents',
       issued_invoices: periodInvoices.filter((row) => row.document_kind === 'invoice').length,
-      issued_credit_notes: periodInvoices.filter((row) => row.document_kind === 'credit_note').length
+      issued_credit_notes: periodInvoices.filter((row) => row.document_kind === 'credit_note').length,
+      excluded_sessions: excludedScopeSessions.length,
+      pending_scope_sessions: pendingScopeSessions.length
     }
   };
 }

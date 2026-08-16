@@ -33,6 +33,7 @@ export function TrainingTrainerBpfPanel() {
   const [savingId, setSavingId] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [reportingOrganizationId, setReportingOrganizationId] = useState('');
   const [drafts, setDrafts] = useState<Record<string, { amount: string; invoiceReference: string; invoiceDate: string; notes: string }>>({});
 
   const years = useMemo(() => Array.from({ length: 6 }, (_, index) => currentYear - index), [currentYear]);
@@ -50,6 +51,7 @@ export function TrainingTrainerBpfPanel() {
     }
     const next = data as TrainingTrainerBpfOverview;
     setOverview(next);
+    setReportingOrganizationId(next.selected_reporting_organization_id || (next.reporting_organizations.length === 1 ? next.reporting_organizations[0].id : ''));
     setDrafts(Object.fromEntries(next.interventions.map((item) => [item.session_id, {
       amount: amountInputValue(item.amount_excl_tax_cents),
       invoiceReference: item.invoice_reference || '',
@@ -75,6 +77,20 @@ export function TrainingTrainerBpfPanel() {
         [field]: value
       }
     }));
+  }
+
+  async function saveReportingOrganization(nextOrganizationId: string) {
+    if (!supabase) return;
+    setReportingOrganizationId(nextOrganizationId);
+    setError(''); setSuccess('');
+    const { error: rpcError } = await supabase.rpc('set_training_trainer_bpf_reporting_organization', {
+      p_reporting_organization_id: nextOrganizationId || null
+    });
+    if (rpcError) setError(rpcError.message);
+    else {
+      setSuccess(nextOrganizationId ? 'Organisme déclarant BPF enregistré.' : 'Rattachement BPF retiré.');
+      await load(year);
+    }
   }
 
   async function save(intervention: TrainingTrainerBpfIntervention) {
@@ -157,10 +173,20 @@ export function TrainingTrainerBpfPanel() {
       <section className="training-trainer-bpf-guidance">
         <span><Icon name="chart" size={21} /></span>
         <div>
-          <strong>Vue personnelle, séparée du BPF des centres</strong>
-          <p>Seules les interventions où le centre vous a déclaré comme formateur externe sont intégrées. Les missions salariées ou internes restent volontairement exclues.</p>
+          <strong>Un seul BPF pour votre propre organisme</strong>
+          <p>Les interventions éligibles confiées par les centres peuvent être rattachées à votre organisme déclarant. Vos formations directes restent dans son BPF habituel ; les cours en formation initiale restent hors BPF.</p>
         </div>
       </section>
+
+      {overview && overview.reporting_organizations.length > 0 && (
+        <section className="training-trainer-bpf-reporting-org">
+          <div><strong>Organisme déclarant</strong><p>Choisissez votre structure/NDA qui doit recevoir ces sous-traitances dans son BPF.</p></div>
+          <select value={reportingOrganizationId} onChange={(event) => void saveReportingOrganization(event.target.value)}>
+            <option value="">Ne pas consolider automatiquement</option>
+            {overview.reporting_organizations.map((org) => <option key={org.id} value={org.id}>{org.name}{org.nda_number ? ` · NDA ${org.nda_number}` : ''}</option>)}
+          </select>
+        </section>
+      )}
 
       {overview && (
         <>
@@ -173,6 +199,13 @@ export function TrainingTrainerBpfPanel() {
 
           {overview.excluded_internal_sessions > 0 && (
             <div className="training-trainer-bpf-excluded"><Icon name="users" size={17} /><span><strong>{overview.excluded_internal_sessions}</strong> session(s) interne(s) ou salariée(s) détectée(s) sur l’exercice et non intégrée(s) à votre BPF personnel.</span></div>
+          )}
+
+          {overview.excluded_out_of_scope_sessions > 0 && (
+            <div className="training-trainer-bpf-excluded"><Icon name="file" size={17} /><span><strong>{overview.excluded_out_of_scope_sessions}</strong> intervention(s) classée(s) formation initiale / hors champ et volontairement exclue(s) du BPF.</span></div>
+          )}
+          {overview.pending_scope_sessions > 0 && (
+            <div className="training-portal-notice warning"><Icon name="alert" size={18} /><span><strong>{overview.pending_scope_sessions}</strong> intervention(s) doivent encore être qualifiées par le centre avant de pouvoir entrer dans votre BPF.</span></div>
           )}
 
           <section className="training-portal-section training-trainer-bpf-list-section">
@@ -189,7 +222,7 @@ export function TrainingTrainerBpfPanel() {
                         <div>
                           <span className="training-trainer-bpf-center"><Icon name="building" size={15} />{item.organization_name}</span>
                           <h3>{item.session_title}</h3>
-                          <p>{item.program_title || 'Programme de formation'} · terminée le {date.format(new Date(item.ends_at))}</p>
+                          <p>{item.program_title || 'Programme de formation'} · terminée le {date.format(new Date(item.ends_at))}</p><small className="training-trainer-bpf-scope">{item.regulatory_scope === 'apprenticeship' ? 'Apprentissage · BPF' : 'Formation professionnelle · BPF'}</small>
                         </div>
                         <span className={`training-trainer-bpf-status ${item.amount_excl_tax_cents == null ? 'pending' : 'complete'}`}>{item.amount_excl_tax_cents == null ? 'À compléter' : 'BPF renseigné'}</span>
                       </header>
@@ -208,7 +241,7 @@ export function TrainingTrainerBpfPanel() {
                         <label className="full"><span>Note personnelle</span><textarea rows={2} placeholder="Optionnel : bon de commande, précision comptable…" value={draft.notes} onChange={(event) => updateDraft(item.session_id, 'notes', event.target.value)} /></label>
                       </div>
                       <footer>
-                        <span>Les données pédagogiques (stagiaires et heures) viennent du dossier de session du centre.</span>
+                        <span>Les données pédagogiques viennent du centre. {reportingOrganizationId ? 'Cette intervention est consolidée dans le BPF de votre organisme déclarant.' : 'Choisissez un organisme déclarant pour la consolider automatiquement.'}</span>
                         <button className="primary-button compact-button" onClick={() => void save(item)} disabled={savingId === item.session_id}>{savingId === item.session_id ? 'Enregistrement…' : 'Enregistrer'}</button>
                       </footer>
                     </article>

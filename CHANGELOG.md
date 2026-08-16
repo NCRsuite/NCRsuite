@@ -1,3 +1,15 @@
+# V2.29.18 — Formation · BPF activité mixte
+
+- Qualification réglementaire obligatoire des sessions avant intégration au BPF.
+- Distinction formation professionnelle continue, apprentissage, formation initiale et hors champ BPF.
+- Formation initiale / hors champ conservée dans NCR Suite mais exclue du calcul BPF.
+- Sessions à qualifier bloquantes pour la préparation BPF afin d’éviter une intégration silencieuse.
+- Consolidation des sous-traitances éligibles d’un formateur dans son propre organisme déclarant NCR Suite.
+- Conservation des SST directs dans l’activité propre et des prestations pour d’autres organismes dans la sous-traitance.
+- Choix d’inclure ou non une facture Formation dans le BPF.
+- Protection contre le double comptage lorsque la facture existe déjà dans NCR Suite.
+- Base, frontend et cache PWA alignés en V2.29.18.
+
 # V2.29.17 — Formation · BPF personnel formateur
 
 - Nouvel onglet **Mon BPF** dans l’espace Formateur.

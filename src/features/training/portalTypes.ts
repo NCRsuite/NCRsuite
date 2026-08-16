@@ -240,6 +240,7 @@ export interface TrainingTrainerBpfIntervention {
   location: string | null;
   modality: string | null;
   training_hours: number;
+  regulatory_scope: 'professional_continuing' | 'apprenticeship';
   trainee_count: number;
   trainee_hours: number;
   amount_excl_tax_cents: number | null;
@@ -249,6 +250,13 @@ export interface TrainingTrainerBpfIntervention {
   entry_status: 'draft' | 'confirmed';
   confirmed_at: string | null;
   updated_at: string | null;
+}
+
+export interface TrainingTrainerBpfReportingOrganization {
+  id: string;
+  name: string;
+  siret: string | null;
+  nda_number: string | null;
 }
 
 export interface TrainingTrainerBpfOverview {
@@ -263,6 +271,10 @@ export interface TrainingTrainerBpfOverview {
     to_complete: number;
   };
   excluded_internal_sessions: number;
+  excluded_out_of_scope_sessions: number;
+  pending_scope_sessions: number;
+  reporting_organizations: TrainingTrainerBpfReportingOrganization[];
+  selected_reporting_organization_id: string | null;
   interventions: TrainingTrainerBpfIntervention[];
 }
 

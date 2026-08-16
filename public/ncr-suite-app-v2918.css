@@ -1,3 +1,4 @@
+/* NCR Suite V2.29.18 - styles complets servis hors du dossier assets */
 @font-face {
   font-family: "NCR Public Inter";
   src: url('/fonts/inter-variable.woff2') format('woff2');
@@ -23768,3 +23769,4 @@ button { max-width: 100%; }
   .training-bpf-session-classification { grid-template-columns:1fr; min-width:0; width:100%; }
   .training-trainer-bpf-reporting-org { grid-template-columns:1fr; gap:10px; }
 }
+

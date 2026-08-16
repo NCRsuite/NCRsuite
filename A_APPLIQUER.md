@@ -1,9 +1,9 @@
-# NCR Suite — Patch V2.29.17 depuis V2.29.15
+# Patch NCR Suite V2.29.18 depuis V2.29.17
 
-1. Exécuter `supabase/migrations/130_training_access_accounts_hardening.sql`.
-2. Exécuter `supabase/migrations/131_training_trainer_personal_bpf.sql`.
-3. Remplacer les fichiers du dépôt par ceux du patch en conservant leur arborescence.
-4. Déployer.
-5. Fermer puis rouvrir la PWA si nécessaire.
+1. Exécuter `supabase/migrations/132_training_bpf_mixed_activity_scope.sql` dans Supabase.
+2. Remplacer les fichiers du dépôt par ceux de ce patch en conservant leur arborescence.
+3. Déployer le front.
+4. Fermer/réouvrir la PWA si nécessaire.
+5. Dans BPF > Sources, qualifier les anciennes sessions : formation pro, apprentissage, initiale ou hors champ.
 
-Ne pas inverser les migrations 130 et 131.
+Si la base est encore en V2.29.15, exécuter d'abord les migrations 130 puis 131, puis 132.

@@ -10,6 +10,7 @@ import {
   trainingBpfDeliveryModeLabels,
   trainingBpfObjectiveLabels,
   trainingBpfReportStatusLabels,
+  trainingBpfRegulatoryScopeLabels,
   trainingBpfRevenueKeys,
   trainingBpfRevenueLabels,
   trainingBpfRncpLevelLabels,
@@ -20,6 +21,7 @@ import {
   type TrainingBpfObjective,
   type TrainingBpfReportRecord,
   type TrainingBpfRevenueCategory,
+  type TrainingBpfRegulatoryScope,
   type TrainingBpfRncpLevel,
   type TrainingBpfTraineeType,
   type TrainingBpfTrainerRelationship
@@ -272,7 +274,7 @@ export function TrainingBpfPage() {
           supabase.from('training_programs').select('id,organization_id,site_id,title,code,duration_hours,modality,objectives,description,audience,prerequisites,detailed_program,teaching_methods,training_resources,assessment_methods,accessibility,price_excl_tax_cents,vat_rate_basis_points,default_capacity,default_location,completion_status,bpf_objective,bpf_rncp_level,bpf_specialty_code,bpf_specialty_name,status,created_at,updated_at').eq('organization_id', organizationId).neq('status', 'archived').order('title'),
           supabase.from('training_trainers').select('id,organization_id,first_name,last_name,email,phone,specialties,notes,bpf_relationship,status,created_at').eq('organization_id', organizationId).neq('status', 'archived').order('last_name'),
           supabase.from('training_trainees').select('id,organization_id,first_name,last_name,email,phone,company,notes,status,created_at').eq('organization_id', organizationId).neq('status', 'archived').order('last_name'),
-          supabase.from('training_sessions').select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,source_commercial_document_id,bpf_delivery_mode,created_at').eq('organization_id', organizationId).eq('status', 'completed').order('ends_at', { ascending: false }),
+          supabase.from('training_sessions').select('id,organization_id,site_id,program_id,trainer_id,title,starts_at,ends_at,capacity,location,modality,status,notes,source_commercial_document_id,bpf_delivery_mode,bpf_regulatory_scope,created_at').eq('organization_id', organizationId).eq('status', 'completed').order('ends_at', { ascending: false }),
           supabase.from('training_session_enrollments').select('organization_id,session_id,trainee_id,status,bpf_trainee_type,bpf_attended_hours').eq('organization_id', organizationId),
           supabase.from('training_attendance').select('id,organization_id,site_id,session_id,trainee_id,attendance_date,period,status,signature_path,signatory_name,signed_at,notes,created_at,updated_at').eq('organization_id', organizationId),
           supabase.from('training_commercial_documents').select('id,organization_id,site_id,opportunity_id,customer_id,funder_id,session_id,trainee_id,program_id,document_type,reference,title,training_summary,participant_count,issue_date,valid_until,status,amount_excl_tax_cents,vat_rate_basis_points,tax_cents,amount_incl_tax_cents,notes,terms,sent_at,accepted_at,signed_at,signed_document_path,signed_document_received_at,signed_document_received_by,bpf_revenue_category,bpf_revenue_recognized_at,bpf_included,created_at,updated_at').eq('organization_id', organizationId).order('issue_date', { ascending: false }),
@@ -385,9 +387,10 @@ export function TrainingBpfPage() {
     });
   }, [sessions, report]);
   const periodSessionIds = useMemo(() => new Set(periodSessions.map((row) => row.id)), [periodSessions]);
+  const eligiblePeriodSessionIds = useMemo(() => new Set(periodSessions.filter((row) => ['professional_continuing', 'apprenticeship'].includes(row.bpf_regulatory_scope ?? 'review_required')).map((row) => row.id)), [periodSessions]);
   const periodProgramIds = useMemo(() => new Set(periodSessions.map((row) => row.program_id)), [periodSessions]);
   const periodTrainerIds = useMemo(() => new Set(periodSessions.map((row) => row.trainer_id).filter(Boolean) as string[]), [periodSessions]);
-  const periodEnrollments = useMemo(() => enrollments.filter((row) => periodSessionIds.has(row.session_id) && row.status !== 'canceled'), [enrollments, periodSessionIds]);
+  const periodEnrollments = useMemo(() => enrollments.filter((row) => eligiblePeriodSessionIds.has(row.session_id) && row.status !== 'canceled'), [enrollments, eligiblePeriodSessionIds]);
   const periodDocuments = useMemo(() => {
     if (!report) return [];
     return documents.filter((row) => {
@@ -610,6 +613,39 @@ export function TrainingBpfPage() {
     finally { setBusyId(''); }
   }
 
+
+  async function updateSessionRegulatoryScope(sessionId: string, regulatoryScope: TrainingBpfRegulatoryScope) {
+    if (!organization || locked) return;
+    setBusyId(`scope-${sessionId}`); setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        writeJsonStorage(`ncr-suite-training-sessions-${organization.id}`, readRows<TrainingSessionRecord>(`ncr-suite-training-sessions-${organization.id}`).map((row) => row.id === sessionId ? { ...row, bpf_regulatory_scope: regulatoryScope } : row));
+      } else {
+        const { error: updateError } = await supabase.from('training_sessions').update({ bpf_regulatory_scope: regulatoryScope }).eq('organization_id', organization.id).eq('id', sessionId);
+        if (updateError) throw updateError;
+      }
+      await loadData(report?.id, true);
+      setSuccess(regulatoryScope === 'initial_education' || regulatoryScope === 'out_of_scope' ? 'Session exclue du BPF.' : regulatoryScope === 'review_required' ? 'Session laissée à qualifier.' : 'Nature réglementaire BPF enregistrée.');
+    } catch (caught) { setError(`Qualification impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+    finally { setBusyId(''); }
+  }
+
+  async function updateInvoiceBpfIncluded(invoiceId: string, included: boolean) {
+    if (!organization || locked) return;
+    setBusyId(`invoice-bpf-${invoiceId}`); setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        writeJsonStorage(`ncr-suite-training-invoices-${organization.id}`, readRows<TrainingInvoiceRecord>(`ncr-suite-training-invoices-${organization.id}`).map((row) => row.id === invoiceId ? { ...row, bpf_included: included } : row));
+      } else {
+        const { error: updateError } = await supabase.from('training_invoices').update({ bpf_included: included }).eq('organization_id', organization.id).eq('id', invoiceId);
+        if (updateError) throw updateError;
+      }
+      await loadData(report?.id, true);
+      setSuccess(included ? 'Facture incluse dans le calcul BPF.' : 'Facture exclue du BPF (elle reste dans votre comptabilité NCR).');
+    } catch (caught) { setError(`Mise à jour de la facture impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+    finally { setBusyId(''); }
+  }
+
   async function updateTrainer(trainerId: string, relationship: TrainingBpfTrainerRelationship) {
     if (!organization || locked) return;
     setBusyId(`trainer-${trainerId}`); setError('');
@@ -751,7 +787,7 @@ export function TrainingBpfPage() {
           {calculation.quality.warnings.length === 0 ? <div className="training-bpf-empty"><Icon name="check" size={25} /><strong>Aucun point bloquant</strong></div> : <div className="training-bpf-warning-list">{calculation.quality.warnings.slice(0, 12).map((warning, index) => <button key={`${warning.code}-${warning.entity_id}-${index}`} type="button" onClick={() => openWarning(warning.entity_type)}><i className={warning.severity} /><span><strong>{warning.label}</strong><small>{warning.severity === 'critical' ? 'Bloquant' : 'À vérifier'}</small></span><Icon name="chevronRight" size={17} /></button>)}</div>}
         </section>
         <aside className="training-bpf-side">
-          <section className="panel training-bpf-source-summary"><p className="eyebrow">SOURCES RETENUES</p><dl><div><dt>Sessions</dt><dd>{calculation.sources.completed_sessions}</dd></div><div><dt>Participations</dt><dd>{calculation.sources.enrollments}</dd></div><div><dt>{calculation.sources.revenue_source === 'invoices' ? 'Factures et avoirs' : 'Produits financiers'}</dt><dd>{calculation.sources.included_revenue_documents}</dd></div><div><dt>Formation à distance</dt><dd>{calculation.general.distance_learning ? 'Oui' : 'Non'}</dd></div></dl></section>
+          <section className="panel training-bpf-source-summary"><p className="eyebrow">SOURCES RETENUES</p><dl><div><dt>Sessions BPF</dt><dd>{calculation.sources.completed_sessions}</dd></div><div><dt>Participations</dt><dd>{calculation.sources.enrollments}</dd></div><div><dt>{calculation.sources.revenue_source === 'invoices' ? 'Factures et avoirs' : 'Produits financiers'}</dt><dd>{calculation.sources.included_revenue_documents}</dd></div><div><dt>Sous-traitances personnelles</dt><dd>{calculation.sources.personal_external_interventions ?? 0}</dd></div><div><dt>Sessions hors champ</dt><dd>{calculation.sources.excluded_sessions ?? 0}</dd></div><div><dt>À qualifier</dt><dd>{calculation.sources.pending_scope_sessions ?? 0}</dd></div><div><dt>Formation à distance</dt><dd>{calculation.general.distance_learning ? 'Oui' : 'Non'}</dd></div></dl></section>
           <section className="panel training-bpf-workflow"><p className="eyebrow">VALIDATION</p><ol><li className="done"><span>1</span><div><strong>Brouillon calculé</strong><small>{dateLabel(calculation.period.end)}</small></div></li><li className={report.status !== 'draft' ? 'done' : ''}><span>2</span><div><strong>Vérification</strong><small>Contrôle financier et pédagogique</small></div></li><li className={report.status === 'locked' ? 'done' : ''}><span>3</span><div><strong>Verrouillage</strong><small>Instantané annuel</small></div></li></ol></section>
         </aside>
       </div>
@@ -811,7 +847,7 @@ export function TrainingBpfPage() {
 
       <details className="panel training-bpf-source-group">
         <summary><span><Icon name="calendar" size={19} /><strong>Sessions et réalisation</strong></span><b>{periodSessions.length}</b></summary>
-        <div className="training-bpf-source-list compact">{periodSessions.map((session) => <article key={session.id}><div className="training-bpf-source-title"><strong>{session.title}</strong><small>{dateLabel(session.ends_at)} · {programById.get(session.program_id)?.title}</small></div><select value={session.bpf_delivery_mode ?? 'direct'} disabled={locked || busyId === `session-${session.id}`} onChange={(event) => void updateSession(session.id, event.target.value as TrainingBpfDeliveryMode)}>{Object.entries(trainingBpfDeliveryModeLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></article>)}</div>
+        <div className="training-bpf-source-list compact">{periodSessions.map((session) => { const scope = session.bpf_regulatory_scope ?? 'review_required'; const excluded = scope === 'initial_education' || scope === 'out_of_scope'; return <article key={session.id} className={scope === 'review_required' ? 'needs-review' : excluded ? 'bpf-excluded-source' : ''}><div className="training-bpf-source-title"><strong>{session.title}</strong><small>{dateLabel(session.ends_at)} · {programById.get(session.program_id)?.title}</small>{excluded && <em>Hors calcul BPF</em>}</div><div className="training-bpf-session-classification"><select value={scope} disabled={locked || busyId === `scope-${session.id}`} onChange={(event) => void updateSessionRegulatoryScope(session.id, event.target.value as TrainingBpfRegulatoryScope)}>{Object.entries(trainingBpfRegulatoryScopeLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select><select value={session.bpf_delivery_mode ?? 'direct'} disabled={locked || excluded || scope === 'review_required' || busyId === `session-${session.id}`} onChange={(event) => void updateSession(session.id, event.target.value as TrainingBpfDeliveryMode)}>{Object.entries(trainingBpfDeliveryModeLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></div></article>; })}</div>
       </details>
 
       <details className="panel training-bpf-source-group" open={periodEnrollments.some((row) => !row.bpf_trainee_type)}>
@@ -826,7 +862,7 @@ export function TrainingBpfPage() {
 
       {periodInvoices.length > 0 ? <details className="panel training-bpf-source-group" open={periodInvoices.some((row) => row.status === 'overdue')}>
         <summary><span><Icon name="creditCard" size={19} /><strong>Factures et avoirs émis</strong></span><b>{periodInvoices.length}</b></summary>
-        <div className="training-bpf-source-list">{periodInvoices.map((invoice) => <article key={invoice.id} className={!invoice.bpf_revenue_category ? 'needs-review' : ''}><div className="training-bpf-source-title"><strong>{invoice.invoice_number} · {invoice.title}</strong><small>{invoice.buyer_snapshot?.name || 'Payeur'} · {dateLabel(invoice.issue_date)}</small></div><div className="training-bpf-source-title"><strong>{invoice.bpf_revenue_category ? trainingBpfRevenueLabels[invoice.bpf_revenue_category] : 'Catégorie BPF manquante'}</strong><small>{invoice.document_kind === 'credit_note' ? '- ' : ''}{formatTrainingMoney(invoice.subtotal_cents)} HT · {invoice.status === 'overdue' ? 'en retard' : invoice.status}</small></div><button className="secondary-button compact-button" type="button" onClick={() => navigate('/facturation-formation')}>Ouvrir la facturation</button></article>)}</div>
+        <div className="training-bpf-source-list">{periodInvoices.map((invoice) => { const included = invoice.bpf_included !== false; return <article key={invoice.id} className={included && !invoice.bpf_revenue_category ? 'needs-review' : !included ? 'bpf-excluded-source' : ''}><div className="training-bpf-source-title"><strong>{invoice.invoice_number} · {invoice.title}</strong><small>{invoice.buyer_snapshot?.name || 'Payeur'} · {dateLabel(invoice.issue_date)}</small>{!included && <em>Hors BPF</em>}</div><div className="training-bpf-source-title"><strong>{included ? (invoice.bpf_revenue_category ? trainingBpfRevenueLabels[invoice.bpf_revenue_category] : 'Catégorie BPF manquante') : 'Produit non retenu dans le BPF'}</strong><small>{invoice.document_kind === 'credit_note' ? '- ' : ''}{formatTrainingMoney(invoice.subtotal_cents)} HT · {invoice.status === 'overdue' ? 'en retard' : invoice.status}</small></div><label className="training-bpf-invoice-toggle"><input type="checkbox" checked={included} disabled={locked || busyId === `invoice-bpf-${invoice.id}`} onChange={(event) => void updateInvoiceBpfIncluded(invoice.id, event.target.checked)} /><span>Inclure au BPF</span></label><button className="secondary-button compact-button" type="button" onClick={() => navigate('/facturation-formation')}>Ouvrir la facturation</button></article>; })}</div>
       </details> : <details className="panel training-bpf-source-group" open={periodDocuments.some((row) => row.bpf_included && !row.bpf_revenue_category)}>
         <summary><span><Icon name="creditCard" size={19} /><strong>Produits financiers</strong></span><b>{periodDocuments.length}</b></summary>
         <div className="training-bpf-source-list">{periodDocuments.map((document) => { const draft = documentDrafts[document.id]; if (!draft) return null; return <article key={document.id} className={draft.included && !draft.category ? 'needs-review' : ''}><div className="training-bpf-source-title"><strong>{document.reference} · {document.title}</strong><small>{customerById.get(document.customer_id ?? '')?.legal_name || funderById.get(document.funder_id ?? '')?.name || 'Dossier commercial'} · {formatTrainingMoney(document.amount_excl_tax_cents)}</small></div><div className="training-bpf-document-fields"><label><input type="checkbox" checked={draft.included} disabled={locked} onChange={(event) => setDocumentDrafts({ ...documentDrafts, [document.id]: { ...draft, included: event.target.checked } })} /><span>Retenir</span></label><select value={draft.category} disabled={locked} onChange={(event) => setDocumentDrafts({ ...documentDrafts, [document.id]: { ...draft, category: event.target.value as TrainingBpfRevenueCategory | '' } })}><option value="">Catégorie financière</option>{trainingBpfRevenueKeys.map((key) => <option key={key} value={key}>{trainingBpfRevenueLabels[key]}</option>)}</select><input type="date" value={draft.recognizedAt} disabled={locked} onChange={(event) => setDocumentDrafts({ ...documentDrafts, [document.id]: { ...draft, recognizedAt: event.target.value } })} /></div>{!locked && <button className="secondary-button compact-button" type="button" disabled={busyId === `document-${document.id}`} onClick={() => void saveDocument(document.id)}>{busyId === `document-${document.id}` ? 'Enregistrement…' : 'Enregistrer'}</button>}</article>; })}</div>

@@ -5,6 +5,7 @@ export type TrainingBpfObjective = 'rncp' | 'rs' | 'cqp_unregistered' | 'other_p
 export type TrainingBpfRncpLevel = 'level_6_8' | 'level_5' | 'level_4' | 'level_3' | 'level_2' | 'cqp_no_level';
 export type TrainingBpfTrainerRelationship = 'internal' | 'external';
 export type TrainingBpfDeliveryMode = 'direct' | 'outsourced_by_us' | 'subcontracted_for_other';
+export type TrainingBpfRegulatoryScope = 'review_required' | 'professional_continuing' | 'apprenticeship' | 'initial_education' | 'out_of_scope';
 export type TrainingBpfTraineeType = 'private_employee' | 'apprentice' | 'jobseeker' | 'individual' | 'other';
 export type TrainingQualityControlStatus = 'not_started' | 'in_progress' | 'ready' | 'attention' | 'not_applicable';
 export type TrainingQualityEvidenceStatus = 'current' | 'expired' | 'archived';
@@ -111,6 +112,7 @@ export interface TrainingSessionRecord {
   training_dossier_reviewed_at?: string | null;
   training_dossier_reviewed_by?: string | null;
   bpf_delivery_mode?: TrainingBpfDeliveryMode;
+  bpf_regulatory_scope?: TrainingBpfRegulatoryScope;
   created_at: string;
 }
 
@@ -522,6 +524,7 @@ export interface TrainingInvoiceRecord {
   due_date: string;
   status: TrainingInvoiceStatus;
   bpf_revenue_category: TrainingBpfRevenueCategory | null;
+  bpf_included?: boolean;
   subtotal_cents: number;
   tax_cents: number;
   total_cents: number;
