@@ -107,7 +107,8 @@ export function TrainingSessionsPage() {
   const [closureCheck, setClosureCheck] = useState<SessionClosureCheck | null>(null);
   const [closureNotes, setClosureNotes] = useState('');
   const handledFocusRef = useRef('');
-  const formOpen = searchParams.get('new') === '1';
+  const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
+  const formOpen = canManage && searchParams.get('new') === '1';
   const requestedViewParam = searchParams.get('view');
   const focusSessionId = searchParams.get('focus');
   const closeFocusedSession = searchParams.get('close') === '1';
@@ -251,7 +252,7 @@ export function TrainingSessionsPage() {
 
   async function createSession(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!organization || !user) return;
+    if (!organization || !user || !canManage) return;
     if (!form.programId) { setError('Sélectionne une formation.'); return; }
     if (organizationHasFeature(organization, 'multi_site') && !form.siteId) { setError('Sélectionne un établissement.'); return; }
     const startsAt = new Date(`${form.startDate}T${form.startTime}:00`);
@@ -377,7 +378,7 @@ export function TrainingSessionsPage() {
   }
 
   async function prepareClosure(session: TrainingSessionRecord) {
-    if (!organization) return;
+    if (!organization || !canManage) return;
     setClosureBusyId(session.id); setError(''); setSuccess('');
     try {
       let check: SessionClosureCheck;
@@ -425,7 +426,7 @@ export function TrainingSessionsPage() {
   }
 
   async function closeSession() {
-    if (!organization || !closureSession || !closureCheck?.can_close) return;
+    if (!organization || !canManage || !closureSession || !closureCheck?.can_close) return;
     setClosureBusyId(closureSession.id); setError(''); setSuccess('');
     try {
       if (demoMode || !supabase) {
@@ -474,7 +475,7 @@ export function TrainingSessionsPage() {
   }
 
   async function updateStatus(session: TrainingSessionRecord, status: TrainingSessionStatus) {
-    if (!organization) return;
+    if (!organization || !canManage) return;
     if (status === session.status) return;
     setError('');
     try {
@@ -520,7 +521,7 @@ export function TrainingSessionsPage() {
     <div className="page training-page training-planning-premium">
       <header className="page-header training-planning-hero">
         <div><p className="eyebrow">PACK FORMATION</p><h1>Sessions</h1><p>Planifiez vos sessions et inscrivez les stagiaires en une seule opération.</p></div>
-        <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Créer une session</button>
+        {canManage && <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Créer une session</button>}
       </header>
 
       {formOpen && (
@@ -562,7 +563,7 @@ export function TrainingSessionsPage() {
             <div className="training-calendar-navigation"><button type="button" className="icon-nav-button" onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}>‹</button><button type="button" className="secondary-button compact-button" onClick={() => { const today = startOfDay(new Date()); setCalendarDate(today); setCalendarSelectedDate(today); }}>Aujourd’hui</button><button type="button" className="icon-nav-button" onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}>›</button><div><p className="eyebrow">MOIS</p><h3>{new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(calendarDate)}</h3></div></div>
             <div className="planning-month-calendar training-month-calendar"><div className="planning-month-weekdays">{['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map((label) => <span key={label}>{label}</span>)}</div><div className="planning-month-grid">{calendarDays.map((day) => { const daySessions = calendarSessions.filter((session) => sameDay(session.starts_at, day)); return <button type="button" key={dateInputValue(day)} className={`${day.getMonth() !== calendarDate.getMonth() ? 'outside' : ''}${sameDay(day, new Date()) ? ' today' : ''}${sameDay(day, calendarSelectedDate) ? ' selected' : ''}`} onClick={() => setCalendarSelectedDate(day)}><span>{day.getDate()}</span><strong>{daySessions.length || ''}</strong><div className="training-calendar-dots">{daySessions.slice(0, 4).map((session) => <i key={session.id} className={trainingStatusClass(session)} />)}</div>{daySessions.slice(0, 2).map((session) => <small key={session.id}>{session.title}</small>)}</button>; })}</div></div>
           </div>
-          <aside className="training-calendar-agenda"><div><p className="eyebrow">JOUR SÉLECTIONNÉ</p><h3>{new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' }).format(calendarSelectedDate)}</h3></div>{selectedCalendarSessions.length === 0 ? <div className="planning-empty-state compact"><Icon name="calendar" size={25}/><strong>Aucune session</strong><span>Cette journée est disponible.</span></div> : selectedCalendarSessions.map((session) => { const trainer = session.trainer_id ? trainerMap.get(session.trainer_id) : null; return <article key={session.id} className={`training-agenda-card ${trainingStatusClass(session)}`}><div><strong>{new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(session.starts_at))}</strong><span>{new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(session.ends_at))}</span></div><section><strong>{session.title}</strong><span>{trainer ? personName(trainer.first_name, trainer.last_name) : 'Formateur à définir'}</span><small>{enrollmentCount.get(session.id) ?? 0}/{session.capacity} stagiaires · {modalityLabels[session.modality]}</small></section><Link className="secondary-button compact-button" to={`/dossiers-formation?focus=${encodeURIComponent(session.id)}`}>Dossier</Link></article>; })}<div className="training-upcoming-strip"><p className="eyebrow">À VENIR</p>{upcomingSessions.map((session) => <button type="button" key={session.id} onClick={() => { const date = new Date(session.starts_at); setCalendarDate(date); setCalendarSelectedDate(date); }}><span>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short' }).format(new Date(session.starts_at))}</span><strong>{session.title}</strong></button>)}</div></aside>
+          <aside className="training-calendar-agenda"><div><p className="eyebrow">JOUR SÉLECTIONNÉ</p><h3>{new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' }).format(calendarSelectedDate)}</h3></div>{selectedCalendarSessions.length === 0 ? <div className="planning-empty-state compact"><Icon name="calendar" size={25}/><strong>Aucune session</strong><span>Cette journée est disponible.</span></div> : selectedCalendarSessions.map((session) => { const trainer = session.trainer_id ? trainerMap.get(session.trainer_id) : null; return <article key={session.id} className={`training-agenda-card ${trainingStatusClass(session)}`}><div><strong>{new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(session.starts_at))}</strong><span>{new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(session.ends_at))}</span></div><section><strong>{session.title}</strong><span>{trainer ? personName(trainer.first_name, trainer.last_name) : 'Formateur à définir'}</span><small>{enrollmentCount.get(session.id) ?? 0}/{session.capacity} stagiaires · {modalityLabels[session.modality]}</small></section>{canManage && <Link className="secondary-button compact-button" to={`/dossiers-formation?focus=${encodeURIComponent(session.id)}`}>Dossier</Link>}</article>; })}<div className="training-upcoming-strip"><p className="eyebrow">À VENIR</p>{upcomingSessions.map((session) => <button type="button" key={session.id} onClick={() => { const date = new Date(session.starts_at); setCalendarDate(date); setCalendarSelectedDate(date); }}><span>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short' }).format(new Date(session.starts_at))}</span><strong>{session.title}</strong></button>)}</div></aside>
         </div>}
 
         <div className={planningLayout === 'calendar' ? 'training-list-layout is-hidden' : 'training-list-layout'}>
@@ -600,18 +601,18 @@ export function TrainingSessionsPage() {
                   </div>
                   <div className="training-session-capacity"><strong>{count}/{session.capacity}</strong><span>stagiaires</span></div>
                   <div className="training-session-controls">
-                    {isClosed ? <span className="training-status-pill active"><Icon name="check" size={14} /> Clôturée</span> : (
+                    {isClosed ? <span className="training-status-pill active"><Icon name="check" size={14} /> Clôturée</span> : canManage ? (
                       <label className={`training-status-select status-${session.status}`}><span className="sr-only">Statut</span><select value={session.status} onChange={(event) => updateStatus(session, event.target.value as TrainingSessionStatus)}>
                         <option value="draft">Brouillon</option><option value="scheduled">Planifiée</option><option value="in_progress">En cours</option><option value="canceled">Annulée</option>
                       </select></label>
-                    )}
+                    ) : <span className={`training-status-pill ${trainingStatusClass(session)}`}>{sessionStatusLabels[session.status]}</span>}
                     <div className="training-document-automation-actions">
                       <Link className="secondary-button compact-button" to={`/documents?session=${encodeURIComponent(session.id)}`}>Documents</Link>
                       <Link className="secondary-button compact-button" to={`/documents?session=${encodeURIComponent(session.id)}&category=attestation`}>Attestations</Link>
                       <Link className="secondary-button compact-button" to={`/emargements?session=${encodeURIComponent(session.id)}`}>Émargements</Link>
-                      {!isClosed && sessionView === 'current' && session.status !== 'canceled' && <button className="primary-button compact-button" type="button" disabled={closureBusyId === session.id} onClick={() => void prepareClosure(session)}><Icon name="check" size={16} />{closureBusyId === session.id ? 'Contrôle…' : 'Clôturer'}</button>}
+                      {canManage && !isClosed && sessionView === 'current' && session.status !== 'canceled' && <button className="primary-button compact-button" type="button" disabled={closureBusyId === session.id} onClick={() => void prepareClosure(session)}><Icon name="check" size={16} />{closureBusyId === session.id ? 'Contrôle…' : 'Clôturer'}</button>}
                       {isClosed && canReopen && <button className="secondary-button compact-button" type="button" disabled={closureBusyId === session.id} onClick={() => void reopenSession(session)}>{closureBusyId === session.id ? 'Réouverture…' : 'Rouvrir'}</button>}
-                      {organizationHasFeature(organization, 'training_session_dossier') && <>
+                      {canManage && organizationHasFeature(organization, 'training_session_dossier') && <>
                         <Link className="primary-button compact-button" to={`/dossiers-formation?focus=${encodeURIComponent(session.id)}`}><Icon name="clipboard" size={15} />Piloter le dossier</Link>
                         <button className="secondary-button compact-button" type="button" disabled={dossierBusyId === session.id} onClick={() => void generateSessionDossier(session, 'preview')}>{dossierBusyId === session.id ? 'Préparation…' : 'Aperçu PDF'}</button>
                         <button className="secondary-button compact-button" type="button" disabled={dossierBusyId === session.id} onClick={() => void generateSessionDossier(session, 'download')}>Télécharger</button>

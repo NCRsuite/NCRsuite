@@ -1,3 +1,24 @@
+# V2.29.17 — Formation · BPF personnel formateur
+
+- Nouvel onglet **Mon BPF** dans l’espace Formateur.
+- Consolidation multi-centres des sessions terminées attribuées au formateur externe.
+- Calcul automatique stagiaires / heures-stagiaires à partir des inscriptions et émargements.
+- Saisie personnelle du montant HT facturé, référence et date de facture.
+- Export CSV.
+- Qualification Interne / Externe directement depuis la page Formateurs du centre.
+- Isolation stricte : aucun accès au BPF global du centre.
+- Release front/base/cache alignée sur 2.29.17.
+
+# V2.29.16 — Formation · Droits & comptes
+
+- Durcissement RLS et rôles Formation côté serveur.
+- Séparation propriétaire / administrateur pour la gestion des comptes.
+- Collaborateurs en lecture seule sur la structure pédagogique, tout en conservant émargements/documents/évaluations.
+- RPC d’annuaire Formation dédiées et fermeture du contournement manager via les RPC génériques.
+- Contrôle des rôles personnalisés Métier au niveau RLS.
+- Profils historiques manquants réparés automatiquement.
+- Interface alignée sur les permissions serveur.
+
 ## V2.29.15 — QG opérationnel temps réel
 
 - Push QG dédupliqués : prise de poste, fin de poste, retard +15 min, fin oubliée +15 min.

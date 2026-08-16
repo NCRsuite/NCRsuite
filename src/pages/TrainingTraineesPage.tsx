@@ -28,7 +28,8 @@ export function TrainingTraineesPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const formOpen = searchParams.get('new') === '1';
+  const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
+  const formOpen = canManage && searchParams.get('new') === '1';
 
   useEffect(() => {
     if (!organization) return;
@@ -74,7 +75,7 @@ export function TrainingTraineesPage() {
 
   async function createTrainee(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!organization || !user) return;
+    if (!organization || !user || !canManage) return;
     if (form.firstName.trim().length < 1 || form.lastName.trim().length < 1) {
       setError('Le prénom et le nom sont obligatoires.');
       return;
@@ -121,7 +122,7 @@ export function TrainingTraineesPage() {
   }
 
   async function archive(row: TrainingTraineeRecord) {
-    if (!organization || !window.confirm(`Archiver ${personName(row.first_name, row.last_name)} ?`)) return;
+    if (!organization || !canManage || !window.confirm(`Archiver ${personName(row.first_name, row.last_name)} ?`)) return;
     try {
       if (demoMode || !supabase) {
         const next = rows.filter((item) => item.id !== row.id);
@@ -147,7 +148,7 @@ export function TrainingTraineesPage() {
     <div className="page training-page">
       <header className="page-header">
         <div><p className="eyebrow">PACK FORMATION</p><h1>Stagiaires</h1><p>Centralisez les coordonnées et les informations utiles de vos stagiaires.</p></div>
-        <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Ajouter un stagiaire</button>
+        {canManage && <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Ajouter un stagiaire</button>}
       </header>
 
       {formOpen && (
@@ -177,7 +178,7 @@ export function TrainingTraineesPage() {
                 <span className="training-record-icon"><Icon name="users" size={21} /></span>
                 <div className="training-record-main"><strong>{personName(row.first_name, row.last_name)}</strong><span>{[row.company, row.email, row.phone].filter(Boolean).join(' · ') || 'Aucune coordonnée complémentaire'}</span></div>
                 <span className="training-status-pill active">Actif</span>
-                <button className="secondary-button compact-button" type="button" onClick={() => archive(row)}>Archiver</button>
+                {canManage && <button className="secondary-button compact-button" type="button" onClick={() => archive(row)}>Archiver</button>}
               </article>
             ))}
           </div>

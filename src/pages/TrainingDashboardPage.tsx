@@ -61,6 +61,7 @@ export function TrainingDashboardPage() {
 
   const digitalAttendanceEnabled = Boolean(organization && organizationHasFeature(organization, 'training_digital_attendance'));
   const satisfactionEnabled = Boolean(organization && organizationHasFeature(organization, 'training_satisfaction'));
+  const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
 
   useEffect(() => {
     if (!organization) return;
@@ -230,7 +231,7 @@ export function TrainingDashboardPage() {
             <button className="secondary-button" type="button" disabled={Boolean(exporting) || loading} onClick={exportCsv}><Icon name="file" size={17} />{exporting === 'csv' ? 'Export…' : 'CSV'}</button>
             <button className="secondary-button" type="button" disabled={Boolean(exporting) || loading} onClick={() => void exportPdf()}><Icon name="file" size={17} />{exporting === 'pdf' ? 'Préparation…' : 'Rapport PDF'}</button>
           </div>
-          <Link className="primary-button" to="/sessions?new=1"><Icon name="calendar" size={18} />Créer une session</Link>
+          {canManage && <Link className="primary-button" to="/sessions?new=1"><Icon name="calendar" size={18} />Créer une session</Link>}
         </div>
       </header>
 
@@ -239,8 +240,8 @@ export function TrainingDashboardPage() {
       <section className="training-quality-overview" aria-label="État des sessions">
         <article className="training-quality-overview-card planned"><span><Icon name="calendar" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.plannedSessions}</strong><small>Planifiées à 30 jours</small></div><Link to="/sessions?view=planned">Voir</Link></article>
         <article className="training-quality-overview-card current"><span><Icon name="activity" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.inProgressSessions}</strong><small>En cours maintenant</small></div><Link to="/sessions?view=current">Voir</Link></article>
-        <article className="training-quality-overview-card ready"><span><Icon name="check" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.readyToCloseSessions}</strong><small>Prêtes à clôturer</small></div><Link to="/dossiers-formation?tab=to_close">Traiter</Link></article>
-        <article className="training-quality-overview-card closed"><span><Icon name="lock" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.closedSessions}</strong><small>Clôturées · {qualityPeriodLabel(periodDays)}</small></div><Link to="/dossiers-formation?tab=closed">Voir</Link></article>
+        <article className="training-quality-overview-card ready"><span><Icon name="check" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.readyToCloseSessions}</strong><small>Prêtes à clôturer</small></div>{canManage ? <Link to="/dossiers-formation?tab=to_close">Traiter</Link> : <Link to="/sessions?view=current">Voir</Link>}</article>
+        <article className="training-quality-overview-card closed"><span><Icon name="lock" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.closedSessions}</strong><small>Clôturées · {qualityPeriodLabel(periodDays)}</small></div><Link to={canManage ? "/dossiers-formation?tab=closed" : "/sessions?view=closed"}>Voir</Link></article>
       </section>
 
       <section className="stats-grid training-quality-stats">

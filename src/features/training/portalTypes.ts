@@ -226,6 +226,46 @@ export interface TrainingPortalDashboard {
   }>;
 }
 
+
+export interface TrainingTrainerBpfIntervention {
+  organization_id: string;
+  organization_name: string;
+  organization_siret: string | null;
+  trainer_id: string;
+  session_id: string;
+  session_title: string;
+  program_title: string | null;
+  starts_at: string;
+  ends_at: string;
+  location: string | null;
+  modality: string | null;
+  training_hours: number;
+  trainee_count: number;
+  trainee_hours: number;
+  amount_excl_tax_cents: number | null;
+  invoice_reference: string | null;
+  invoice_date: string | null;
+  notes: string | null;
+  entry_status: 'draft' | 'confirmed';
+  confirmed_at: string | null;
+  updated_at: string | null;
+}
+
+export interface TrainingTrainerBpfOverview {
+  reporting_year: number;
+  summary: {
+    centers: number;
+    interventions: number;
+    trainees: number;
+    trainee_hours: number;
+    revenue_cents: number;
+    completed_entries: number;
+    to_complete: number;
+  };
+  excluded_internal_sessions: number;
+  interventions: TrainingTrainerBpfIntervention[];
+}
+
 export const trainingPortalSubjectLabels: Record<TrainingPortalSubjectKind, string> = {
   trainee: 'Stagiaire',
   trainer: 'Formateur',

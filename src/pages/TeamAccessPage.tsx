@@ -28,6 +28,8 @@ interface TeamMember {
   staff_id: string | null;
   staff_name: string | null;
   joined_at: string;
+  profile_ready?: boolean;
+  last_sign_in_at?: string | null;
 }
 
 interface TeamInvitation {
@@ -68,6 +70,10 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value));
 }
 
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+}
+
 export function TeamAccessPage() {
   const { organization } = useOrganization();
   const { user, demoMode } = useAuth();
@@ -85,6 +91,7 @@ export function TeamAccessPage() {
   const [success, setSuccess] = useState('');
 
   const canAdminister = ['owner', 'admin'].includes(organization?.role ?? 'viewer');
+  const canManageAdmins = organization?.role === 'owner';
   const canView = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
   const isTraining = organization?.business_type === 'formation';
   const isSecurity = organization?.business_type === 'securite';
@@ -125,8 +132,8 @@ export function TeamAccessPage() {
 
       if (canView) {
         const [membersResult, invitationsResult, staffResult] = await Promise.all([
-          supabase.rpc(isSecurity ? 'list_security_team_members' : isCleaning ? 'list_cleaning_team_members' : isRestaurant ? 'list_restaurant_team_members' : 'list_team_members', { p_organization_id: organization.id }),
-          supabase.rpc(isSecurity ? 'list_security_team_invitations' : isCleaning ? 'list_cleaning_team_invitations' : isRestaurant ? 'list_restaurant_team_invitations' : 'list_team_invitations', { p_organization_id: organization.id }),
+          supabase.rpc(isTraining ? 'list_training_team_members' : isSecurity ? 'list_security_team_members' : isCleaning ? 'list_cleaning_team_members' : isRestaurant ? 'list_restaurant_team_members' : 'list_team_members', { p_organization_id: organization.id }),
+          supabase.rpc(isTraining ? 'list_training_team_invitations' : isSecurity ? 'list_security_team_invitations' : isCleaning ? 'list_cleaning_team_invitations' : isRestaurant ? 'list_restaurant_team_invitations' : 'list_team_invitations', { p_organization_id: organization.id }),
           isTraining
             ? Promise.resolve({ data: [], error: null })
             : isSecurity
@@ -167,7 +174,7 @@ export function TeamAccessPage() {
         { value: 'viewer' as AccessRole, label: 'Consultation' }
       ];
       if (summary.manager_role_enabled) options.splice(1, 0, { value: 'manager' as AccessRole, label: 'Responsable' });
-      if (summary.plan === 'metier') options.splice(1, 0, { value: 'admin' as AccessRole, label: 'Administrateur' });
+      if (summary.plan === 'metier' && canManageAdmins) options.splice(1, 0, { value: 'admin' as AccessRole, label: 'Administrateur' });
       return options;
     }
     if (summary.plan === 'essentielle') return [{ value: 'employee' as AccessRole, label: 'Collaborateur' }];
@@ -181,7 +188,7 @@ export function TeamAccessPage() {
       { value: 'admin' as AccessRole, label: 'Administrateur' },
       { value: 'viewer' as AccessRole, label: 'Consultation' }
     ];
-  }, [summary, isTraining, isSecurity, isRestaurant, isFieldBusiness]);
+  }, [summary, isTraining, isSecurity, isRestaurant, isFieldBusiness, canManageAdmins]);
 
   const availableStaff = useMemo(() => {
     const pendingStaff = new Set(invitations.filter((item) => item.status === 'pending').map((item) => item.staff_id));
@@ -277,7 +284,7 @@ export function TeamAccessPage() {
     setBusyId(member.user_id);
     setError('');
     try {
-      const { error: statusError } = await supabase.rpc(isSecurity ? 'set_security_team_member_status' : isCleaning ? 'set_cleaning_team_member_status' : isRestaurant ? 'set_restaurant_team_member_status' : 'set_team_member_status', {
+      const { error: statusError } = await supabase.rpc(isTraining ? 'set_training_team_member_status' : isSecurity ? 'set_security_team_member_status' : isCleaning ? 'set_cleaning_team_member_status' : isRestaurant ? 'set_restaurant_team_member_status' : 'set_team_member_status', {
         p_organization_id: organization.id,
         p_user_id: member.user_id,
         p_status: nextStatus
@@ -300,7 +307,7 @@ export function TeamAccessPage() {
         <div>
           <p className="eyebrow">COMPTES & PERMISSIONS</p>
           <h1>{isRestaurant ? 'Accès employés' : isFieldBusiness ? 'Accès agents' : 'Accès équipe'}</h1>
-          <p>{isSecurity ? `Reliez jusqu’à ${summary?.member_limit ?? (organization.plan === 'professionnelle' ? 50 : 10)} agents à leur espace terrain personnel. En Découverte, l’accès peut être ajouté à la carte ; le rôle Chef de poste reste inclus en Professionnelle ou disponible comme module sur Essentielle.` : isCleaning ? `Reliez jusqu’à ${summary?.member_limit ?? (organization.plan === 'professionnelle' ? 50 : 10)} agents à leur espace terrain personnel et attribuez le rôle Chef d’équipe avec l’offre Professionnelle.` : isRestaurant ? `Reliez jusqu’à ${summary?.member_limit ?? (organization.plan === 'professionnelle' ? 50 : 10)} employés à leur espace personnel et attribuez le rôle Manager avec l’offre Professionnelle.` : 'Invitez chaque personne avec son propre compte, sans partager le mot de passe du propriétaire.'}</p>
+          <p>{isTraining ? 'Chaque membre dispose de son propre compte. Le propriétaire garde la maîtrise des administrateurs ; Responsable pilote l’activité, Collaborateur intervient sur les opérations pédagogiques autorisées et Consultation reste strictement en lecture.' : isSecurity ? `Reliez jusqu’à ${summary?.member_limit ?? (organization.plan === 'professionnelle' ? 50 : 10)} agents à leur espace terrain personnel. En Découverte, l’accès peut être ajouté à la carte ; le rôle Chef de poste reste inclus en Professionnelle ou disponible comme module sur Essentielle.` : isCleaning ? `Reliez jusqu’à ${summary?.member_limit ?? (organization.plan === 'professionnelle' ? 50 : 10)} agents à leur espace terrain personnel et attribuez le rôle Chef d’équipe avec l’offre Professionnelle.` : isRestaurant ? `Reliez jusqu’à ${summary?.member_limit ?? (organization.plan === 'professionnelle' ? 50 : 10)} employés à leur espace personnel et attribuez le rôle Manager avec l’offre Professionnelle.` : 'Invitez chaque personne avec son propre compte, sans partager le mot de passe du propriétaire.'}</p>
         </div>
       </header>
 
@@ -371,17 +378,17 @@ export function TeamAccessPage() {
                   {members.map((member) => (
                     <article key={member.user_id} className={`team-member-row${member.status === 'disabled' ? ' disabled' : ''}`}>
                       <div className="team-avatar">{member.full_name.slice(0, 1).toUpperCase()}</div>
-                      <div className="team-member-identity"><strong>{member.full_name}</strong><span>{member.email}</span><small>{isTraining ? roleLabels[member.role] : isFieldBusiness ? (member.staff_name ? `${member.role === 'manager' ? (isSecurity ? 'Chef de poste' : isRestaurant ? 'Manager' : 'Chef d’équipe') : (isRestaurant ? 'Employé' : 'Agent')} : ${member.staff_name}` : roleLabels[member.role]) : member.staff_name ? `Profil : ${member.staff_name}` : 'Aucun profil collaborateur associé'}</small></div>
+                      <div className="team-member-identity"><strong>{member.full_name}</strong><span>{member.email}</span><small>{isTraining ? `${roleLabels[member.role]} · ${member.profile_ready === false ? 'profil réparé/à compléter' : 'profil OK'}${member.last_sign_in_at ? ` · dernière connexion ${formatDateTime(member.last_sign_in_at)}` : ' · jamais connecté'}` : isFieldBusiness ? (member.staff_name ? `${member.role === 'manager' ? (isSecurity ? 'Chef de poste' : isRestaurant ? 'Manager' : 'Chef d’équipe') : (isRestaurant ? 'Employé' : 'Agent')} : ${member.staff_name}` : roleLabels[member.role]) : member.staff_name ? `Profil : ${member.staff_name}` : 'Aucun profil collaborateur associé'}</small></div>
                       <span className={`status-chip ${member.status === 'active' ? 'active' : 'inactive'}`}>{member.status === 'active' ? 'Actif' : 'Suspendu'}</span>
                       <div className="team-member-actions">
-                        {member.role === 'owner' ? <strong>Propriétaire</strong> : canAdminister ? (
+                        {member.role === 'owner' ? <strong>Propriétaire</strong> : canAdminister && member.user_id !== user?.id && (!isTraining || member.role !== 'admin' || canManageAdmins) ? (
                           <>
                             {isFieldBusiness ? <select value={member.role} disabled={busyId === member.user_id} onChange={(event) => changeMemberRole(member, event.target.value as AccessRole)} aria-label={`Rôle de ${member.full_name}`}>{roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <select value={member.role} disabled={busyId === member.user_id} onChange={(event) => changeMemberRole(member, event.target.value as AccessRole)} aria-label={`Rôle de ${member.full_name}`}>
                               {roleOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                             </select>}
                             <button type="button" className="secondary-button compact-button" disabled={busyId === member.user_id} onClick={() => toggleMember(member)}>{member.status === 'active' ? 'Suspendre' : 'Réactiver'}</button>
                           </>
-                        ) : <strong>{roleLabels[member.role]}</strong>}
+                        ) : <strong>{member.user_id === user?.id ? 'Votre compte' : isTraining && member.role === 'admin' && !canManageAdmins ? 'Géré par le propriétaire' : roleLabels[member.role]}</strong>}
                       </div>
                     </article>
                   ))}
@@ -397,7 +404,7 @@ export function TeamAccessPage() {
                         <div className="team-avatar pending"><Icon name="users" size={20} /></div>
                         <div className="team-member-identity"><strong>{invitation.email}</strong><span>{isFieldBusiness ? (invitation.role === 'manager' ? (isSecurity ? 'Chef de poste' : isRestaurant ? 'Manager' : 'Chef d’équipe') : (isRestaurant ? 'Employé' : 'Agent')) : roleLabels[invitation.role]}</span><small>{invitation.staff_name ? `${isRestaurant ? 'Employé' : isFieldBusiness ? 'Agent' : 'Profil'} : ${invitation.staff_name}` : `Expire le ${formatDate(invitation.expires_at)}`}</small></div>
                         <span className={`status-chip ${invitation.status === 'pending' ? 'pending' : 'inactive'}`}>{invitation.status === 'pending' ? 'Envoyée' : 'Expirée'}</span>
-                        {canAdminister && <div className="team-member-actions"><button type="button" className="secondary-button compact-button" disabled={busyId === invitation.invitation_id} onClick={() => runAction('resend', invitation.invitation_id)}>Renvoyer</button><button type="button" className="danger-text-button" disabled={busyId === invitation.invitation_id} onClick={() => runAction('revoke', invitation.invitation_id)}>Révoquer</button></div>}
+                        {canAdminister && (!isTraining || invitation.role !== 'admin' || canManageAdmins) && <div className="team-member-actions"><button type="button" className="secondary-button compact-button" disabled={busyId === invitation.invitation_id} onClick={() => runAction('resend', invitation.invitation_id)}>Renvoyer</button><button type="button" className="danger-text-button" disabled={busyId === invitation.invitation_id} onClick={() => runAction('revoke', invitation.invitation_id)}>Révoquer</button></div>}
                       </article>
                     ))}
                   </div>

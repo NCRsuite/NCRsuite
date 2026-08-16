@@ -1,13 +1,13 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.29.15-security-qg-operational';
+const CACHE = 'ncr-suite-shell-v2.29.17-trainer-personal-bpf';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
   '/index.html',
   '/manifest.webmanifest',
-  '/ncr-suite-showcase-v2915.css',
-  '/ncr-suite-app-v2915.css',
-  '/ncr-suite-app-v2915.js',
+  '/ncr-suite-showcase-v2917.css',
+  '/ncr-suite-app-v2917.css',
+  '/ncr-suite-app-v2917.js',
   '/fonts/inter-variable.woff2',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-symbol-v2221.png',

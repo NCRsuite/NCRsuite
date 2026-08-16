@@ -1,6 +1,9 @@
-# NCR Suite V2.29.12
+# NCR Suite V2.29.11
 
-Release terrain actuelle : voir `A_LIRE_V2.29.12_PRISE_FIN_POSTE_PREMIUM.md`.
+## Release V2.29.17
+
+L’espace Formateur dispose désormais de **Mon BPF** pour consolider les interventions réalisées en sous-traitance pour d’autres organismes. Depuis V2.29.15, appliquer d’abord `130_training_access_accounts_hardening.sql`, puis `131_training_trainer_personal_bpf.sql`. Voir `A_LIRE_V2.29.17_BPF_PERSONNEL_FORMATEUR.md`.
+
 
 Base SaaS multi-métier NCR Suite.
 
@@ -9,3 +12,8 @@ progressive entre Collecter, Orchestrer, Prouver et Piloter. L'application
 connectée, Stripe, le référencement et les fonctions métier restent inchangés.
 
 Consulter `A_LIRE_V2.29.11_VACATIONS_BLINDEES.md` pour déployer cette release.
+
+## Release V2.29.16
+
+Le bloc Formation « Droits & comptes » est durci. Appliquer `supabase/migrations/130_training_access_accounts_hardening.sql` avant de déployer le front. Voir `A_LIRE_V2.29.16_DROITS_COMPTES_FORMATION.md`.
+

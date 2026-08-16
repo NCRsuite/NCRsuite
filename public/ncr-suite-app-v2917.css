@@ -1,3 +1,4 @@
+/* NCR Suite V2.29.17 - styles complets servis hors du dossier assets */
 @font-face {
   font-family: "NCR Public Inter";
   src: url('/fonts/inter-variable.woff2') format('woff2');
@@ -23751,3 +23752,4 @@ button { max-width: 100%; }
 .training-trainer-bpf-relationship { display: grid; gap: 4px; min-width: 150px; color: #78827d; font-size: 8px; font-weight: 800; text-transform: uppercase; }
 .training-trainer-bpf-relationship select { min-height: 34px; padding: 0 28px 0 9px; border-radius: 7px; font-size: 9px; text-transform: none; }
 @media (max-width: 640px) { .training-trainer-bpf-relationship { width: 100%; } .training-trainer-bpf-relationship select { width: 100%; } }
+

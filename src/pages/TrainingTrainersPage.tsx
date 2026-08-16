@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
-import { nullableText, personName, type TrainingTrainerRecord } from '../features/training/types';
+import { nullableText, personName, type TrainingBpfTrainerRelationship, type TrainingTrainerRecord } from '../features/training/types';
 import { supabase } from '../lib/supabase';
 
 interface FormState {
@@ -13,9 +13,10 @@ interface FormState {
   phone: string;
   specialties: string;
   notes: string;
+  bpfRelationship: TrainingBpfTrainerRelationship;
 }
 
-const emptyForm: FormState = { firstName: '', lastName: '', email: '', phone: '', specialties: '', notes: '' };
+const emptyForm: FormState = { firstName: '', lastName: '', email: '', phone: '', specialties: '', notes: '', bpfRelationship: 'internal' };
 
 export function TrainingTrainersPage() {
   const { organization } = useOrganization();
@@ -28,7 +29,8 @@ export function TrainingTrainersPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const formOpen = searchParams.get('new') === '1';
+  const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
+  const formOpen = canManage && searchParams.get('new') === '1';
 
   useEffect(() => {
     if (!organization) return;
@@ -43,7 +45,7 @@ export function TrainingTrainersPage() {
       }
       const { data, error: loadError } = await supabase
         .from('training_trainers')
-        .select('id,organization_id,first_name,last_name,email,phone,specialties,notes,status,created_at')
+        .select('id,organization_id,first_name,last_name,email,phone,specialties,notes,bpf_relationship,status,created_at')
         .eq('organization_id', organizationId)
         .neq('status', 'archived')
         .order('last_name')
@@ -66,7 +68,7 @@ export function TrainingTrainersPage() {
 
   async function createTrainer(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!organization || !user) return;
+    if (!organization || !user || !canManage) return;
     if (!form.firstName.trim() || !form.lastName.trim()) { setError('Le prénom et le nom sont obligatoires.'); return; }
     setSaving(true); setError(''); setSuccess('');
     const specialties = form.specialties.split(',').map((value) => value.trim()).filter(Boolean).slice(0, 20);
@@ -78,6 +80,7 @@ export function TrainingTrainersPage() {
       phone: nullableText(form.phone),
       specialties,
       notes: nullableText(form.notes),
+      bpf_relationship: form.bpfRelationship,
       created_by: user.id
     };
     try {
@@ -89,7 +92,7 @@ export function TrainingTrainersPage() {
         const { data, error: insertError } = await supabase
           .from('training_trainers')
           .insert(payload)
-          .select('id,organization_id,first_name,last_name,email,phone,specialties,notes,status,created_at')
+          .select('id,organization_id,first_name,last_name,email,phone,specialties,notes,bpf_relationship,status,created_at')
           .single();
         if (insertError) throw insertError;
         created = data as TrainingTrainerRecord;
@@ -101,8 +104,27 @@ export function TrainingTrainersPage() {
     } finally { setSaving(false); }
   }
 
+  async function updateBpfRelationship(row: TrainingTrainerRecord, relationship: TrainingBpfTrainerRelationship) {
+    if (!organization || !canManage) return;
+    setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        const next = rows.map((item) => item.id === row.id ? { ...item, bpf_relationship: relationship } : item);
+        localStorage.setItem(`ncr-suite-training-trainers-${organization.id}`, JSON.stringify(next));
+        setRows(next);
+      } else {
+        const { error: updateError } = await supabase.from('training_trainers').update({ bpf_relationship: relationship }).eq('organization_id', organization.id).eq('id', row.id);
+        if (updateError) throw updateError;
+        setRows((current) => current.map((item) => item.id === row.id ? { ...item, bpf_relationship: relationship } : item));
+      }
+      setSuccess(relationship === 'external' ? 'Le formateur est identifié comme intervenant externe / sous-traitant.' : 'Le formateur est identifié comme intervenant interne.');
+    } catch (caught) {
+      setError(`Mise à jour impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
+    }
+  }
+
   async function archive(row: TrainingTrainerRecord) {
-    if (!organization || !window.confirm(`Archiver ${personName(row.first_name, row.last_name)} ?`)) return;
+    if (!organization || !canManage || !window.confirm(`Archiver ${personName(row.first_name, row.last_name)} ?`)) return;
     try {
       if (demoMode || !supabase) {
         const next = rows.filter((item) => item.id !== row.id);
@@ -122,7 +144,7 @@ export function TrainingTrainersPage() {
     <div className="page training-page">
       <header className="page-header">
         <div><p className="eyebrow">PACK FORMATION</p><h1>Formateurs</h1><p>Gérez les intervenants et leurs domaines de spécialité.</p></div>
-        <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Ajouter un formateur</button>
+        {canManage && <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Ajouter un formateur</button>}
       </header>
 
       {formOpen && (
@@ -134,6 +156,8 @@ export function TrainingTrainersPage() {
             <label>Adresse e-mail<input type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} /></label>
             <label>Téléphone<input inputMode="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} /></label>
             <label className="full-field">Spécialités<input value={form.specialties} onChange={(event) => setForm((current) => ({ ...current, specialties: event.target.value }))} placeholder="SST, bureautique, communication… séparées par des virgules" /></label>
+            <label>Lien avec l'organisme<select value={form.bpfRelationship} onChange={(event) => setForm((current) => ({ ...current, bpfRelationship: event.target.value as TrainingBpfTrainerRelationship }))}><option value="internal">Interne / salarié</option><option value="external">Externe / sous-traitant</option></select></label>
+            <div className="training-form-hint"><strong>Impact BPF</strong><span>Un formateur externe pourra retrouver les sessions qui lui sont attribuées dans « Mon BPF » de son espace formateur.</span></div>
             <label className="full-field">Notes internes<textarea rows={3} value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} /></label>
             <div className="form-actions full-field"><button className="secondary-button" type="button" onClick={() => setSearchParams({})}>Annuler</button><button className="primary-button" type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button></div>
           </form>
@@ -151,8 +175,8 @@ export function TrainingTrainersPage() {
               <article key={row.id} className="training-record-card">
                 <span className="training-record-icon"><Icon name="briefcase" size={21} /></span>
                 <div className="training-record-main"><strong>{personName(row.first_name, row.last_name)}</strong><span>{[row.email, row.phone].filter(Boolean).join(' · ') || 'Aucune coordonnée'}</span>{row.specialties.length > 0 && <div className="training-tags">{row.specialties.slice(0, 4).map((specialty) => <em key={specialty}>{specialty}</em>)}</div>}</div>
-                <span className="training-status-pill active">Actif</span>
-                <button className="secondary-button compact-button" type="button" onClick={() => archive(row)}>Archiver</button>
+                {canManage ? <label className="training-trainer-bpf-relationship"><span>Lien BPF</span><select value={row.bpf_relationship ?? 'internal'} onChange={(event) => void updateBpfRelationship(row, event.target.value as TrainingBpfTrainerRelationship)}><option value="internal">Interne</option><option value="external">Externe / sous-traitant</option></select></label> : <span className={`training-status-pill ${row.bpf_relationship === 'external' ? 'warning' : 'active'}`}>{row.bpf_relationship === 'external' ? 'Externe' : 'Interne'}</span>}
+                {canManage && <button className="secondary-button compact-button" type="button" onClick={() => archive(row)}>Archiver</button>}
               </article>
             ))}
           </div>

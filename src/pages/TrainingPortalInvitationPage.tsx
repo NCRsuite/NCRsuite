@@ -169,7 +169,7 @@ export function TrainingPortalInvitationPage() {
                     <label>Nom complet<input value={fullName} onChange={(event) => setFullName(event.target.value)} required minLength={2} /></label>
                   )}
                   <label>Adresse e-mail<input type="email" value={details.invited_email} disabled /></label>
-                  <label>Mot de passe<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={6} /></label>
+                  <label>Mot de passe<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={mode === 'signup' ? 10 : 1} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} /></label>
                   <button className="primary-button" disabled={pending}>
                     {pending ? 'Patientez…' : mode === 'signup' ? 'Créer mon compte' : 'Me connecter'}
                   </button>

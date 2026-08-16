@@ -122,8 +122,9 @@ export function TrainingProgramsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
   const editingId = searchParams.get('edit');
-  const formOpen = searchParams.get('new') === '1' || Boolean(editingId);
+  const formOpen = canManage && (searchParams.get('new') === '1' || Boolean(editingId));
 
   useEffect(() => {
     if (!organization) return;
@@ -204,7 +205,7 @@ export function TrainingProgramsPage() {
 
   async function saveProgram(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!organization || !user) return;
+    if (!organization || !user || !canManage) return;
     const duration = Number(form.durationHours.replace(',', '.'));
     const amount = moneyToCents(form.priceExclTax);
     const vatRate = Number(form.vatRate.replace(',', '.'));
@@ -287,7 +288,7 @@ export function TrainingProgramsPage() {
   }
 
   async function archive(row: TrainingProgramRecord) {
-    if (!organization || !window.confirm(`Archiver la formation « ${row.title} » ?`)) return;
+    if (!organization || !canManage || !window.confirm(`Archiver la formation « ${row.title} » ?`)) return;
     try {
       if (demoMode || !supabase) {
         const next = rows.filter((item) => item.id !== row.id);
@@ -331,7 +332,7 @@ export function TrainingProgramsPage() {
         </div>
         <div className="training-program-hero-actions">
           <button className="secondary-button" type="button" onClick={() => navigate('/profil-organisme')}><Icon name="building" size={17} />Profil organisme</button>
-          <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Créer une formation</button>
+          {canManage && <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Créer une formation</button>}
         </div>
         <div className="training-program-metrics">
           <article><span><Icon name="graduation" size={18} /></span><div><strong>{stats.total}</strong><small>formations</small></div></article>
@@ -397,7 +398,7 @@ export function TrainingProgramsPage() {
                 <p>{row.description || row.objectives || 'Ajoute une description et les objectifs pédagogiques.'}</p>
                 <div className="training-program-v215-facts"><span>{row.duration_hours} h</span><span>{modalityLabels[row.modality]}</span><span>{row.default_capacity} places</span><span>{formatTrainingMoney(row.price_excl_tax_cents)} HT</span></div>
                 <div className="training-program-v215-trainers"><Icon name="briefcase" size={15} /><span>{linkedTrainers.length ? linkedTrainers.map((trainer) => personName(trainer.first_name, trainer.last_name)).join(', ') : 'Aucun formateur associé'}</span></div>
-                <footer><button className="secondary-button compact-button" type="button" onClick={() => setSearchParams({ edit: row.id })}>Modifier</button><button className="secondary-button compact-button" type="button" disabled={!completion.ready} title={!completion.ready ? 'Complète la fiche avant de générer le programme.' : undefined} onClick={() => void downloadProgramPdf(row)}><Icon name="file" size={15} />Programme PDF</button><button className="primary-button compact-button" type="button" disabled={!completion.ready} title={!completion.ready ? 'Complète la fiche avant de créer une proposition.' : undefined} onClick={() => navigate(`/commercial?new=1&program=${encodeURIComponent(row.id)}`)}>Créer une proposition</button><button className="danger-text-button" type="button" onClick={() => void archive(row)}>Archiver</button></footer>
+                <footer>{canManage && <button className="secondary-button compact-button" type="button" onClick={() => setSearchParams({ edit: row.id })}>Modifier</button>}<button className="secondary-button compact-button" type="button" disabled={!completion.ready} title={!completion.ready ? 'Complète la fiche avant de générer le programme.' : undefined} onClick={() => void downloadProgramPdf(row)}><Icon name="file" size={15} />Programme PDF</button>{canManage && <button className="primary-button compact-button" type="button" disabled={!completion.ready} title={!completion.ready ? 'Complète la fiche avant de créer une proposition.' : undefined} onClick={() => navigate(`/commercial?new=1&program=${encodeURIComponent(row.id)}`)}>Créer une proposition</button>}{canManage && <button className="danger-text-button" type="button" onClick={() => void archive(row)}>Archiver</button>}</footer>
               </article>;
             })}
           </div>
