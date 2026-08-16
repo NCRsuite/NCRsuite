@@ -174,15 +174,16 @@ export function drawTrainingPremiumHeader(
 ) {
   const width = page.getWidth();
   const height = page.getHeight();
-  const heroHeight = 162;
+  const heroHeight = 158;
   page.drawRectangle({ x: 0, y: height - heroHeight, width, height: heroHeight, color: theme.dark });
   page.drawRectangle({ x: 0, y: height - 8, width, height: 8, color: theme.accent });
-  page.drawRectangle({ x: width - 132, y: height - heroHeight, width: 132, height: heroHeight, color: theme.accentSoft, opacity: 0.12 });
-  page.drawRectangle({ x: width - 58, y: height - heroHeight, width: 58, height: heroHeight, color: theme.accent, opacity: 0.22 });
+  page.drawRectangle({ x: width - 154, y: height - heroHeight, width: 154, height: heroHeight, color: theme.accentSoft, opacity: 0.10 });
+  page.drawRectangle({ x: width - 62, y: height - heroHeight, width: 62, height: heroHeight, color: theme.accent, opacity: 0.20 });
+  page.drawLine({ start: { x: width - 154, y: height - heroHeight + 16 }, end: { x: width - 154, y: height - 16 }, thickness: 0.6, color: theme.accent, opacity: 0.55 });
 
   const logoBoxX = TRAINING_PDF_MARGIN;
   const logoBoxY = height - 88;
-  page.drawRectangle({ x: logoBoxX, y: logoBoxY, width: 118, height: 52, color: rgb(1, 1, 1), opacity: 0.98 });
+  page.drawRectangle({ x: logoBoxX, y: logoBoxY, width: 118, height: 52, color: rgb(1, 1, 1), opacity: 0.98, borderColor: rgb(0.88, 0.9, 0.94), borderWidth: 0.5 });
   if (theme.logo) {
     const scale = Math.min(96 / theme.logo.width, 34 / theme.logo.height, 1);
     page.drawImage(theme.logo, {
@@ -203,10 +204,11 @@ export function drawTrainingPremiumHeader(
   const contact = [organization.company_email, organization.company_phone].filter(Boolean).join(' · ');
   if (contact) drawTrainingPdfText(page, contact.slice(0, 80), { x: brandX, y: height - 83, size: 7.2, font: theme.regular, color: rgb(0.78, 0.82, 0.88) });
 
-  drawTrainingPdfText(page, input.eyebrow.toUpperCase(), { x: TRAINING_PDF_MARGIN, y: height - 112, size: 7, font: theme.bold, color: theme.accent });
-  drawTrainingPdfText(page, input.title, { x: TRAINING_PDF_MARGIN, y: height - 139, size: 23, font: theme.bold, color: rgb(1, 1, 1) });
+  page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: height - 146, width: 4, height: 42, color: theme.accent });
+  drawTrainingPdfText(page, input.eyebrow.toUpperCase(), { x: TRAINING_PDF_MARGIN + 13, y: height - 112, size: 6.8, font: theme.bold, color: theme.accent });
+  drawTrainingPdfText(page, input.title, { x: TRAINING_PDF_MARGIN + 13, y: height - 139, size: 22, font: theme.bold, color: rgb(1, 1, 1) });
   if (input.subtitle) {
-    drawTrainingPdfText(page, input.subtitle.slice(0, 95), { x: TRAINING_PDF_MARGIN, y: height - 154, size: 7.8, font: theme.regular, color: rgb(0.78, 0.82, 0.88) });
+    drawTrainingPdfText(page, input.subtitle.slice(0, 92), { x: TRAINING_PDF_MARGIN + 13, y: height - 153, size: 7.5, font: theme.regular, color: rgb(0.78, 0.82, 0.88) });
   }
 
   if (input.reference) {
@@ -234,12 +236,14 @@ export function drawTrainingPremiumFooter(
     organization.training_nda_number ? `NDA ${organization.training_nda_number}` : '',
     organization.training_vat_number ? `TVA ${organization.training_vat_number}` : ''
   ].filter(Boolean).join(' · ');
-  drawTrainingPdfText(page, legal || 'Organisme de formation', { x: TRAINING_PDF_MARGIN, y: 31, size: 6.4, font: theme.regular, color: theme.muted });
+  const footerBrand = normalizeTrainingPdfText(organization.public_name || organization.name);
+  drawTrainingPdfText(page, footerBrand, { x: TRAINING_PDF_MARGIN, y: 34, size: 6.5, font: theme.bold, color: theme.dark });
+  drawTrainingPdfText(page, legal || 'Organisme de formation', { x: TRAINING_PDF_MARGIN, y: 23, size: 5.8, font: theme.regular, color: theme.muted });
   const pageText = input?.totalPages && input.totalPages > 1
-    ? `${input.pageNumber ?? 1}/${input.totalPages}`
+    ? `${input.reference ? `${input.reference} · ` : ''}${input.pageNumber ?? 1}/${input.totalPages}`
     : input?.reference || 'NCR Suite';
   const encoded = trainingPdfText(pageText, theme.bold);
-  drawTrainingPdfText(page, encoded, { x: width - TRAINING_PDF_MARGIN - theme.bold.widthOfTextAtSize(encoded, 6.4), y: 31, size: 6.4, font: theme.bold, color: theme.muted });
+  drawTrainingPdfText(page, encoded, { x: width - TRAINING_PDF_MARGIN - theme.bold.widthOfTextAtSize(encoded, 6.4), y: 29, size: 6.2, font: theme.bold, color: theme.muted });
 }
 
 export function drawTrainingSectionTitle(page: PDFPage, theme: TrainingPdfTheme, title: string, y: number, index?: string) {

@@ -1,4 +1,9 @@
-# NCR Suite V2.29.19
+# NCR Suite V2.29.20
+
+## Release V2.29.20
+
+Les principaux documents Formation adoptent un rendu premium harmonisé : devis avec bon pour accord, conventions/contrats plus lisibles et convocation automatique centrée sur les informations terrain du stagiaire. Appliquer `134_training_premium_documents_release.sql` après la V2.29.19. Voir `A_LIRE_V2.29.20_DOCUMENTS_FORMATION_PREMIUM.md`.
+
 
 ## Release V2.29.19
 
@@ -24,4 +29,3 @@ Consulter `A_LIRE_V2.29.11_VACATIONS_BLINDEES.md` pour déployer cette release.
 ## Release V2.29.16
 
 Le bloc Formation « Droits & comptes » est durci. Appliquer `supabase/migrations/130_training_access_accounts_hardening.sql` avant de déployer le front. Voir `A_LIRE_V2.29.16_DROITS_COMPTES_FORMATION.md`.
-

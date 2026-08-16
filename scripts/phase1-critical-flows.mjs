@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-bpf-guided-assistant`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-training-premium-documents`;
 const publicMotionCache = 'ncr-suite-shell-v2.29.5-public-motion';
 const publicFlowSignalCache = 'ncr-suite-shell-v2.29.4-public-flow-signal';
 const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
@@ -108,19 +108,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v2919.css',
-  '/ncr-suite-app-v2919.css',
+  '/ncr-suite-showcase-v2920.css',
+  '/ncr-suite-app-v2920.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.19'
+  'ncr:css-recovery-v2.29.20'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v2919.css',
+  '/ncr-suite-app-v2920.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2919.js'"
+  "entryFileNames: 'ncr-suite-app-v2920.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -478,7 +478,7 @@ requireText('src/features/training/programPdf.ts', [
   'Organisation pratique'
 ]);
 requireText('src/features/training/commercialPdf.ts', [
-  'NCR Suite V2.18.0',
+  'NCR Suite V2.29.20',
   'Acceptation et signatures',
   'Programme détaillé'
 ]);
@@ -504,7 +504,7 @@ requireText('supabase/functions/process-email-queue/index.ts', [
   "case 'training_commercial_document'",
   "item.template_key === 'training_commercial_document'",
   'Convocation à une formation',
-  'NCR Suite V2.18.0'
+  'NCR Suite V2.29.20'
 ]);
 requireText('supabase/migrations/073_training_delivery_closure_automation.sql', [
   'update_training_evaluation_settings',
@@ -1514,6 +1514,12 @@ requireText('supabase/migrations/133_training_bpf_guided_assistant_release.sql',
   'Assistant BPF guidé'
 ]);
 
+requireText('supabase/migrations/134_training_premium_documents_release.sql', [
+  "'2.29.20'",
+  'ncr-suite-shell-v2.29.20-training-premium-documents',
+  'documents Formation premium'
+]);
+
 requireText('src/components/TrainingBpfAssistant.tsx', [
   'ASSISTANT BPF · MODE GUIDÉ',
   'Quelles formations entrent dans ton BPF ?',
@@ -1526,6 +1532,19 @@ requireText('src/components/TrainingTrainerBpfPanel.tsx', [
   'Mon BPF',
   'Un seul BPF pour votre propre organisme',
   'Montant HT facturé au centre'
+]);
+
+requireText('src/features/training/commercialPdf.ts', [
+  'Devis de formation',
+  'SYNTHÈSE DE L’OFFRE',
+  'Bon pour accord',
+  "NCR Suite V2.29.20"
+]);
+requireText('supabase/functions/process-email-queue/index.ts', [
+  'FORMATION · CONVOCATION PERSONNELLE',
+  'VOTRE SESSION EN UN COUP D’ŒIL',
+  'DOCUMENT_DATA_REQUIRED',
+  "NCR Suite V2.29.20"
 ]);
 
 if (failures.length) {

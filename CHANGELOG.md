@@ -1,3 +1,13 @@
+# V2.29.20 — Formation · Documents premium
+
+- Nouveau socle visuel commun pour les documents Formation générés.
+- Devis, convention et contrat modernisés avec hiérarchie renforcée, synthèse financière et signatures plus propres.
+- Le devis dispose maintenant d'une vraie zone « Bon pour accord ».
+- Convocation automatique repensée autour des informations utiles au stagiaire : début, durée, modalité, lieu, formateur et coordonnées.
+- Footer légal et métadonnées PDF harmonisés.
+- Convocations/attestations automatiques bloquées proprement si les données essentielles (stagiaire, formation, dates, lieu en présentiel) sont incomplètes.
+- Base, frontend et cache PWA alignés en V2.29.20.
+
 # V2.29.19 — Formation · Assistant BPF guidé
 
 - Nouveau Mode guidé activé par défaut dans le BPF.

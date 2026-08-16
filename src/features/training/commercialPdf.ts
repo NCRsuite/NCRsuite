@@ -19,6 +19,7 @@ import {
 import {
   formatTrainingMoney,
   modalityLabels,
+  trainingCommercialDocumentStatusLabels,
   trainingCommercialDocumentTypeLabels,
   trainingFunderTypeLabels,
   type TrainingCommercialDocumentRecord,
@@ -83,7 +84,16 @@ function drawEntityCard(
 }
 
 function pageTitle(input: CommercialPdfInput) {
-  return trainingCommercialDocumentTypeLabels[input.document.document_type];
+  if (input.document.document_type === 'quote') return 'Devis de formation';
+  if (input.document.document_type === 'agreement') return 'Convention de formation professionnelle';
+  return 'Contrat de formation professionnelle';
+}
+
+function documentEyebrow(input: CommercialPdfInput, continuation: boolean) {
+  if (continuation) return 'FORMATION · DOCUMENT CONTRACTUEL · SUITE';
+  return input.document.document_type === 'quote'
+    ? 'FORMATION · PROPOSITION COMMERCIALE'
+    : 'FORMATION · DOCUMENT CONTRACTUEL';
 }
 
 export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
@@ -95,7 +105,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
     const page = theme.pdf.addPage(TRAINING_PDF_PAGE);
     const number = pages.length + 1;
     const y = drawTrainingPremiumHeader(page, theme, organization, {
-      eyebrow: continuation ? 'FORMATION · DOSSIER COMMERCIAL' : 'FORMATION · DOCUMENT OFFICIEL',
+      eyebrow: documentEyebrow(input, continuation),
       title: continuation ? `${pageTitle(input)} · suite` : pageTitle(input),
       subtitle: document.title,
       reference: document.reference,
@@ -153,7 +163,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
     ['Émission', trainingPdfDate(document.issue_date)],
     ['Validité', document.valid_until ? trainingPdfDate(document.valid_until) : 'Sans échéance'],
     ['Participants', String(document.participant_count)],
-    ['Statut', document.status === 'draft' ? 'Brouillon' : document.status]
+    ['Statut', trainingCommercialDocumentStatusLabels[document.status]]
   ];
   meta.forEach(([label, value], index) => drawLabelValue(state.page, theme, label, value, TRAINING_PDF_MARGIN + index * (metaWidth + 8), state.y, metaWidth));
   state.y -= 62;
@@ -163,20 +173,25 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
   state.y = drawTrainingParagraph(state.page, theme, summary, state.y, { size: 9.2, color: theme.muted, lineHeight: 14, maxLines: 8 });
   state.y -= 8;
 
-  ensure(126);
-  state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: state.y - 108, width: CONTENT_WIDTH, height: 108, color: theme.dark });
-  state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: state.y - 108, width: 9, height: 108, color: theme.accent });
+  ensure(136);
+  const amountHeight = 116;
+  state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: state.y - amountHeight, width: CONTENT_WIDTH, height: amountHeight, color: theme.dark });
+  state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: state.y - amountHeight, width: 8, height: amountHeight, color: theme.accent });
+  drawTrainingPdfText(state.page, document.document_type === 'quote' ? 'SYNTHÈSE DE L’OFFRE' : 'SYNTHÈSE FINANCIÈRE', {
+    x: TRAINING_PDF_MARGIN + 24, y: state.y - 22, size: 6.2, font: theme.bold, color: theme.accent
+  });
   const amountColumns = [
     ['MONTANT HT', formatTrainingMoney(document.amount_excl_tax_cents)],
     [`TVA ${(document.vat_rate_basis_points / 100).toLocaleString('fr-FR')} %`, formatTrainingMoney(document.tax_cents)],
     ['TOTAL TTC', formatTrainingMoney(document.amount_incl_tax_cents)]
   ];
   amountColumns.forEach(([label, value], index) => {
-    const x = TRAINING_PDF_MARGIN + 28 + index * 160;
-    drawTrainingPdfText(state.page, label, { x, y: state.y - 30, size: 6.4, font: theme.bold, color: index === 2 ? theme.accent : rgb(0.7, 0.75, 0.82) });
-    drawTrainingPdfText(state.page, value, { x, y: state.y - 62, size: index === 2 ? 18 : 14, font: theme.bold, color: rgb(1, 1, 1) });
+    const x = TRAINING_PDF_MARGIN + 24 + index * 160;
+    if (index > 0) state.page.drawLine({ start: { x: x - 15, y: state.y - 99 }, end: { x: x - 15, y: state.y - 39 }, thickness: 0.6, color: rgb(0.24, 0.29, 0.36) });
+    drawTrainingPdfText(state.page, label, { x, y: state.y - 48, size: 6.2, font: theme.bold, color: index === 2 ? theme.accent : rgb(0.7, 0.75, 0.82) });
+    drawTrainingPdfText(state.page, value, { x, y: state.y - 78, size: index === 2 ? 19 : 14, font: theme.bold, color: rgb(1, 1, 1) });
   });
-  state.y -= 132;
+  state.y -= amountHeight + 24;
 
   ensure(150);
   state.y = drawTrainingSectionTitle(state.page, theme, 'Cadre de la prestation', state.y, '02');
@@ -255,31 +270,46 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
     }
   }
 
-  if (document.document_type !== 'quote') {
-    ensure(150);
-    state.y -= 8;
-    state.y = drawTrainingSectionTitle(state.page, theme, 'Acceptation et signatures', state.y, '✓');
-    const signWidth = (CONTENT_WIDTH - 14) / 2;
-    const signHeight = 104;
-    [
-      { x: TRAINING_PDF_MARGIN, title: 'Pour l’organisme', name: organization.training_legal_representative || organization.company_contact_name || organization.public_name || organization.name },
-      { x: TRAINING_PDF_MARGIN + signWidth + 14, title: 'Pour le client', name: beneficiaryName(input) }
-    ].forEach((box, index) => {
-      state.page.drawRectangle({ x: box.x, y: state.y - signHeight, width: signWidth, height: signHeight, color: rgb(1, 1, 1), borderColor: theme.line, borderWidth: 0.9 });
-      drawTrainingPdfText(state.page, box.title.toUpperCase(), { x: box.x + 12, y: state.y - 19, size: 6.3, font: theme.bold, color: theme.accent });
-      drawTrainingPdfText(state.page, box.name, { x: box.x + 12, y: state.y - 37, size: 8.3, font: theme.bold, color: theme.dark });
-      drawTrainingPdfText(state.page, 'Date, cachet et signature', { x: box.x + 12, y: state.y - 91, size: 6.5, font: theme.regular, color: theme.muted });
-      if (index === 0 && theme.signature) {
-        const scale = Math.min(88 / theme.signature.width, 38 / theme.signature.height, 1);
-        state.page.drawImage(theme.signature, { x: box.x + 12, y: state.y - 79, width: theme.signature.width * scale, height: theme.signature.height * scale });
-      }
-      if (index === 0 && theme.stamp) {
-        const scale = Math.min(58 / theme.stamp.width, 45 / theme.stamp.height, 1);
-        state.page.drawImage(theme.stamp, { x: box.x + signWidth - theme.stamp.width * scale - 12, y: state.y - 81, width: theme.stamp.width * scale, height: theme.stamp.height * scale, opacity: 0.82 });
-      }
-    });
-    state.y -= signHeight + 12;
+  ensure(166);
+  state.y -= 8;
+  state.y = drawTrainingSectionTitle(
+    state.page,
+    theme,
+    document.document_type === 'quote' ? 'Bon pour accord' : 'Acceptation et signatures',
+    state.y,
+    '✓'
+  );
+  if (document.document_type === 'quote') {
+    drawTrainingParagraph(
+      state.page,
+      theme,
+      `Le client confirme accepter la proposition ${document.reference} dans les conditions indiquées au présent devis.`,
+      state.y,
+      { size: 8.2, color: theme.muted, lineHeight: 11.5, maxLines: 3 }
+    );
+    state.y -= 40;
   }
+  const signWidth = (CONTENT_WIDTH - 14) / 2;
+  const signHeight = document.document_type === 'quote' ? 112 : 104;
+  [
+    { x: TRAINING_PDF_MARGIN, title: 'Pour l’organisme', name: organization.training_legal_representative || organization.company_contact_name || organization.public_name || organization.name },
+    { x: TRAINING_PDF_MARGIN + signWidth + 14, title: document.document_type === 'quote' ? 'Bon pour accord · client' : 'Pour le client', name: beneficiaryName(input) }
+  ].forEach((box, index) => {
+    state.page.drawRectangle({ x: box.x, y: state.y - signHeight, width: signWidth, height: signHeight, color: rgb(1, 1, 1), borderColor: index === 1 && document.document_type === 'quote' ? theme.accent : theme.line, borderWidth: index === 1 && document.document_type === 'quote' ? 1.25 : 0.9 });
+    drawTrainingPdfText(state.page, box.title.toUpperCase(), { x: box.x + 12, y: state.y - 19, size: 6.3, font: theme.bold, color: theme.accent });
+    const nameLines = wrapTrainingPdfText(box.name, theme.bold, 8.3, signWidth - 24).slice(0, 2);
+    nameLines.forEach((line, lineIndex) => drawTrainingPdfText(state.page, line, { x: box.x + 12, y: state.y - 38 - lineIndex * 10, size: 8.3, font: theme.bold, color: theme.dark }));
+    drawTrainingPdfText(state.page, index === 1 && document.document_type === 'quote' ? 'Nom, qualité, date et signature' : 'Date, cachet et signature', { x: box.x + 12, y: state.y - signHeight + 13, size: 6.5, font: theme.regular, color: theme.muted });
+    if (index === 0 && theme.signature) {
+      const scale = Math.min(88 / theme.signature.width, 38 / theme.signature.height, 1);
+      state.page.drawImage(theme.signature, { x: box.x + 12, y: state.y - signHeight + 25, width: theme.signature.width * scale, height: theme.signature.height * scale });
+    }
+    if (index === 0 && theme.stamp) {
+      const scale = Math.min(58 / theme.stamp.width, 45 / theme.stamp.height, 1);
+      state.page.drawImage(theme.stamp, { x: box.x + signWidth - theme.stamp.width * scale - 12, y: state.y - signHeight + 23, width: theme.stamp.width * scale, height: theme.stamp.height * scale, opacity: 0.82 });
+    }
+  });
+  state.y -= signHeight + 12;
 
   if (organization.training_document_footer) {
     ensure(70);
@@ -293,7 +323,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
   theme.pdf.setAuthor(organization.public_name || organization.name);
   theme.pdf.setSubject(program?.title || document.training_summary || document.title);
   theme.pdf.setCreator('NCR Suite');
-  theme.pdf.setProducer('NCR Suite V2.18.0');
+  theme.pdf.setProducer('NCR Suite V2.29.20');
 
   const bytes = await theme.pdf.save();
   const pdfBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;

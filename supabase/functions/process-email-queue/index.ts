@@ -144,6 +144,26 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+function assertTrainingDocumentPayload(payload: Record<string, unknown>, kind: 'convocation' | 'attestation') {
+  const traineeName = normalizePdfText(`${payload.trainee_first_name ?? ''} ${payload.trainee_last_name ?? ''}`);
+  const trainingTitle = normalizePdfText(payload.program_title || payload.session_title);
+  const startsAt = String(payload.starts_at ?? '').trim();
+  const endsAt = String(payload.ends_at ?? '').trim();
+  const missing: string[] = [];
+  if (!traineeName) missing.push('stagiaire');
+  if (!trainingTitle) missing.push('formation');
+  if (!startsAt || Number.isNaN(new Date(startsAt).getTime())) missing.push('date de début');
+  if (!endsAt || Number.isNaN(new Date(endsAt).getTime())) missing.push('date de fin');
+  if (kind === 'convocation') {
+    const modality = String(payload.modality ?? '').trim().toLowerCase();
+    const location = normalizePdfText(payload.location || payload.site_address || payload.organization_address);
+    if (['presentiel', 'hybride'].includes(modality) && !location) missing.push('lieu de formation');
+  }
+  if (missing.length) {
+    throw new Error(`DOCUMENT_DATA_REQUIRED: informations manquantes : ${missing.join(', ')}.`);
+  }
+}
+
 async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Uint8Array> {
   const kind = String(payload.document_kind ?? 'convocation');
   const timezone = String(payload.organization_timezone ?? 'Europe/Paris');
@@ -197,13 +217,15 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
   };
 
   // En-tête premium : logo isolé dans son propre bloc, sans chevauchement avec l'adresse.
-  const heroHeight = 164;
+  const heroHeight = 158;
   page.drawRectangle({ x: 0, y: height - heroHeight, width, height: heroHeight, color: dark });
   page.drawRectangle({ x: 0, y: height - 8, width, height: 8, color: accent });
-  page.drawRectangle({ x: width - 116, y: height - heroHeight, width: 116, height: heroHeight, color: accent, opacity: 0.18 });
+  page.drawRectangle({ x: width - 154, y: height - heroHeight, width: 154, height: heroHeight, color: accent, opacity: 0.10 });
+  page.drawRectangle({ x: width - 62, y: height - heroHeight, width: 62, height: heroHeight, color: accent, opacity: 0.20 });
+  page.drawLine({ start: { x: width - 154, y: height - heroHeight + 16 }, end: { x: width - 154, y: height - 16 }, thickness: 0.6, color: accent, opacity: 0.55 });
 
   const logoBox = { x: margin, y: height - 88, width: 118, height: 52 };
-  page.drawRectangle({ ...logoBox, color: rgb(1, 1, 1), opacity: 0.98 });
+  page.drawRectangle({ ...logoBox, color: rgb(1, 1, 1), opacity: 0.98, borderColor: line, borderWidth: 0.5 });
   const embeddedLogo = await embedPayloadImage(payload.organization_logo_url);
   if (embeddedLogo) {
     const scale = Math.min(96 / embeddedLogo.width, 34 / embeddedLogo.height, 1);
@@ -227,8 +249,9 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
   if (contact) drawText(contact.slice(0, 78), brandX, height - 82, 7.2, regular, rgb(0.78, 0.82, 0.88));
 
   const title = kind === 'attestation' ? 'Attestation de fin de formation' : 'Convocation à une formation';
-  drawText(kind === 'attestation' ? 'FORMATION · DOCUMENT DE CLÔTURE' : 'FORMATION · DOCUMENT PERSONNEL', margin, height - 112, 6.8, bold, accent);
-  drawText(title, margin, height - 140, kind === 'attestation' ? 21 : 22, bold, rgb(1, 1, 1));
+  page.drawRectangle({ x: margin, y: height - 146, width: 4, height: 42, color: accent });
+  drawText(kind === 'attestation' ? 'FORMATION · DOCUMENT DE CLÔTURE' : 'FORMATION · CONVOCATION PERSONNELLE', margin + 13, height - 112, 6.8, bold, accent);
+  drawText(title, margin + 13, height - 140, kind === 'attestation' ? 21 : 22, bold, rgb(1, 1, 1));
   const reference = normalizePdfText(String(payload.job_id ?? '').replaceAll('-', '').slice(0, 12).toUpperCase()) || 'NCR-SUITE';
   const refWidth = bold.widthOfTextAtSize(reference, 7.5);
   page.drawRectangle({ x: width - margin - refWidth - 20, y: height - 126, width: refWidth + 20, height: 23, color: accent });
@@ -248,43 +271,54 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
   let y = height - heroHeight - 28;
 
   // Bloc bénéficiaire.
-  page.drawRectangle({ x: margin, y: y - 72, width: contentWidth, height: 72, color: accentPale, borderColor: line, borderWidth: 0.7 });
-  page.drawRectangle({ x: margin, y: y - 72, width: 6, height: 72, color: accent });
+  page.drawRectangle({ x: margin, y: y - 76, width: contentWidth, height: 76, color: accentPale, borderColor: line, borderWidth: 0.7 });
+  page.drawRectangle({ x: margin, y: y - 76, width: 6, height: 76, color: accent });
   drawText(kind === 'attestation' ? 'BÉNÉFICIAIRE ATTESTÉ' : 'DESTINATAIRE DE LA CONVOCATION', margin + 18, y - 19, 6.2, bold, accent);
   drawText(traineeName || 'Stagiaire à compléter', margin + 18, y - 42, 13, bold, dark);
-  if (company) drawText(company, margin + 18, y - 59, 8, regular, muted);
-  y -= 96;
+  const traineeDetail = [company, normalizePdfText(payload.trainee_email)].filter(Boolean).join(' · ');
+  if (traineeDetail) drawText(traineeDetail.slice(0, 82), margin + 18, y - 61, 7.6, regular, muted);
+  y -= 100;
 
   const intro = kind === 'attestation'
     ? `${organization} atteste que ${traineeName}${company ? `, rattaché(e) à ${company}` : ''}, a participé à la formation décrite ci-dessous.`
     : `${traineeName}${company ? ` (${company})` : ''} est convoqué(e) à la session de formation décrite ci-dessous.`;
   y = drawParagraph(intro, margin, y, 10, contentWidth, 5, dark) - 12;
 
-  // Grille de renseignements, toujours séparée du logo et de l'adresse.
-  const fields: Array<[string, string]> = [
-    ['Formation', program],
-    ['Session', session],
-    ['Début', starts],
-    ['Fin', ends],
-    ['Durée prévue', duration > 0 ? `${String(duration).replace('.', ',')} heures` : 'À confirmer'],
-    ['Modalité', modality],
-    ['Lieu / accès', location],
-    ['Formateur', trainer],
-  ];
-  const columnWidth = (contentWidth - 10) / 2;
-  fields.forEach(([label, value], index) => {
-    const column = index % 2;
-    const row = Math.floor(index / 2);
-    const x = margin + column * (columnWidth + 10);
-    const fieldY = y - row * 50;
-    page.drawRectangle({ x, y: fieldY - 40, width: columnWidth, height: 40, color: row % 2 === 0 ? surface : rgb(1, 1, 1), borderColor: line, borderWidth: 0.55 });
-    drawText(label.toUpperCase(), x + 11, fieldY - 14, 5.7, bold, accent);
-    const valueLines = wrap(value || 'À confirmer', 8.1, columnWidth - 22, bold).slice(0, 2);
-    valueLines.forEach((lineText, lineIndex) => drawText(lineText, x + 11, fieldY - 29 - lineIndex * 10, 8.1, bold, dark));
-  });
-  y -= Math.ceil(fields.length / 2) * 50 + 10;
-
   if (kind === 'convocation') {
+    // Les informations dont le stagiaire a besoin en premier sont volontairement mises en avant.
+    page.drawRectangle({ x: margin, y: y - 88, width: contentWidth, height: 88, color: dark });
+    page.drawRectangle({ x: margin, y: y - 88, width: 7, height: 88, color: accent });
+    drawText('VOTRE SESSION EN UN COUP D’ŒIL', margin + 22, y - 20, 6.1, bold, accent);
+    const highlights: Array<[string, string]> = [
+      ['DÉBUT', starts],
+      ['DURÉE', duration > 0 ? `${String(duration).replace('.', ',')} h` : 'À confirmer'],
+      ['MODALITÉ', modality],
+    ];
+    highlights.forEach(([label, value], index) => {
+      const x = margin + 22 + index * 157;
+      if (index > 0) page.drawLine({ start: { x: x - 13, y: y - 75 }, end: { x: x - 13, y: y - 34 }, thickness: 0.5, color: rgb(0.25, 0.3, 0.37) });
+      drawText(label, x, y - 43, 5.6, bold, index === 0 ? accent : rgb(0.7, 0.75, 0.82));
+      const valueLines = wrap(value || 'À confirmer', 8.2, 134, bold).slice(0, 2);
+      valueLines.forEach((lineText, lineIndex) => drawText(lineText, x, y - 63 - lineIndex * 10, 8.2, bold, rgb(1, 1, 1)));
+    });
+    y -= 108;
+
+    const essentials: Array<[string, string]> = [
+      ['Formation', program],
+      ['Session', session],
+      ['Lieu / accès', location],
+      ['Formateur', trainer],
+      ['Fin prévue', ends],
+    ];
+    essentials.forEach(([label, value], index) => {
+      const rowHeight = index === 2 ? 48 : 38;
+      page.drawRectangle({ x: margin, y: y - rowHeight, width: contentWidth, height: rowHeight, color: index % 2 === 0 ? surface : rgb(1, 1, 1), borderColor: line, borderWidth: 0.5 });
+      drawText(label.toUpperCase(), margin + 12, y - 15, 5.7, bold, accent);
+      const valueLines = wrap(value || 'À confirmer', 8.2, contentWidth - 142, bold).slice(0, 2);
+      valueLines.forEach((lineText, lineIndex) => drawText(lineText, margin + 130, y - 16 - lineIndex * 11, 8.2, bold, dark));
+      y -= rowHeight;
+    });
+    y -= 14;
     const objectives = normalizePdfText(payload.program_objectives);
     if (objectives) {
       drawText('OBJECTIFS PRINCIPAUX', margin, y, 6.4, bold, accent);
@@ -294,13 +328,30 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
     const footer = normalizePdfText(payload.document_footer);
     if (footer && y > 120) {
       const lines = wrap(footer, 7.5, contentWidth - 24).slice(0, 4);
-      const boxHeight = 33 + lines.length * 11;
-      page.drawRectangle({ x: margin, y: y - boxHeight, width: contentWidth, height: boxHeight, color: accentPale });
+      const boxHeight = 36 + lines.length * 11;
+      page.drawRectangle({ x: margin, y: y - boxHeight, width: contentWidth, height: boxHeight, color: accentPale, borderColor: line, borderWidth: 0.5 });
       drawText('INFORMATIONS PRATIQUES', margin + 12, y - 18, 6.2, bold, accent);
-      lines.forEach((lineText, index) => drawText(lineText, margin + 12, y - 35 - index * 11, 7.5, regular, muted));
+      lines.forEach((lineText, index) => drawText(lineText, margin + 12, y - 36 - index * 11, 7.5, regular, muted));
       y -= boxHeight + 8;
     }
   } else {
+    const fields: Array<[string, string]> = [
+      ['Formation', program], ['Session', session], ['Début', starts], ['Fin', ends],
+      ['Durée prévue', duration > 0 ? `${String(duration).replace('.', ',')} heures` : 'À confirmer'],
+      ['Modalité', modality], ['Lieu / accès', location], ['Formateur', trainer],
+    ];
+    const columnWidth = (contentWidth - 10) / 2;
+    fields.forEach(([label, value], index) => {
+      const column = index % 2;
+      const row = Math.floor(index / 2);
+      const x = margin + column * (columnWidth + 10);
+      const fieldY = y - row * 50;
+      page.drawRectangle({ x, y: fieldY - 40, width: columnWidth, height: 40, color: row % 2 === 0 ? surface : rgb(1, 1, 1), borderColor: line, borderWidth: 0.55 });
+      drawText(label.toUpperCase(), x + 11, fieldY - 14, 5.7, bold, accent);
+      const valueLines = wrap(value || 'À confirmer', 8.1, columnWidth - 22, bold).slice(0, 2);
+      valueLines.forEach((lineText, lineIndex) => drawText(lineText, x + 11, fieldY - 29 - lineIndex * 10, 8.1, bold, dark));
+    });
+    y -= Math.ceil(fields.length / 2) * 50 + 10;
     const present = Number(payload.attendance_present ?? 0);
     const absent = Number(payload.attendance_absent ?? 0);
     const excused = Number(payload.attendance_excused ?? 0);
@@ -342,16 +393,17 @@ async function generateTrainingPdf(payload: Record<string, unknown>): Promise<Ui
     payload.organization_nda_number ? `NDA ${normalizePdfText(payload.organization_nda_number)}` : '',
     payload.organization_vat_number ? `TVA ${normalizePdfText(payload.organization_vat_number)}` : '',
   ].filter(Boolean).join(' · ');
-  drawText(legal || `Référence ${reference}`, margin, 31, 6.5, regular, muted);
-  const branding = payload.show_ncr_branding !== false ? 'Document généré par NCR Suite' : reference;
-  const brandingWidth = regular.widthOfTextAtSize(normalizePdfText(branding), 6.5);
-  drawText(branding, width - margin - brandingWidth, 31, 6.5, regular, muted);
+  drawText(organization, margin, 35, 6.4, bold, dark);
+  drawText(legal || `Référence ${reference}`, margin, 23, 5.8, regular, muted);
+  const branding = payload.show_ncr_branding !== false ? `NCR Suite · ${reference}` : reference;
+  const brandingWidth = bold.widthOfTextAtSize(normalizePdfText(branding), 6.1);
+  drawText(branding, width - margin - brandingWidth, 29, 6.1, bold, muted);
 
   pdf.setTitle(`${title} - ${traineeName}`);
   pdf.setAuthor(organization);
   pdf.setSubject(program);
   pdf.setCreator('NCR Suite');
-  pdf.setProducer('NCR Suite V2.18.0');
+  pdf.setProducer('NCR Suite V2.29.20');
   return await pdf.save();
 }
 async function processTrainingDocumentJobs(supabase: any) {
@@ -410,6 +462,8 @@ async function processTrainingDocumentJobs(supabase: any) {
           trainingPayload.duration_hours = programProfile.duration_hours || trainingPayload.duration_hours;
         }
       }
+
+      assertTrainingDocumentPayload(trainingPayload, job.document_kind);
 
       if (job.document_kind === 'attestation') {
         if (String(trainingPayload.session_status) !== 'completed') throw new Error('La session n’est pas terminée.');
@@ -518,7 +572,8 @@ async function processTrainingDocumentJobs(supabase: any) {
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : String(caught);
       const attendanceBlocked = message.startsWith('ATTENDANCE_REQUIRED:');
-      const exhausted = attendanceBlocked || job.attempts >= 4;
+      const dataBlocked = message.startsWith('DOCUMENT_DATA_REQUIRED:');
+      const exhausted = attendanceBlocked || dataBlocked || job.attempts >= 4;
       const retryMinutes = Math.min(30, Math.max(2, 2 ** job.attempts));
       await supabase
         .from('training_document_jobs')
@@ -526,7 +581,7 @@ async function processTrainingDocumentJobs(supabase: any) {
           status: exhausted ? 'failed' : 'pending',
           scheduled_for: new Date(Date.now() + retryMinutes * 60_000).toISOString(),
           locked_at: null,
-          last_error: message.replace('ATTENDANCE_REQUIRED:', '').trim().slice(0, 2000),
+          last_error: message.replace('ATTENDANCE_REQUIRED:', '').replace('DOCUMENT_DATA_REQUIRED:', '').trim().slice(0, 2000),
           updated_at: new Date().toISOString(),
         })
         .eq('id', job.id);
