@@ -19,7 +19,7 @@ const requireText = (file, snippets) => {
 const pkg = JSON.parse(read('package.json'));
 const runtime = read('src/config/runtime.ts');
 const sw = read('public/sw.js');
-const expectedCache = `ncr-suite-shell-v${pkg.version}-bpf-mixed-activity`;
+const expectedCache = `ncr-suite-shell-v${pkg.version}-bpf-guided-assistant`;
 const publicMotionCache = 'ncr-suite-shell-v2.29.5-public-motion';
 const publicFlowSignalCache = 'ncr-suite-shell-v2.29.4-public-flow-signal';
 const publicUiAlignmentContrastCache = 'ncr-suite-shell-v2.29.3-public-ui-alignment-contrast';
@@ -108,19 +108,19 @@ requireText('index.html', [
   '/favicon.ico',
   '/icons/favicon-96.png',
   '/icons/favicon-48.png',
-  '/ncr-suite-showcase-v2918.css',
-  '/ncr-suite-app-v2918.css',
+  '/ncr-suite-showcase-v2919.css',
+  '/ncr-suite-app-v2919.css',
   'ncr-style-guard',
-  'ncr:css-recovery-v2.29.18'
+  'ncr:css-recovery-v2.29.19'
 ]);
 requireText('public/_headers', [
-  '/ncr-suite-app-v2918.css',
+  '/ncr-suite-app-v2919.css',
   '/favicon.ico',
   'Content-Type: text/css; charset=utf-8'
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2918.js'"
+  "entryFileNames: 'ncr-suite-app-v2919.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",
@@ -1506,6 +1506,20 @@ requireText('supabase/migrations/132_training_bpf_mixed_activity_scope.sql', [
   'training_reporting_org_external_bpf_rows',
   "'2.29.18'",
   'ncr-suite-shell-v2.29.18-bpf-mixed-activity'
+]);
+
+requireText('supabase/migrations/133_training_bpf_guided_assistant_release.sql', [
+  "'2.29.19'",
+  'ncr-suite-shell-v2.29.19-bpf-guided-assistant',
+  'Assistant BPF guidé'
+]);
+
+requireText('src/components/TrainingBpfAssistant.tsx', [
+  'ASSISTANT BPF · MODE GUIDÉ',
+  'Quelles formations entrent dans ton BPF ?',
+  'Qui a été formé ?',
+  'Qui t’a payé ?',
+  'Prêt à déclarer'
 ]);
 
 requireText('src/components/TrainingTrainerBpfPanel.tsx', [

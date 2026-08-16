@@ -1,3 +1,14 @@
+# V2.29.19 — Formation · Assistant BPF guidé
+
+- Nouveau Mode guidé activé par défaut dans le BPF.
+- Parcours en 5 étapes : organisme, sessions, stagiaires, recettes, contrôle NCR.
+- Qualification d'une session en langage simple : formation pro, apprentissage, formation initiale, hors champ.
+- Classement de tous les stagiaires d'une même session en un clic.
+- Classement direct des factures et documents commerciaux dans les rubriques de recettes BPF.
+- Synthèse finale « Prêt à déclarer » avec PDF/CSV préparatoires et rappel de la télédéclaration officielle sur Mon Activité Formation.
+- Mode expert conservé intégralement.
+- Base, frontend et cache PWA alignés en V2.29.19.
+
 # V2.29.18 — Formation · BPF activité mixte
 
 - Qualification réglementaire obligatoire des sessions avant intégration au BPF.

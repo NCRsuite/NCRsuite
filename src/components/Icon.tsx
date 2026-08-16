@@ -15,6 +15,7 @@ const paths: Record<IconName, React.ReactNode> = {
   map: <><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></>,
   shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
   alert: <><path d="M10.3 3.7 2.2 18a2 2 0 0 0 1.7 3h16.2a2 2 0 0 0 1.7-3L13.7 3.7a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></>,
+  info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></>,
   clipboard: <><rect x="4" y="4" width="16" height="18" rx="2"/><path d="M9 4V2h6v2M8 10h8M8 14h8M8 18h5"/></>,
   graduation: <><path d="m2 10 10-5 10 5-10 5z"/><path d="M6 12.5V17c3 3 9 3 12 0v-4.5M22 10v6"/></>,
   signature: <><path d="M4 18c2-5 3-10 5-10 3 0-1 9 2 9 2 0 3-5 5-5 2 0 0 5 4 5"/><path d="M3 21h18"/></>,

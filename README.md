@@ -1,6 +1,9 @@
-# NCR Suite V2.29.18
+# NCR Suite V2.29.19
 
-## Release V2.29.18
+## Release V2.29.19
+
+Le BPF Formation dispose désormais d'un **Assistant guidé** destiné aux nouveaux formateurs et organismes : qualification pas à pas, classement simplifié des stagiaires et recettes, contrôles NCR et synthèse prête à reporter. Le mode expert reste disponible. Appliquer `133_training_bpf_guided_assistant_release.sql` après la V2.29.18. Voir `A_LIRE_V2.29.19_ASSISTANT_BPF_GUIDE.md`.
+
 
 Le BPF Formation gère désormais l’activité mixte : formation professionnelle continue, apprentissage, formation initiale et hors champ sont séparés. Les sous-traitances éligibles d’un formateur peuvent être consolidées dans son propre organisme déclarant NCR Suite sans mélanger le BPF du centre donneur d’ordre. Appliquer `132_training_bpf_mixed_activity_scope.sql` après la V2.29.17. Voir `A_LIRE_V2.29.18_BPF_ACTIVITE_MIXTE.md`.
 

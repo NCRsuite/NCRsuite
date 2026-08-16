@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { TrainingBpfAssistant } from '../components/TrainingBpfAssistant';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import {
@@ -47,6 +48,7 @@ import { readJsonStorage, writeJsonStorage } from '../lib/safeStorage';
 import { supabase } from '../lib/supabase';
 
 type Tab = 'overview' | 'financial' | 'pedagogical' | 'sources';
+type BpfViewMode = 'guided' | 'expert';
 
 type ReportForm = {
   exerciseStart: string;
@@ -151,6 +153,7 @@ export function TrainingBpfPage() {
   const { user, demoMode } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('overview');
+  const [viewMode, setViewMode] = useState<BpfViewMode>('guided');
   const [reports, setReports] = useState<TrainingBpfReportRecord[]>([]);
   const [report, setReport] = useState<TrainingBpfReportRecord | null>(null);
   const [calculation, setCalculation] = useState<TrainingBpfCalculation | null>(null);
@@ -630,6 +633,71 @@ export function TrainingBpfPage() {
     finally { setBusyId(''); }
   }
 
+  async function updateCommercialDocumentBpfCategory(documentId: string, category: TrainingBpfRevenueCategory) {
+    if (!organization || locked) return;
+    setBusyId(`document-category-${documentId}`); setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        writeJsonStorage(`ncr-suite-training-commercial-${organization.id}`, readRows<TrainingCommercialDocumentRecord>(`ncr-suite-training-commercial-${organization.id}`).map((row) => row.id === documentId ? { ...row, bpf_included: true, bpf_revenue_category: category, bpf_revenue_recognized_at: row.bpf_revenue_recognized_at || row.issue_date } : row));
+      } else {
+        const source = documents.find((row) => row.id === documentId);
+        const { error: updateError } = await supabase.from('training_commercial_documents').update({ bpf_included: true, bpf_revenue_category: category, bpf_revenue_recognized_at: source?.bpf_revenue_recognized_at || source?.issue_date || null }).eq('organization_id', organization.id).eq('id', documentId);
+        if (updateError) throw updateError;
+      }
+      await loadData(report?.id, true);
+      setSuccess(`Produit classé : ${trainingBpfRevenueLabels[category]}.`);
+    } catch (caught) { setError(`Classement du produit impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+    finally { setBusyId(''); }
+  }
+
+  async function updateCommercialDocumentBpfIncluded(documentId: string, included: boolean) {
+    if (!organization || locked) return;
+    setBusyId(`document-bpf-${documentId}`); setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        writeJsonStorage(`ncr-suite-training-commercial-${organization.id}`, readRows<TrainingCommercialDocumentRecord>(`ncr-suite-training-commercial-${organization.id}`).map((row) => row.id === documentId ? { ...row, bpf_included: included } : row));
+      } else {
+        const { error: updateError } = await supabase.from('training_commercial_documents').update({ bpf_included: included }).eq('organization_id', organization.id).eq('id', documentId);
+        if (updateError) throw updateError;
+      }
+      await loadData(report?.id, true);
+      setSuccess(included ? 'Produit inclus dans le BPF.' : 'Produit exclu du BPF.');
+    } catch (caught) { setError(`Mise à jour du produit impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+    finally { setBusyId(''); }
+  }
+
+  async function updateInvoiceBpfCategory(invoiceId: string, category: TrainingBpfRevenueCategory) {
+    if (!organization || locked) return;
+    setBusyId(`invoice-category-${invoiceId}`); setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        writeJsonStorage(`ncr-suite-training-invoices-${organization.id}`, readRows<TrainingInvoiceRecord>(`ncr-suite-training-invoices-${organization.id}`).map((row) => row.id === invoiceId ? { ...row, bpf_included: true, bpf_revenue_category: category } : row));
+      } else {
+        const { error: updateError } = await supabase.from('training_invoices').update({ bpf_included: true, bpf_revenue_category: category }).eq('organization_id', organization.id).eq('id', invoiceId);
+        if (updateError) throw updateError;
+      }
+      await loadData(report?.id, true);
+      setSuccess(`Facture classée : ${trainingBpfRevenueLabels[category]}.`);
+    } catch (caught) { setError(`Classement de la facture impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+    finally { setBusyId(''); }
+  }
+
+  async function updateSessionEnrollments(sessionId: string, traineeType: TrainingBpfTraineeType) {
+    if (!organization || locked) return;
+    setBusyId(`enrollment-session-${sessionId}`); setError(''); setSuccess('');
+    try {
+      if (demoMode || !supabase) {
+        writeJsonStorage(`ncr-suite-training-enrollments-${organization.id}`, readRows<TrainingEnrollmentRecord>(`ncr-suite-training-enrollments-${organization.id}`).map((row) => row.session_id === sessionId && row.status !== 'canceled' ? { ...row, bpf_trainee_type: traineeType } : row));
+      } else {
+        const { error: updateError } = await supabase.from('training_session_enrollments').update({ bpf_trainee_type: traineeType }).eq('organization_id', organization.id).eq('session_id', sessionId).neq('status', 'canceled');
+        if (updateError) throw updateError;
+      }
+      await loadData(report?.id, true);
+      setSuccess(`Tous les stagiaires de la session sont classés : ${trainingBpfTraineeLabels[traineeType]}.`);
+    } catch (caught) { setError(`Classement de la session impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`); }
+    finally { setBusyId(''); }
+  }
+
   async function updateInvoiceBpfIncluded(invoiceId: string, included: boolean) {
     if (!organization || locked) return;
     setBusyId(`invoice-bpf-${invoiceId}`); setError(''); setSuccess('');
@@ -757,6 +825,42 @@ export function TrainingBpfPage() {
     {error && <div className="error-message page-message" role="alert">{error}</div>}
     {success && <div className="success-message page-message" role="status">{success}</div>}
 
+    <div className="training-bpf-mode-switch" role="group" aria-label="Mode d’affichage du BPF">
+      <button type="button" className={viewMode === 'guided' ? 'active' : ''} onClick={() => setViewMode('guided')}><Icon name="sparkles" size={17} /><span><strong>Mode guidé</strong><small>Recommandé si c’est ton premier BPF</small></span></button>
+      <button type="button" className={viewMode === 'expert' ? 'active' : ''} onClick={() => setViewMode('expert')}><Icon name="chart" size={17} /><span><strong>Mode expert</strong><small>Cadres, sources et réglages détaillés</small></span></button>
+    </div>
+
+    {viewMode === 'guided' && <TrainingBpfAssistant
+      organizationName={organization.name}
+      ndaNumber={organization.training_nda_number}
+      siret={organization.company_siret}
+      report={report}
+      calculation={calculation}
+      sessions={periodSessions}
+      programs={programs.filter((row) => periodProgramIds.has(row.id))}
+      enrollments={periodEnrollments}
+      trainees={trainees}
+      invoices={periodInvoices}
+      documents={periodDocuments}
+      locked={locked}
+      busyId={busyId}
+      onOpenExpert={(nextTab) => { setTab(nextTab); setViewMode('expert'); }}
+      onSessionScope={updateSessionRegulatoryScope}
+      onSessionDelivery={updateSession}
+      onEnrollmentType={updateEnrollment}
+      onSessionEnrollmentType={updateSessionEnrollments}
+      onInvoiceCategory={updateInvoiceBpfCategory}
+      onInvoiceIncluded={updateInvoiceBpfIncluded}
+      onDocumentCategory={updateCommercialDocumentBpfCategory}
+      onDocumentIncluded={updateCommercialDocumentBpfIncluded}
+      onRefresh={refresh}
+      onExportPdf={exportPdf}
+      onExportCsv={exportCsv}
+      onMarkReviewed={() => changeStatus('reviewed')}
+      onLock={() => changeStatus('locked')}
+    />}
+
+    {viewMode === 'expert' && <>
     <section className="training-bpf-metrics">
       <article><span><Icon name="calendar" size={20} /></span><div><strong>{calculation.general.completed_sessions}</strong><small>sessions clôturées</small></div></article>
       <article><span><Icon name="users" size={20} /></span><div><strong>{calculation.trainees.total.count}</strong><small>stagiaires déclarés</small></div></article>
@@ -869,9 +973,11 @@ export function TrainingBpfPage() {
       </details>}
     </div>}
 
-    <footer className="training-bpf-footer">
+    </>}
+
+    {viewMode === 'expert' && <footer className="training-bpf-footer">
       <div><strong>{trainingBpfReportStatusLabels[report.status]}</strong><span>{calculation.quality.critical_count} bloquant{calculation.quality.critical_count > 1 ? 's' : ''} · {calculation.quality.warning_count} vigilance{calculation.quality.warning_count > 1 ? 's' : ''}</span></div>
       <div>{report.status === 'draft' && <button className="secondary-button" type="button" disabled={saving} onClick={() => void changeStatus('reviewed')}>Marquer comme vérifié</button>}{report.status === 'reviewed' && <button className="primary-button" type="button" disabled={saving || !calculation.quality.ready} onClick={() => void changeStatus('locked')}><Icon name="lock" size={17} /> Verrouiller le BPF</button>}{report.status === 'locked' && canReopen && <button className="secondary-button" type="button" disabled={saving} onClick={() => void reopenReport()}>Rouvrir le brouillon</button>}</div>
-    </footer>
+    </footer>}
   </div>;
 }

@@ -184,4 +184,5 @@ export type IconName =
   | 'message'
   | 'headset'
   | 'monitor'
-  | 'camera';
+  | 'camera'
+  | 'info';
