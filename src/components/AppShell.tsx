@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
+import { BUSINESS_BRAND_ASSETS } from '../config/businessBranding';
 import { organizationHasFeature, planLabel } from '../config/planEntitlements';
 import { cleaningPathIsLocked, cleaningRequiredPlanForPath, filterNavigationForOrganization, formationPathIsLocked, formationRequiredPlanForPath, restaurantPathIsLocked, restaurantRequiredPlanForPath, securityPathIsLocked, securityRequiredPlanForPath } from '../config/moduleAccess';
 import { useAuth } from '../contexts/AuthContext';
@@ -295,6 +296,7 @@ export function AppShell() {
 
   const activeOrganization = organization;
   const pack = businessPacks[activeOrganization.business_type];
+  const businessBrand = BUSINESS_BRAND_ASSETS[activeOrganization.business_type];
   const restrictedRole = ['employee', 'viewer'].includes(organization.role ?? 'viewer');
   const canManageOrganization = ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
   const hasMultiSite = organizationHasFeature(organization, 'multi_site');
@@ -687,7 +689,7 @@ export function AppShell() {
       )}
       <aside className="sidebar">
         <div className="brand brand-horizontal">
-          <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
+          <img src={businessBrand.horizontalLogo} alt={`NCR Suite ${pack.label}`} />
           <span>Plateforme métier</span>
         </div>
 
@@ -895,7 +897,7 @@ export function AppShell() {
           </button>
 
           <button className="mobile-header-company" type="button" onClick={() => setMobileMenuOpen(true)}>
-            <img src="/brand/ncr-suite-icon.png" alt="" />
+            <img src={businessBrand.icon} alt="" />
             <span>
               <strong>{organization.name}</strong>
               <small>{pack.label}</small>
@@ -967,7 +969,7 @@ export function AppShell() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mobile-drawer-header">
-              <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
+              <img src={businessBrand.horizontalLogo} alt={`NCR Suite ${pack.label}`} />
               <button className="icon-button" type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Fermer le menu">
                 <Icon name="close" size={21} />
               </button>

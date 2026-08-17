@@ -14,6 +14,7 @@ import {
   type TrainingTraineeRecord,
   type TrainingTrainerRecord
 } from './types';
+import { normalizeTrainingPdfText, trainingPdfText, wrapTrainingPdfText } from './premiumPdf';
 
 export interface SessionDossierPdfInput {
   organization: Organization;
@@ -35,24 +36,7 @@ const MARGIN = 42;
 const BOTTOM = 48;
 
 function safe(value: unknown) {
-  return String(value ?? '')
-    .normalize('NFKC')
-    .replace(/\u00a0/g, ' ')
-    .replace(/[’‘]/g, "'")
-    .replace(/[“”]/g, '"')
-    .replace(/[–—]/g, '-')
-    .replace(/•/g, '-')
-    .replace(/œ/g, 'oe')
-    .replace(/Œ/g, 'OE')
-    .replace(/…/g, '...')
-    .replace(/\r\n?/g, '\n')
-    .replace(/[\u2028\u2029]/g, '\n')
-    .replace(/[\u200B-\u200D\u2060\uFEFF]/g, '')
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
-    .replace(/[^\S\n]+/g, ' ')
-    .replace(/ *\n */g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+  return normalizeTrainingPdfText(value);
 }
 
 function singleLine(value: unknown) {
@@ -64,22 +48,7 @@ function slugify(value: string) {
 }
 
 function wrap(text: string, font: PDFFont, size: number, width: number) {
-  const normalized = safe(text);
-  const lines: string[] = [];
-  for (const paragraph of normalized.split('\n')) {
-    if (!paragraph.trim()) {
-      if (lines.length && lines[lines.length - 1] !== '') lines.push('');
-      continue;
-    }
-    let line = '';
-    for (const word of paragraph.trim().split(/\s+/).filter(Boolean)) {
-      const candidate = line ? `${line} ${word}` : word;
-      if (!line || font.widthOfTextAtSize(candidate, size) <= width) line = candidate;
-      else { lines.push(line); line = word; }
-    }
-    if (line) lines.push(line);
-  }
-  return lines.length ? lines : ['-'];
+  return wrapTrainingPdfText(text, font, size, width);
 }
 
 function average(values: Array<number | null>) {
@@ -155,8 +124,8 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
       page.drawImage(logo, { x: MARGIN, y: y - height + 5, width, height });
       organizationX += width + 10;
     }
-    page.drawText(singleLine(input.organization.public_name || input.organization.name), { x: organizationX, y, size: 10, font: bold, color: dark });
-    page.drawText(`DOSSIER DE SESSION · ${pageNumber}`, { x: A4[0] - MARGIN - 118, y, size: 8, font: bold, color: muted });
+    page.drawText(trainingPdfText(singleLine(input.organization.public_name || input.organization.name), bold), { x: organizationX, y, size: 10, font: bold, color: dark });
+    page.drawText(trainingPdfText(`DOSSIER DE SESSION · ${pageNumber}`, bold), { x: A4[0] - MARGIN - 118, y, size: 8, font: bold, color: muted });
     y -= 28;
   }
 
@@ -166,7 +135,7 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
     const size = level === 1 ? 18 : 12;
     const lines = wrap(text, bold, size, A4[0] - MARGIN * 2);
     ensure(lines.length * (size + 4) + 10);
-    lines.forEach((line) => { page.drawText(line, { x: MARGIN, y, size, font: bold, color: dark }); y -= size + 4; });
+    lines.forEach((line) => { page.drawText(trainingPdfText(line, bold), { x: MARGIN, y, size, font: bold, color: dark }); y -= size + 4; });
     if (level === 1) { page.drawRectangle({ x: MARGIN, y: y + 3, width: 72, height: 3, color: accent }); y -= 10; }
   }
 
@@ -176,15 +145,15 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
     const indent = options.indent ?? 0;
     const lines = wrap(text, font, size, A4[0] - MARGIN * 2 - indent);
     ensure(lines.length * 12 + 5);
-    lines.forEach((line) => { page.drawText(line, { x: MARGIN + indent, y, size, font, color: options.color ?? dark }); y -= 12; });
+    lines.forEach((line) => { page.drawText(trainingPdfText(line, font), { x: MARGIN + indent, y, size, font, color: options.color ?? dark }); y -= 12; });
     y -= 3;
   }
 
   function keyValue(label: string, value: string) {
     const lines = wrap(value || '-', regular, 9, A4[0] - MARGIN * 2 - 145);
     ensure(Math.max(22, lines.length * 12 + 6));
-    page.drawText(singleLine(label), { x: MARGIN, y, size: 8, font: bold, color: muted });
-    lines.forEach((line, index) => page.drawText(line, { x: MARGIN + 145, y: y - index * 12, size: 9, font: regular, color: dark }));
+    page.drawText(trainingPdfText(singleLine(label), bold), { x: MARGIN, y, size: 8, font: bold, color: muted });
+    lines.forEach((line, index) => page.drawText(trainingPdfText(line, regular), { x: MARGIN + 145, y: y - index * 12, size: 9, font: regular, color: dark }));
     y -= Math.max(18, lines.length * 12 + 4);
   }
 
@@ -192,7 +161,7 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
     ensure(34);
     y -= 5;
     page.drawRectangle({ x: MARGIN, y: y - 23, width: A4[0] - MARGIN * 2, height: 27, color: soft });
-    page.drawText(singleLine(text).toUpperCase(), { x: MARGIN + 10, y: y - 14, size: 9.5, font: bold, color: dark });
+    page.drawText(trainingPdfText(singleLine(text).toUpperCase(), bold), { x: MARGIN + 10, y: y - 14, size: 9.5, font: bold, color: dark });
     y -= 34;
   }
 
@@ -226,10 +195,10 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
     const evaluation = survey?.status === 'completed' ? 'Évaluation complétée' : survey ? 'Évaluation envoyée' : 'Sans évaluation';
     ensure(46);
     page.drawLine({ start: { x: MARGIN, y: y + 5 }, end: { x: A4[0] - MARGIN, y: y + 5 }, color: border, thickness: 0.6 });
-    page.drawText(`${index + 1}. ${safe(personName(trainee.first_name, trainee.last_name))}`, { x: MARGIN, y: y - 8, size: 9, font: bold, color: dark });
-    page.drawText(singleLine(trainee.company || trainee.email || 'Stagiaire'), { x: MARGIN, y: y - 21, size: 7.8, font: regular, color: muted });
-    page.drawText(`Émargement : ${present} signé(s), ${absent} absent(s), ${excused} justifié(s)`, { x: MARGIN + 245, y: y - 8, size: 7.8, font: regular, color: dark });
-    page.drawText(evaluation, { x: MARGIN + 245, y: y - 21, size: 7.8, font: regular, color: muted });
+    page.drawText(trainingPdfText(`${index + 1}. ${safe(personName(trainee.first_name, trainee.last_name))}`, bold), { x: MARGIN, y: y - 8, size: 9, font: bold, color: dark });
+    page.drawText(trainingPdfText(singleLine(trainee.company || trainee.email || 'Stagiaire'), regular), { x: MARGIN, y: y - 21, size: 7.8, font: regular, color: muted });
+    page.drawText(trainingPdfText(`Émargement : ${present} signé(s), ${absent} absent(s), ${excused} justifié(s)`, regular), { x: MARGIN + 245, y: y - 8, size: 7.8, font: regular, color: dark });
+    page.drawText(trainingPdfText(evaluation, regular), { x: MARGIN + 245, y: y - 21, size: 7.8, font: regular, color: muted });
     y -= 38;
   });
 
@@ -262,9 +231,9 @@ export async function generateSessionDossierPdf(input: SessionDossierPdfInput): 
   if (!docs.length) paragraph('Aucun document rattaché à la session.', { color: muted });
   docs.forEach((document, index) => {
     ensure(28);
-    page.drawText(`${index + 1}. ${safe(document.title)}`, { x: MARGIN, y, size: 8.5, font: bold, color: dark });
+    page.drawText(trainingPdfText(`${index + 1}. ${safe(document.title)}`, bold), { x: MARGIN, y, size: 8.5, font: bold, color: dark });
     const categoryLabel = trainingDocumentCategoryLabels[document.category] || 'Document de session';
-    page.drawText(`${categoryLabel} · ${document.generated_automatically ? 'Généré automatiquement' : 'Ajouté manuellement'}`, { x: MARGIN + 255, y, size: 7.5, font: regular, color: muted });
+    page.drawText(trainingPdfText(`${categoryLabel} · ${document.generated_automatically ? 'Généré automatiquement' : 'Ajouté manuellement'}`, regular), { x: MARGIN + 255, y, size: 7.5, font: regular, color: muted });
     y -= 18;
   });
 

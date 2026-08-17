@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 267 339" role="img" aria-label="Logo Jaune">
+  <g fill="#000000">
+    <rect x="24.15" y="55.35" width="208.50" height="57.10" rx="28.55"
+          transform="rotate(-26.834 128.40 83.90)"/>
+    <rect x="98.85" y="124.00" width="129.70" height="56.80" rx="28.40"
+          transform="rotate(-26.565 163.70 152.40)"/>
+    <rect x="34.57" y="225.18" width="197.67" height="57.24" rx="28.62"
+          transform="rotate(-26.565 133.40 253.80)"/>
+  </g>
+  <circle cx="75" cy="194" r="29.5" fill="#D5A443"/>
+</svg>
