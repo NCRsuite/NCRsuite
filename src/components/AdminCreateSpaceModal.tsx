@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { businessPacks } from '../config/businessPacks';
+import { businessUiAccent, businessUiTheme } from '../config/businessTheme';
 import { getDomainPlans } from '../config/domainPlans';
 import { supabase } from '../lib/supabase';
 import type { BusinessType, Plan } from '../types';
@@ -64,7 +65,6 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
   const [plan, setPlan] = useState<Plan>('professionnelle');
   const [monthlyPrice, setMonthlyPrice] = useState(moneyInput(getDomainPlans('formation').professionnelle.monthlyPriceCents));
   const [trialDays, setTrialDays] = useState(0);
-  const [primaryColor, setPrimaryColor] = useState('#2997ff');
   const [internalNotes, setInternalNotes] = useState('');
   const [setupFee, setSetupFee] = useState('0.00');
   const [memberLimit, setMemberLimit] = useState(10);
@@ -149,7 +149,7 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
       p_plan: plan,
       p_monthly_price_cents: monthlyPriceCents,
       p_trial_days: trialDays,
-      p_primary_color: primaryColor,
+      p_primary_color: businessUiAccent(businessType),
       p_internal_notes: internalNotes.trim() || null,
       p_metier_setup_fee_cents: plan === 'metier' ? setupFeeCents : 0,
       p_metier_member_limit: plan === 'metier' ? memberLimit : null,
@@ -210,9 +210,11 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
                 <input value={slug} onChange={(event) => { setSlugEdited(true); setSlug(slugify(event.target.value)); }} maxLength={80} placeholder="bella-formation" required />
                 <small>Un suffixe sera ajouté automatiquement s’il existe déjà.</small>
               </label>
-              <label>Couleur principale
-                <div className="admin-space-color-field"><input type="color" value={primaryColor} onChange={(event) => setPrimaryColor(event.target.value)} /><code>{primaryColor}</code></div>
-              </label>
+              <div className="admin-space-theme-lock">
+                <span style={{ background: businessUiAccent(businessType) }} />
+                <div><small>THÈME AUTOMATIQUE</small><strong>{businessUiTheme(businessType).label}</strong></div>
+                <Icon name="lock" size={17} />
+              </div>
             </div>
           </section>
 

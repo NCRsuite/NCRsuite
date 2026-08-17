@@ -7,6 +7,7 @@ import {
   planLabel,
 } from "../config/planEntitlements";
 import { getDomainPlan } from "../config/domainPlans";
+import { businessUiTheme } from "../config/businessTheme";
 
 const slotOptions = [5, 10, 15, 20, 30, 45, 60];
 
@@ -19,7 +20,6 @@ export function SettingsPage() {
     updateClientExperienceSettings,
   } = useOrganization();
   const [name, setName] = useState("");
-  const [primaryColor, setPrimaryColor] = useState("#2997ff");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [savingBranding, setSavingBranding] = useState(false);
@@ -51,7 +51,6 @@ export function SettingsPage() {
   useEffect(() => {
     if (!organization) return;
     setName(organization.name);
-    setPrimaryColor(organization.primary_color);
     setBookingEnabled(Boolean(organization.booking_enabled));
     setConfirmationMode(organization.booking_confirmation_mode ?? "automatic");
     setSlotInterval(organization.booking_slot_interval ?? 15);
@@ -200,7 +199,7 @@ export function SettingsPage() {
     setMessage("");
     setError("");
     try {
-      await updateBranding({ name, primaryColor });
+      await updateBranding({ name });
       setMessage("L’identité de l’espace a été enregistrée.");
     } catch (caught) {
       setError(
@@ -697,7 +696,7 @@ export function SettingsPage() {
                     <strong>Personnalisation complète</strong>
                     <small>
                       {planHasFeature(organization.plan, "commercial_branding")
-                        ? "Logo, bannière et couleurs"
+                        ? "Logo, bannière et identité publique"
                         : "À partir de l’offre Professionnelle"}
                     </small>
                   </span>
@@ -722,7 +721,7 @@ export function SettingsPage() {
             <p className="eyebrow">IDENTITÉ</p>
             <h2>Identité de l’espace</h2>
             <p className="muted">
-              Le nom et la couleur sont propres à votre entreprise.
+              Le nom reste personnalisable. La couleur de l’interface est définie automatiquement par le métier.
             </p>
           </div>
           <label>
@@ -735,18 +734,15 @@ export function SettingsPage() {
               maxLength={120}
             />
           </label>
-          <label className="color-field">
-            Couleur principale
+          <div className="settings-business-theme-card" aria-label="Thème métier de l’interface">
+            <span style={{ background: businessUiTheme(organization.business_type).accent }} />
             <div>
-              <input
-                type="color"
-                value={primaryColor}
-                onChange={(event) => setPrimaryColor(event.target.value)}
-                disabled={!canManage}
-              />
-              <span>{primaryColor}</span>
+              <small>THÈME D’INTERFACE</small>
+              <strong>{businessUiTheme(organization.business_type).label}</strong>
+              <p>Appliqué automatiquement à la navigation, aux boutons, icônes, cartes actives et accents de NCR Suite.</p>
             </div>
-          </label>
+            <Icon name="lock" size={18} />
+          </div>
           <div className="settings-summary">
             <span>Type d’activité</span>
             <strong>{domainPriceLabel}</strong>

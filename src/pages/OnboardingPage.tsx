@@ -46,7 +46,6 @@ export function OnboardingPage() {
   const [requestedPlan, setRequestedPlan] = useState<Plan>(
     planOrder.includes(metadataPlan as Plan) ? metadataPlan as Plan : 'essentielle'
   );
-  const [primaryColor, setPrimaryColor] = useState('#2997ff');
   const [contactName, setContactName] = useState(String(user?.user_metadata?.full_name ?? ''));
   const [companyEmail, setCompanyEmail] = useState(user?.email ?? '');
   const [companyPhone, setCompanyPhone] = useState(String(user?.user_metadata?.phone ?? ''));
@@ -107,7 +106,6 @@ export function OnboardingPage() {
         organizationId = await createOrganization({
           name: name.trim(),
           businessType,
-          primaryColor,
           requestedPlan,
           contactName: contactName.trim(),
           companyEmail: companyEmail.trim(),
@@ -236,7 +234,7 @@ export function OnboardingPage() {
             ))}
           </div>
 
-          <div className="saas-onboarding-preview" style={{ '--preview-accent': primaryColor } as React.CSSProperties}>
+          <div className="saas-onboarding-preview" style={{ '--preview-accent': businessUiAccent(businessType) } as React.CSSProperties}>
             <span className="saas-onboarding-preview-icon"><Icon name={selectedPack.icon} size={24} /></span>
             <div><small>Aperçu de ton espace</small><strong>{name.trim() || selectedPack.label}</strong><span>{selectedPack.label} · {selectedPlan.label}</span></div>
           </div>
@@ -301,8 +299,12 @@ export function OnboardingPage() {
           {step === 4 && (
             <section className="saas-final-step">
               <div className="saas-branding-panel">
-                <div><p className="eyebrow">IDENTITÉ VISUELLE</p><h3>Choisis ta couleur principale</h3><p>Tu pourras ajouter ton logo et affiner la personnalisation depuis les paramètres.</p></div>
-                <label className="saas-color-picker"><input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} /><span style={{ background: primaryColor }} /><strong>{primaryColor.toUpperCase()}</strong></label>
+                <div><p className="eyebrow">IDENTITÉ MÉTIER</p><h3>Ton thème NCR Suite est déjà défini</h3><p>La couleur de l’interface suit automatiquement le métier. Le logo et l’identité publique restent personnalisables séparément.</p></div>
+                <div className="saas-business-theme-lock">
+                  <span style={{ background: businessUiAccent(businessType) }} />
+                  <div><small>THÈME AUTOMATIQUE</small><strong>{businessUiTheme(businessType).label}</strong></div>
+                  <Icon name="lock" size={18} />
+                </div>
               </div>
 
               <div className="saas-onboarding-summary">

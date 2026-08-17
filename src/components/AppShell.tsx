@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
 import { BUSINESS_BRAND_ASSETS } from '../config/businessBranding';
+import { businessUiAccent } from '../config/businessTheme';
 import { organizationHasFeature, planLabel } from '../config/planEntitlements';
 import { cleaningPathIsLocked, cleaningRequiredPlanForPath, filterNavigationForOrganization, formationPathIsLocked, formationRequiredPlanForPath, restaurantPathIsLocked, restaurantRequiredPlanForPath, securityPathIsLocked, securityRequiredPlanForPath } from '../config/moduleAccess';
 import { useAuth } from '../contexts/AuthContext';
@@ -726,7 +727,7 @@ export function AppShell() {
                 aria-expanded={desktopContextMenu === 'organization'}
                 aria-controls="desktop-organization-menu"
               >
-                <span className={`context-switcher-icon organization${organization.logo_url ? ' has-image' : ''}`} style={{ background: organization.logo_url ? '#fff' : organization.primary_color || 'var(--accent)' }}>
+                <span className={`context-switcher-icon organization${organization.logo_url ? ' has-image' : ''}`} style={{ background: organization.logo_url ? '#fff' : businessUiAccent(organization.business_type) }}>
                   {organization.logo_url ? <img src={organization.logo_url} alt="" /> : <Icon name={pack.icon} size={19} />}
                 </span>
                 <span className="context-switcher-copy">
@@ -756,7 +757,7 @@ export function AppShell() {
                           className={active ? 'active' : ''}
                           onClick={() => changeOrganization(org.id)}
                         >
-                          <span className={`context-option-icon${org.logo_url ? ' has-image' : ''}`} style={{ background: org.logo_url ? '#fff' : org.primary_color || 'var(--accent)' }}>
+                          <span className={`context-option-icon${org.logo_url ? ' has-image' : ''}`} style={{ background: org.logo_url ? '#fff' : businessUiAccent(org.business_type) }}>
                             {org.logo_url ? <img src={org.logo_url} alt="" /> : <Icon name={orgPack.icon} size={17} />}
                           </span>
                           <span className="context-option-copy">
@@ -992,7 +993,7 @@ export function AppShell() {
             </div>
 
             <button className="mobile-drawer-organization" type="button" onClick={() => { setMobileMenuOpen(false); setMobileAccountOpen(true); }}>
-              <span className={`mobile-organization-logo${organization.logo_url ? ' has-image' : ''}`} style={{ background: organization.logo_url ? '#fff' : organization.primary_color || 'var(--accent)' }}>
+              <span className={`mobile-organization-logo${organization.logo_url ? ' has-image' : ''}`} style={{ background: organization.logo_url ? '#fff' : businessUiAccent(organization.business_type) }}>
                 {organization.logo_url ? <img src={organization.logo_url} alt="" /> : organization.name.slice(0, 1).toUpperCase()}
               </span>
               <span>
@@ -1106,7 +1107,7 @@ export function AppShell() {
                       className={`mobile-organization-option${active ? ' active' : ''}`}
                       onClick={() => changeOrganization(org.id)}
                     >
-                      <span className={`mobile-organization-logo${org.logo_url ? ' has-image' : ''}`} style={{ background: org.logo_url ? '#fff' : org.primary_color || 'var(--accent)' }}>
+                      <span className={`mobile-organization-logo${org.logo_url ? ' has-image' : ''}`} style={{ background: org.logo_url ? '#fff' : businessUiAccent(org.business_type) }}>
                         {org.logo_url ? <img src={org.logo_url} alt="" /> : org.name.slice(0, 1).toUpperCase()}
                       </span>
                       <span className="mobile-organization-copy">
@@ -1140,7 +1141,7 @@ export function AppShell() {
                     const active = site.id === activeSiteId;
                     return (
                       <button type="button" key={site.id} className={`mobile-organization-option${active ? ' active' : ''}`} onClick={() => changeSite(site.id)}>
-                        <span className="mobile-organization-logo" style={{ background: organization.primary_color || 'var(--accent)' }}><Icon name="building" size={20} /></span>
+                        <span className="mobile-organization-logo" style={{ background: businessUiAccent(organization.business_type) }}><Icon name="building" size={20} /></span>
                         <span className="mobile-organization-copy"><strong>{site.name}</strong><small>{site.is_primary ? 'Établissement principal' : [site.address, site.city].filter(Boolean).join(' · ') || 'Établissement'}</small></span>
                         {active && <Icon name="check" size={20} />}
                       </button>

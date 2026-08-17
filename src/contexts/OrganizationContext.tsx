@@ -4,6 +4,7 @@ import { usePlatformAdmin } from './PlatformAdminContext';
 import { supabase } from '../lib/supabase';
 import type { BusinessType, Organization, OrganizationSite, Plan } from '../types';
 import { organizationHasFeature } from '../config/planEntitlements';
+import { businessUiAccent, businessUiTheme } from '../config/businessTheme';
 
 
 export interface SupportSession {
@@ -19,7 +20,6 @@ export interface SupportSession {
 interface CreateOrganizationInput {
   name: string;
   businessType: BusinessType;
-  primaryColor: string;
   requestedPlan: Plan;
   contactName: string;
   companyEmail: string;
@@ -81,7 +81,7 @@ interface OrganizationContextValue {
   refreshSites: () => void;
   endSupportSession: () => Promise<void>;
   createOrganization: (input: CreateOrganizationInput) => Promise<string>;
-  updateBranding: (updates: { name?: string; primaryColor?: string }) => Promise<void>;
+  updateBranding: (updates: { name?: string }) => Promise<void>;
   updateBookingSettings: (updates: BookingSettingsInput) => Promise<void>;
   updateEmailNotificationSettings: (updates: EmailNotificationSettingsInput) => Promise<void>;
   updateClientExperienceSettings: (updates: ClientExperienceSettingsInput) => Promise<void>;
@@ -301,13 +301,29 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
   const organization = organizations.find((org) => org.id === selectedId) ?? organizations[0] ?? null;
 
   useEffect(() => {
+    const root = document.documentElement;
     if (!organization) {
       setSites([]);
       setActiveSiteId(null);
+      delete root.dataset.businessTheme;
+      root.style.removeProperty('--accent');
+      root.style.removeProperty('--accent-rgb');
+      root.style.removeProperty('--primary-action');
+      root.style.removeProperty('--business-accent-strong');
       return;
     }
+
     localStorage.setItem('ncr-suite-org-id', organization.id);
-    document.documentElement.style.setProperty('--accent', organization.primary_color || '#2997ff');
+
+    // L'interface est désormais verrouillée sur la couleur du métier.
+    // organization.primary_color reste disponible uniquement pour l'identité
+    // commerciale/public (documents, portails, réservation, etc.).
+    const theme = businessUiTheme(organization.business_type);
+    root.dataset.businessTheme = organization.business_type;
+    root.style.setProperty('--accent', theme.accent);
+    root.style.setProperty('--accent-rgb', theme.accentRgb);
+    root.style.setProperty('--primary-action', theme.accent);
+    root.style.setProperty('--business-accent-strong', theme.strong);
   }, [organization]);
 
   useEffect(() => {
@@ -421,7 +437,8 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       setSelectedId(null);
       localStorage.removeItem('ncr-suite-org-id');
     },
-    async createOrganization({ name, businessType, primaryColor, requestedPlan, contactName, companyEmail, companyPhone, companyAddress, companyPostalCode, companyCity, companySiret, objective }) {
+    async createOrganization({ name, businessType, requestedPlan, contactName, companyEmail, companyPhone, companyAddress, companyPostalCode, companyCity, companySiret, objective }) {
+      const primaryColor = businessUiAccent(businessType);
       const slug = `${slugify(name)}-${Math.random().toString(36).slice(2, 7)}`;
       const plan: Plan = requestedPlan;
 
@@ -490,12 +507,11 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       setSelectedId(org.id);
       return org.id;
     },
-    async updateBranding({ name, primaryColor }) {
+    async updateBranding({ name }) {
       if (!organization) return;
       const next = {
         ...organization,
-        ...(name ? { name } : {}),
-        ...(primaryColor ? { primary_color: primaryColor } : {})
+        ...(name ? { name } : {})
       };
 
       if (demoMode || !supabase) {

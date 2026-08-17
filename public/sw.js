@@ -7,7 +7,7 @@ const SHELL = [
   '/manifest.webmanifest',
   '/ncr-suite-showcase-v2925.css',
   '/ncr-suite-app-v2925.css',
-  '/ncr-suite-app-v2925-r2.js',
+  '/ncr-suite-app-v2925-r4.js',
   '/fonts/inter-variable.woff2',
   '/brand/ncr-suite-logo-horizontal.png',
   '/brand/ncr-suite-symbol-v2221.png',

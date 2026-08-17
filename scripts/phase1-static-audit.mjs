@@ -743,7 +743,7 @@ if (!indexHtml.includes('/ncr-suite-showcase-v2925.css')
     || !showcaseGenerator.includes('ncr-suite-showcase-v2925.css')
     || !showcaseGenerator.includes('ncr-suite-app-v2925.css')
     || !viteConfig.includes('codeSplitting: false')
-    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2925-r2.js'")
+    || !viteConfig.includes("entryFileNames: 'ncr-suite-app-v2925-r4.js'")
     || !publicStyles.includes('--ncr-styles-ready: 1')) {
   errors.push('La protection V2.29.25 contre les fragments /assets indisponibles est incomplete.');
 }
@@ -757,7 +757,7 @@ if (!runtimeConfig.includes("APP_VERSION = '2.29.25'")
     || !serviceWorker.includes("ncr-suite-shell-v2.29.25-training-test-sandbox")
     || !serviceWorker.includes("'/ncr-suite-showcase-v2925.css'")
     || !serviceWorker.includes("'/ncr-suite-app-v2925.css'")
-    || !serviceWorker.includes("'/ncr-suite-app-v2925-r2.js'")
+    || !serviceWorker.includes("'/ncr-suite-app-v2925-r4.js'")
     || !serviceWorker.includes("'/brand/ncr-suite-application-icon-v281.png'")) {
   errors.push('La version ou le cache PWA V2.29.25 est incoherent.');
 }
