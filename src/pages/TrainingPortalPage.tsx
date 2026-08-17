@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { Icon } from '../components/Icon';
 import { TrainingPortalSignatureModal } from '../components/TrainingPortalSignatureModal';
-import { TrainingTrainerBpfPanel } from '../components/TrainingTrainerBpfPanel';
 import { useAuth } from '../contexts/AuthContext';
 import {
   trainingPortalCategoryLabels,
@@ -15,7 +14,7 @@ import {
 import { closeFileWindow, navigateFileWindow, prepareFileWindow } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
 
-type PortalTab = 'overview' | 'sessions' | 'documents' | 'signatures' | 'bpf';
+type PortalTab = 'overview' | 'sessions' | 'documents' | 'signatures';
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' });
 const dateTimeFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
@@ -126,9 +125,31 @@ export function TrainingPortalPage() {
     void loadDashboard(accountId);
   }, [accountId, loadDashboard]);
 
+  // Les documents automatiques (attestation, certificat, convocation) peuvent
+  // arriver quelques secondes après une action du stagiaire. Le portail ne doit
+  // pas rester figé sur le snapshot chargé avant leur génération.
   useEffect(() => {
-    if (tab === 'bpf' && activeAccount?.subject_kind !== 'trainer') setTab('overview');
-  }, [activeAccount?.subject_kind, tab]);
+    if (!accountId || tab !== 'documents') return;
+    const refreshDocuments = () => {
+      if (document.visibilityState === 'visible') void loadDashboard(accountId);
+    };
+    refreshDocuments();
+    const intervalId = window.setInterval(refreshDocuments, 30_000);
+    return () => window.clearInterval(intervalId);
+  }, [accountId, tab, loadDashboard]);
+
+  useEffect(() => {
+    if (!accountId) return;
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') void loadDashboard(accountId);
+    };
+    window.addEventListener('focus', refreshWhenVisible);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.removeEventListener('focus', refreshWhenVisible);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
+  }, [accountId, loadDashboard]);
 
   async function authenticate(event: FormEvent) {
     event.preventDefault();
@@ -332,7 +353,6 @@ export function TrainingPortalPage() {
             {([
               ['overview', 'Vue d’ensemble', 'home'],
               ['sessions', 'Mes sessions', 'calendar'],
-              ...(activeAccount?.subject_kind === 'trainer' ? [['bpf', 'Mon BPF', 'chart'] as const] : []),
               ['documents', 'Mes documents', 'file'],
               ['signatures', 'Signatures', 'signature']
             ] as const).map(([id, label, icon]) => (
@@ -428,10 +448,6 @@ export function TrainingPortalPage() {
                 ))}
               </div>
             </>
-          )}
-
-          {dashboard && tab === 'bpf' && activeAccount?.subject_kind === 'trainer' && (
-            <TrainingTrainerBpfPanel />
           )}
 
           {dashboard && tab === 'documents' && (

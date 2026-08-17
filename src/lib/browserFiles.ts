@@ -49,25 +49,56 @@ export function navigateFileWindow(target: Window | null, url: string) {
   window.location.assign(url);
 }
 
+function isAppleTouchBrowser() {
+  const userAgent = navigator.userAgent || '';
+  return /iPad|iPhone|iPod/i.test(userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function triggerDownloadInCurrentDocument(url: string, filename: string) {
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.rel = 'noopener';
+  anchor.style.display = 'none';
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
 export function showBlobDownload(
   target: Window | null,
   url: string,
   filename: string,
   title = 'Téléchargement prêt'
 ) {
+  const appleTouch = isAppleTouchBrowser();
   const host = target && !target.closed ? target : window.open('', '_blank');
+
+  // Sur desktop/Android, déclenche d'abord le vrai téléchargement depuis la
+  // fenêtre principale. C'est plus fiable qu'un clic programmatique dans le
+  // popup de préparation après une génération PDF asynchrone.
+  if (!appleTouch) {
+    try {
+      triggerDownloadInCurrentDocument(url, filename);
+    } catch {
+      // Le lien manuel du popup reste le filet de sécurité.
+    }
+  }
+
   if (!host) {
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = filename;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
+    if (appleTouch) window.location.assign(url);
+    else triggerDownloadInCurrentDocument(url, filename);
     return;
   }
 
   host.document.open();
-  host.document.write(pageShell(title, 'Le téléchargement va démarrer. Sur iPhone ou iPad, utilise le bouton ci-dessous si Safari ouvre le PDF au lieu de l’enregistrer.'));
+  host.document.write(pageShell(
+    title,
+    appleTouch
+      ? 'Le PDF est prêt. Sur iPhone ou iPad, il va s’ouvrir afin que tu puisses l’enregistrer avec Partager → Enregistrer dans Fichiers.'
+      : 'Le téléchargement a été lancé. Si ton navigateur le bloque, utilise le bouton ci-dessous.'
+  ));
   host.document.close();
 
   const main = host.document.querySelector('main');
@@ -82,8 +113,14 @@ export function showBlobDownload(
   const downloadLink = host.document.createElement('a');
   downloadLink.className = 'primary';
   downloadLink.href = url;
-  downloadLink.download = filename;
-  downloadLink.textContent = 'Télécharger le PDF';
+  downloadLink.rel = 'noopener';
+  if (appleTouch) {
+    downloadLink.target = '_self';
+    downloadLink.textContent = 'Ouvrir pour enregistrer';
+  } else {
+    downloadLink.download = filename;
+    downloadLink.textContent = 'Télécharger le PDF';
+  }
 
   const openLink = host.document.createElement('a');
   openLink.className = 'secondary';
@@ -92,12 +129,19 @@ export function showBlobDownload(
   openLink.textContent = 'Ouvrir le PDF';
 
   const help = host.document.createElement('small');
-  help.textContent = 'Sur iPhone : ouvre le PDF puis utilise Partager → Enregistrer dans Fichiers si nécessaire.';
+  help.textContent = appleTouch
+    ? 'Sur iPhone/iPad : dans le PDF, touche Partager puis Enregistrer dans Fichiers.'
+    : 'Si le téléchargement automatique est bloqué, utilise « Télécharger le PDF ».';
 
   actions.append(downloadLink, openLink);
   main.append(actions, help);
 
-  window.setTimeout(() => {
-    try { downloadLink.click(); } catch { /* Le bouton manuel reste disponible. */ }
-  }, 120);
+  if (appleTouch) {
+    // Safari iOS ignore fréquemment l’attribut download sur les URL blob.
+    // Ouvrir le PDF dans la fenêtre créée par le geste utilisateur est le
+    // comportement le plus fiable et donne accès à « Enregistrer dans Fichiers ».
+    window.setTimeout(() => {
+      try { host.location.replace(url); } catch { /* Le bouton manuel reste disponible. */ }
+    }, 180);
+  }
 }
