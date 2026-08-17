@@ -160,7 +160,34 @@ export function TrainingDossiersPage() {
   const [busyAction, setBusyAction] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [readyDownload, setReadyDownload] = useState<{ sessionId: string; url: string; filename: string } | null>(null);
+  const readyDownloadUrlRef = useRef<string | null>(null);
   const detailRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => () => {
+    if (readyDownloadUrlRef.current) URL.revokeObjectURL(readyDownloadUrlRef.current);
+  }, []);
+
+  function isSafariDesktop() {
+    const userAgent = navigator.userAgent || '';
+    return /Safari/i.test(userAgent) && !/(Chrome|Chromium|CriOS|Edg|OPR|Firefox|FxiOS)/i.test(userAgent) && navigator.maxTouchPoints <= 1;
+  }
+
+  function exposeSafariDownload(sessionId: string, url: string, filename: string) {
+    if (readyDownloadUrlRef.current && readyDownloadUrlRef.current !== url) {
+      URL.revokeObjectURL(readyDownloadUrlRef.current);
+    }
+    readyDownloadUrlRef.current = url;
+    setReadyDownload({ sessionId, url, filename });
+    setSuccess('Le dossier est prêt. Clique sur « Enregistrer le PDF » pour terminer le téléchargement dans Safari.');
+  }
+
+  function clearReadyDownload() {
+    const url = readyDownloadUrlRef.current;
+    readyDownloadUrlRef.current = null;
+    setReadyDownload(null);
+    if (url) window.setTimeout(() => URL.revokeObjectURL(url), 2_000);
+  }
 
   const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
   const canReopen = ['owner', 'admin'].includes(organization?.role ?? 'viewer');
@@ -552,7 +579,8 @@ export function TrainingDossiersPage() {
   async function generateDossierPdf(mode: 'preview' | 'download') {
     if (!organization || !selectedSummary) return;
     const session = selectedSummary.session;
-    const target = prepareFileWindow(
+    const safariDownload = mode === 'download' && isSafariDesktop();
+    const target = safariDownload ? null : prepareFileWindow(
       mode === 'preview' ? 'Dossier complet de formation' : 'Téléchargement du dossier',
       'NCR Suite rassemble la session, les participants, les émargements, les évaluations et les documents…'
     );
@@ -574,9 +602,15 @@ export function TrainingDossiersPage() {
       });
       const buffer = result.bytes.buffer.slice(result.bytes.byteOffset, result.bytes.byteOffset + result.bytes.byteLength) as ArrayBuffer;
       const url = URL.createObjectURL(new Blob([buffer], { type: 'application/pdf' }));
-      if (mode === 'preview') navigateFileWindow(target, url);
-      else showBlobDownload(target, url, result.filename, 'Dossier complet prêt');
-      window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
+      if (mode === 'preview') {
+        navigateFileWindow(target, url);
+        window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
+      } else if (safariDownload) {
+        exposeSafariDownload(session.id, url, result.filename);
+      } else {
+        showBlobDownload(target, url, result.filename, 'Dossier complet prêt');
+        window.setTimeout(() => URL.revokeObjectURL(url), 5 * 60_000);
+      }
     } catch (caught) {
       closeFileWindow(target);
       setError(`Génération impossible : ${caught instanceof Error ? caught.message : 'erreur inconnue'}`);
@@ -726,6 +760,7 @@ export function TrainingDossiersPage() {
                     <p>{selectedSummary.phase === 'preparation' ? 'Prépare les éléments nécessaires avant l’accueil des stagiaires.' : selectedSummary.phase === 'delivery' ? 'Les preuves de réalisation se complètent pendant la formation.' : selectedSummary.phase === 'closure' ? 'Finalise les preuves puis clôture la session.' : 'Le dossier reste consultable et peut être exporté.'}</p>
                     <div className="training-dossier-scoreline"><span><i style={{ width: `${selectedSummary.progress}%` }} /></span><b>{selectedSummary.readyCount}/{selectedSummary.requiredCount}</b></div>
                     <div className="training-dossier-pdf-actions"><button type="button" className="secondary-button" disabled={busyAction === `pdf-${selectedSummary.session.id}`} onClick={() => void generateDossierPdf('preview')}><Icon name="eye" size={16} />Visualiser le dossier</button><button type="button" className="secondary-button" disabled={busyAction === `pdf-${selectedSummary.session.id}`} onClick={() => void generateDossierPdf('download')}><Icon name="file" size={16} />Télécharger le dossier</button>{selectedSummary.session.status === 'completed' && <><button type="button" className="secondary-button" disabled={busyAction === `certificate-${selectedSummary.session.id}`} onClick={() => void generateRealizationCertificatesPdf('preview')}><Icon name="eye" size={16} />Voir certificat de réalisation</button><button type="button" className="secondary-button" disabled={busyAction === `certificate-${selectedSummary.session.id}`} onClick={() => void generateRealizationCertificatesPdf('download')}><Icon name="graduation" size={16} />Certificats de réalisation</button></>}</div>
+                    {readyDownload?.sessionId === selectedSummary.session.id && <a className="primary-button" href={readyDownload.url} download={readyDownload.filename} onClick={clearReadyDownload}>Enregistrer le PDF</a>}
                     {(selectedSummary.canLaunchClosure || selectedSummary.canFinalize) && canManage && <button type="button" className="training-dossier-close-button" disabled={busyAction === `close-${selectedSummary.session.id}`} onClick={() => void closeSessionDossier()}><Icon name="check" size={17} />{busyAction === `close-${selectedSummary.session.id}` ? 'Traitement…' : selectedSummary.canLaunchClosure ? 'Terminer et lancer la clôture' : 'Finaliser le dossier'}</button>}
                     {selectedSummary.session.status === 'completed' && !selectedSummary.session.training_dossier_finalized_at && !selectedSummary.canFinalize && <div className="training-dossier-automation-note"><Icon name="refresh" size={16} /><span><strong>Clôture automatisée en cours</strong><small>Les évaluations finales, attestations et relances complètent ce dossier automatiquement.</small></span></div>}
                     {selectedSummary.phase === 'closed' && canReopen && <button type="button" className="training-dossier-reopen-button" disabled={busyAction === `reopen-${selectedSummary.session.id}`} onClick={() => void reopenSessionDossier()}><Icon name="activity" size={16} />Rouvrir la session</button>}
