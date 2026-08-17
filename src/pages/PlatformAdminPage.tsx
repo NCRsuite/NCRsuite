@@ -82,6 +82,14 @@ const clientAdminSections = new Set<PlatformAdminSection>(['overview','access'])
 const billingAdminSections = new Set<PlatformAdminSection>(['billing','catalogue','metier']);
 const platformAdminAdvancedSections = new Set<PlatformAdminSection>(['activity','diagnostics','monitoring','validation','trainingSav','push']);
 
+const adminGroupLabels = {
+  cockpit: 'Vue d’ensemble',
+  clients: 'Clients',
+  billing: 'Abonnements & essais',
+  support: 'Assistance NCR',
+  platform: 'Plateforme'
+} as const;
+
 function adminSectionGroup(section: PlatformAdminSection) {
   if (section === 'cockpit') return 'cockpit';
   if (clientAdminSections.has(section)) return 'clients';
@@ -170,6 +178,10 @@ export function PlatformAdminPage() {
   const [organizations, setOrganizations] = useState<AdminOrganization[]>([]);
   const [selected, setSelected] = useState<AdminOrganization | null>(null);
   const [search, setSearch] = useState('');
+  const [globalSearch, setGlobalSearch] = useState('');
+  const [globalSearchResults, setGlobalSearchResults] = useState<AdminOrganization[]>([]);
+  const [globalSearchFocused, setGlobalSearchFocused] = useState(false);
+  const [globalSearchLoading, setGlobalSearchLoading] = useState(false);
   const [domainFilter, setDomainFilter] = useState<'all' | BusinessType>('all');
   const [planFilter, setPlanFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -181,6 +193,7 @@ export function PlatformAdminPage() {
   const [loginEmail, setLoginEmail] = useState(user?.email ?? '');
   const [changingLoginEmail, setChangingLoginEmail] = useState(false);
   const [showDeleteOrganization, setShowDeleteOrganization] = useState(false);
+  const [showOrganizationAdvanced, setShowOrganizationAdvanced] = useState(false);
   const [deleteOrganizationName, setDeleteOrganizationName] = useState('');
   const [deletingOrganization, setDeletingOrganization] = useState(false);
 
@@ -222,6 +235,7 @@ export function PlatformAdminPage() {
     setMessage('');
     setError('');
     setShowDeleteOrganization(false);
+    setShowOrganizationAdvanced(false);
     setDeleteOrganizationName('');
   }
 
@@ -275,6 +289,34 @@ export function PlatformAdminPage() {
     }, 280);
     return () => window.clearTimeout(timer);
   }, [search, planFilter, statusFilter]);
+
+  useEffect(() => {
+    const needle = globalSearch.trim();
+    if (!supabase || needle.length < 2) {
+      setGlobalSearchResults([]);
+      setGlobalSearchLoading(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        setGlobalSearchLoading(true);
+        const { data, error: requestError } = await supabase.rpc('admin_list_organizations', {
+          p_search: needle,
+          p_plan: null,
+          p_status: null
+        });
+        if (requestError) {
+          setGlobalSearchResults([]);
+        } else {
+          setGlobalSearchResults(((Array.isArray(data) ? data : []) as AdminOrganization[]).slice(0, 7));
+        }
+        setGlobalSearchLoading(false);
+      })();
+    }, 180);
+
+    return () => window.clearTimeout(timer);
+  }, [globalSearch]);
 
   const domainCounts = useMemo(() => {
     const counts = new Map<BusinessType, number>();
@@ -432,6 +474,19 @@ export function PlatformAdminPage() {
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
 
+  function openOrganizationFromGlobalSearch(organization: AdminOrganization) {
+    setGlobalSearch('');
+    setGlobalSearchResults([]);
+    setGlobalSearchFocused(false);
+    setSearch('');
+    setDomainFilter('all');
+    setPlanFilter('');
+    setStatusFilter('');
+    populateEditor(organization);
+    setActiveSection('overview');
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
   function openNotificationSection(section: AdminNotificationSection) {
     setActiveSection(section);
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
@@ -444,7 +499,33 @@ export function PlatformAdminPage() {
           <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
           <span>Administration centrale</span>
         </div>
+        <div className="platform-admin-global-search">
+          <Icon name="search" size={18} />
+          <input
+            value={globalSearch}
+            onChange={(event) => setGlobalSearch(event.target.value)}
+            onFocus={() => setGlobalSearchFocused(true)}
+            onBlur={() => window.setTimeout(() => setGlobalSearchFocused(false), 120)}
+            placeholder="Rechercher une entreprise, un e-mail…"
+            aria-label="Recherche globale dans les entreprises"
+          />
+          {globalSearch && <button type="button" className="platform-admin-search-clear" onMouseDown={(event) => event.preventDefault()} onClick={() => { setGlobalSearch(''); setGlobalSearchResults([]); }} aria-label="Effacer la recherche"><Icon name="close" size={15} /></button>}
+          {globalSearchFocused && globalSearch.trim().length >= 2 && (
+            <div className="platform-admin-search-results">
+              {globalSearchLoading && <div className="platform-admin-search-state">Recherche…</div>}
+              {!globalSearchLoading && globalSearchResults.length === 0 && <div className="platform-admin-search-state">Aucune entreprise trouvée.</div>}
+              {!globalSearchLoading && globalSearchResults.map((organization) => (
+                <button key={organization.id} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => openOrganizationFromGlobalSearch(organization)}>
+                  <span className="admin-company-avatar">{organization.name.slice(0, 1).toUpperCase()}</span>
+                  <span><strong>{organization.name}</strong><small>{businessPacks[organization.business_type].label} · {organization.owner_email || organization.slug}</small></span>
+                  <span className={`admin-health-pill ${organization.health}`}><i />{organization.health === 'healthy' ? 'Saine' : organization.health === 'attention' ? 'À surveiller' : 'Critique'}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="platform-admin-account">
+          {canManage && <button type="button" className="secondary-button platform-admin-create-button" onClick={() => setShowCreateSpace(true)}><Icon name="plus" size={16} /><span>Créer un espace</span></button>}
           <AdminNotificationCenter onNavigate={openNotificationSection} />
           <span><strong>{user?.user_metadata?.full_name || 'NCR Admin'}</strong><small>{profile?.role === 'super_admin' ? 'Super-administrateur' : 'Support'}</small></span>
           <button className="icon-button" type="button" onClick={() => signOut()} aria-label="Se déconnecter"><Icon name="logout" size={19} /></button>
@@ -452,15 +533,6 @@ export function PlatformAdminPage() {
       </header>
 
       <main className="platform-admin-content">
-        <section className="platform-admin-hero">
-          <div>
-            <p className="eyebrow">NCR SUITE CONTROL CENTER</p>
-            <h1>Pilote toutes les entreprises depuis un seul espace</h1>
-            <p>Ce compte est exclusivement réservé à l’administration NCR. Les espaces métier, rendez-vous, prestations et données clients ne sont jamais affichés ici.</p>
-          </div>
-          <button type="button" className="secondary-button" onClick={() => loadAll(true)} disabled={loading}>Actualiser</button>
-        </section>
-
         {error && <div className="error-message page-message" role="alert">{error}</div>}
         {message && <div className="success-message page-message" role="status">{message}</div>}
 
@@ -506,6 +578,11 @@ export function PlatformAdminPage() {
           <button type="button" className={adminSectionGroup(activeSection) === 'platform' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}><Icon name="tool" size={19} /><span><strong>Plateforme</strong><small>Surveillance et outils avancés</small></span></button>
         </nav>
 
+        <div className="admin-current-zone" aria-live="polite">
+          <span>{adminGroupLabels[adminSectionGroup(activeSection)]}</span>
+          <button type="button" onClick={() => void loadAll(true)} disabled={loading}><Icon name="refresh" size={14} /> {loading ? 'Actualisation…' : 'Actualiser les données'}</button>
+        </div>
+
         {clientAdminSections.has(activeSection) && (
           <nav className="admin-secondary-nav" aria-label="Gestion des clients">
             <button type="button" className={activeSection === 'overview' ? 'active' : ''} onClick={() => setActiveSection('overview')}><Icon name="building" size={16} /> Entreprises</button>
@@ -550,6 +627,10 @@ export function PlatformAdminPage() {
         {activeSection === 'trainingSav' && <AdminTrainingSavPanel />}
 
         {activeSection === 'overview' && (<>
+        <section className="admin-clients-heading">
+          <div><p className="eyebrow">PORTEFEUILLE CLIENT</p><h1>Entreprises</h1><p>Retrouve un client, vérifie son état et modifie son accès sans entrer dans ses données métier.</p></div>
+          {canManage && <button type="button" className="primary-button" onClick={() => setShowCreateSpace(true)}><Icon name="plus" size={17} /> Créer un espace</button>}
+        </section>
         <section className="platform-admin-metrics">
           <article><span className="admin-metric-icon"><Icon name="building" size={22} /></span><div><small>Entreprises</small><strong>{metrics.organizations_total}</strong><em>{metrics.organizations_active} actives</em></div></article>
           <article><span className="admin-metric-icon"><Icon name="creditCard" size={22} /></span><div><small>MRR estimé</small><strong>{money(metrics.estimated_mrr_cents)}</strong><em>abonnements actifs</em></div></article>
@@ -630,6 +711,11 @@ export function PlatformAdminPage() {
                 <div className="admin-editor-company">
                   <span className="admin-company-avatar large">{selected.name.slice(0, 1).toUpperCase()}</span>
                   <div><p className="eyebrow">ABONNEMENT</p><h2>{selected.name}</h2><small>{selected.owner_email || 'Propriétaire non identifié'}</small></div>
+                </div>
+
+                <div className="admin-company-quick-actions">
+                  <button type="button" className="secondary-button compact" onClick={() => setActiveSection('support')}><Icon name="headset" size={15} /> Assistance NCR {selected.open_tickets > 0 ? `(${selected.open_tickets})` : ''}</button>
+                  {profile?.role === 'super_admin' && <button type="button" className={`secondary-button compact${showOrganizationAdvanced ? ' active' : ''}`} onClick={() => setShowOrganizationAdvanced((value) => !value)}><Icon name="settings" size={15} /> {showOrganizationAdvanced ? 'Masquer avancé' : 'Options avancées'}</button>}
                 </div>
 
                 <div className="admin-company-health-head">
@@ -715,7 +801,7 @@ export function PlatformAdminPage() {
 
                 {canManage && <button className="primary-button full" type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer la formule et l’accès'}</button>}
 
-                {profile?.role === 'super_admin' && platformAdminAdvancedSections.has(activeSection) && (
+                {profile?.role === 'super_admin' && showOrganizationAdvanced && (
                   <section className="admin-organization-danger-zone">
                     <div className="admin-organization-danger-head">
                       <span><Icon name="alert" size={20} /></span>

@@ -173,6 +173,7 @@ function trialDaysRemaining(value: string | null) {
 }
 
 export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: { canManage: boolean; onChanged?: () => void; onOpenOrganization?: (organizationId: string) => void }) {
+  const [billingView, setBillingView] = useState<'operations' | 'catalogue' | 'settings'>('operations');
   const [configuration, setConfiguration] = useState<BillingConfiguration | null>(null);
   const [trialPolicy, setTrialPolicy] = useState<TrialPolicy | null>(null);
   const [trialDaysDraft, setTrialDaysDraft] = useState(7);
@@ -204,6 +205,8 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
     () => trainingModuleRequests.filter((request) => ['payment_pending', 'pending_review'].includes(request.status)),
     [trainingModuleRequests]
   );
+
+  const pendingOperations = openRequests.length + openSecurityAddonRequests.length + openTrainingModuleRequests.length;
 
   const visiblePlans = useMemo(
     () => (configuration?.plans ?? [])
@@ -468,15 +471,21 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
   return (
     <section className="billing-admin-section">
       <div className="billing-admin-heading">
-        <div><p className="eyebrow">ABONNEMENTS & STRIPE</p><h2>Catalogue Stripe par domaine métier</h2><p>Les formules, renouvellements, rétrogradations et modules sont synchronisés automatiquement avec Stripe.</p></div>
+        <div><p className="eyebrow">ABONNEMENTS & STRIPE</p><h2>Pilotage commercial</h2><p>Traite d’abord ce qui demande une action. Les réglages Stripe et les paramètres avancés restent disponibles sans encombrer la vue quotidienne.</p></div>
         <button className="secondary-button" type="button" onClick={load}>Actualiser</button>
       </div>
+
+      <nav className="billing-admin-view-tabs" aria-label="Sections de la facturation NCR">
+        <button type="button" className={billingView === 'operations' ? 'active' : ''} onClick={() => setBillingView('operations')}><Icon name="activity" size={16} /><span><strong>À traiter</strong><small>Essais et demandes</small></span>{pendingOperations > 0 && <b>{pendingOperations}</b>}</button>
+        <button type="button" className={billingView === 'catalogue' ? 'active' : ''} onClick={() => setBillingView('catalogue')}><Icon name="creditCard" size={16} /><span><strong>Catalogue Stripe</strong><small>Prix et modules</small></span></button>
+        <button type="button" className={billingView === 'settings' ? 'active' : ''} onClick={() => setBillingView('settings')}><Icon name="settings" size={16} /><span><strong>Règles & paramètres</strong><small>Essai, impayés, conditions</small></span></button>
+      </nav>
 
       {error && <div className="error-message page-message" role="alert">{error}</div>}
       {message && <div className="success-message page-message" role="status">{message}</div>}
 
       <div className="billing-admin-grid">
-        <article className="panel billing-requests-panel">
+        <article className={`panel billing-requests-panel${billingView !== 'operations' ? ' billing-view-hidden' : ''}`}>
           <div className="panel-header"><div><p className="eyebrow">À TRAITER</p><h3>Demandes d’abonnement</h3></div><span>{openRequests.length}</span></div>
           {openRequests.length === 0 ? <div className="admin-empty-state">Aucune demande en attente.</div> : (
             <div className="billing-request-list">
@@ -506,7 +515,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
           )}
         </article>
 
-        <article className="panel billing-links-panel">
+        <article className={`panel billing-links-panel${billingView !== 'catalogue' ? ' billing-view-hidden' : ''}`}>
           <div className="panel-header billing-domain-header">
             <div><p className="eyebrow">PRIX RÉCURRENTS</p><h3>Formules Stripe par domaine</h3></div>
             <label>Domaine
@@ -531,7 +540,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
       </div>
 
       <div className="billing-admin-grid security-addon-admin-grid">
-        <article className="panel billing-requests-panel">
+        <article className={`panel billing-requests-panel${billingView !== 'operations' ? ' billing-view-hidden' : ''}`}>
           <div className="panel-header"><div><p className="eyebrow">MODULES SÉCURITÉ</p><h3>Demandes à la carte</h3></div><span>{openSecurityAddonRequests.length}</span></div>
           {openSecurityAddonRequests.length === 0 ? <div className="admin-empty-state">Aucune demande de module en attente.</div> : (
             <div className="billing-request-list">
@@ -554,7 +563,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
           )}
         </article>
 
-        <article className="panel billing-links-panel">
+        <article className={`panel billing-links-panel${billingView !== 'catalogue' ? ' billing-view-hidden' : ''}`}>
           <div className="panel-header"><div><p className="eyebrow">PRIX RÉCURRENTS</p><h3>Modules Stripe Sécurité</h3></div></div>
           <p className="muted">Chaque module actif doit posséder son propre Price ID récurrent Stripe.</p>
           <div className="billing-plan-link-list">
@@ -572,7 +581,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
       </div>
 
       <div className="billing-admin-grid security-addon-admin-grid training-module-admin-grid">
-        <article className="panel billing-requests-panel">
+        <article className={`panel billing-requests-panel${billingView !== 'operations' ? ' billing-view-hidden' : ''}`}>
           <div className="panel-header"><div><p className="eyebrow">MODULES FORMATION</p><h3>Demandes à la carte</h3></div><span>{openTrainingModuleRequests.length}</span></div>
           {openTrainingModuleRequests.length === 0 ? <div className="admin-empty-state">Aucune demande de module Formation en attente.</div> : (
             <div className="billing-request-list">
@@ -595,7 +604,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
           )}
         </article>
 
-        <article className="panel billing-links-panel">
+        <article className={`panel billing-links-panel${billingView !== 'catalogue' ? ' billing-view-hidden' : ''}`}>
           <div className="panel-header"><div><p className="eyebrow">PRIX RÉCURRENTS</p><h3>Modules Stripe Formation</h3></div></div>
           <p className="muted">Chaque module actif doit posséder son propre Price ID récurrent Stripe.</p>
           <div className="billing-plan-link-list">
@@ -612,7 +621,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
         </article>
       </div>
 
-      <section className="panel billing-settings-panel admin-trial-policy-panel">
+      <section className={`panel billing-settings-panel admin-trial-policy-panel${billingView !== 'settings' ? ' billing-view-hidden' : ''}`}>
         <div className="panel-header"><div><p className="eyebrow">ESSAIS & CONVERSION</p><h3>Essai public contrôlé</h3><p>Le prospect teste exactement l’offre demandée. NCR valide d’abord la demande, aucune carte bancaire n’est requise avant l’essai et les données restent conservées après expiration.</p></div><span className={`admin-status-pill ${trialPolicy?.enabled ? 'positive' : 'warning'}`}>{trialPolicy?.enabled ? 'ACTIF' : 'DÉSACTIVÉ'}</span></div>
         <div className="admin-trial-policy-grid">
           <label>Durée de l’essai<div className="admin-space-unit-field"><input type="number" min={0} max={30} value={trialDaysDraft} onChange={(event) => setTrialDaysDraft(Number(event.target.value))} disabled={!canManage} /><span>jours</span></div><small>0 désactive l’essai public. Valeur recommandée au lancement : 7 jours.</small></label>
@@ -626,7 +635,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
         {canManage && <button className="primary-button" type="button" onClick={() => void saveTrialPolicy()} disabled={saving === 'trial-policy'}>{saving === 'trial-policy' ? 'Enregistrement…' : 'Enregistrer la politique d’essai'}</button>}
       </section>
 
-      <section className="panel billing-settings-panel admin-active-trials-panel">
+      <section className={`panel billing-settings-panel admin-active-trials-panel${billingView !== 'operations' ? ' billing-view-hidden' : ''}`}>
         <div className="panel-header"><div><p className="eyebrow">ESSAIS EN COURS</p><h3>{activeTrials.length} espace{activeTrials.length > 1 ? 's' : ''} en période d’essai</h3><p>Les essais les plus proches de leur échéance remontent en premier pour te permettre d’agir sans chercher l’entreprise ailleurs.</p></div></div>
         {activeTrials.length === 0 ? (
           <div className="admin-positive-empty"><Icon name="check" size={24} /><div><strong>Aucun essai actif</strong><small>Les prochains espaces validés en essai apparaîtront automatiquement ici.</small></div></div>
@@ -646,7 +655,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
         )}
       </section>
 
-      <form className="panel billing-settings-panel" onSubmit={saveSettings}>
+      <form className={`panel billing-settings-panel${billingView !== 'settings' ? ' billing-view-hidden' : ''}`} onSubmit={saveSettings}>
         <div className="panel-header"><div><p className="eyebrow">RÈGLES COMMERCIALES</p><h3>Stripe, impayés et conditions</h3></div></div>
         <div className="admin-form-grid">
           <label>Environnement Stripe<select value={configuration.settings.stripe_livemode ? 'live' : 'test'} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, stripe_livemode: event.target.value === 'live' } })} disabled={!canManage}><option value="test">Test</option><option value="live">Production</option></select></label>
@@ -660,7 +669,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
         {canManage && <button className="primary-button" type="submit" disabled={saving === 'settings'}>{saving === 'settings' ? 'Enregistrement…' : 'Enregistrer les règles'}</button>}
       </form>
 
-      <article className="panel billing-settings-panel">
+      <article className={`panel billing-settings-panel${billingView !== 'settings' ? ' billing-view-hidden' : ''}`}>
         <div className="panel-header"><div><p className="eyebrow">PAIEMENTS EXCEPTIONNELS</p><h3>Qonto hors abonnement</h3></div></div>
         <div className="admin-form-grid">
           <label className="full-field">Lien Qonto exceptionnel<input type="url" value={configuration.settings.qonto_exceptional_payment_url ?? ''} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, qonto_exceptional_payment_url: event.target.value } })} placeholder="https://pay.qonto.com/..." disabled={!canManage} /></label>

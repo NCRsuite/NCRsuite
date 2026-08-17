@@ -24183,3 +24183,292 @@ button { max-width: 100%; }
 .admin-active-trial-days.warning strong { color:#a15c00; }
 @media (max-width:900px) { .admin-active-trial-row { grid-template-columns:40px minmax(0,1fr) auto; } .admin-active-trial-usage { display:none; } .admin-active-trial-days { text-align:right; } }
 @media (max-width:560px) { .admin-active-trial-row { grid-template-columns:36px minmax(0,1fr); } .admin-active-trial-icon { width:36px;height:36px; } .admin-active-trial-days { text-align:left;grid-column:2; } .admin-active-trial-row .secondary-button { grid-column:2;justify-self:start; } }
+
+/* NCR Suite V2.29.25 R5.1 — NCR Admin UX consolidation */
+.platform-admin-topbar {
+  display:grid;
+  grid-template-columns:auto minmax(280px,620px) auto;
+  min-height:72px;
+  padding:11px clamp(16px,3vw,38px);
+}
+.platform-admin-brand { gap:12px; }
+.platform-admin-brand img { width:168px; }
+.platform-admin-brand span { padding-left:12px;font-size:9px; }
+.platform-admin-global-search {
+  position:relative;
+  min-width:0;
+  min-height:44px;
+  padding:0 42px 0 14px;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  border:1px solid #dfe4ea;
+  border-radius:14px;
+  background:#f8fafc;
+  color:#748094;
+  transition:.16s ease;
+}
+.platform-admin-global-search:focus-within {
+  border-color:#8dbcf1;
+  background:#fff;
+  box-shadow:0 0 0 4px rgba(11,111,218,.08);
+}
+.platform-admin-global-search input {
+  min-width:0;
+  width:100%;
+  min-height:42px;
+  padding:0;
+  border:0;
+  outline:0;
+  background:transparent;
+  box-shadow:none !important;
+  font-size:.78rem;
+}
+.platform-admin-search-clear {
+  position:absolute;
+  right:9px;
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border:0;
+  border-radius:9px;
+  color:#7c8797;
+  background:#edf1f5;
+  cursor:pointer;
+}
+.platform-admin-search-results {
+  position:absolute;
+  top:calc(100% + 8px);
+  left:0;
+  right:0;
+  z-index:70;
+  padding:7px;
+  border:1px solid #e0e5eb;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 22px 55px rgba(20,28,43,.16);
+}
+.platform-admin-search-results > button {
+  width:100%;
+  min-height:56px;
+  padding:7px 8px;
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr) auto;
+  align-items:center;
+  gap:9px;
+  border:0;
+  border-radius:11px;
+  color:#19202a;
+  background:transparent;
+  text-align:left;
+  cursor:pointer;
+}
+.platform-admin-search-results > button:hover { background:#f5f8fb; }
+.platform-admin-search-results .admin-company-avatar { width:36px;height:36px;border-radius:11px;font-size:12px; }
+.platform-admin-search-results > button > span:nth-child(2) { min-width:0;display:grid;gap:2px; }
+.platform-admin-search-results strong,
+.platform-admin-search-results small { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.platform-admin-search-results strong { font-size:.72rem; }
+.platform-admin-search-results small { color:#7b8796;font-size:.61rem; }
+.platform-admin-search-state { padding:18px;color:#7b8796;font-size:.7rem;text-align:center; }
+.platform-admin-create-button { white-space:nowrap; }
+.platform-admin-content { padding-top:18px; }
+.platform-admin-tabs.admin-saas-tabs.admin-primary-nav {
+  position:sticky;
+  top:82px;
+  z-index:24;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:5px;
+  margin:0 0 7px;
+  padding:5px;
+  border:1px solid rgba(222,228,235,.92);
+  border-radius:16px;
+  background:rgba(245,247,250,.92);
+  backdrop-filter:blur(18px);
+  box-shadow:0 8px 24px rgba(25,33,44,.05);
+}
+.admin-primary-nav button {
+  min-height:48px;
+  padding:7px 10px;
+  border-radius:11px;
+  justify-content:center;
+}
+.admin-primary-nav button > svg { padding:6px;border-radius:9px; }
+.admin-primary-nav button strong { font-size:.74rem; }
+.admin-primary-nav button small { display:none; }
+.admin-current-zone {
+  min-height:33px;
+  margin:0 0 12px;
+  padding:0 4px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  color:#7c8795;
+}
+.admin-current-zone > span { font-size:.64rem;font-weight:850;letter-spacing:.05em;text-transform:uppercase; }
+.admin-current-zone > button {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  border:0;
+  color:#6e7a8b;
+  background:transparent;
+  font:inherit;
+  font-size:.64rem;
+  font-weight:750;
+  cursor:pointer;
+}
+.admin-current-zone > button:hover { color:#0b6fda; }
+.admin-clients-heading {
+  margin:3px 0 14px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+}
+.admin-clients-heading h1 { margin:3px 0 4px;font-size:1.75rem;letter-spacing:-.045em; }
+.admin-clients-heading p:last-child { margin:0;color:#778291;font-size:.72rem; }
+.admin-secondary-nav {
+  margin-bottom:14px;
+  padding:5px;
+  border-radius:12px;
+}
+.admin-secondary-nav button { min-height:34px;padding:0 11px;border-radius:8px;font-size:.7rem; }
+.platform-admin-metrics { gap:9px;margin-bottom:12px; }
+.platform-admin-metrics article { min-height:94px;padding:14px;border-radius:17px;box-shadow:none; }
+.platform-admin-metrics strong { font-size:20px; }
+.admin-editor-panel { top:151px; }
+.admin-support-editor { position:sticky;top:151px;max-height:calc(100vh - 170px);overflow:auto; }
+
+@media (max-width:1180px) {
+  .platform-admin-topbar { grid-template-columns:auto minmax(240px,1fr) auto; }
+  .platform-admin-brand span { display:none; }
+  .platform-admin-create-button span { display:none; }
+}
+@media (max-width:900px) {
+  .platform-admin-topbar { grid-template-columns:auto minmax(0,1fr) auto;gap:9px; }
+  .platform-admin-brand img { width:136px; }
+  .platform-admin-account > span { display:none; }
+  .platform-admin-global-search { min-height:40px;padding-left:11px;border-radius:12px; }
+  .platform-admin-global-search input { min-height:38px;font-size:.72rem; }
+  .platform-admin-tabs.admin-saas-tabs.admin-primary-nav {
+    top:69px;
+    display:flex;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .platform-admin-tabs.admin-saas-tabs.admin-primary-nav::-webkit-scrollbar { display:none; }
+  .admin-primary-nav button { min-width:142px;min-height:45px;flex:0 0 auto; }
+  .admin-current-zone { margin-bottom:8px; }
+  .admin-support-editor { position:static;max-height:none; }
+}
+@media (max-width:620px) {
+  .platform-admin-topbar { grid-template-columns:auto minmax(0,1fr); }
+  .platform-admin-account { gap:4px; }
+  .platform-admin-account .platform-admin-create-button { display:none; }
+  .platform-admin-account > span { display:none; }
+  .platform-admin-global-search { grid-column:1/-1;grid-row:2; }
+  .platform-admin-topbar { padding-bottom:9px; }
+  .platform-admin-tabs.admin-saas-tabs.admin-primary-nav { top:113px; }
+  .admin-current-zone > button { font-size:0; }
+  .admin-current-zone > button svg { width:16px;height:16px; }
+  .admin-clients-heading { align-items:stretch;flex-direction:column; }
+  .admin-clients-heading .primary-button { align-self:flex-start; }
+}
+
+/* NCR Admin R5.1 — facturation progressive : quotidien / catalogue / réglages */
+.billing-admin-view-tabs {
+  width:fit-content;
+  max-width:100%;
+  margin:0 0 14px;
+  padding:5px;
+  display:flex;
+  gap:5px;
+  border:1px solid #e2e7ed;
+  border-radius:14px;
+  background:#f4f7fa;
+  overflow-x:auto;
+}
+.billing-admin-view-tabs button {
+  position:relative;
+  min-width:180px;
+  min-height:50px;
+  padding:7px 11px;
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+  border:0;
+  border-radius:10px;
+  color:#687486;
+  background:transparent;
+  text-align:left;
+  cursor:pointer;
+}
+.billing-admin-view-tabs button > svg {
+  width:28px;
+  height:28px;
+  padding:6px;
+  box-sizing:border-box;
+  border-radius:9px;
+  background:#e8edf3;
+}
+.billing-admin-view-tabs button > span { min-width:0;display:grid;gap:1px; }
+.billing-admin-view-tabs strong { font-size:.7rem; }
+.billing-admin-view-tabs small { color:#8a94a2;font-size:.58rem;white-space:nowrap; }
+.billing-admin-view-tabs button > b {
+  min-width:21px;
+  height:21px;
+  padding:0 6px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  color:#fff;
+  background:#b42318;
+  font-size:.58rem;
+}
+.billing-admin-view-tabs button.active {
+  color:#19212c;
+  background:#fff;
+  box-shadow:0 4px 14px rgba(20,28,43,.08);
+}
+.billing-admin-view-tabs button.active > svg { color:#0b6fda;background:#e7f2ff; }
+.billing-view-hidden { display:none !important; }
+.billing-admin-section .billing-admin-grid { grid-template-columns:1fr; }
+.billing-admin-section .billing-admin-grid:has(> .billing-view-hidden:first-child:last-child) { display:none; }
+@media (max-width:720px) {
+  .billing-admin-view-tabs { width:100%; }
+  .billing-admin-view-tabs button { min-width:152px; }
+  .billing-admin-view-tabs small { display:none; }
+}
+
+/* NCR Admin R5.1 — raccourcis Assistance NCR */
+.admin-support-queue-presets {
+  display:flex;
+  gap:6px;
+  margin:0 0 10px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.admin-support-queue-presets::-webkit-scrollbar { display:none; }
+.admin-support-queue-presets button {
+  min-height:31px;
+  padding:0 10px;
+  border:1px solid #e3e7ec;
+  border-radius:999px;
+  color:#6f7b8a;
+  background:#fff;
+  font:inherit;
+  font-size:.63rem;
+  font-weight:800;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.admin-support-queue-presets button:hover { border-color:#cbd6e2;color:#344054; }
+.admin-support-queue-presets button.active { border-color:#bed8f5;color:#0b6fda;background:#edf6ff; }
+.admin-support-queue-presets button.active.urgent { border-color:#f0c7c2;color:#b42318;background:#fff2f0; }
+
+.admin-company-quick-actions { display:flex;flex-wrap:wrap;gap:7px;margin-top:-4px; }
+.admin-company-quick-actions .secondary-button.active { border-color:#bed8f5;color:#0b6fda;background:#edf6ff; }

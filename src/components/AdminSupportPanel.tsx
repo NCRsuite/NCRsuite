@@ -100,6 +100,15 @@ export function AdminSupportPanel({ onOpenOrganization }: { onOpenOrganization?:
     setSaving(false);
   }
 
+  function applyQueuePreset(preset: 'all' | 'new' | 'progress' | 'urgent' | 'waiting' | 'resolved') {
+    setPriorityFilter(preset === 'urgent' ? 'urgent' : '');
+    if (preset === 'new') setStatusFilter('open');
+    else if (preset === 'progress') setStatusFilter('in_progress');
+    else if (preset === 'waiting') setStatusFilter('waiting_customer');
+    else if (preset === 'resolved') setStatusFilter('resolved');
+    else setStatusFilter('');
+  }
+
   return (
     <div className="admin-support-page">
       <section className="admin-section-heading">
@@ -112,6 +121,14 @@ export function AdminSupportPanel({ onOpenOrganization }: { onOpenOrganization?:
 
       <section className="admin-support-layout">
         <article className="panel admin-support-list-panel">
+          <div className="admin-support-queue-presets" aria-label="Raccourcis de file d’assistance">
+            <button type="button" className={!statusFilter && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('all')}>Tous</button>
+            <button type="button" className={statusFilter === 'open' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('new')}>Nouveaux</button>
+            <button type="button" className={statusFilter === 'in_progress' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('progress')}>En cours</button>
+            <button type="button" className={priorityFilter === 'urgent' ? 'active urgent' : ''} onClick={() => applyQueuePreset('urgent')}>Urgents</button>
+            <button type="button" className={statusFilter === 'waiting_customer' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('waiting')}>Attente client</button>
+            <button type="button" className={statusFilter === 'resolved' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('resolved')}>Résolus</button>
+          </div>
           <div className="admin-support-filters">
             <label><Icon name="search" size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Entreprise, sujet ou e-mail…" /></label>
             <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}><option value="">Tous les statuts</option>{Object.entries(statusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select>
