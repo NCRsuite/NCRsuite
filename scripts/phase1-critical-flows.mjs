@@ -120,7 +120,7 @@ requireText('public/_headers', [
 ]);
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2925.js'"
+  "entryFileNames: 'ncr-suite-app-v2925-r2.js'"
 ]);
 requireText('src/components/RuntimeMonitor.tsx', [
   "window.addEventListener('error'",

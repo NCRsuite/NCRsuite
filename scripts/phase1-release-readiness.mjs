@@ -567,7 +567,7 @@ for (const favicon of [
 
 requireText('vite.config.ts', [
   'codeSplitting: false',
-  "entryFileNames: 'ncr-suite-app-v2925.js'"
+  "entryFileNames: 'ncr-suite-app-v2925-r2.js'"
 ]);
 if (read('src/main.tsx').includes("import './styles.css'")) {
   failures.push('Le style complet ne doit plus être généré dans /assets.');
