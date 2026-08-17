@@ -78,6 +78,18 @@ const platformAdminSections = [
 ] as const;
 type PlatformAdminSection = typeof platformAdminSections[number];
 
+const clientAdminSections = new Set<PlatformAdminSection>(['overview','access']);
+const billingAdminSections = new Set<PlatformAdminSection>(['billing','catalogue','metier']);
+const platformAdminAdvancedSections = new Set<PlatformAdminSection>(['activity','diagnostics','monitoring','validation','trainingSav','push']);
+
+function adminSectionGroup(section: PlatformAdminSection) {
+  if (section === 'cockpit') return 'cockpit';
+  if (clientAdminSections.has(section)) return 'clients';
+  if (billingAdminSections.has(section)) return 'billing';
+  if (section === 'support') return 'support';
+  return 'platform';
+}
+
 const planLabels: Record<Plan, string> = {
   decouverte: 'Découverte',
   essentielle: 'Essentielle',
@@ -412,6 +424,14 @@ export function PlatformAdminPage() {
     setDeletingOrganization(false);
   }
 
+  function openOrganizationFromSupport(organizationId: string) {
+    const organization = organizations.find((row) => row.id === organizationId);
+    if (organization) populateEditor(organization);
+    setActiveSection('overview');
+    setSearch('');
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
   function openNotificationSection(section: AdminNotificationSection) {
     setActiveSection(section);
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
@@ -444,7 +464,7 @@ export function PlatformAdminPage() {
         {error && <div className="error-message page-message" role="alert">{error}</div>}
         {message && <div className="success-message page-message" role="status">{message}</div>}
 
-        {profile?.role === 'super_admin' && (
+        {profile?.role === 'super_admin' && platformAdminAdvancedSections.has(activeSection) && (
           <section className="panel" aria-labelledby="super-admin-login-email-title">
             <div className="panel-header">
               <div>
@@ -478,70 +498,50 @@ export function PlatformAdminPage() {
           </section>
         )}
 
-        <nav className="platform-admin-tabs admin-saas-tabs" aria-label="Sections de l’administration NCR">
-          <button type="button" className={activeSection === 'cockpit' ? 'active' : ''} onClick={() => setActiveSection('cockpit')}>
-            <Icon name="home" size={19} />
-            <span><strong>Cockpit</strong><small>Vue globale de la plateforme</small></span>
-          </button>
-          <button type="button" className={activeSection === 'overview' ? 'active' : ''} onClick={() => setActiveSection('overview')}>
-            <Icon name="building" size={19} />
-            <span><strong>Entreprises</strong><small>Comptes, santé et formules</small></span>
-          </button>
-          <button type="button" className={activeSection === 'access' ? 'active' : ''} onClick={() => setActiveSection('access')}>
-            <Icon name="users" size={19} />
-            <span><strong>Demandes d’accès</strong><small>Validation et invitations</small></span>
-          </button>
-          <button type="button" className={activeSection === 'support' ? 'active' : ''} onClick={() => setActiveSection('support')}>
-            <Icon name="alert" size={19} />
-            <span><strong>Support</strong><small>Demandes et incidents clients</small></span>
-          </button>
-          <button type="button" className={activeSection === 'activity' ? 'active' : ''} onClick={() => setActiveSection('activity')}>
-            <Icon name="activity" size={19} />
-            <span><strong>Journal</strong><small>Événements et traçabilité</small></span>
-          </button>
-          <button type="button" className={activeSection === 'diagnostics' ? 'active' : ''} onClick={() => setActiveSection('diagnostics')}>
-            <Icon name="monitor" size={19} />
-            <span><strong>Diagnostic</strong><small>Files, quotas et mise en service</small></span>
-          </button>
-          <button type="button" className={activeSection === 'monitoring' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}>
-            <Icon name="shield" size={19} />
-            <span><strong>Surveillance</strong><small>Versions, erreurs et santé globale</small></span>
-          </button>
-          <button type="button" className={activeSection === 'validation' ? 'active' : ''} onClick={() => setActiveSection('validation')}>
-            <Icon name="clipboard" size={19} />
-            <span><strong>Recette client</strong><small>Parcours pilote et preuves</small></span>
-          </button>
-          <button type="button" className={activeSection === 'trainingSav' ? 'active' : ''} onClick={() => setActiveSection('trainingSav')}>
-            <Icon name="graduation" size={19} />
-            <span><strong>SAV Formation</strong><small>Automatisations et relances</small></span>
-          </button>
-          <button type="button" className={activeSection === 'catalogue' ? 'active' : ''} onClick={() => setActiveSection('catalogue')}>
-            <Icon name="clipboard" size={19} />
-            <span><strong>Catalogue des offres</strong><small>Domaines, tarifs et options</small></span>
-          </button>
-          <button type="button" className={activeSection === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}>
-            <Icon name="creditCard" size={19} />
-            <span><strong>Abonnements & paiements</strong><small>Demandes, Qonto et conditions</small></span>
-          </button>
-          <button type="button" className={activeSection === 'metier' ? 'active' : ''} onClick={() => setActiveSection('metier')}>
-            <Icon name="tool" size={19} />
-            <span><strong>Offres Métier</strong><small>Modules, sites et marque blanche</small></span>
-          </button>
-          <button type="button" className={activeSection === 'push' ? 'active' : ''} onClick={() => setActiveSection('push')}>
-            <Icon name="bell" size={19} />
-            <span><strong>Notifications push</strong><small>Appareils et traitement central</small></span>
-          </button>
+        <nav className="platform-admin-tabs admin-saas-tabs admin-primary-nav" aria-label="Navigation principale de l’administration NCR">
+          <button type="button" className={adminSectionGroup(activeSection) === 'cockpit' ? 'active' : ''} onClick={() => setActiveSection('cockpit')}><Icon name="home" size={19} /><span><strong>Vue d’ensemble</strong><small>Priorités et pilotage du jour</small></span></button>
+          <button type="button" className={adminSectionGroup(activeSection) === 'clients' ? 'active' : ''} onClick={() => setActiveSection('overview')}><Icon name="building" size={19} /><span><strong>Clients</strong><small>Entreprises et demandes d’accès</small></span></button>
+          <button type="button" className={adminSectionGroup(activeSection) === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}><Icon name="creditCard" size={19} /><span><strong>Abonnements & essais</strong><small>Essais, Stripe, offres et paiements</small></span></button>
+          <button type="button" className={adminSectionGroup(activeSection) === 'support' ? 'active' : ''} onClick={() => setActiveSection('support')}><Icon name="headset" size={19} /><span><strong>Assistance NCR</strong><small>Conversations et prises en main</small></span></button>
+          <button type="button" className={adminSectionGroup(activeSection) === 'platform' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}><Icon name="tool" size={19} /><span><strong>Plateforme</strong><small>Surveillance et outils avancés</small></span></button>
         </nav>
+
+        {clientAdminSections.has(activeSection) && (
+          <nav className="admin-secondary-nav" aria-label="Gestion des clients">
+            <button type="button" className={activeSection === 'overview' ? 'active' : ''} onClick={() => setActiveSection('overview')}><Icon name="building" size={16} /> Entreprises</button>
+            <button type="button" className={activeSection === 'access' ? 'active' : ''} onClick={() => setActiveSection('access')}><Icon name="users" size={16} /> Demandes d’accès</button>
+          </nav>
+        )}
+
+        {billingAdminSections.has(activeSection) && (
+          <nav className="admin-secondary-nav" aria-label="Abonnements et offres">
+            <button type="button" className={activeSection === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}><Icon name="creditCard" size={16} /> Abonnements & essais</button>
+            <button type="button" className={activeSection === 'catalogue' ? 'active' : ''} onClick={() => setActiveSection('catalogue')}><Icon name="clipboard" size={16} /> Catalogue des offres</button>
+            <button type="button" className={activeSection === 'metier' ? 'active' : ''} onClick={() => setActiveSection('metier')}><Icon name="tool" size={16} /> Offres Métier</button>
+          </nav>
+        )}
+
+        {platformAdminAdvancedSections.has(activeSection) && (
+          <nav className="admin-secondary-nav admin-secondary-nav-scroll" aria-label="Outils avancés de la plateforme">
+            <button type="button" className={activeSection === 'monitoring' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}><Icon name="shield" size={16} /> Surveillance</button>
+            <button type="button" className={activeSection === 'diagnostics' ? 'active' : ''} onClick={() => setActiveSection('diagnostics')}><Icon name="monitor" size={16} /> Diagnostic</button>
+            <button type="button" className={activeSection === 'activity' ? 'active' : ''} onClick={() => setActiveSection('activity')}><Icon name="activity" size={16} /> Journal</button>
+            <button type="button" className={activeSection === 'validation' ? 'active' : ''} onClick={() => setActiveSection('validation')}><Icon name="clipboard" size={16} /> Recette client</button>
+            <button type="button" className={activeSection === 'trainingSav' ? 'active' : ''} onClick={() => setActiveSection('trainingSav')}><Icon name="graduation" size={16} /> SAV Formation</button>
+            <button type="button" className={activeSection === 'push' ? 'active' : ''} onClick={() => setActiveSection('push')}><Icon name="bell" size={16} /> Push</button>
+          </nav>
+        )}
 
         {activeSection === 'cockpit' && (
           <AdminSaasCockpit
             onOpenOrganizations={() => setActiveSection('overview')}
+            onOpenBilling={() => setActiveSection('billing')}
             onOpenSupport={() => setActiveSection('support')}
             onOpenActivity={() => setActiveSection('activity')}
           />
         )}
 
-        {activeSection === 'support' && <AdminSupportPanel />}
+        {activeSection === 'support' && <AdminSupportPanel onOpenOrganization={openOrganizationFromSupport} />}
         {activeSection === 'access' && <AdminAccessRequestsPanel canReview={profile?.role === 'super_admin'} />}
         {activeSection === 'activity' && <AdminActivityPanel />}
         {activeSection === 'diagnostics' && <AdminDiagnosticsPanel onOpenSupport={() => setActiveSection('support')} />}
@@ -715,7 +715,7 @@ export function PlatformAdminPage() {
 
                 {canManage && <button className="primary-button full" type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer la formule et l’accès'}</button>}
 
-                {profile?.role === 'super_admin' && (
+                {profile?.role === 'super_admin' && platformAdminAdvancedSections.has(activeSection) && (
                   <section className="admin-organization-danger-zone">
                     <div className="admin-organization-danger-head">
                       <span><Icon name="alert" size={20} /></span>
@@ -782,7 +782,7 @@ export function PlatformAdminPage() {
         )}
 
         {activeSection === 'billing' && (
-          <BillingAdminPanel canManage={canManage} onChanged={() => void loadAll(true)} />
+          <BillingAdminPanel canManage={canManage} onChanged={() => void loadAll(true)} onOpenOrganization={openOrganizationFromSupport} />
         )}
 
         {activeSection === 'metier' && (

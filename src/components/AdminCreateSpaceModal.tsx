@@ -64,7 +64,7 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
   const [businessType, setBusinessType] = useState<BusinessType>('formation');
   const [plan, setPlan] = useState<Plan>('professionnelle');
   const [monthlyPrice, setMonthlyPrice] = useState(moneyInput(getDomainPlans('formation').professionnelle.monthlyPriceCents));
-  const [trialDays, setTrialDays] = useState(0);
+  const [trialDays, setTrialDays] = useState(7);
   const [internalNotes, setInternalNotes] = useState('');
   const [setupFee, setSetupFee] = useState('0.00');
   const [memberLimit, setMemberLimit] = useState(10);
@@ -242,7 +242,7 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
               </label>
               <label>Durée d’essai
                 <div className="admin-space-unit-field"><input type="number" min={0} max={365} value={trialDays} onChange={(event) => setTrialDays(Number(event.target.value))} /><span>jours</span></div>
-                <small>0 active immédiatement l’espace.</small>
+                <small>7 jours par défaut. Mets 0 uniquement pour un espace payé/activé immédiatement.</small>
               </label>
               <label className="full-field">Note interne NCR
                 <textarea rows={3} maxLength={2000} value={internalNotes} onChange={(event) => setInternalNotes(event.target.value)} placeholder="Accord commercial, paiement groupé, particularité du client…" />

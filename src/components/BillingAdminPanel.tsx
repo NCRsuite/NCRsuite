@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import type { Plan } from '../types';
+import type { BusinessType, Plan } from '../types';
+import { businessPacks } from '../config/businessPacks';
 import { Icon } from './Icon';
 
 interface BillingSettings {
@@ -16,6 +17,28 @@ interface BillingSettings {
   downgrade_at_period_end: boolean;
   qonto_exceptional_payment_url: string | null;
   qonto_exceptional_instructions: string;
+}
+
+interface TrialPolicy {
+  enabled: boolean;
+  trial_days: number;
+  payment_required_before_access: boolean;
+  manual_review: boolean;
+  plan_mode: 'requested_plan';
+  data_retention_mode: 'preserve';
+}
+
+interface ActiveTrialOrganization {
+  id: string;
+  name: string;
+  business_type: BusinessType;
+  plan: Plan;
+  organization_status: 'trial';
+  subscription_status: 'trialing' | string;
+  trial_ends_at: string | null;
+  owner_email: string | null;
+  active_members: number;
+  last_activity_at: string | null;
 }
 
 interface BillingPlanLink {
@@ -144,8 +167,16 @@ function dateLabel(value: string) {
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }
 
-export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean; onChanged?: () => void }) {
+function trialDaysRemaining(value: string | null) {
+  if (!value) return 0;
+  return Math.max(0, Math.ceil((new Date(value).getTime() - Date.now()) / 86400000));
+}
+
+export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: { canManage: boolean; onChanged?: () => void; onOpenOrganization?: (organizationId: string) => void }) {
   const [configuration, setConfiguration] = useState<BillingConfiguration | null>(null);
+  const [trialPolicy, setTrialPolicy] = useState<TrialPolicy | null>(null);
+  const [trialDaysDraft, setTrialDaysDraft] = useState(7);
+  const [activeTrials, setActiveTrials] = useState<ActiveTrialOrganization[]>([]);
   const [requests, setRequests] = useState<SubscriptionRequest[]>([]);
   const [securityAddonConfiguration, setSecurityAddonConfiguration] = useState<SecurityAddonConfiguration>({ addons: [] });
   const [securityAddonRequests, setSecurityAddonRequests] = useState<SecurityAddonRequest[]>([]);
@@ -191,14 +222,18 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
       addonConfigurationResult,
       addonRequestsResult,
       trainingConfigurationResult,
-      trainingRequestsResult
+      trainingRequestsResult,
+      trialPolicyResult,
+      activeTrialsResult
     ] = await Promise.all([
       supabase.rpc('admin_billing_configuration'),
       supabase.rpc('admin_list_subscription_requests', { p_status: null }),
       supabase.rpc('admin_security_addon_configuration'),
       supabase.rpc('admin_list_security_addon_requests', { p_status: null }),
       supabase.rpc('admin_training_module_configuration'),
-      supabase.rpc('admin_list_training_module_requests', { p_status: null })
+      supabase.rpc('admin_list_training_module_requests', { p_status: null }),
+      supabase.rpc('admin_get_trial_policy'),
+      supabase.rpc('admin_list_organizations', { p_search: null, p_plan: null, p_status: 'trial' })
     ]);
     if (configurationResult.error) setError(configurationResult.error.message);
     else {
@@ -218,6 +253,17 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
     else setTrainingModuleConfiguration((trainingConfigurationResult.data ?? { modules: [] }) as TrainingModuleConfiguration);
     if (trainingRequestsResult.error) setError(trainingRequestsResult.error.message);
     else setTrainingModuleRequests((trainingRequestsResult.data ?? []) as TrainingModuleRequest[]);
+    if (trialPolicyResult.error) setError(trialPolicyResult.error.message);
+    else {
+      const nextTrialPolicy = trialPolicyResult.data as TrialPolicy;
+      setTrialPolicy(nextTrialPolicy);
+      setTrialDaysDraft(nextTrialPolicy?.trial_days ?? 7);
+    }
+    if (activeTrialsResult.error) setError(activeTrialsResult.error.message);
+    else {
+      const rows = (Array.isArray(activeTrialsResult.data) ? activeTrialsResult.data : []) as ActiveTrialOrganization[];
+      setActiveTrials(rows.sort((a, b) => new Date(a.trial_ends_at ?? '9999-12-31').getTime() - new Date(b.trial_ends_at ?? '9999-12-31').getTime()));
+    }
     setLoading(false);
   }
 
@@ -251,6 +297,23 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
       setMessage(`Le paiement ${plan.display_name} — ${plan.business_type_label} a été configuré.`);
       await load();
     }
+  }
+
+  async function saveTrialPolicy() {
+    if (!supabase || !canManage) return;
+    const days = Math.max(0, Math.min(30, Math.round(trialDaysDraft)));
+    setSaving('trial-policy');
+    setMessage('');
+    setError('');
+    const { data, error: requestError } = await supabase.rpc('admin_update_trial_policy', { p_trial_days: days });
+    setSaving('');
+    if (requestError) { setError(requestError.message); return; }
+    const next = data as TrialPolicy;
+    setTrialPolicy(next);
+    setTrialDaysDraft(next?.trial_days ?? days);
+    setMessage(days > 0 ? `L’essai public est configuré sur ${days} jours, sans carte bancaire avant l’accès.` : 'L’essai public est désactivé.');
+    await load();
+    onChanged?.();
   }
 
   async function saveSettings(event?: FormEvent) {
@@ -549,12 +612,46 @@ export function BillingAdminPanel({ canManage, onChanged }: { canManage: boolean
         </article>
       </div>
 
+      <section className="panel billing-settings-panel admin-trial-policy-panel">
+        <div className="panel-header"><div><p className="eyebrow">ESSAIS & CONVERSION</p><h3>Essai public contrôlé</h3><p>Le prospect teste exactement l’offre demandée. NCR valide d’abord la demande, aucune carte bancaire n’est requise avant l’essai et les données restent conservées après expiration.</p></div><span className={`admin-status-pill ${trialPolicy?.enabled ? 'positive' : 'warning'}`}>{trialPolicy?.enabled ? 'ACTIF' : 'DÉSACTIVÉ'}</span></div>
+        <div className="admin-trial-policy-grid">
+          <label>Durée de l’essai<div className="admin-space-unit-field"><input type="number" min={0} max={30} value={trialDaysDraft} onChange={(event) => setTrialDaysDraft(Number(event.target.value))} disabled={!canManage} /><span>jours</span></div><small>0 désactive l’essai public. Valeur recommandée au lancement : 7 jours.</small></label>
+          <div className="admin-trial-policy-facts">
+            <span><Icon name="check" size={16} /><b>Validation NCR</b><small>Obligatoire avant ouverture</small></span>
+            <span><Icon name="creditCard" size={16} /><b>Carte bancaire</b><small>Non demandée avant l’essai</small></span>
+            <span><Icon name="clipboard" size={16} /><b>Formule testée</b><small>Offre choisie par le prospect</small></span>
+            <span><Icon name="lock" size={16} /><b>Données</b><small>Conservées après expiration</small></span>
+          </div>
+        </div>
+        {canManage && <button className="primary-button" type="button" onClick={() => void saveTrialPolicy()} disabled={saving === 'trial-policy'}>{saving === 'trial-policy' ? 'Enregistrement…' : 'Enregistrer la politique d’essai'}</button>}
+      </section>
+
+      <section className="panel billing-settings-panel admin-active-trials-panel">
+        <div className="panel-header"><div><p className="eyebrow">ESSAIS EN COURS</p><h3>{activeTrials.length} espace{activeTrials.length > 1 ? 's' : ''} en période d’essai</h3><p>Les essais les plus proches de leur échéance remontent en premier pour te permettre d’agir sans chercher l’entreprise ailleurs.</p></div></div>
+        {activeTrials.length === 0 ? (
+          <div className="admin-positive-empty"><Icon name="check" size={24} /><div><strong>Aucun essai actif</strong><small>Les prochains espaces validés en essai apparaîtront automatiquement ici.</small></div></div>
+        ) : (
+          <div className="admin-active-trials-list">
+            {activeTrials.map((organization) => {
+              const days = trialDaysRemaining(organization.trial_ends_at);
+              return <div className={`admin-active-trial-row${days <= 3 ? ' ending' : ''}`} key={organization.id}>
+                <span className="admin-active-trial-icon"><Icon name={businessPacks[organization.business_type].icon} size={18} /></span>
+                <span className="admin-active-trial-company"><strong>{organization.name}</strong><small>{businessPacks[organization.business_type].label} · {planLabels[organization.plan]} · {organization.owner_email || 'propriétaire non identifié'}</small></span>
+                <span className="admin-active-trial-usage"><small>Utilisateurs</small><strong>{organization.active_members}</strong></span>
+                <span className={`admin-active-trial-days${days <= 3 ? ' warning' : ''}`}><small>Fin d’essai</small><strong>J-{days}</strong><em>{organization.trial_ends_at ? dateLabel(organization.trial_ends_at) : 'À définir'}</em></span>
+                {onOpenOrganization && <button type="button" className="secondary-button compact" onClick={() => onOpenOrganization(organization.id)}>Gérer</button>}
+              </div>;
+            })}
+          </div>
+        )}
+      </section>
+
       <form className="panel billing-settings-panel" onSubmit={saveSettings}>
         <div className="panel-header"><div><p className="eyebrow">RÈGLES COMMERCIALES</p><h3>Stripe, impayés et conditions</h3></div></div>
         <div className="admin-form-grid">
           <label>Environnement Stripe<select value={configuration.settings.stripe_livemode ? 'live' : 'test'} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, stripe_livemode: event.target.value === 'live' } })} disabled={!canManage}><option value="test">Test</option><option value="live">Production</option></select></label>
           <label>Délai de grâce en cas d’impayé<input type="number" min={0} max={30} value={configuration.settings.grace_period_days} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, grace_period_days: Number(event.target.value) } })} disabled={!canManage} /><small>Après ce délai, les droits sont bloqués mais les données restent conservées.</small></label>
-          <label className="compact-switch"><input type="checkbox" checked={configuration.settings.payment_required_before_access} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, payment_required_before_access: event.target.checked } })} disabled={!canManage} /><span>Paiement obligatoire avant l’accès</span></label>
+          <div className="admin-trial-rule-summary"><Icon name="lock" size={17} /><span><strong>Accès d’essai sans carte bancaire</strong><small>Les demandes d’essai validées par NCR accèdent à l’offre choisie pendant la durée définie ci-dessus.</small></span></div>
           <label className="compact-switch"><input type="checkbox" checked={configuration.settings.downgrade_at_period_end} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, downgrade_at_period_end: event.target.checked } })} disabled={!canManage} /><span>Rétrogradation à l’échéance</span></label>
           <label>Version des conditions<input value={configuration.settings.terms_version} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, terms_version: event.target.value } })} disabled={!canManage} /></label>
           <label className="full-field">Conditions d’abonnement<textarea rows={4} maxLength={5000} value={configuration.settings.terms_text} onChange={(event) => setConfiguration({ ...configuration, settings: { ...configuration.settings, terms_text: event.target.value } })} disabled={!canManage} /></label>

@@ -15,6 +15,7 @@ interface AccessRequest {
   company_name: string;
   business_type: BusinessType;
   requested_plan: Plan;
+  trial_requested: boolean;
   team_size: string | null;
   message: string | null;
   status: AccessRequestStatus;
@@ -69,7 +70,7 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
 
     let query = supabase
       .from('platform_access_requests')
-      .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,team_size,message,status,submitted_at,reviewed_at,decision_note,invited_user_id,invitation_sent_at,invitation_count,last_invitation_error,acquisition_source,acquisition_medium,acquisition_campaign,acquisition_content,landing_path,referrer_url')
+      .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,trial_requested,team_size,message,status,submitted_at,reviewed_at,decision_note,invited_user_id,invitation_sent_at,invitation_count,last_invitation_error,acquisition_source,acquisition_medium,acquisition_campaign,acquisition_content,landing_path,referrer_url')
       .order('submitted_at', { ascending: false })
       .limit(250);
 
@@ -186,7 +187,7 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
               <button key={request.id} type="button" className={selected?.id === request.id ? 'selected' : ''} onClick={() => selectRequest(request)}>
                 <span className="admin-access-business-icon"><Icon name={businessPacks[request.business_type].icon} size={18} /></span>
                 <span className="admin-access-copy">
-                  <small>{request.reference} · {businessPacks[request.business_type].label}</small>
+                  <small>{request.reference} · {businessPacks[request.business_type].label}{request.trial_requested ? ' · ESSAI' : ''}</small>
                   <strong>{request.company_name}</strong>
                   <em>{request.full_name} · {request.email}</em>
                 </span>
@@ -214,7 +215,7 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
                 <div>
                   <p className="eyebrow">{selected.reference}</p>
                   <h2>{selected.company_name}</h2>
-                  <small>{businessPacks[selected.business_type].label} · formule {planLabels[selected.requested_plan]} · équipe {selected.team_size || 'non précisée'}</small>
+                  <small>{businessPacks[selected.business_type].label} · formule {planLabels[selected.requested_plan]} · équipe {selected.team_size || 'non précisée'}{selected.trial_requested ? ' · essai demandé' : ''}</small>
                 </div>
                 <span className={`admin-access-status ${selected.status}`}>{statusLabels[selected.status]}</span>
               </header>
@@ -224,6 +225,7 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
                 <div><dt>E-mail</dt><dd><a href={`mailto:${selected.email}`}>{selected.email}</a></dd></div>
                 <div><dt>Téléphone</dt><dd>{selected.phone || 'Non renseigné'}</dd></div>
                 <div><dt>Formule</dt><dd>{planLabels[selected.requested_plan]}</dd></div>
+                <div><dt>Accès demandé</dt><dd>{selected.trial_requested ? 'Essai gratuit demandé' : 'Souscription directe'}</dd></div>
                 <div><dt>Reçue le</dt><dd>{dateLabel(selected.submitted_at)}</dd></div>
                 <div><dt>Origine</dt><dd>{selected.acquisition_source || 'direct'} · {selected.acquisition_medium || 'none'}</dd></div>
                 <div><dt>Page d’entrée</dt><dd>{selected.landing_path || 'Non identifiée'}</dd></div>

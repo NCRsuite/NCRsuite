@@ -85,7 +85,7 @@ function activityLabel(action: string) {
   return labels[action] ?? action.split('.').join(' · ');
 }
 
-export function AdminSaasCockpit({ onOpenOrganizations, onOpenSupport, onOpenActivity }: { onOpenOrganizations: () => void; onOpenSupport: () => void; onOpenActivity: () => void }) {
+export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSupport, onOpenActivity }: { onOpenOrganizations: () => void; onOpenBilling: () => void; onOpenSupport: () => void; onOpenActivity: () => void }) {
   const [overview, setOverview] = useState<SaasOverview>(emptyOverview);
   const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [tickets, setTickets] = useState<TicketRow[]>([]);
@@ -118,7 +118,7 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenSupport, onOpenAct
 
   useEffect(() => { void load(); }, []);
 
-  const attentionCount = useMemo(() => overview.payments_past_due + overview.urgent_support_tickets + overview.onboarding_incomplete + overview.inactive_14_days, [overview]);
+  const attentionCount = useMemo(() => overview.payments_past_due + overview.trials_ending_soon + overview.urgent_support_tickets + overview.onboarding_incomplete + overview.inactive_14_days, [overview]);
 
   return (
     <div className="admin-saas-cockpit">
@@ -149,7 +149,8 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenSupport, onOpenAct
           <div className="panel-header"><div><p className="eyebrow">À TRAITER</p><h2>Centre d’attention</h2></div><span className="admin-count-badge">{attentionCount}</span></div>
           <div className="admin-attention-list">
             <button type="button" onClick={onOpenSupport} className={overview.urgent_support_tickets ? 'critical' : ''}><span><Icon name="alert" size={18} /></span><div><strong>Tickets urgents</strong><small>Demandes nécessitant une réponse rapide</small></div><b>{overview.urgent_support_tickets}</b><Icon name="chevronRight" size={17} /></button>
-            <button type="button" onClick={onOpenOrganizations} className={overview.payments_past_due ? 'warning' : ''}><span><Icon name="creditCard" size={18} /></span><div><strong>Paiements en retard</strong><small>Abonnements à régulariser</small></div><b>{overview.payments_past_due}</b><Icon name="chevronRight" size={17} /></button>
+            <button type="button" onClick={onOpenBilling} className={overview.payments_past_due ? 'warning' : ''}><span><Icon name="creditCard" size={18} /></span><div><strong>Paiements en retard</strong><small>Abonnements à régulariser</small></div><b>{overview.payments_past_due}</b><Icon name="chevronRight" size={17} /></button>
+            <button type="button" onClick={onOpenBilling} className={overview.trials_ending_soon ? 'warning' : ''}><span><Icon name="clock" size={18} /></span><div><strong>Essais bientôt terminés</strong><small>À convertir ou prolonger si nécessaire</small></div><b>{overview.trials_ending_soon}</b><Icon name="chevronRight" size={17} /></button>
             <button type="button" onClick={onOpenOrganizations}><span><Icon name="clipboard" size={18} /></span><div><strong>Onboarding incomplet</strong><small>Espaces encore non configurés</small></div><b>{overview.onboarding_incomplete}</b><Icon name="chevronRight" size={17} /></button>
             <button type="button" onClick={onOpenOrganizations}><span><Icon name="clock" size={18} /></span><div><strong>Inactives depuis 14 jours</strong><small>Entreprises à relancer ou diagnostiquer</small></div><b>{overview.inactive_14_days}</b><Icon name="chevronRight" size={17} /></button>
           </div>

@@ -159,6 +159,11 @@ function dateLabel(value: string | null) {
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(value));
 }
 
+function trialDaysRemaining(value: string | null) {
+  if (!value) return 0;
+  return Math.max(0, Math.ceil((new Date(value).getTime() - Date.now()) / 86400000));
+}
+
 function formatBytes(bytes: number) {
   if (!bytes) return '0 Mo';
   const megabytes = bytes / (1024 * 1024);
@@ -466,9 +471,15 @@ export function SubscriptionPage() {
               </div>
               {data.subscription.provider === 'stripe' && canManage && (
                 <div className="subscription-current-actions">
-                  <button type="button" className="secondary-button" onClick={() => void openStripePortal()} disabled={openingPortal}>
-                    <Icon name="creditCard" size={17} /> {openingPortal ? 'Ouverture…' : 'Gérer mes paiements'}
-                  </button>
+                  {data.subscription.subscription_status === 'trialing' ? (
+                    <button type="button" className="primary-button" onClick={() => document.getElementById('subscription-plans')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+                      <Icon name="creditCard" size={17} /> Activer mon abonnement
+                    </button>
+                  ) : (
+                    <button type="button" className="secondary-button" onClick={() => void openStripePortal()} disabled={openingPortal}>
+                      <Icon name="creditCard" size={17} /> {openingPortal ? 'Ouverture…' : 'Gérer mes paiements'}
+                    </button>
+                  )}
                 </div>
               )}
             </article>
@@ -487,6 +498,18 @@ export function SubscriptionPage() {
               <div className="subscription-progress"><span style={{ width: `${Math.min(100, (data.usage.active_members / Math.max(1, data.usage.member_limit)) * 100)}%` }} /></div>
             </article>
           </section>
+
+          {data.subscription.subscription_status === 'trialing' && (
+            <section className="panel subscription-request-banner subscription-trial-banner">
+              <span className="subscription-request-icon"><Icon name="clock" size={22} /></span>
+              <div>
+                <p className="eyebrow">ESSAI {data.subscription.plan_name.toUpperCase()}</p>
+                <h2>{trialDaysRemaining(data.subscription.trial_ends_at)} jour{trialDaysRemaining(data.subscription.trial_ends_at) > 1 ? 's' : ''} restant{trialDaysRemaining(data.subscription.trial_ends_at) > 1 ? 's' : ''}</h2>
+                <p>Profitez de toutes les fonctions de votre offre pendant l’essai. Aucune carte bancaire n’a été demandée et vos données resteront conservées si vous ne souscrivez pas immédiatement.</p>
+              </div>
+              {canManage && <button className="primary-button" type="button" onClick={() => document.getElementById('subscription-plans')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>Continuer avec cette offre</button>}
+            </section>
+          )}
 
           {data.subscription.subscription_status === 'past_due' && data.subscription.access_allowed && (
             <section className="panel subscription-request-banner">
@@ -591,7 +614,7 @@ export function SubscriptionPage() {
                       disabled={currentIsPaid || !canManage || !plan.checkout_active || Boolean(data.open_request) || pendingPlan !== null}
                       onClick={() => requestPlan(plan)}
                     >
-                      {pendingPlan === plan.plan_key ? 'Création de la demande…' : currentIsPaid ? 'Formule active' : !plan.checkout_active ? 'Tarif à configurer' : current ? 'Réactiver cette formule' : 'Choisir cette formule'}
+                      {pendingPlan === plan.plan_key ? 'Création de la demande…' : currentIsPaid ? 'Formule active' : !plan.checkout_active ? 'Tarif à configurer' : current && data.subscription.subscription_status === 'trialing' ? 'Activer cet abonnement' : current ? 'Réactiver cette formule' : 'Choisir cette formule'}
                     </button>
                   </article>
                 );

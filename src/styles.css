@@ -24142,3 +24142,44 @@ button { max-width: 100%; }
   .settings-business-theme-card { grid-template-columns: 38px minmax(0,1fr) auto; }
   .settings-business-theme-card > span { width: 38px; height: 38px; }
 }
+
+
+/* NCR Suite V2.29.25 R5 — Administration simplifiée + essais contrôlés */
+.platform-admin-tabs.admin-saas-tabs.admin-primary-nav { grid-template-columns:repeat(5,minmax(0,1fr)); margin-bottom:10px; }
+.admin-primary-nav button { min-height:76px; }
+.admin-secondary-nav { display:flex;align-items:center;gap:8px;margin:0 0 22px;padding:7px;border:1px solid #e5e9ee;border-radius:15px;background:#f8fafc; }
+.admin-secondary-nav button { display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 13px;border:0;border-radius:10px;background:transparent;color:#657080;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer;white-space:nowrap; }
+.admin-secondary-nav button:hover { background:#fff;color:#273444; }
+.admin-secondary-nav button.active { color:#0b6fda;background:#fff;box-shadow:0 4px 14px rgba(20,28,43,.08); }
+.admin-secondary-nav-scroll { overflow-x:auto;scrollbar-width:thin; }
+.admin-support-editor-actions { display:grid;justify-items:end;gap:8px; }
+.admin-support-editor-actions .secondary-button { white-space:nowrap; }
+.admin-trial-policy-panel { border-color:#cfe0f1;background:linear-gradient(145deg,#fff,#f7fbff); }
+.admin-trial-policy-grid { display:grid;grid-template-columns:minmax(220px,.75fr) minmax(420px,1.25fr);gap:18px;align-items:stretch;margin:16px 0 18px; }
+.admin-trial-policy-grid > label { display:grid;align-content:start;gap:8px;padding:16px;border:1px solid #e2e8f0;border-radius:16px;background:#fff;font-weight:850; }
+.admin-trial-policy-grid > label small { color:#718096;font-weight:600;line-height:1.45; }
+.admin-trial-policy-facts { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+.admin-trial-policy-facts > span { display:grid;grid-template-columns:30px minmax(0,1fr);grid-template-rows:auto auto;column-gap:9px;align-items:center;padding:13px;border:1px solid #e3e9ef;border-radius:14px;background:#fff; }
+.admin-trial-policy-facts > span > svg { grid-row:1/3;width:30px;height:30px;padding:7px;box-sizing:border-box;border-radius:10px;color:#0b6fda;background:#eaf4ff; }
+.admin-trial-policy-facts b { font-size:.72rem; }
+.admin-trial-policy-facts small { color:#7a8594;font-size:.64rem;line-height:1.35; }
+.admin-trial-rule-summary { display:flex;align-items:flex-start;gap:9px;padding:12px 13px;border:1px solid #d8e8f6;border-radius:13px;background:#f4f9fe;color:#39526a; }
+.admin-trial-rule-summary > span { display:grid;gap:2px; }
+.admin-trial-rule-summary strong { font-size:.72rem; }
+.admin-trial-rule-summary small { font-size:.64rem;color:#718196;line-height:1.4; }
+.subscription-trial-banner { border-color:color-mix(in srgb,var(--business-accent) 24%,#dce4ec);background:linear-gradient(135deg,color-mix(in srgb,var(--business-accent) 7%,#fff),#fff); }
+@media (max-width:1120px) { .platform-admin-tabs.admin-saas-tabs.admin-primary-nav { grid-template-columns:repeat(3,minmax(0,1fr)); } .admin-trial-policy-grid { grid-template-columns:1fr; } }
+@media (max-width:720px) { .platform-admin-tabs.admin-saas-tabs.admin-primary-nav { grid-template-columns:1fr 1fr; } .admin-primary-nav button { min-height:64px; } .admin-secondary-nav { overflow-x:auto; } .admin-trial-policy-facts { grid-template-columns:1fr; } .admin-support-editor-actions { justify-items:start; } }
+@media (max-width:480px) { .platform-admin-tabs.admin-saas-tabs.admin-primary-nav { grid-template-columns:1fr; } }
+
+.admin-active-trials-list { display:grid;gap:9px; }
+.admin-active-trial-row { display:grid;grid-template-columns:40px minmax(240px,1fr) 90px 150px auto;align-items:center;gap:12px;padding:11px 12px;border:1px solid #e4e9ef;border-radius:14px;background:#fff; }
+.admin-active-trial-row.ending { border-color:#f1d5a8;background:#fffaf2; }
+.admin-active-trial-icon { width:40px;height:40px;display:grid;place-items:center;border-radius:12px;color:#0b6fda;background:#edf6ff; }
+.admin-active-trial-company,.admin-active-trial-usage,.admin-active-trial-days { min-width:0;display:grid;gap:2px; }
+.admin-active-trial-company strong { overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.78rem; }
+.admin-active-trial-company small,.admin-active-trial-usage small,.admin-active-trial-days small,.admin-active-trial-days em { color:#778394;font-size:.62rem;font-style:normal; }
+.admin-active-trial-usage strong,.admin-active-trial-days strong { font-size:.78rem; }
+.admin-active-trial-days.warning strong { color:#a15c00; }
+@media (max-width:900px) { .admin-active-trial-row { grid-template-columns:40px minmax(0,1fr) auto; } .admin-active-trial-usage { display:none; } .admin-active-trial-days { text-align:right; } }
+@media (max-width:560px) { .admin-active-trial-row { grid-template-columns:36px minmax(0,1fr); } .admin-active-trial-icon { width:36px;height:36px; } .admin-active-trial-days { text-align:left;grid-column:2; } .admin-active-trial-row .secondary-button { grid-column:2;justify-self:start; } }
