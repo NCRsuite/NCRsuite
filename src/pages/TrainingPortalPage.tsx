@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { Icon } from '../components/Icon';
 import { TrainingPortalSignatureModal } from '../components/TrainingPortalSignatureModal';
+import { TrainingTrainerBpfPanel } from '../components/TrainingTrainerBpfPanel';
 import { useAuth } from '../contexts/AuthContext';
 import {
   trainingPortalCategoryLabels,
@@ -14,7 +15,7 @@ import {
 import { closeFileWindow, navigateFileWindow, prepareFileWindow } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
 
-type PortalTab = 'overview' | 'sessions' | 'documents' | 'signatures';
+type PortalTab = 'overview' | 'sessions' | 'documents' | 'signatures' | 'bpf';
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' });
 const dateTimeFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
@@ -124,6 +125,10 @@ export function TrainingPortalPage() {
     localStorage.setItem('ncr-training-portal-account', accountId);
     void loadDashboard(accountId);
   }, [accountId, loadDashboard]);
+
+  useEffect(() => {
+    if (tab === 'bpf' && activeAccount?.subject_kind !== 'trainer') setTab('overview');
+  }, [activeAccount?.subject_kind, tab]);
 
   // Les documents automatiques (attestation, certificat, convocation) peuvent
   // arriver quelques secondes après une action du stagiaire. Le portail ne doit
@@ -353,6 +358,7 @@ export function TrainingPortalPage() {
             {([
               ['overview', 'Vue d’ensemble', 'home'],
               ['sessions', 'Mes sessions', 'calendar'],
+              ...(activeAccount?.subject_kind === 'trainer' ? [['bpf', 'Mon BPF', 'chart'] as const] : []),
               ['documents', 'Mes documents', 'file'],
               ['signatures', 'Signatures', 'signature']
             ] as const).map(([id, label, icon]) => (
@@ -448,6 +454,10 @@ export function TrainingPortalPage() {
                 ))}
               </div>
             </>
+          )}
+
+          {dashboard && tab === 'bpf' && activeAccount?.subject_kind === 'trainer' && (
+            <TrainingTrainerBpfPanel />
           )}
 
           {dashboard && tab === 'documents' && (
