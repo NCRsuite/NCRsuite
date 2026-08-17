@@ -1,6 +1,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { availableBusinessTypeOptions, businessPacks } from '../config/businessPacks';
+import { businessUiAccent, businessUiTheme } from '../config/businessTheme';
 import { getDomainPlans } from '../config/domainPlans';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
