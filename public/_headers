@@ -12,7 +12,7 @@
 
 /ncr-suite-app-v2925.css
   Content-Type: text/css; charset=utf-8
-  Cache-Control: public, max-age=86400, must-revalidate
+  Cache-Control: no-cache, no-store, must-revalidate
 
 /ncr-suite-app-v2925-r2.js
   Content-Type: text/javascript; charset=utf-8

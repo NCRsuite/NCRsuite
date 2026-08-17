@@ -14,6 +14,7 @@
   text-rendering: optimizeLegibility;
   --accent: #0a84ff;
   --accent-rgb: 10, 132, 255;
+  --primary-action: var(--ink);
   --ink: #0b0d10;
   --muted: #6b7280;
   --surface: #ffffff;
@@ -56,7 +57,7 @@ input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px c
 .eyebrow { margin: 0; color: var(--accent); letter-spacing: .13em; font-size: 11px; font-weight: 850; }
 .muted { color: var(--muted); line-height: 1.6; }
 .primary-button, .secondary-button { min-height: 46px; padding: 0 19px; border-radius: 999px; border: 0; display: inline-flex; align-items: center; justify-content: center; gap: 9px; font-weight: 780; transition: transform .2s, opacity .2s; }
-.primary-button { color: white; background: var(--ink); }
+.primary-button { color: white; background: var(--primary-action, var(--ink)); }
 .primary-button:hover, .secondary-button:hover { transform: translateY(-1px); }
 .primary-button:disabled { opacity: .55; cursor: wait; }
 .primary-button.full { width: 100%; }
@@ -1893,8 +1894,8 @@ button { max-width: 100%; }
     display: grid;
     place-items: center;
     color: white;
-    background: var(--ink);
-    box-shadow: 0 12px 26px rgba(11,13,16,.23);
+    background: var(--primary-action, var(--ink));
+    box-shadow: 0 12px 26px color-mix(in srgb, var(--primary-action, var(--ink)) 28%, transparent);
   }
 
   .mobile-bottom-nav .mobile-create-action small {
@@ -23780,3 +23781,159 @@ button { max-width: 100%; }
 /* NCR Suite V2.29.25 — Bac à sable Session test Formation */
 .training-session-hero-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.training-test-badge{display:inline-flex;width:max-content;margin-left:8px;padding:3px 7px;border-radius:999px;color:#98540e;background:#fff0db;border:1px solid #f0cf9e;font-size:8px;font-style:normal;font-weight:900;letter-spacing:.05em;vertical-align:middle}.training-test-copy-button{border-color:#c7d8e7!important;background:#f5f9fc!important;color:#326b98!important}.training-test-session-modal{width:min(680px,calc(100vw - 28px));max-height:calc(100vh - 28px);overflow:auto;padding:0}.training-test-session-modal>.panel-header{padding:20px 20px 14px;border-bottom:1px solid #e9edf0}.training-test-session-explainer{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:16px 20px 8px}.training-test-session-explainer article{display:grid;grid-template-columns:34px minmax(0,1fr);gap:9px;align-items:start;padding:12px;border:1px solid #e1e8ed;border-radius:11px;background:#f9fbfc}.training-test-session-explainer article>svg{padding:7px;border-radius:8px;color:#2e77ad;background:#e8f3fb}.training-test-session-explainer span{display:grid;gap:3px}.training-test-session-explainer strong{color:#26333e;font-size:10px}.training-test-session-explainer small{color:#7d8993;font-size:8px;line-height:1.45}.training-test-email-field{display:grid;gap:6px;margin:10px 20px 0;color:#36434e;font-size:9px;font-weight:800}.training-test-email-field input{min-height:44px}.training-test-email-field small{color:#85909a;font-size:8px;font-weight:500;line-height:1.45}.training-test-session-warning{display:flex;gap:8px;align-items:flex-start;margin:14px 20px 0;padding:11px 12px;border-radius:10px;color:#805515;background:#fff5e6;font-size:8.8px;line-height:1.5}.training-test-session-warning svg{flex:0 0 auto;margin-top:1px}.training-test-session-modal>.form-actions{padding:16px 20px 20px}.training-session-card:has(.training-test-badge){border-color:#efd3a8;background:linear-gradient(90deg,#fffaf2 0,#fff 26%)}
 @media(max-width:720px){.training-session-hero-actions{width:100%}.training-session-hero-actions button{flex:1 1 160px}.training-test-session-explainer{grid-template-columns:1fr;padding:13px 14px 5px}.training-test-email-field,.training-test-session-warning{margin-left:14px;margin-right:14px}.training-test-session-modal>.panel-header,.training-test-session-modal>.form-actions{padding-left:14px;padding-right:14px}}
+
+
+/* NCR Suite V2.29.25 R3 - identité visuelle métier connectée
+   La couleur métier reste un accent : fonds neutres, couleurs d'état intactes. */
+:root[data-business-theme="formation"] {
+  --accent: #3370ec;
+  --accent-rgb: 51, 112, 236;
+  --primary-action: #3370ec;
+  --business-accent-strong: #2458c6;
+}
+
+:root[data-business-theme="nettoyage"] {
+  --accent: #44946e;
+  --accent-rgb: 68, 148, 110;
+  --primary-action: #44946e;
+  --business-accent-strong: #2f7654;
+}
+
+:root[data-business-theme="securite"] {
+  /* Rouge foncé franc : aucun sous-ton bordeaux/violet. */
+  --accent: #9b1c1c;
+  --accent-rgb: 155, 28, 28;
+  --primary-action: #9b1c1c;
+  --business-accent-strong: #7f1414;
+}
+
+:root[data-business-theme="coiffure"] {
+  --accent: #6a2b75;
+  --accent-rgb: 106, 43, 117;
+  --primary-action: #6a2b75;
+  --business-accent-strong: #54205e;
+}
+
+:root[data-business-theme="restauration"] {
+  /* Ocre plus lisible que le jaune du logo pour les textes/boutons. */
+  --accent: #b78324;
+  --accent-rgb: 183, 131, 36;
+  --primary-action: #b78324;
+  --business-accent-strong: #91661a;
+}
+
+:root[data-business-theme] {
+  --business-page-bg: color-mix(in srgb, var(--accent) 2.4%, #f7f8fa);
+  --business-soft: color-mix(in srgb, var(--accent) 9%, white);
+  --business-border: color-mix(in srgb, var(--accent) 18%, #e2e6eb);
+  --business-shadow: 0 11px 26px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+:root[data-business-theme] .app-shell-v265,
+:root[data-business-theme] .app-shell-v265 .main-content {
+  background: var(--business-page-bg);
+}
+
+:root[data-business-theme] .app-shell-v265 .sidebar {
+  border-right-color: var(--business-border);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 6%, #fff) 0,
+    #fff 215px
+  );
+}
+
+:root[data-business-theme] .app-shell-v265 .page > .page-header {
+  position: relative;
+  border-bottom-color: var(--business-border);
+}
+
+:root[data-business-theme] .app-shell-v265 .page > .page-header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 48px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+:root[data-business-theme] .app-shell-v265 .primary-button {
+  box-shadow: var(--business-shadow);
+}
+
+:root[data-business-theme] .app-shell-v265 .primary-button:hover {
+  box-shadow: 0 14px 31px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* Les actions dangereuses gardent leur rouge fonctionnel, quel que soit le métier. */
+:root[data-business-theme] .secondary-button.danger,
+:root[data-business-theme] .danger-button,
+:root[data-business-theme] .danger-text-button,
+:root[data-business-theme] .text-button.danger,
+:root[data-business-theme] .icon-button.danger {
+  --primary-action: #b42318;
+}
+
+:root[data-business-theme] .app-shell-v265 .context-switcher {
+  border-color: color-mix(in srgb, var(--accent) 8%, #e5e7eb);
+}
+
+:root[data-business-theme] .app-shell-v265 .stat-card,
+:root[data-business-theme] .app-shell-v265 .panel {
+  border-color: color-mix(in srgb, var(--accent) 6%, #ededf1);
+}
+
+@media (max-width: 900px) {
+  :root[data-business-theme] .app-shell-v265 .mobile-header {
+    border-bottom-color: var(--business-border);
+    background: color-mix(in srgb, var(--accent) 4%, rgba(255,255,255,.96));
+  }
+
+  :root[data-business-theme] .app-shell-v265 .mobile-menu-trigger {
+    border-color: color-mix(in srgb, var(--accent) 12%, #fff);
+    color: var(--accent);
+    background: var(--business-soft);
+    box-shadow: 0 0 0 1px var(--business-border), 0 7px 18px rgba(11,13,16,.09);
+  }
+
+  :root[data-business-theme] .app-shell-v265 .mobile-bottom-nav {
+    border-color: color-mix(in srgb, var(--accent) 16%, rgba(228,228,232,.92));
+  }
+
+  :root[data-business-theme] .app-shell-v265 .mobile-bottom-nav .mobile-create-action > span {
+    background: var(--accent);
+    box-shadow: 0 12px 26px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+}
+
+/* Ponts vers les sous-interfaces métier qui possèdent déjà leurs propres variables. */
+:root[data-business-theme="nettoyage"] .cleaning-page {
+  --cleaning-accent: var(--accent);
+  --cleaning-accent-soft: color-mix(in srgb, var(--accent) 10%, white);
+}
+
+:root[data-business-theme="restauration"] .restaurant-page {
+  --restaurant-accent: var(--accent);
+  --restaurant-accent-dark: var(--business-accent-strong);
+  --restaurant-accent-soft: color-mix(in srgb, var(--accent) 10%, white);
+}
+
+:root[data-business-theme="formation"] .training-workspace-premium {
+  --training-blue: var(--accent);
+}
+
+:root[data-business-theme="formation"] :is(.training-programs-v215, .training-profile-page, .training-workflow-page) {
+  --training-blue-v215: var(--accent);
+}
+
+:root[data-business-theme] .app-shell input[type="checkbox"],
+:root[data-business-theme] .app-shell input[type="radio"],
+:root[data-business-theme] .app-shell input[type="range"] {
+  accent-color: var(--accent);
+}
+
+:root[data-business-theme="securite"] :is(.security-site-proof-settings, .security-site-proof-details) input {
+  accent-color: var(--accent);
+}
