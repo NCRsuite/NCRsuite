@@ -277,8 +277,10 @@ Deno.serve(async (request) => {
       requestId = metadata.ncr_request_id ?? null;
       contractId = metadata.ncr_contract_id ?? null;
       customerId = safeId(checkout.customer);
-      paymentConfirmed = checkout.payment_status === 'paid'
-        || checkout.payment_status === 'no_payment_required';
+      // Un Checkout avec essai peut être "no_payment_required" sans qu'aucun
+      // prélèvement n'ait encore eu lieu. Seul un paiement réellement payé
+      // confirme le règlement du contrat.
+      paymentConfirmed = checkout.payment_status === 'paid';
       eventMetadata = {
         ...eventMetadata,
         checkout_session_id: checkout.id,
@@ -359,10 +361,12 @@ Deno.serve(async (request) => {
     const period = subscriptionPeriod(subscription);
     const cancellationScheduled = scheduledCancellation(subscription);
     const cancelAt = timestamp((subscription as unknown as { cancel_at?: unknown }).cancel_at);
+    const stripeTrialEnd = timestamp((subscription as unknown as { trial_end?: unknown }).trial_end);
     eventMetadata = {
       ...eventMetadata,
       stripe_cancel_at: cancelAt,
       stripe_cancel_at_period_end: cancellationScheduled,
+      stripe_trial_end: stripeTrialEnd,
     };
 
     const { data: applied, error: applyError } = await service.rpc('apply_stripe_billing_event', {
@@ -397,6 +401,17 @@ Deno.serve(async (request) => {
       p_cancel_at_period_end: cancellationScheduled,
     });
     if (lifecycleError) throw lifecycleError;
+
+    // Stripe devient la source de vérité de la fin d'essai une fois la carte
+    // enregistrée. Cela garde le compteur NCR aligné, y compris si Stripe doit
+    // arrondir un essai très proche de son échéance à un nombre entier de jours.
+    if (normalizedStatus === 'trialing' && stripeTrialEnd) {
+      const { error: trialSyncError } = await service
+        .from('organization_subscriptions')
+        .update({ trial_ends_at: stripeTrialEnd })
+        .eq('organization_id', organizationId);
+      if (trialSyncError) throw trialSyncError;
+    }
 
     if (contractId) {
       const contractStatus = event.type === 'customer.subscription.deleted'

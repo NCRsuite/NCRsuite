@@ -290,7 +290,7 @@ Deno.serve(async (request) => {
     const stripe = stripeClient(config.stripeSecretKey);
     const { data: billing, error: subscriptionError } = await service
       .from('organization_subscriptions')
-      .select('stripe_customer_id,provider_customer_id,stripe_subscription_id,provider_subscription_id,stripe_livemode')
+      .select('stripe_customer_id,provider_customer_id,stripe_subscription_id,provider_subscription_id,stripe_livemode,status,trial_ends_at')
       .eq('organization_id', organizationId)
       .maybeSingle();
     if (subscriptionError || !billing) throw new Error('Abonnement NCR Suite introuvable.');
@@ -479,12 +479,42 @@ Deno.serve(async (request) => {
       if (customerSaveError) throw new Error('Le client Stripe n a pas pu etre rattache a l entreprise.');
     }
 
+    const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+      metadata: {
+        ncr_organization_id: organizationId,
+        ncr_request_id: requestId,
+        ncr_plan_key: changeRequest.requested_plan,
+        ncr_request_reference: reference,
+        ncr_data_retention: 'preserve',
+        ncr_contract_id: contractId,
+      },
+    };
+    const trialEndMs = billing.status === 'trialing' && billing.trial_ends_at
+      ? new Date(String(billing.trial_ends_at)).getTime()
+      : Number.NaN;
+    const remainingTrialMs = Number.isFinite(trialEndMs) ? trialEndMs - Date.now() : 0;
+    if (remainingTrialMs > 0) {
+      const remainingTrialSeconds = Math.ceil(remainingTrialMs / 1000);
+      const minimumExactTrialSeconds = 48 * 60 * 60;
+      if (remainingTrialSeconds >= minimumExactTrialSeconds) {
+        subscriptionData.trial_end = Math.floor(trialEndMs / 1000);
+      } else {
+        subscriptionData.trial_period_days = Math.max(1, Math.ceil(remainingTrialMs / 86_400_000));
+      }
+      subscriptionData.metadata = {
+        ...(subscriptionData.metadata ?? {}),
+        ncr_trial_conversion: 'true',
+        ncr_trial_source_end: new Date(trialEndMs).toISOString(),
+      };
+    }
+
     const checkout = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       client_reference_id: organizationId,
       line_items: [{ price: price.stripe_price_id, quantity: 1 }],
       locale: 'fr',
+      payment_method_collection: 'always',
       billing_address_collection: 'auto',
       customer_update: { address: 'auto', name: 'auto' },
       success_url: `${config.publicUrl}/abonnement?stripe=success&session_id={CHECKOUT_SESSION_ID}`,
@@ -496,16 +526,7 @@ Deno.serve(async (request) => {
         ncr_request_reference: reference,
         ncr_contract_id: contractId,
       },
-      subscription_data: {
-        metadata: {
-          ncr_organization_id: organizationId,
-          ncr_request_id: requestId,
-          ncr_plan_key: changeRequest.requested_plan,
-          ncr_request_reference: reference,
-          ncr_data_retention: 'preserve',
-          ncr_contract_id: contractId,
-        },
-      },
+      subscription_data: subscriptionData,
     }, { idempotencyKey: `ncr-checkout-${requestId}` });
     if (!checkout.url) throw new Error('Stripe n a pas retourne d URL de paiement.');
 

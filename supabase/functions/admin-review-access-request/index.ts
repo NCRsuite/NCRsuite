@@ -205,7 +205,10 @@ Deno.serve(async (request) => {
     access_request_reference: row.reference,
     account_source: 'platform_access_request',
   };
-  const { data: linkData, error: linkError } = await service.auth.admin.generateLink({
+  // Premier lien technique : crée/retrouve le compte sans être envoyé au client.
+  // On enregistre ensuite les métadonnées canoniques, puis on génère le vrai lien.
+  // Ainsi le JWT issu du lien d’activation contient toujours le métier validé par NCR.
+  const { data: bootstrapLinkData, error: bootstrapLinkError } = await service.auth.admin.generateLink({
     type: 'magiclink',
     email: row.email,
     options: {
@@ -213,23 +216,38 @@ Deno.serve(async (request) => {
       redirectTo: `${publicUrl}/activation`,
     },
   });
-  const hashedToken = linkData?.properties?.hashed_token;
-  const invitedUserId = linkData?.user?.id;
-  if (linkError || !hashedToken || !invitedUserId) {
-    const detail = linkError?.message ?? 'Le lien sécurisé n’a pas pu être généré.';
+  const invitedUserId = bootstrapLinkData?.user?.id;
+  if (bootstrapLinkError || !invitedUserId) {
+    const detail = bootstrapLinkError?.message ?? 'Le compte sécurisé n’a pas pu être préparé.';
     await service.from('platform_access_requests').update({ last_invitation_error: detail }).eq('id', row.id);
     return jsonResponse(request, 502, { error: 'L’invitation n’a pas pu être préparée. Vérifiez la configuration Auth Supabase.' });
   }
 
   const { error: metadataError } = await service.auth.admin.updateUserById(invitedUserId, {
     user_metadata: {
-      ...(linkData.user?.user_metadata ?? {}),
+      ...(bootstrapLinkData.user?.user_metadata ?? {}),
       ...metadata,
     },
   });
   if (metadataError) {
     await service.from('platform_access_requests').update({ last_invitation_error: metadataError.message }).eq('id', row.id);
     return jsonResponse(request, 502, { error: 'Le compte a été préparé mais son autorisation n’a pas pu être enregistrée.' });
+  }
+
+  // Le lien réellement envoyé est minté APRÈS la mise à jour des métadonnées.
+  const { data: finalLinkData, error: finalLinkError } = await service.auth.admin.generateLink({
+    type: 'magiclink',
+    email: row.email,
+    options: {
+      data: metadata,
+      redirectTo: `${publicUrl}/activation`,
+    },
+  });
+  const hashedToken = finalLinkData?.properties?.hashed_token;
+  if (finalLinkError || !hashedToken || finalLinkData?.user?.id !== invitedUserId) {
+    const detail = finalLinkError?.message ?? 'Le lien d’activation final n’a pas pu être généré.';
+    await service.from('platform_access_requests').update({ last_invitation_error: detail }).eq('id', row.id);
+    return jsonResponse(request, 502, { error: 'Le compte est prêt mais le lien d’activation n’a pas pu être finalisé.' });
   }
 
   const activationUrl = `${publicUrl}/activation?token_hash=${encodeURIComponent(hashedToken)}&type=magiclink`;

@@ -127,6 +127,19 @@ interface SubscriptionContractItem {
   downloadUrl: string | null;
 }
 
+interface SubscriptionConversionContract {
+  id: string;
+  reference: string;
+  status: 'awaiting_signature' | 'signed' | 'payment_pending' | 'active';
+  planKey: Plan;
+  planLabel: string;
+  monthlyPriceCents: number;
+  signerName?: string | null;
+  signerEmail?: string | null;
+  signerTitle?: string | null;
+  signedAt?: string | null;
+}
+
 const statusLabels: Record<SubscriptionStatus, string> = {
   trialing: 'Période d’essai',
   active: 'Actif',
@@ -202,6 +215,18 @@ export function SubscriptionPage() {
   const [openingPortal, setOpeningPortal] = useState(false);
   const [contracts, setContracts] = useState<SubscriptionContractItem[]>([]);
   const [contractsLoading, setContractsLoading] = useState(false);
+  const [conversionPlan, setConversionPlan] = useState<BillingPlan | null>(null);
+  const [conversionContract, setConversionContract] = useState<SubscriptionConversionContract | null>(null);
+  const [conversionPreviewUrl, setConversionPreviewUrl] = useState('');
+  const [conversionPending, setConversionPending] = useState(false);
+  const [conversionOtpSent, setConversionOtpSent] = useState(false);
+  const [conversionOtpCode, setConversionOtpCode] = useState('');
+  const [conversionSignerName, setConversionSignerName] = useState('');
+  const [conversionSignerTitle, setConversionSignerTitle] = useState('Représentant habilité');
+  const [conversionAcceptedContract, setConversionAcceptedContract] = useState(false);
+  const [conversionAcceptedCgv, setConversionAcceptedCgv] = useState(false);
+  const [conversionAcceptedCgu, setConversionAcceptedCgu] = useState(false);
+  const [conversionAcceptedPrivacyDpa, setConversionAcceptedPrivacyDpa] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -257,7 +282,7 @@ export function SubscriptionPage() {
   useEffect(() => {
     const stripeResult = new URLSearchParams(location.search).get('stripe');
     if (stripeResult === 'success') {
-      setMessage('Paiement confirmé. L’abonnement se synchronise automatiquement.');
+      setMessage('Configuration Stripe confirmée. Si ton essai est encore en cours, aucun débit n’est effectué avant sa fin ; NCR Suite se synchronise automatiquement.');
       const firstRefresh = window.setTimeout(() => void load(), 1200);
       const secondRefresh = window.setTimeout(() => void load(), 4200);
       return () => {
@@ -266,7 +291,7 @@ export function SubscriptionPage() {
       };
     }
     if (stripeResult === 'cancel') {
-      setMessage('Paiement interrompu. La demande reste disponible si tu souhaites la reprendre.');
+      setMessage('Configuration Stripe interrompue. La demande reste disponible si tu souhaites la reprendre.');
     }
   }, [location.search, organization?.id]);
 
@@ -287,14 +312,149 @@ export function SubscriptionPage() {
     [data?.plans]
   );
 
+  function resetConversionContract() {
+    setConversionPlan(null);
+    setConversionContract(null);
+    setConversionPreviewUrl('');
+    setConversionOtpSent(false);
+    setConversionOtpCode('');
+    setConversionSignerName('');
+    setConversionSignerTitle('Représentant habilité');
+    setConversionAcceptedContract(false);
+    setConversionAcceptedCgv(false);
+    setConversionAcceptedCgu(false);
+    setConversionAcceptedPrivacyDpa(false);
+  }
+
+  async function prepareConversionContract(plan: BillingPlan) {
+    if (!organization || !supabase || !canManage) return;
+    setPendingPlan(plan.plan_key);
+    setConversionPending(true);
+    setError('');
+    setMessage('');
+    try {
+      const { data: response, error: contractError } = await supabase.functions.invoke('subscription-contract', {
+        body: {
+          action: 'prepare',
+          organizationId: organization.id,
+          planKey: plan.plan_key
+        }
+      });
+      if (contractError || response?.error || !response?.contract) {
+        throw new Error(response?.error ?? await functionErrorMessage(contractError, 'Le contrat d’abonnement n’a pas pu être préparé.'));
+      }
+      const contract = response.contract as SubscriptionConversionContract;
+      setConversionPlan(plan);
+      setConversionContract(contract);
+      setConversionPreviewUrl(String(response.previewUrl ?? ''));
+      setConversionSignerName(String(contract.signerName ?? ''));
+      setConversionSignerTitle(String(contract.signerTitle ?? 'Représentant habilité'));
+      setConversionOtpSent(false);
+      setConversionOtpCode('');
+      setConversionAcceptedContract(false);
+      setConversionAcceptedCgv(false);
+      setConversionAcceptedCgu(false);
+      setConversionAcceptedPrivacyDpa(false);
+      setMessage(`Formule ${plan.display_name} sélectionnée. Vérifie et signe le contrat avant le paiement sécurisé.`);
+      window.setTimeout(() => document.getElementById('trial-conversion-contract')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Le contrat d’abonnement n’a pas pu être préparé.');
+    } finally {
+      setPendingPlan(null);
+      setConversionPending(false);
+    }
+  }
+
+  async function requestConversionSignatureCode() {
+    if (!organization || !supabase || !conversionContract) return;
+    setConversionPending(true);
+    setError('');
+    try {
+      const { data: response, error: codeError } = await supabase.functions.invoke('subscription-contract', {
+        body: {
+          action: 'request_code',
+          organizationId: organization.id,
+          contractId: conversionContract.id
+        }
+      });
+      if (codeError || response?.error) {
+        throw new Error(response?.error ?? await functionErrorMessage(codeError, 'Le code de signature n’a pas pu être envoyé.'));
+      }
+      setConversionOtpSent(true);
+      setMessage('Code de signature envoyé par e-mail. Il reste valable 10 minutes.');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Le code de signature n’a pas pu être envoyé.');
+    } finally {
+      setConversionPending(false);
+    }
+  }
+
+  async function openConversionCheckout(contractId: string) {
+    if (!organization || !supabase || !conversionPlan) return;
+    const { data: response, error: checkoutError } = await supabase.functions.invoke('create-stripe-checkout', {
+      body: {
+        organizationId: organization.id,
+        planKey: conversionPlan.plan_key,
+        contractId,
+        acceptTerms: true
+      }
+    });
+    if (checkoutError || response?.error || !response?.url) {
+      throw new Error(response?.error ?? await functionErrorMessage(checkoutError, 'La page de paiement sécurisé n’a pas pu être ouverte.'));
+    }
+    window.location.assign(String(response.url));
+  }
+
+  async function signConversionContractAndPay() {
+    if (!organization || !supabase || !conversionContract || !conversionPlan) return;
+    setConversionPending(true);
+    setError('');
+    setMessage('');
+    try {
+      if (conversionContract.status === 'signed' || conversionContract.status === 'payment_pending') {
+        await openConversionCheckout(conversionContract.id);
+        return;
+      }
+      const { data: response, error: signatureError } = await supabase.functions.invoke('subscription-contract', {
+        body: {
+          action: 'sign',
+          organizationId: organization.id,
+          contractId: conversionContract.id,
+          code: conversionOtpCode,
+          signerName: conversionSignerName.trim(),
+          signerTitle: conversionSignerTitle.trim(),
+          acceptedContract: conversionAcceptedContract,
+          acceptedCgv: conversionAcceptedCgv,
+          acceptedCgu: conversionAcceptedCgu,
+          acceptedPrivacyDpa: conversionAcceptedPrivacyDpa
+        }
+      });
+      if (signatureError || response?.error || !response?.contract) {
+        throw new Error(response?.error ?? await functionErrorMessage(signatureError, 'La signature du contrat n’a pas pu être finalisée.'));
+      }
+      const signedContract = response.contract as SubscriptionConversionContract;
+      setConversionContract(signedContract);
+      setConversionPreviewUrl(String(response.downloadUrl ?? conversionPreviewUrl));
+      await openConversionCheckout(signedContract.id);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'La signature du contrat n’a pas pu être finalisée.');
+    } finally {
+      setConversionPending(false);
+    }
+  }
+
   async function requestPlan(plan: BillingPlan) {
     if (!organization || !supabase || !canManage) return;
-    if (!acceptedTerms) {
-      setError('Coche l’acceptation des conditions avant de poursuivre.');
-      return;
-    }
     if (plan.provider !== 'stripe' || !plan.checkout_active) {
       setError('Le tarif de cette formule doit être configuré par NCR Suite.');
+      return;
+    }
+    if (data?.subscription.subscription_status === 'trialing') {
+      await prepareConversionContract(plan);
+      return;
+    }
+    if (!acceptedTerms) {
+      setError('Coche l’acceptation des conditions avant de poursuivre.');
       return;
     }
 
@@ -575,6 +735,72 @@ export function SubscriptionPage() {
           {data.business_type === 'securite' && ['decouverte', 'essentielle'].includes(data.subscription.plan) && <SecurityAddonsPanel />}
           {data.business_type === 'formation' && ['decouverte', 'essentielle'].includes(data.subscription.plan) && <TrainingModulesPanel />}
 
+          {data.subscription.subscription_status === 'trialing' && conversionPlan && conversionContract && (
+            <section id="trial-conversion-contract" className="panel subscription-conversion-contract">
+              <div className="panel-header">
+                <div>
+                  <p className="eyebrow">CONTINUER APRÈS L’ESSAI</p>
+                  <h2>Finaliser l’abonnement {conversionPlan.display_name}</h2>
+                  <p>Ton essai reste gratuit jusqu’à sa fin. Le contrat et le paiement ci-dessous servent uniquement à activer l’abonnement que tu choisis de conserver.</p>
+                </div>
+                <button type="button" className="secondary-button compact-button" onClick={resetConversionContract} disabled={conversionPending}>Changer de formule</button>
+              </div>
+
+              <div className="saas-contract-step">
+                <article className="saas-contract-document">
+                  <span className="saas-contract-icon"><Icon name="file" size={25} /></span>
+                  <div>
+                    <p className="eyebrow">DOCUMENT CONTRACTUEL</p>
+                    <h3>{conversionContract.reference}</h3>
+                    <p>Formule <strong>{conversionContract.planLabel}</strong> · {money(conversionContract.monthlyPriceCents)} HT / mois</p>
+                    <small>Ce contrat n’était pas demandé pour démarrer l’essai. Il intervient uniquement au moment où tu choisis de devenir client payant.</small>
+                  </div>
+                  <button type="button" className="secondary-button" onClick={() => conversionPreviewUrl && window.open(conversionPreviewUrl, '_blank', 'noopener,noreferrer')} disabled={!conversionPreviewUrl}>
+                    <Icon name="eye" size={17} /> Ouvrir le contrat
+                  </button>
+                </article>
+
+                {conversionContract.status === 'signed' || conversionContract.status === 'payment_pending' ? (
+                  <div className="saas-contract-signed">
+                    <Icon name="check" size={22} />
+                    <div><strong>Contrat signé et scellé</strong><span>Tu peux maintenant ouvrir le paiement Stripe sécurisé.</span></div>
+                  </div>
+                ) : (
+                  <div className="saas-contract-signature-form">
+                    <div className="saas-contract-identity">
+                      <label>Nom complet du signataire<input value={conversionSignerName} onChange={(event) => setConversionSignerName(event.target.value)} placeholder="Nom et prénom" /></label>
+                      <label>Qualité du signataire<input value={conversionSignerTitle} onChange={(event) => setConversionSignerTitle(event.target.value)} placeholder="Gérant, président, représentant habilité…" /></label>
+                    </div>
+
+                    <div className="saas-contract-consents">
+                      <label><input type="checkbox" checked={conversionAcceptedContract} onChange={(event) => setConversionAcceptedContract(event.target.checked)} /><span>J’ai lu et j’accepte le contrat d’abonnement et le bon de commande.</span></label>
+                      <label><input type="checkbox" checked={conversionAcceptedCgv} onChange={(event) => setConversionAcceptedCgv(event.target.checked)} /><span>J’accepte les conditions générales de vente.</span></label>
+                      <label><input type="checkbox" checked={conversionAcceptedCgu} onChange={(event) => setConversionAcceptedCgu(event.target.checked)} /><span>J’accepte les conditions générales d’utilisation.</span></label>
+                      <label><input type="checkbox" checked={conversionAcceptedPrivacyDpa} onChange={(event) => setConversionAcceptedPrivacyDpa(event.target.checked)} /><span>J’accepte les règles de confidentialité et l’annexe de traitement des données.</span></label>
+                    </div>
+
+                    <div className="saas-contract-otp">
+                      <div><strong>Vérification par e-mail</strong><span>Le code est envoyé à {conversionContract.signerEmail || 'l’adresse professionnelle du compte'} et reste valable 10 minutes.</span></div>
+                      <button type="button" className="secondary-button" onClick={() => void requestConversionSignatureCode()} disabled={conversionPending}>{conversionOtpSent ? 'Renvoyer le code' : 'Recevoir mon code'}</button>
+                      <label>Code à 6 chiffres<input inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={conversionOtpCode} onChange={(event) => setConversionOtpCode(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" /></label>
+                    </div>
+                  </div>
+                )}
+
+                <div className="saas-contract-proof"><Icon name="shield" size={18} /><span><strong>Preuve horodatée</strong><small>Le document signé conserve le signataire, l’e-mail vérifié, l’heure, les consentements et les empreintes SHA-256.</small></span></div>
+
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={() => void signConversionContractAndPay()}
+                  disabled={conversionPending || (conversionContract.status === 'awaiting_signature' && (!conversionOtpSent || conversionOtpCode.length !== 6 || !conversionSignerName.trim() || !conversionSignerTitle.trim() || !conversionAcceptedContract || !conversionAcceptedCgv || !conversionAcceptedCgu || !conversionAcceptedPrivacyDpa))}
+                >
+                  {conversionPending ? 'Vérification en cours…' : conversionContract.status === 'signed' || conversionContract.status === 'payment_pending' ? 'Ouvrir le paiement sécurisé' : 'Signer et passer au paiement'} <Icon name="creditCard" size={17} />
+                </button>
+              </div>
+            </section>
+          )}
+
           <section id="subscription-plans" className="subscription-plans-section">
             <div className="section-heading-row">
               <div><p className="eyebrow">FORMULES</p><h2>Choisir le niveau adapté</h2><p>{usesStripe ? 'Le paiement sécurisé active et synchronise automatiquement l’abonnement.' : 'Le paiement déclenche une demande dont l’activation est validée par NCR Suite.'}</p></div>
@@ -622,14 +848,16 @@ export function SubscriptionPage() {
             </div>
           </section>
 
-          <section className="panel subscription-terms-panel">
-            <label className="subscription-terms-check">
-              <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} disabled={!canManage || Boolean(data.open_request)} />
-              <span><strong>J’accepte les conditions d’abonnement — version {data.terms.version}</strong><small>{data.terms.text}</small></span>
-            </label>
-            <p><strong>Résiliation :</strong> {data.terms.cancellation_text}</p>
-            {!canManage && <div className="info-message">Seul le propriétaire ou un administrateur peut demander un changement de formule.</div>}
-          </section>
+          {data.subscription.subscription_status !== 'trialing' && (
+            <section className="panel subscription-terms-panel">
+              <label className="subscription-terms-check">
+                <input type="checkbox" checked={acceptedTerms} onChange={(event) => setAcceptedTerms(event.target.checked)} disabled={!canManage || Boolean(data.open_request)} />
+                <span><strong>J’accepte les conditions d’abonnement — version {data.terms.version}</strong><small>{data.terms.text}</small></span>
+              </label>
+              <p><strong>Résiliation :</strong> {data.terms.cancellation_text}</p>
+              {!canManage && <div className="info-message">Seul le propriétaire ou un administrateur peut demander un changement de formule.</div>}
+            </section>
+          )}
 
           {canManage && (
             <section className="panel subscription-contracts-panel">
