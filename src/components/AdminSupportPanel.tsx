@@ -139,7 +139,7 @@ export function AdminSupportPanel({ onOpenOrganization, initialSearch = '', init
       {error && <div className="error-message" role="alert">{error}</div>}
       {message && <div className="success-message" role="status">{message}</div>}
 
-      <section className="admin-support-layout">
+      <section className={`admin-support-layout${selected ? ' has-selection' : ''}`}>
         <article className="panel admin-support-list-panel">
           <div className="admin-support-queue-presets" aria-label="Raccourcis de file d’assistance">
             <button type="button" className={!statusFilter && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('all')}>Tous <b>{queueTickets.length}</b></button>
@@ -172,7 +172,7 @@ export function AdminSupportPanel({ onOpenOrganization, initialSearch = '', init
 
         <aside className="panel admin-support-editor">
           {!selected ? <div className="admin-editor-empty"><span><Icon name="alert" size={28} /></span><h2>Sélectionne une demande</h2><p>Le détail, l’entreprise et les actions de traitement apparaîtront ici.</p></div> : <>
-            <header className="admin-support-editor-head"><div><span className={`admin-priority-pill ${selected.priority}`}>{priorityLabels[selected.priority]}</span><p className="eyebrow">TICKET SUPPORT</p><h2>{selected.subject}</h2><small>{selected.organization_name} · {selected.owner_email || selected.created_by_email}</small></div><div className="admin-support-editor-actions"><span className="admin-ticket-number">#{selected.id.slice(0, 8).toUpperCase()}</span>{onOpenOrganization && <button type="button" className="secondary-button compact" onClick={() => onOpenOrganization(selected.organization_id)}><Icon name="building" size={15} /> Ouvrir l’entreprise</button>}</div></header>
+            <header className="admin-support-editor-head"><div><button type="button" className="admin-support-back-to-queue" onClick={() => setSelected(null)}><Icon name="chevronRight" size={14} /> Retour à la file</button><span className={`admin-priority-pill ${selected.priority}`}>{priorityLabels[selected.priority]}</span><p className="eyebrow">TICKET SUPPORT</p><h2>{selected.subject}</h2><small>{selected.organization_name} · {selected.owner_email || selected.created_by_email}</small></div><div className="admin-support-editor-actions"><span className="admin-ticket-number">#{selected.id.slice(0, 8).toUpperCase()}</span>{onOpenOrganization && <button type="button" className="secondary-button compact" onClick={() => onOpenOrganization(selected.organization_id)}><Icon name="building" size={15} /> Ouvrir l’entreprise</button>}</div></header>
             <div className="admin-support-description"><p>{selected.description}</p><dl><div><dt>Créé le</dt><dd>{fullDate(selected.created_at)}</dd></div><div><dt>Catégorie</dt><dd>{categoryLabels[selected.category]}</dd></div><div><dt>Formule</dt><dd>{selected.plan}</dd></div><div><dt>Assigné à</dt><dd>{selected.assigned_to_email || 'Personne'}</dd></div></dl></div>
             <SupportConversation ticketId={selected.id} ticketStatus={selected.status} viewer="admin" />
             <div className="admin-support-form-grid">
@@ -181,7 +181,7 @@ export function AdminSupportPanel({ onOpenOrganization, initialSearch = '', init
               <label className="full-field">Note interne<textarea value={adminNote} onChange={(event) => setAdminNote(event.target.value)} rows={5} placeholder="Diagnostic, réponse proposée, prochaine action…" /></label>
               <label className="admin-checkbox-row"><input type="checkbox" checked={assignToSelf} onChange={(event) => setAssignToSelf(event.target.checked)} /><span><strong>M’assigner ce ticket</strong><small>Ton compte devient responsable du suivi.</small></span></label>
             </div>
-            <button type="button" className="primary-button" onClick={() => void save()} disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer le traitement'}</button>
+            <div className="admin-support-savebar"><span><Icon name="info" size={15} /> Les échanges restent enregistrés dans le ticket.</span><button type="button" className="primary-button" onClick={() => void save()} disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer le traitement'}</button></div>
           </>}
         </aside>
       </section>

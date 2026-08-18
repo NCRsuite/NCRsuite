@@ -24652,3 +24652,141 @@ button { max-width: 100%; }
 .admin-ticket-preview-list > button { transition:border-color .16s ease,background-color .16s ease,transform .16s ease;border:1px solid transparent; }
 .admin-ticket-preview-list > button:hover { border-color:#d9e6f4;background:#f5faff;transform:translateY(-1px); }
 @media (max-width:900px) { .admin-support-heading-stats { width:100%; } .admin-support-heading-stats > span { flex:1;min-width:0; } }
+
+/* NCR Suite V2.29.25 R5.4 — Finition ergonomique NCR Admin */
+/* Fiche client : les onglets restent accessibles pendant le scroll indépendant. */
+.admin-client-hub-tabs {
+  position: sticky;
+  top: -1px;
+  z-index: 6;
+  background: rgba(246, 248, 251, .96);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 18px rgba(20, 28, 43, .045);
+}
+.admin-client-hub-tabs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -10px;
+  height: 10px;
+  background: #fff;
+}
+.admin-client-hub-panel {
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+.admin-client-hub-view { padding-bottom: 2px; }
+.admin-client-summary-actions > button { white-space: nowrap; }
+
+/* Assistance : la file et le ticket utilisent chacun la hauteur disponible. */
+@media (min-width: 901px) {
+  .admin-support-layout {
+    min-height: 0;
+    align-items: stretch;
+  }
+  .admin-support-list-panel {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    max-height: calc(100vh - 170px);
+    overflow: hidden;
+  }
+  .admin-support-ticket-list {
+    max-height: none;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+  .admin-support-editor {
+    display: block;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+  .admin-support-editor-head {
+    position: sticky;
+    top: -22px;
+    z-index: 5;
+    margin: -22px -22px 0;
+    padding: 22px 22px 17px;
+    background: rgba(255,255,255,.97);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+}
+
+.admin-support-back-to-queue {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  margin: 0 0 10px;
+  padding: 0;
+  border: 0;
+  color: #0b6fda;
+  background: transparent;
+  font: inherit;
+  font-size: .66rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+.admin-support-back-to-queue svg { transform: rotate(180deg); }
+.admin-support-savebar {
+  position: sticky;
+  bottom: -22px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 15px -22px -22px;
+  padding: 13px 22px 18px;
+  border-top: 1px solid #e7ebef;
+  background: rgba(255,255,255,.97);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 -10px 24px rgba(20,28,43,.055);
+}
+.admin-support-savebar > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: #7c8795;
+  font-size: .61rem;
+  font-weight: 700;
+}
+.admin-support-savebar > .primary-button { flex: 0 0 auto; white-space: nowrap; }
+
+/* Filtres Clients plus robustes aux largeurs intermédiaires. */
+.admin-organizations-panel .admin-filters { align-items: stretch; }
+.admin-organizations-panel .admin-filters > * { min-width: 0; }
+.admin-organizations-panel .admin-filters select { text-overflow: ellipsis; }
+
+@media (max-width: 1180px) and (min-width: 901px) {
+  .admin-organizations-panel .admin-filters {
+    grid-template-columns: minmax(220px, 1.25fr) repeat(3, minmax(145px, .75fr));
+  }
+}
+
+/* Mobile/tablette : un ticket ouvert remplace la file et évite un long scroll. */
+@media (max-width: 900px) {
+  .admin-support-layout.has-selection .admin-support-list-panel { display: none; }
+  .admin-support-layout:not(.has-selection) .admin-support-editor { display: none; }
+  .admin-support-back-to-queue { display: inline-flex; }
+  .admin-support-editor { padding: 16px; }
+  .admin-support-editor-head { gap: 10px; }
+  .admin-support-savebar {
+    bottom: 0;
+    margin: 12px -16px -16px;
+    padding: 11px 16px max(14px, env(safe-area-inset-bottom));
+  }
+  .admin-support-savebar > span { display: none; }
+  .admin-support-savebar > .primary-button { width: 100%; }
+}
+
+@media (max-width: 720px) {
+  .admin-client-summary-actions > button { flex: 1 1 170px; }
+  .admin-client-section-title { align-items: flex-start; }
+}
