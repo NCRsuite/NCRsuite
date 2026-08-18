@@ -32,12 +32,12 @@ const categoryLabels: Record<string, string> = { general: 'Général', billing: 
 
 function fullDate(value: string) { return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)); }
 
-export function AdminSupportPanel({ onOpenOrganization }: { onOpenOrganization?: (organizationId: string) => void }) {
+export function AdminSupportPanel({ onOpenOrganization, initialSearch = '' }: { onOpenOrganization?: (organizationId: string) => void; initialSearch?: string }) {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [selected, setSelected] = useState<SupportTicket | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
   const [editStatus, setEditStatus] = useState<SupportTicket['status']>('open');
   const [editPriority, setEditPriority] = useState<SupportTicket['priority']>('normal');
   const [adminNote, setAdminNote] = useState('');
@@ -76,6 +76,10 @@ export function AdminSupportPanel({ onOpenOrganization }: { onOpenOrganization?:
     }
     setLoading(false);
   }
+
+  useEffect(() => {
+    setSearch(initialSearch);
+  }, [initialSearch]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load(false), 220);

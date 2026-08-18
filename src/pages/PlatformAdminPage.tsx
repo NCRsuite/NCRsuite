@@ -61,6 +61,72 @@ interface AdminOrganization {
   created_at: string;
 }
 
+type AdminClientTab = 'summary' | 'access' | 'subscription' | 'support' | 'activity' | 'advanced';
+
+interface AdminClientHub {
+  members: Array<{
+    user_id: string;
+    email: string;
+    full_name: string;
+    phone: string | null;
+    avatar_url: string | null;
+    role: string;
+    status: string;
+    created_at: string;
+  }>;
+  invitations: Array<{
+    id: string;
+    email: string;
+    role: string;
+    status: string;
+    expires_at: string;
+    created_at: string;
+  }>;
+  support_tickets: Array<{
+    id: string;
+    subject: string;
+    category: string;
+    priority: string;
+    status: string;
+    updated_at: string;
+    created_at: string;
+  }>;
+  support_access: null | {
+    id: string;
+    ticket_id: string;
+    status: string;
+    reason: string;
+    duration_minutes: number;
+    requested_at: string;
+    approved_at: string | null;
+    started_at: string | null;
+    expires_at: string | null;
+    ended_at: string | null;
+  };
+  activity: Array<{
+    id: number;
+    action: string;
+    entity_type: string;
+    entity_id: string | null;
+    actor_email: string | null;
+    created_at: string;
+  }>;
+  counts: {
+    pending_invitations: number;
+    open_tickets: number;
+    urgent_tickets: number;
+  };
+}
+
+const emptyClientHub: AdminClientHub = {
+  members: [],
+  invitations: [],
+  support_tickets: [],
+  support_access: null,
+  activity: [],
+  counts: { pending_invitations: 0, open_tickets: 0, urgent_tickets: 0 }
+};
+
 const emptyMetrics: AdminMetrics = {
   organizations_total: 0,
   organizations_active: 0,
@@ -148,6 +214,52 @@ function dateLabel(value: string | null) {
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(value));
 }
 
+function dateTimeLabel(value: string | null) {
+  if (!value) return '—';
+  return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+}
+
+function daysUntil(value: string | null) {
+  if (!value) return null;
+  const end = new Date(value).getTime();
+  if (!Number.isFinite(end)) return null;
+  return Math.ceil((end - Date.now()) / 86_400_000);
+}
+
+function roleLabel(value: string) {
+  if (value === 'owner') return 'Propriétaire';
+  if (value === 'admin') return 'Administrateur';
+  if (value === 'manager') return 'Manager';
+  if (value === 'trainer') return 'Formateur';
+  if (value === 'agent') return 'Agent';
+  return value.split('_').join(' ');
+}
+
+function supportStatusLabel(value: string) {
+  const labels: Record<string, string> = { open: 'Nouveau', in_progress: 'En cours', waiting_customer: 'Attente client', resolved: 'Résolu', closed: 'Fermé' };
+  return labels[value] ?? value;
+}
+
+function supportAccessStatusLabel(value: string) {
+  const labels: Record<string, string> = { pending: 'Autorisation demandée', approved: 'Autorisation accordée', active: 'Prise en main active' };
+  return labels[value] ?? value;
+}
+
+function activityLabel(value: string) {
+  const labels: Record<string, string> = {
+    'platform.support_access_requested': 'Demande de prise en main NCR',
+    'platform.support_session_started': 'Prise en main NCR démarrée',
+    'support.access_approved': 'Prise en main autorisée par le client',
+    'support.access_denied': 'Prise en main refusée par le client',
+    'organization.created_trial': 'Espace créé en essai',
+    'organization.created_payment_required': 'Espace créé — paiement requis',
+    'organization.onboarding_completed_trial': 'Démarrage terminé pendant l’essai',
+    'organization.onboarding_completed_payment_pending': 'Démarrage terminé — paiement en attente'
+  };
+  if (labels[value]) return labels[value];
+  return value.split('.').join(' · ').split('_').join(' ');
+}
+
 function inputDate(value: string | null) {
   return value ? value.slice(0, 10) : '';
 }
@@ -177,6 +289,11 @@ export function PlatformAdminPage() {
   const [metrics, setMetrics] = useState<AdminMetrics>(emptyMetrics);
   const [organizations, setOrganizations] = useState<AdminOrganization[]>([]);
   const [selected, setSelected] = useState<AdminOrganization | null>(null);
+  const [clientDetailTab, setClientDetailTab] = useState<AdminClientTab>('summary');
+  const [clientHub, setClientHub] = useState<AdminClientHub>(emptyClientHub);
+  const [clientHubLoading, setClientHubLoading] = useState(false);
+  const [clientHubError, setClientHubError] = useState('');
+  const [supportSearchSeed, setSupportSearchSeed] = useState('');
   const [search, setSearch] = useState('');
   const [globalSearch, setGlobalSearch] = useState('');
   const [globalSearchResults, setGlobalSearchResults] = useState<AdminOrganization[]>([]);
@@ -193,7 +310,6 @@ export function PlatformAdminPage() {
   const [loginEmail, setLoginEmail] = useState(user?.email ?? '');
   const [changingLoginEmail, setChangingLoginEmail] = useState(false);
   const [showDeleteOrganization, setShowDeleteOrganization] = useState(false);
-  const [showOrganizationAdvanced, setShowOrganizationAdvanced] = useState(false);
   const [deleteOrganizationName, setDeleteOrganizationName] = useState('');
   const [deletingOrganization, setDeletingOrganization] = useState(false);
 
@@ -235,7 +351,6 @@ export function PlatformAdminPage() {
     setMessage('');
     setError('');
     setShowDeleteOrganization(false);
-    setShowOrganizationAdvanced(false);
     setDeleteOrganizationName('');
   }
 
@@ -263,6 +378,28 @@ export function PlatformAdminPage() {
     }
   }
 
+  async function loadClientHub(organizationId: string) {
+    const client = supabase;
+    if (!client) return;
+    setClientHubLoading(true);
+    setClientHubError('');
+    const { data, error: requestError } = await client.rpc('admin_get_organization_hub', {
+      p_organization_id: organizationId
+    });
+    if (requestError) {
+      setClientHub(emptyClientHub);
+      setClientHubError(requestError.message);
+    } else {
+      const payload = (data ?? {}) as Partial<AdminClientHub>;
+      setClientHub({
+        ...emptyClientHub,
+        ...payload,
+        counts: { ...emptyClientHub.counts, ...(payload.counts ?? {}) }
+      });
+    }
+    setClientHubLoading(false);
+  }
+
   async function loadAll(preserveSelection = true) {
     setLoading(true);
     setError('');
@@ -282,6 +419,16 @@ export function PlatformAdminPage() {
   useEffect(() => {
     setLoginEmail(user?.email ?? '');
   }, [user?.email]);
+
+  useEffect(() => {
+    if (!selected?.id) {
+      setClientHub(emptyClientHub);
+      setClientHubError('');
+      return;
+    }
+    setClientDetailTab('summary');
+    void loadClientHub(selected.id);
+  }, [selected?.id]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -418,6 +565,7 @@ export function PlatformAdminPage() {
     } else {
       setMessage('L’abonnement et l’accès de l’entreprise ont été mis à jour.');
       await loadAll(true);
+      await loadClientHub(selected.id);
     }
     setSaving(false);
   }
@@ -467,6 +615,12 @@ export function PlatformAdminPage() {
     setDeletingOrganization(false);
   }
 
+  function openSupportForOrganization(organization: AdminOrganization) {
+    setSupportSearchSeed(organization.name);
+    setActiveSection('support');
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
   function openOrganizationFromSupport(organizationId: string) {
     const organization = organizations.find((row) => row.id === organizationId);
     if (organization) populateEditor(organization);
@@ -492,6 +646,16 @@ export function PlatformAdminPage() {
     setActiveSection(section);
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
+
+  const selectedTrialDays = selected?.organization_status === 'trial' ? daysUntil(selected.trial_ends_at) : null;
+  const selectedAttentionItems = selected ? [
+    ...(selected.health === 'critical' ? [{ icon: 'alert' as const, tone: 'danger', title: 'État critique', detail: 'Un statut d’accès, de paiement ou un ticket urgent demande une vérification.' }] : []),
+    ...(selectedTrialDays !== null && selectedTrialDays <= 3 ? [{ icon: 'clock' as const, tone: selectedTrialDays < 0 ? 'danger' : 'warning', title: selectedTrialDays < 0 ? 'Essai arrivé à échéance' : `Essai : J-${Math.max(selectedTrialDays, 0)}`, detail: selectedTrialDays < 0 ? 'Les données restent conservées. Vérifie la conversion ou le statut d’accès.' : 'La fin de l’essai approche : vérifie le suivi commercial.' }] : []),
+    ...(clientHub.counts.urgent_tickets > 0 ? [{ icon: 'headset' as const, tone: 'danger', title: `${clientHub.counts.urgent_tickets} ticket(s) urgent(s)`, detail: 'Ouvre l’Assistance NCR pour traiter la demande en priorité.' }] : []),
+    ...(clientHub.counts.open_tickets > 0 && clientHub.counts.urgent_tickets === 0 ? [{ icon: 'message' as const, tone: 'info', title: `${clientHub.counts.open_tickets} demande(s) d’assistance ouverte(s)`, detail: 'Une conversation avec cette entreprise est en cours.' }] : []),
+    ...(clientHub.counts.pending_invitations > 0 ? [{ icon: 'users' as const, tone: 'warning', title: `${clientHub.counts.pending_invitations} invitation(s) en attente`, detail: 'Des accès n’ont pas encore été acceptés.' }] : []),
+    ...(selected.onboarding_status !== 'completed' ? [{ icon: 'clipboard' as const, tone: 'warning', title: 'Démarrage incomplet', detail: 'L’entreprise n’a pas encore terminé toute sa section Démarrage.' }] : [])
+  ] : [];
 
   return (
     <div className="platform-admin-page">
@@ -575,7 +739,7 @@ export function PlatformAdminPage() {
           <button type="button" className={adminSectionGroup(activeSection) === 'cockpit' ? 'active' : ''} onClick={() => setActiveSection('cockpit')}><Icon name="home" size={19} /><span><strong>Vue d’ensemble</strong><small>Priorités et pilotage du jour</small></span></button>
           <button type="button" className={adminSectionGroup(activeSection) === 'clients' ? 'active' : ''} onClick={() => setActiveSection('overview')}><Icon name="building" size={19} /><span><strong>Clients</strong><small>Entreprises et demandes d’accès</small></span></button>
           <button type="button" className={adminSectionGroup(activeSection) === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}><Icon name="creditCard" size={19} /><span><strong>Abonnements & essais</strong><small>Essais, Stripe, offres et paiements</small></span></button>
-          <button type="button" className={adminSectionGroup(activeSection) === 'support' ? 'active' : ''} onClick={() => setActiveSection('support')}><Icon name="headset" size={19} /><span><strong>Assistance NCR</strong><small>Conversations et prises en main</small></span></button>
+          <button type="button" className={adminSectionGroup(activeSection) === 'support' ? 'active' : ''} onClick={() => { setSupportSearchSeed(''); setActiveSection('support'); }}><Icon name="headset" size={19} /><span><strong>Assistance NCR</strong><small>Conversations et prises en main</small></span></button>
           <button type="button" className={adminSectionGroup(activeSection) === 'platform' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}><Icon name="tool" size={19} /><span><strong>Plateforme</strong><small>Surveillance et outils avancés</small></span></button>
         </nav>
 
@@ -619,7 +783,7 @@ export function PlatformAdminPage() {
           />
         )}
 
-        {activeSection === 'support' && <AdminSupportPanel onOpenOrganization={openOrganizationFromSupport} />}
+        {activeSection === 'support' && <AdminSupportPanel key={supportSearchSeed || 'all-support'} initialSearch={supportSearchSeed} onOpenOrganization={openOrganizationFromSupport} />}
         {activeSection === 'access' && <AdminAccessRequestsPanel canReview={profile?.role === 'super_admin'} />}
         {activeSection === 'activity' && <AdminActivityPanel />}
         {activeSection === 'diagnostics' && <AdminDiagnosticsPanel onOpenSupport={() => setActiveSection('support')} />}
@@ -700,163 +864,187 @@ export function PlatformAdminPage() {
             </div>
           </article>
 
-          <aside className="panel admin-editor-panel">
+          <aside className="panel admin-editor-panel admin-client-hub-panel">
             {!selected ? (
               <div className="admin-editor-empty">
                 <span><Icon name="building" size={28} /></span>
                 <h2>Sélectionne une entreprise</h2>
-                <p>Tu pourras consulter son activité et gérer sa formule sans entrer dans ses données métier.</p>
+                <p>Sa fiche client centralisera les accès, l’abonnement, l’assistance NCR et l’activité utile.</p>
               </div>
             ) : (
-              <form onSubmit={saveSubscription} className="admin-subscription-form">
-                <div className="admin-editor-company">
-                  <span className="admin-company-avatar large">{selected.name.slice(0, 1).toUpperCase()}</span>
-                  <div><p className="eyebrow">ABONNEMENT</p><h2>{selected.name}</h2><small>{selected.owner_email || 'Propriétaire non identifié'}</small></div>
-                </div>
-
-                <div className="admin-company-quick-actions">
-                  <button type="button" className="secondary-button compact" onClick={() => setActiveSection('support')}><Icon name="headset" size={15} /> Assistance NCR {selected.open_tickets > 0 ? `(${selected.open_tickets})` : ''}</button>
-                  {profile?.role === 'super_admin' && <button type="button" className={`secondary-button compact${showOrganizationAdvanced ? ' active' : ''}`} onClick={() => setShowOrganizationAdvanced((value) => !value)}><Icon name="settings" size={15} /> {showOrganizationAdvanced ? 'Masquer avancé' : 'Options avancées'}</button>}
-                </div>
-
-                <div className="admin-company-health-head">
-                  <span className={`admin-health-pill ${selected.health}`}><i />{selected.health === 'healthy' ? 'Entreprise saine' : selected.health === 'attention' ? 'Attention requise' : 'Action prioritaire'}</span>
-                  <span>{selected.onboarding_status === 'completed' ? 'Onboarding terminé' : 'Onboarding incomplet'}</span>
-                </div>
-
-                <div className="admin-detail-strip admin-detail-strip-rich">
-                  <div><span>Utilisateurs</span><strong>{selected.active_members}</strong></div>
-                  <div><span>Tickets ouverts</span><strong>{selected.open_tickets}</strong></div>
-                  <div><span>Documents</span><strong>{bytesLabel(selected.documents_bytes)}</strong></div>
-                  <div><span>Dernière activité</span><strong>{dateLabel(selected.last_activity_at)}</strong></div>
-                </div>
-
-                <div className="admin-company-contact-card">
-                  <span><Icon name="building" size={18} /></span>
-                  <div><strong>{selected.company_city || 'Localisation non renseignée'}</strong><small>{selected.company_phone || selected.owner_email || selected.slug}</small></div>
-                  <em>Créée {dateLabel(selected.created_at)}</em>
-                </div>
-
-                {!canManage && <div className="info-message">Ton rôle Support permet la consultation, mais pas la modification des formules.</div>}
-
-                <div className="admin-form-grid">
-                  <label>
-                    Formule
-                    <select value={editPlan} onChange={(event) => changePlan(event.target.value as Plan)} disabled={!canManage}>
-                      {selectedPlans.map((plan) => <option key={plan.value} value={plan.value}>{plan.label}</option>)}
-                    </select>
-                    <small>Limite prévue : {selectedPlan?.memberLimit ?? 1} accès · tarif catalogue {money(selectedPlan?.defaultPrice ?? 0)} HT/mois.</small>
-                  </label>
-                  <label>
-                    Tarif mensuel HT
-                    <div className="admin-price-input"><input inputMode="decimal" value={editPrice} onChange={(event) => setEditPrice(event.target.value)} disabled={!canManage} /><span>€</span></div>
-                    <small>Modifiable pour les offres Métier ou les accords spécifiques.</small>
-                  </label>
-                  <div className="info-message full-field admin-plan-summary">
-                    <strong>{selectedPlan?.label} — offre {businessPacks[selected.business_type].label}</strong>
-                    <span>{selectedPlan?.detail}</span>
-                    <ul>{selectedPlan?.additions.map((addition) => <li key={addition}>{addition}</li>)}</ul>
+              <form onSubmit={saveSubscription} className="admin-subscription-form admin-client-hub-form">
+                <header className="admin-client-hub-head">
+                  <div className="admin-editor-company">
+                    <span className="admin-company-avatar large">{selected.name.slice(0, 1).toUpperCase()}</span>
+                    <div><p className="eyebrow">FICHE CLIENT</p><h2>{selected.name}</h2><small>{businessPacks[selected.business_type].label} · {selected.owner_email || 'Propriétaire non identifié'}</small></div>
                   </div>
-                  <label>
-                    Accès de l’entreprise
-                    <select value={editOrganizationStatus} onChange={(event) => setEditOrganizationStatus(event.target.value as OrganizationStatus)} disabled={!canManage}>
-                      <option value="trial">Essai</option>
-                      <option value="active">Active</option>
-                      <option value="suspended">Suspendue</option>
-                      <option value="closed">Fermée</option>
-                    </select>
-                  </label>
-                  <label>
-                    État de l’abonnement
-                    <select value={editSubscriptionStatus} onChange={(event) => setEditSubscriptionStatus(event.target.value as SubscriptionStatus)} disabled={!canManage}>
-                      <option value="trialing">Période d’essai</option>
-                      <option value="active">Actif</option>
-                      <option value="past_due">Paiement en retard</option>
-                      <option value="paused">En pause</option>
-                      <option value="canceled">Résilié</option>
-                    </select>
-                  </label>
-                  <label>
-                    Fin de l’essai
-                    <input type="date" value={editTrialEnd} onChange={(event) => setEditTrialEnd(event.target.value)} disabled={!canManage} />
-                  </label>
-                  <label>
-                    Fin de période
-                    <input type="date" value={editPeriodEnd} onChange={(event) => setEditPeriodEnd(event.target.value)} disabled={!canManage} />
-                  </label>
-                  <label className="admin-checkbox-field full-field">
-                    <input type="checkbox" checked={editCancelAtPeriodEnd} onChange={(event) => setEditCancelAtPeriodEnd(event.target.checked)} disabled={!canManage} />
-                    <span><strong>Résiliation en fin de période</strong><small>L’accès reste actif jusqu’à la date prévue.</small></span>
-                  </label>
-                  <label className="full-field">
-                    Note interne NCR
-                    <textarea rows={4} maxLength={2000} value={editNotes} onChange={(event) => setEditNotes(event.target.value)} disabled={!canManage} placeholder="Échange commercial, particularité du contrat, incident de paiement…" />
-                  </label>
-                </div>
+                  <div className="admin-client-hub-head-actions">
+                    <span className={`admin-health-pill ${selected.health}`}><i />{selected.health === 'healthy' ? 'Saine' : selected.health === 'attention' ? 'À surveiller' : 'Prioritaire'}</span>
+                    <button type="button" className="secondary-button compact" onClick={() => openSupportForOrganization(selected)}><Icon name="headset" size={15} /> Assistance {selected.open_tickets > 0 ? `(${selected.open_tickets})` : ''}</button>
+                  </div>
+                </header>
 
-                <div className="admin-current-status">
-                  <span className={`admin-status-pill ${statusClass(editOrganizationStatus)}`}>{organizationStatusLabels[editOrganizationStatus]}</span>
-                  <span className={`admin-status-pill ${statusClass(editSubscriptionStatus)}`}>{subscriptionStatusLabels[editSubscriptionStatus]}</span>
-                  <span>{selected.provider === 'qonto' ? 'Paiement Qonto' : selected.provider === 'stripe' ? 'Paiement Stripe' : 'Gestion manuelle'}</span>
-                </div>
+                <nav className="admin-client-hub-tabs" aria-label={`Fiche de ${selected.name}`}>
+                  <button type="button" className={clientDetailTab === 'summary' ? 'active' : ''} onClick={() => setClientDetailTab('summary')}><Icon name="home" size={15} /> Synthèse</button>
+                  <button type="button" className={clientDetailTab === 'access' ? 'active' : ''} onClick={() => setClientDetailTab('access')}><Icon name="users" size={15} /> Accès {clientHub.counts.pending_invitations > 0 && <b>{clientHub.counts.pending_invitations}</b>}</button>
+                  <button type="button" className={clientDetailTab === 'subscription' ? 'active' : ''} onClick={() => setClientDetailTab('subscription')}><Icon name="creditCard" size={15} /> Abonnement</button>
+                  <button type="button" className={clientDetailTab === 'support' ? 'active' : ''} onClick={() => setClientDetailTab('support')}><Icon name="headset" size={15} /> Assistance {clientHub.counts.open_tickets > 0 && <b>{clientHub.counts.open_tickets}</b>}</button>
+                  <button type="button" className={clientDetailTab === 'activity' ? 'active' : ''} onClick={() => setClientDetailTab('activity')}><Icon name="activity" size={15} /> Activité</button>
+                  {profile?.role === 'super_admin' && <button type="button" className={clientDetailTab === 'advanced' ? 'active' : ''} onClick={() => setClientDetailTab('advanced')}><Icon name="settings" size={15} /> Avancé</button>}
+                </nav>
 
-                {canManage && <button className="primary-button full" type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer la formule et l’accès'}</button>}
+                {clientHubError && <div className="warning-message admin-client-hub-load-error"><Icon name="alert" size={16} /><span>Les informations détaillées n’ont pas pu être chargées : {clientHubError}</span><button type="button" onClick={() => void loadClientHub(selected.id)}>Réessayer</button></div>}
 
-                {profile?.role === 'super_admin' && showOrganizationAdvanced && (
-                  <section className="admin-organization-danger-zone">
-                    <div className="admin-organization-danger-head">
-                      <span><Icon name="alert" size={20} /></span>
-                      <div>
-                        <strong>Supprimer définitivement cette entreprise</strong>
-                        <small>Cette action supprime l’espace, l’abonnement, les données métier, les documents et les accès associés. Elle fonctionne même si l’entreprise est active.</small>
-                      </div>
+                {clientDetailTab === 'summary' && (
+                  <div className="admin-client-hub-view">
+                    <section className="admin-client-attention-block">
+                      <div className="admin-client-section-title"><div><p className="eyebrow">À TRAITER</p><h3>Ce qui mérite ton attention</h3></div><span>{selectedAttentionItems.length}</span></div>
+                      {clientHubLoading ? <PremiumSkeleton label="Analyse de la fiche client" rows={2} compact /> : selectedAttentionItems.length === 0 ? (
+                        <div className="admin-client-all-good"><Icon name="check" size={20} /><div><strong>Rien d’urgent</strong><small>L’entreprise ne présente aucun point prioritaire actuellement.</small></div></div>
+                      ) : (
+                        <div className="admin-client-attention-list">
+                          {selectedAttentionItems.map((item, index) => <article key={`${item.title}-${index}`} className={`admin-client-attention-item ${item.tone}`}><span><Icon name={item.icon} size={17} /></span><div><strong>{item.title}</strong><small>{item.detail}</small></div></article>)}
+                        </div>
+                      )}
+                    </section>
+
+                    <div className="admin-detail-strip admin-detail-strip-rich admin-client-summary-strip">
+                      <div><span>Utilisateurs</span><strong>{selected.active_members}</strong></div>
+                      <div><span>Formule</span><strong>{planLabels[selected.plan]}</strong></div>
+                      <div><span>Mensuel HT</span><strong>{money(selected.monthly_price_cents)}</strong></div>
+                      <div><span>Dernière activité</span><strong>{dateLabel(selected.last_activity_at)}</strong></div>
                     </div>
 
-                    {!showDeleteOrganization ? (
-                      <button
-                        type="button"
-                        className="secondary-button danger-button full"
-                        onClick={() => { setShowDeleteOrganization(true); setDeleteOrganizationName(''); setError(''); }}
-                      >
-                        Supprimer l’entreprise
-                      </button>
-                    ) : (
-                      <div className="admin-organization-delete-confirmation">
-                        <div className="warning-message">
-                          <strong>Suppression irréversible</strong>
-                          <span>Les comptes de connexion ne seront pas supprimés, car un utilisateur peut appartenir à plusieurs entreprises. L’entreprise et toutes ses données seront en revanche définitivement effacées.</span>
-                        </div>
-                        <label>
-                          Pour confirmer, saisis exactement : <strong>{selected.name}</strong>
-                          <input
-                            value={deleteOrganizationName}
-                            onChange={(event) => setDeleteOrganizationName(event.target.value)}
-                            autoComplete="off"
-                            placeholder={selected.name}
-                            disabled={deletingOrganization}
-                          />
-                        </label>
-                        <div className="admin-delete-actions">
-                          <button
-                            type="button"
-                            className="secondary-button"
-                            onClick={() => { setShowDeleteOrganization(false); setDeleteOrganizationName(''); }}
-                            disabled={deletingOrganization}
-                          >
-                            Annuler
-                          </button>
-                          <button
-                            type="button"
-                            className="secondary-button danger-button"
-                            onClick={() => void deleteSelectedOrganization()}
-                            disabled={deletingOrganization || deleteOrganizationName.trim().toLocaleLowerCase('fr-FR') !== selected.name.trim().toLocaleLowerCase('fr-FR')}
-                          >
-                            {deletingOrganization ? 'Suppression en cours…' : 'Supprimer définitivement'}
-                          </button>
-                        </div>
-                      </div>
+                    <section className="admin-client-summary-grid">
+                      <article>
+                        <span><Icon name="building" size={18} /></span>
+                        <div><small>Entreprise</small><strong>{selected.company_city || 'Localisation non renseignée'}</strong><em>{selected.company_phone || selected.owner_email || selected.slug}</em></div>
+                      </article>
+                      <article>
+                        <span><Icon name="creditCard" size={18} /></span>
+                        <div><small>Abonnement</small><strong>{organizationStatusLabels[selected.organization_status]} · {subscriptionStatusLabels[selected.subscription_status]}</strong><em>{selected.provider === 'stripe' ? 'Stripe' : selected.provider === 'qonto' ? 'Qonto' : 'Gestion manuelle'}</em></div>
+                      </article>
+                      <article>
+                        <span><Icon name="clipboard" size={18} /></span>
+                        <div><small>Démarrage</small><strong>{selected.onboarding_status === 'completed' ? 'Terminé' : 'À terminer'}</strong><em>Créée {dateLabel(selected.created_at)}</em></div>
+                      </article>
+                      <article>
+                        <span><Icon name="file" size={18} /></span>
+                        <div><small>Données</small><strong>{bytesLabel(selected.documents_bytes)} de documents</strong><em>{selected.clients_count} client(s) · {selected.appointments_count} rendez-vous</em></div>
+                      </article>
+                    </section>
+
+                    {selected.organization_status === 'trial' && (
+                      <section className="admin-client-trial-card">
+                        <span><Icon name="clock" size={20} /></span>
+                        <div><small>ESSAI EN COURS</small><strong>{selectedTrialDays === null ? 'Date de fin à vérifier' : selectedTrialDays < 0 ? 'Essai arrivé à échéance' : `${selectedTrialDays} jour${selectedTrialDays > 1 ? 's' : ''} restant${selectedTrialDays > 1 ? 's' : ''}`}</strong><em>Fin prévue : {dateLabel(selected.trial_ends_at)} · données conservées après échéance.</em></div>
+                        <button type="button" className="secondary-button compact" onClick={() => setClientDetailTab('subscription')}>Gérer</button>
+                      </section>
                     )}
-                  </section>
+
+                    <div className="admin-client-summary-actions">
+                      <button type="button" className="primary-button" onClick={() => setClientDetailTab('subscription')}><Icon name="creditCard" size={16} /> Gérer l’abonnement</button>
+                      <button type="button" className="secondary-button" onClick={() => setClientDetailTab('access')}><Icon name="users" size={16} /> Voir les accès</button>
+                      <button type="button" className="secondary-button" onClick={() => setClientDetailTab('support')}><Icon name="headset" size={16} /> Assistance NCR</button>
+                    </div>
+                  </div>
+                )}
+
+                {clientDetailTab === 'access' && (
+                  <div className="admin-client-hub-view">
+                    <div className="admin-client-section-title"><div><p className="eyebrow">UTILISATEURS & ACCÈS</p><h3>Qui peut entrer dans cet espace</h3><p>Lecture centralisée des membres actifs ou désactivés et des invitations encore en attente.</p></div><span>{clientHub.members.length}</span></div>
+                    {clientHubLoading ? <PremiumSkeleton label="Chargement des accès" rows={4} compact /> : <>
+                      <div className="admin-client-member-list">
+                        {clientHub.members.length === 0 && <div className="admin-empty-state">Aucun membre rattaché à cette entreprise.</div>}
+                        {clientHub.members.map((member) => <article key={member.user_id}>
+                          <span className="admin-member-avatar">{member.full_name.slice(0, 1).toUpperCase()}</span>
+                          <div><strong>{member.full_name}</strong><small>{member.email}{member.phone ? ` · ${member.phone}` : ''}</small></div>
+                          <span className="admin-member-role">{roleLabel(member.role)}</span>
+                          <span className={`admin-status-pill ${member.status === 'active' ? 'positive' : 'warning'}`}>{member.status === 'active' ? 'Actif' : 'Désactivé'}</span>
+                        </article>)}
+                      </div>
+                      {clientHub.invitations.length > 0 && <section className="admin-client-pending-access"><div className="admin-client-mini-title"><strong>Invitations en attente</strong><span>{clientHub.invitations.length}</span></div>{clientHub.invitations.map((invitation) => <article key={invitation.id}><span><Icon name="message" size={16} /></span><div><strong>{invitation.email}</strong><small>{roleLabel(invitation.role)} · expire {dateLabel(invitation.expires_at)}</small></div></article>)}</section>}
+                    </>}
+                    <div className="info-message admin-client-readonly-note"><Icon name="info" size={17} /><span>Cette vue reste volontairement sûre : les changements de compte métier se font depuis l’espace client ou pendant une prise en main NCR autorisée.</span></div>
+                  </div>
+                )}
+
+                {clientDetailTab === 'subscription' && (
+                  <div className="admin-client-hub-view">
+                    <div className="admin-client-section-title"><div><p className="eyebrow">ABONNEMENT</p><h3>Formule, essai et accès commercial</h3><p>Les réglages importants sont regroupés ici, loin des outils techniques.</p></div><span className={`admin-status-pill ${statusClass(editSubscriptionStatus)}`}>{subscriptionStatusLabels[editSubscriptionStatus]}</span></div>
+                    {!canManage && <div className="info-message">Ton rôle Support permet la consultation, mais pas la modification des formules.</div>}
+                    <div className="admin-form-grid">
+                      <label>
+                        Formule
+                        <select value={editPlan} onChange={(event) => changePlan(event.target.value as Plan)} disabled={!canManage}>
+                          {selectedPlans.map((plan) => <option key={plan.value} value={plan.value}>{plan.label}</option>)}
+                        </select>
+                        <small>Limite prévue : {selectedPlan?.memberLimit ?? 1} accès · tarif catalogue {money(selectedPlan?.defaultPrice ?? 0)} HT/mois.</small>
+                      </label>
+                      <label>
+                        Tarif mensuel HT
+                        <div className="admin-price-input"><input inputMode="decimal" value={editPrice} onChange={(event) => setEditPrice(event.target.value)} disabled={!canManage} /><span>€</span></div>
+                        <small>Modifiable pour les offres Métier ou les accords spécifiques.</small>
+                      </label>
+                      <div className="info-message full-field admin-plan-summary">
+                        <strong>{selectedPlan?.label} — offre {businessPacks[selected.business_type].label}</strong>
+                        <span>{selectedPlan?.detail}</span>
+                        <ul>{selectedPlan?.additions.map((addition) => <li key={addition}>{addition}</li>)}</ul>
+                      </div>
+                      <label>
+                        Accès de l’entreprise
+                        <select value={editOrganizationStatus} onChange={(event) => setEditOrganizationStatus(event.target.value as OrganizationStatus)} disabled={!canManage}>
+                          <option value="trial">Essai</option><option value="active">Active</option><option value="suspended">Suspendue</option><option value="closed">Fermée</option>
+                        </select>
+                      </label>
+                      <label>
+                        État de l’abonnement
+                        <select value={editSubscriptionStatus} onChange={(event) => setEditSubscriptionStatus(event.target.value as SubscriptionStatus)} disabled={!canManage}>
+                          <option value="trialing">Période d’essai</option><option value="active">Actif</option><option value="past_due">Paiement en retard</option><option value="paused">En pause</option><option value="canceled">Résilié</option>
+                        </select>
+                      </label>
+                      <label>Fin de l’essai<input type="date" value={editTrialEnd} onChange={(event) => setEditTrialEnd(event.target.value)} disabled={!canManage} /></label>
+                      <label>Fin de période<input type="date" value={editPeriodEnd} onChange={(event) => setEditPeriodEnd(event.target.value)} disabled={!canManage} /></label>
+                      <label className="admin-checkbox-field full-field"><input type="checkbox" checked={editCancelAtPeriodEnd} onChange={(event) => setEditCancelAtPeriodEnd(event.target.checked)} disabled={!canManage} /><span><strong>Résiliation en fin de période</strong><small>L’accès reste actif jusqu’à la date prévue.</small></span></label>
+                      <label className="full-field">Note interne NCR<textarea rows={4} maxLength={2000} value={editNotes} onChange={(event) => setEditNotes(event.target.value)} disabled={!canManage} placeholder="Échange commercial, particularité du contrat, incident de paiement…" /></label>
+                    </div>
+                    <div className="admin-current-status"><span className={`admin-status-pill ${statusClass(editOrganizationStatus)}`}>{organizationStatusLabels[editOrganizationStatus]}</span><span className={`admin-status-pill ${statusClass(editSubscriptionStatus)}`}>{subscriptionStatusLabels[editSubscriptionStatus]}</span><span>{selected.provider === 'qonto' ? 'Paiement Qonto' : selected.provider === 'stripe' ? 'Paiement Stripe' : 'Gestion manuelle'}</span></div>
+                    {canManage && <button className="primary-button full" type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer la formule et l’accès'}</button>}
+                  </div>
+                )}
+
+                {clientDetailTab === 'support' && (
+                  <div className="admin-client-hub-view">
+                    <div className="admin-client-section-title"><div><p className="eyebrow">ASSISTANCE NCR</p><h3>Conversations et prise en main</h3><p>Tu vois ici l’état du support sans quitter la fiche client.</p></div><span>{clientHub.counts.open_tickets}</span></div>
+                    {clientHub.support_access && <article className={`admin-client-support-access ${clientHub.support_access.status}`}><span><Icon name="monitor" size={20} /></span><div><small>{supportAccessStatusLabel(clientHub.support_access.status)}</small><strong>{clientHub.support_access.reason}</strong><em>{clientHub.support_access.status === 'active' ? `Expire ${dateTimeLabel(clientHub.support_access.expires_at)}` : `${clientHub.support_access.duration_minutes} min demandées · ${dateTimeLabel(clientHub.support_access.requested_at)}`}</em></div></article>}
+                    {clientHubLoading ? <PremiumSkeleton label="Chargement de l’assistance" rows={3} compact /> : <div className="admin-client-ticket-list">
+                      {clientHub.support_tickets.length === 0 && <div className="admin-client-all-good"><Icon name="check" size={20} /><div><strong>Aucune demande récente</strong><small>Cette entreprise n’a pas de ticket d’assistance à afficher.</small></div></div>}
+                      {clientHub.support_tickets.map((ticket) => <article key={ticket.id} className={ticket.priority === 'urgent' ? 'urgent' : ''}><span><Icon name="message" size={17} /></span><div><strong>{ticket.subject}</strong><small>{supportStatusLabel(ticket.status)} · {dateTimeLabel(ticket.updated_at)}</small></div><em>{ticket.priority === 'urgent' ? 'Urgent' : ticket.category}</em></article>)}
+                    </div>}
+                    <button type="button" className="primary-button full" onClick={() => openSupportForOrganization(selected)}><Icon name="headset" size={16} /> Ouvrir l’Assistance NCR de {selected.name}</button>
+                    <div className="info-message admin-client-readonly-note"><Icon name="shield" size={17} /><span>La prise en main reste soumise à l’autorisation du client et conserve sa traçabilité complète dans l’Assistance NCR.</span></div>
+                  </div>
+                )}
+
+                {clientDetailTab === 'activity' && (
+                  <div className="admin-client-hub-view">
+                    <div className="admin-client-section-title"><div><p className="eyebrow">ACTIVITÉ</p><h3>Dernières actions utiles</h3><p>Une chronologie courte pour comprendre ce qui s’est passé, sans ouvrir le journal technique complet.</p></div><button type="button" className="secondary-button compact" onClick={() => setActiveSection('activity')}>Journal complet</button></div>
+                    {clientHubLoading ? <PremiumSkeleton label="Chargement de l’activité" rows={4} compact /> : <div className="admin-client-activity-list">
+                      {clientHub.activity.length === 0 && <div className="admin-empty-state">Aucune activité récente à afficher.</div>}
+                      {clientHub.activity.map((entry) => <article key={entry.id}><span><Icon name="activity" size={15} /></span><div><strong>{activityLabel(entry.action)}</strong><small>{entry.actor_email || 'Système NCR'} · {entry.entity_type}</small></div><time>{dateTimeLabel(entry.created_at)}</time></article>)}
+                    </div>}
+                  </div>
+                )}
+
+                {clientDetailTab === 'advanced' && profile?.role === 'super_admin' && (
+                  <div className="admin-client-hub-view admin-client-advanced-view">
+                    <div className="admin-client-section-title"><div><p className="eyebrow">AVANCÉ</p><h3>Actions rares ou sensibles</h3><p>Cette zone est volontairement séparée des tâches quotidiennes.</p></div><Icon name="lock" size={19} /></div>
+                    <section className="admin-client-technical-card"><span><Icon name="info" size={19} /></span><div><strong>Identifiants techniques</strong><small>Slug : {selected.slug}</small><small>ID : {selected.id}</small></div></section>
+                    <section className="admin-organization-danger-zone">
+                      <div className="admin-organization-danger-head"><span><Icon name="alert" size={20} /></span><div><strong>Supprimer définitivement cette entreprise</strong><small>Cette action supprime l’espace, l’abonnement, les données métier, les documents et les accès associés. Elle fonctionne même si l’entreprise est active.</small></div></div>
+                      {!showDeleteOrganization ? <button type="button" className="secondary-button danger-button full" onClick={() => { setShowDeleteOrganization(true); setDeleteOrganizationName(''); setError(''); }}>Supprimer l’entreprise</button> : <div className="admin-organization-delete-confirmation"><div className="warning-message"><strong>Suppression irréversible</strong><span>Les comptes de connexion ne seront pas supprimés, car un utilisateur peut appartenir à plusieurs entreprises. L’entreprise et toutes ses données seront en revanche définitivement effacées.</span></div><label>Pour confirmer, saisis exactement : <strong>{selected.name}</strong><input value={deleteOrganizationName} onChange={(event) => setDeleteOrganizationName(event.target.value)} autoComplete="off" placeholder={selected.name} disabled={deletingOrganization} /></label><div className="admin-delete-actions"><button type="button" className="secondary-button" onClick={() => { setShowDeleteOrganization(false); setDeleteOrganizationName(''); }} disabled={deletingOrganization}>Annuler</button><button type="button" className="secondary-button danger-button" onClick={() => void deleteSelectedOrganization()} disabled={deletingOrganization || deleteOrganizationName.trim().toLocaleLowerCase('fr-FR') !== selected.name.trim().toLocaleLowerCase('fr-FR')}>{deletingOrganization ? 'Suppression en cours…' : 'Supprimer définitivement'}</button></div></div>}
+                    </section>
+                  </div>
                 )}
               </form>
             )}
