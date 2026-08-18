@@ -32,7 +32,7 @@ const categoryLabels: Record<string, string> = { general: 'Général', billing: 
 
 function fullDate(value: string) { return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)); }
 
-export function AdminSupportPanel({ onOpenOrganization, initialSearch = '' }: { onOpenOrganization?: (organizationId: string) => void; initialSearch?: string }) {
+export function AdminSupportPanel({ onOpenOrganization, initialSearch = '', initialTicketId = '' }: { onOpenOrganization?: (organizationId: string) => void; initialSearch?: string; initialTicketId?: string }) {
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [selected, setSelected] = useState<SupportTicket | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
@@ -46,6 +46,8 @@ export function AdminSupportPanel({ onOpenOrganization, initialSearch = '' }: { 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [queueTickets, setQueueTickets] = useState<SupportTicket[]>([]);
+  const [pendingInitialTicketId, setPendingInitialTicketId] = useState(initialTicketId);
 
   function selectTicket(ticket: SupportTicket) {
     setSelected(ticket);
@@ -60,20 +62,30 @@ export function AdminSupportPanel({ onOpenOrganization, initialSearch = '' }: { 
     if (!supabase) return;
     setLoading(true);
     setError('');
-    const { data, error: requestError } = await supabase.rpc('admin_list_support_tickets', {
-      p_status: statusFilter || null,
-      p_priority: priorityFilter || null,
-      p_search: search.trim() || null
-    });
-    if (requestError) setError(requestError.message);
+    const [filteredResponse, queueResponse] = await Promise.all([
+      supabase.rpc('admin_list_support_tickets', {
+        p_status: statusFilter || null,
+        p_priority: priorityFilter || null,
+        p_search: search.trim() || null
+      }),
+      supabase.rpc('admin_list_support_tickets', {
+        p_status: null,
+        p_priority: null,
+        p_search: null
+      })
+    ]);
+    if (filteredResponse.error) setError(filteredResponse.error.message);
     else {
-      const rows = (Array.isArray(data) ? data : []) as SupportTicket[];
+      const rows = (Array.isArray(filteredResponse.data) ? filteredResponse.data : []) as SupportTicket[];
       setTickets(rows);
-      if (preserveSelection && selected) {
+      const requestedTicket = pendingInitialTicketId ? rows.find((row) => row.id === pendingInitialTicketId) : undefined;
+      if (requestedTicket) { selectTicket(requestedTicket); setPendingInitialTicketId(''); }
+      else if (preserveSelection && selected) {
         const next = rows.find((row) => row.id === selected.id) ?? null;
         if (next) selectTicket(next); else setSelected(null);
       }
     }
+    if (!queueResponse.error) setQueueTickets((Array.isArray(queueResponse.data) ? queueResponse.data : []) as SupportTicket[]);
     setLoading(false);
   }
 
@@ -86,8 +98,12 @@ export function AdminSupportPanel({ onOpenOrganization, initialSearch = '' }: { 
     return () => window.clearTimeout(timer);
   }, [statusFilter, priorityFilter, search]);
 
-  const openCount = useMemo(() => tickets.filter((ticket) => !['resolved', 'closed'].includes(ticket.status)).length, [tickets]);
-  const urgentCount = useMemo(() => tickets.filter((ticket) => ticket.priority === 'urgent' && !['resolved', 'closed'].includes(ticket.status)).length, [tickets]);
+  const openCount = useMemo(() => queueTickets.filter((ticket) => !['resolved', 'closed'].includes(ticket.status)).length, [queueTickets]);
+  const urgentCount = useMemo(() => queueTickets.filter((ticket) => ticket.priority === 'urgent' && !['resolved', 'closed'].includes(ticket.status)).length, [queueTickets]);
+  const newCount = useMemo(() => queueTickets.filter((ticket) => ticket.status === 'open').length, [queueTickets]);
+  const progressCount = useMemo(() => queueTickets.filter((ticket) => ticket.status === 'in_progress').length, [queueTickets]);
+  const waitingCount = useMemo(() => queueTickets.filter((ticket) => ticket.status === 'waiting_customer').length, [queueTickets]);
+  const resolvedCount = useMemo(() => queueTickets.filter((ticket) => ticket.status === 'resolved').length, [queueTickets]);
 
   async function save() {
     if (!selected || !supabase) return;
@@ -117,7 +133,7 @@ export function AdminSupportPanel({ onOpenOrganization, initialSearch = '' }: { 
     <div className="admin-support-page">
       <section className="admin-section-heading">
         <div><p className="eyebrow">SERVICE CLIENT NCR</p><h1>Support et demandes clients</h1><p>Priorise les incidents, conserve une trace des réponses et identifie rapidement l’entreprise concernée.</p></div>
-        <div className="admin-heading-stats"><span><small>Tickets actifs</small><strong>{openCount}</strong></span><span className={urgentCount ? 'danger' : ''}><small>Urgents</small><strong>{urgentCount}</strong></span></div>
+        <div className="admin-heading-stats admin-support-heading-stats"><span><small>Actifs</small><strong>{openCount}</strong></span><span><small>Nouveaux</small><strong>{newCount}</strong></span><span className={urgentCount ? 'danger' : ''}><small>Urgents</small><strong>{urgentCount}</strong></span></div>
       </section>
 
       {error && <div className="error-message" role="alert">{error}</div>}
@@ -126,12 +142,12 @@ export function AdminSupportPanel({ onOpenOrganization, initialSearch = '' }: { 
       <section className="admin-support-layout">
         <article className="panel admin-support-list-panel">
           <div className="admin-support-queue-presets" aria-label="Raccourcis de file d’assistance">
-            <button type="button" className={!statusFilter && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('all')}>Tous</button>
-            <button type="button" className={statusFilter === 'open' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('new')}>Nouveaux</button>
-            <button type="button" className={statusFilter === 'in_progress' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('progress')}>En cours</button>
-            <button type="button" className={priorityFilter === 'urgent' ? 'active urgent' : ''} onClick={() => applyQueuePreset('urgent')}>Urgents</button>
-            <button type="button" className={statusFilter === 'waiting_customer' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('waiting')}>Attente client</button>
-            <button type="button" className={statusFilter === 'resolved' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('resolved')}>Résolus</button>
+            <button type="button" className={!statusFilter && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('all')}>Tous <b>{queueTickets.length}</b></button>
+            <button type="button" className={statusFilter === 'open' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('new')}>Nouveaux <b>{newCount}</b></button>
+            <button type="button" className={statusFilter === 'in_progress' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('progress')}>En cours <b>{progressCount}</b></button>
+            <button type="button" className={priorityFilter === 'urgent' ? 'active urgent' : ''} onClick={() => applyQueuePreset('urgent')}>Urgents <b>{urgentCount}</b></button>
+            <button type="button" className={statusFilter === 'waiting_customer' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('waiting')}>Attente client <b>{waitingCount}</b></button>
+            <button type="button" className={statusFilter === 'resolved' && !priorityFilter ? 'active' : ''} onClick={() => applyQueuePreset('resolved')}>Résolus <b>{resolvedCount}</b></button>
           </div>
           <div className="admin-support-filters">
             <label><Icon name="search" size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Entreprise, sujet ou e-mail…" /></label>

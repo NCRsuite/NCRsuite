@@ -24638,3 +24638,17 @@ button { max-width: 100%; }
   .admin-client-activity-list > article { grid-template-columns:30px minmax(0,1fr); }
   .admin-client-activity-list time { grid-column:2; }
 }
+
+/* NCR Suite V2.29.25 R5.3 — Cockpit quotidien + Assistance NCR opérationnelle */
+.admin-cockpit-hero-r53 { align-items:center; }
+.admin-cockpit-hero-r53 h1 { max-width:760px; }
+.admin-cockpit-last-update { display:block;margin-top:9px;color:#8a94a1;font-size:.66rem;font-weight:700; }
+.admin-cockpit-healthy-state { margin-top:16px;min-height:116px;align-items:center;padding:20px;border:1px solid #dcefe4;border-radius:16px;background:#f6fcf8; }
+.admin-support-heading-stats > span { min-width:84px; }
+.admin-support-queue-presets button { display:inline-flex;align-items:center;gap:6px; }
+.admin-support-queue-presets button b { display:grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border-radius:999px;color:#596577;background:#f1f4f7;font-size:.58rem;line-height:1; }
+.admin-support-queue-presets button.active b { color:#0b6fda;background:#dceeff; }
+.admin-support-queue-presets button.active.urgent b { color:#b42318;background:#ffe0dc; }
+.admin-ticket-preview-list > button { transition:border-color .16s ease,background-color .16s ease,transform .16s ease;border:1px solid transparent; }
+.admin-ticket-preview-list > button:hover { border-color:#d9e6f4;background:#f5faff;transform:translateY(-1px); }
+@media (max-width:900px) { .admin-support-heading-stats { width:100%; } .admin-support-heading-stats > span { flex:1;min-width:0; } }

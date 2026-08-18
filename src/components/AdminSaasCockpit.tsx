@@ -41,9 +41,20 @@ interface TicketRow {
   organization_name: string;
   priority: 'low' | 'normal' | 'high' | 'urgent';
   subject: string;
-  status: string;
+  status: 'open' | 'in_progress' | 'waiting_customer' | 'resolved' | 'closed';
   created_at: string;
+  updated_at?: string;
 }
+
+type AttentionItem = {
+  key: string;
+  icon: 'headset' | 'creditCard' | 'clock' | 'clipboard' | 'activity';
+  title: string;
+  detail: string;
+  count: number;
+  tone?: 'warning' | 'critical';
+  action: () => void;
+};
 
 const emptyOverview: SaasOverview = {
   organizations_total: 0,
@@ -59,6 +70,15 @@ const emptyOverview: SaasOverview = {
   onboarding_incomplete: 0,
   inactive_14_days: 0,
   domains: []
+};
+
+const priorityRank: Record<TicketRow['priority'], number> = { urgent: 4, high: 3, normal: 2, low: 1 };
+const ticketStatusLabels: Record<TicketRow['status'], string> = {
+  open: 'Nouveau',
+  in_progress: 'En cours',
+  waiting_customer: 'Attente client',
+  resolved: 'Résolu',
+  closed: 'Fermé'
 };
 
 function money(cents: number) {
@@ -77,20 +97,33 @@ function relativeDate(value: string) {
 function activityLabel(action: string) {
   const labels: Record<string, string> = {
     'organization.created': 'Espace créé',
+    'organization.created_trial': 'Espace créé en essai',
+    'organization.created_payment_required': 'Espace créé — paiement requis',
     'organization.onboarding_completed': 'Configuration terminée',
+    'organization.onboarding_completed_trial': 'Démarrage terminé pendant l’essai',
+    'organization.onboarding_completed_payment_pending': 'Démarrage terminé — paiement en attente',
     'platform.subscription_updated': 'Abonnement mis à jour',
-    'support.ticket_created': 'Demande de support créée',
-    'platform.support_ticket_updated': 'Ticket de support mis à jour'
+    'support.ticket_created': 'Demande d’assistance créée',
+    'platform.support_ticket_updated': 'Ticket d’assistance mis à jour',
+    'platform.support_access_requested': 'Prise en main demandée',
+    'platform.support_session_started': 'Prise en main démarrée',
+    'platform.support_session_ended': 'Prise en main terminée'
   };
   return labels[action] ?? action.split('.').join(' · ');
 }
 
-export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSupport, onOpenActivity }: { onOpenOrganizations: () => void; onOpenBilling: () => void; onOpenSupport: () => void; onOpenActivity: () => void }) {
+export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSupport, onOpenActivity }: {
+  onOpenOrganizations: () => void;
+  onOpenBilling: () => void;
+  onOpenSupport: (ticketId?: string) => void;
+  onOpenActivity: () => void;
+}) {
   const [overview, setOverview] = useState<SaasOverview>(emptyOverview);
   const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [tickets, setTickets] = useState<TicketRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null);
 
   async function load() {
     if (!supabase) return;
@@ -108,7 +141,17 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSup
       setOverview((overviewResponse.data ?? emptyOverview) as SaasOverview);
       setActivity((Array.isArray(activityResponse.data) ? activityResponse.data : []) as ActivityRow[]);
       const ticketRows = (Array.isArray(ticketResponse.data) ? ticketResponse.data : []) as TicketRow[];
-      setTickets(ticketRows.filter((ticket) => !['resolved', 'closed'].includes(ticket.status)).slice(0, 5));
+      setTickets(
+        ticketRows
+          .filter((ticket) => !['resolved', 'closed'].includes(ticket.status))
+          .sort((left, right) => {
+            const priorityDelta = priorityRank[right.priority] - priorityRank[left.priority];
+            if (priorityDelta !== 0) return priorityDelta;
+            return new Date(right.updated_at ?? right.created_at).getTime() - new Date(left.updated_at ?? left.created_at).getTime();
+          })
+          .slice(0, 5)
+      );
+      setLastLoadedAt(new Date());
     } catch (cause: any) {
       setError(cause?.message ?? 'Impossible de charger le cockpit SaaS.');
     } finally {
@@ -118,20 +161,44 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSup
 
   useEffect(() => { void load(); }, []);
 
-  const attentionCount = useMemo(() => overview.payments_past_due + overview.trials_ending_soon + overview.urgent_support_tickets + overview.onboarding_incomplete + overview.inactive_14_days, [overview]);
+  const attentionItems = useMemo<AttentionItem[]>(() => {
+    const items: AttentionItem[] = [];
+    if (overview.open_support_tickets > 0) {
+      items.push({
+        key: 'support',
+        icon: 'headset',
+        title: overview.urgent_support_tickets > 0 ? 'Assistance prioritaire' : 'Demandes d’assistance ouvertes',
+        detail: overview.urgent_support_tickets > 0
+          ? `${overview.urgent_support_tickets} urgence(s) dans la file NCR`
+          : 'Conversations client à suivre ou à clôturer',
+        count: overview.open_support_tickets,
+        tone: overview.urgent_support_tickets > 0 ? 'critical' : undefined,
+        action: () => onOpenSupport()
+      });
+    }
+    if (overview.payments_past_due > 0) items.push({ key: 'payments', icon: 'creditCard', title: 'Paiements en retard', detail: 'Abonnements à régulariser', count: overview.payments_past_due, tone: 'critical', action: onOpenBilling });
+    if (overview.trials_ending_soon > 0) items.push({ key: 'trials', icon: 'clock', title: 'Essais bientôt terminés', detail: 'À convertir ou prolonger si nécessaire', count: overview.trials_ending_soon, tone: 'warning', action: onOpenBilling });
+    if (overview.onboarding_incomplete > 0) items.push({ key: 'onboarding', icon: 'clipboard', title: 'Démarrages incomplets', detail: 'Espaces encore non configurés', count: overview.onboarding_incomplete, tone: 'warning', action: onOpenOrganizations });
+    if (overview.inactive_14_days > 0) items.push({ key: 'inactive', icon: 'activity', title: 'Clients inactifs depuis 14 jours', detail: 'À relancer ou diagnostiquer', count: overview.inactive_14_days, action: onOpenOrganizations });
+    return items;
+  }, [overview, onOpenOrganizations, onOpenBilling, onOpenSupport]);
+
+  const attentionCount = useMemo(() => attentionItems.reduce((sum, item) => sum + item.count, 0), [attentionItems]);
 
   return (
     <div className="admin-saas-cockpit">
-      <section className="admin-cockpit-hero">
+      <section className="admin-cockpit-hero admin-cockpit-hero-r53">
         <div>
           <span className="admin-live-pill"><i /> Plateforme opérationnelle</span>
-          <p className="eyebrow">NCR SUITE · EXPLOITATION SAAS</p>
-          <h1>Tout ce qui mérite ton attention, au même endroit</h1>
-          <p>Entreprises, revenus, onboarding, support et activité récente sont regroupés dans un cockpit unique.</p>
+          <p className="eyebrow">NCR SUITE · PILOTAGE DU JOUR</p>
+          <h1>{attentionCount > 0 ? `${attentionCount} point${attentionCount > 1 ? 's' : ''} à suivre` : 'Tout est sous contrôle'}</h1>
+          <p>{attentionCount > 0 ? 'Le cockpit remonte uniquement ce qui mérite ton attention. Le reste reste disponible sans encombrer l’écran.' : 'Aucune urgence détectée pour le moment. Tu peux te concentrer sur les clients, les essais et le développement commercial.'}</p>
+          {lastLoadedAt && <small className="admin-cockpit-last-update">Dernière actualisation : {lastLoadedAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</small>}
         </div>
         <div className="admin-cockpit-actions">
-          <button type="button" className="secondary-button" onClick={() => void load()} disabled={loading}><Icon name="activity" size={17} /> Actualiser</button>
-          <button type="button" className="primary-button" onClick={onOpenOrganizations}><Icon name="building" size={17} /> Gérer les entreprises</button>
+          <button type="button" className="secondary-button" onClick={() => void load()} disabled={loading}><Icon name="activity" size={17} /> {loading ? 'Actualisation…' : 'Actualiser'}</button>
+          <button type="button" className="primary-button" onClick={onOpenOrganizations}><Icon name="building" size={17} /> Clients</button>
+          <button type="button" className="secondary-button" onClick={() => onOpenSupport()}><Icon name="headset" size={17} /> Assistance</button>
         </div>
       </section>
 
@@ -141,19 +208,15 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSup
         <article className="admin-kpi-card primary"><span><Icon name="building" size={21} /></span><div><small>Entreprises actives</small><strong>{overview.organizations_active}</strong><em>{overview.organizations_total} au total · {overview.organizations_trial} en essai</em></div></article>
         <article className="admin-kpi-card"><span><Icon name="creditCard" size={21} /></span><div><small>MRR estimé</small><strong>{money(overview.estimated_mrr_cents)}</strong><em>{overview.payments_past_due} paiement(s) en retard</em></div></article>
         <article className="admin-kpi-card"><span><Icon name="users" size={21} /></span><div><small>Utilisateurs actifs</small><strong>{overview.active_users}</strong><em>tous métiers confondus</em></div></article>
-        <article className={`admin-kpi-card ${attentionCount > 0 ? 'warning' : ''}`}><span><Icon name="alert" size={21} /></span><div><small>Points d’attention</small><strong>{attentionCount}</strong><em>{overview.urgent_support_tickets} urgence(s) support</em></div></article>
+        <article className={`admin-kpi-card ${overview.open_support_tickets > 0 ? 'warning' : ''}`}><span><Icon name="headset" size={21} /></span><div><small>Assistance ouverte</small><strong>{overview.open_support_tickets}</strong><em>{overview.urgent_support_tickets} urgence(s)</em></div></article>
       </section>
 
       <section className="admin-cockpit-grid">
         <article className="panel admin-attention-panel">
-          <div className="panel-header"><div><p className="eyebrow">À TRAITER</p><h2>Centre d’attention</h2></div><span className="admin-count-badge">{attentionCount}</span></div>
-          <div className="admin-attention-list">
-            <button type="button" onClick={onOpenSupport} className={overview.urgent_support_tickets ? 'critical' : ''}><span><Icon name="alert" size={18} /></span><div><strong>Tickets urgents</strong><small>Demandes nécessitant une réponse rapide</small></div><b>{overview.urgent_support_tickets}</b><Icon name="chevronRight" size={17} /></button>
-            <button type="button" onClick={onOpenBilling} className={overview.payments_past_due ? 'warning' : ''}><span><Icon name="creditCard" size={18} /></span><div><strong>Paiements en retard</strong><small>Abonnements à régulariser</small></div><b>{overview.payments_past_due}</b><Icon name="chevronRight" size={17} /></button>
-            <button type="button" onClick={onOpenBilling} className={overview.trials_ending_soon ? 'warning' : ''}><span><Icon name="clock" size={18} /></span><div><strong>Essais bientôt terminés</strong><small>À convertir ou prolonger si nécessaire</small></div><b>{overview.trials_ending_soon}</b><Icon name="chevronRight" size={17} /></button>
-            <button type="button" onClick={onOpenOrganizations}><span><Icon name="clipboard" size={18} /></span><div><strong>Onboarding incomplet</strong><small>Espaces encore non configurés</small></div><b>{overview.onboarding_incomplete}</b><Icon name="chevronRight" size={17} /></button>
-            <button type="button" onClick={onOpenOrganizations}><span><Icon name="clock" size={18} /></span><div><strong>Inactives depuis 14 jours</strong><small>Entreprises à relancer ou diagnostiquer</small></div><b>{overview.inactive_14_days}</b><Icon name="chevronRight" size={17} /></button>
-          </div>
+          <div className="panel-header"><div><p className="eyebrow">À TRAITER</p><h2>Priorités du jour</h2></div><span className="admin-count-badge">{attentionCount}</span></div>
+          {attentionItems.length > 0 ? <div className="admin-attention-list">
+            {attentionItems.map((item) => <button type="button" key={item.key} onClick={item.action} className={item.tone ?? ''}><span><Icon name={item.icon} size={18} /></span><div><strong>{item.title}</strong><small>{item.detail}</small></div><b>{item.count}</b><Icon name="chevronRight" size={17} /></button>)}
+          </div> : <div className="admin-positive-empty admin-cockpit-healthy-state"><Icon name="check" size={24} /><div><strong>Aucune action prioritaire</strong><small>Les essais, paiements, démarrages et demandes d’assistance ne nécessitent pas d’intervention immédiate.</small></div></div>}
         </article>
 
         <article className="panel admin-domains-panel">
@@ -170,17 +233,17 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSup
 
       <section className="admin-cockpit-grid lower">
         <article className="panel admin-support-preview">
-          <div className="panel-header"><div><p className="eyebrow">SUPPORT</p><h2>File active</h2></div><button type="button" className="text-button" onClick={onOpenSupport}>Tout voir <Icon name="chevronRight" size={15} /></button></div>
+          <div className="panel-header"><div><p className="eyebrow">ASSISTANCE NCR</p><h2>À répondre en priorité</h2></div><button type="button" className="text-button" onClick={() => onOpenSupport()}>Toute la file <Icon name="chevronRight" size={15} /></button></div>
           <div className="admin-ticket-preview-list">
-            {tickets.map((ticket) => <button key={ticket.id} type="button" onClick={onOpenSupport}><span className={`admin-priority-dot ${ticket.priority}`} /><div><strong>{ticket.subject}</strong><small>{ticket.organization_name} · {relativeDate(ticket.created_at)}</small></div><span className={`admin-priority-pill ${ticket.priority}`}>{ticket.priority}</span></button>)}
-            {!loading && tickets.length === 0 && <div className="admin-positive-empty"><Icon name="check" size={22} /><div><strong>Aucun ticket actif</strong><small>La file de support est à jour.</small></div></div>}
+            {tickets.map((ticket) => <button key={ticket.id} type="button" onClick={() => onOpenSupport(ticket.id)}><span className={`admin-priority-dot ${ticket.priority}`} /><div><strong>{ticket.subject}</strong><small>{ticket.organization_name} · {ticketStatusLabels[ticket.status]} · {relativeDate(ticket.updated_at ?? ticket.created_at)}</small></div><span className={`admin-priority-pill ${ticket.priority}`}>{ticket.priority === 'urgent' ? 'Urgent' : ticket.priority === 'high' ? 'Haute' : ticket.priority === 'normal' ? 'Normale' : 'Faible'}</span></button>)}
+            {!loading && tickets.length === 0 && <div className="admin-positive-empty"><Icon name="check" size={22} /><div><strong>Aucun ticket actif</strong><small>La file d’assistance est à jour.</small></div></div>}
           </div>
         </article>
 
         <article className="panel admin-activity-preview">
           <div className="panel-header"><div><p className="eyebrow">ACTIVITÉ</p><h2>Derniers événements</h2></div><button type="button" className="text-button" onClick={onOpenActivity}>Journal complet <Icon name="chevronRight" size={15} /></button></div>
           <div className="admin-activity-mini-list">
-            {activity.slice(0, 7).map((row) => <div key={row.id}><span><Icon name={row.action.includes('support') ? 'alert' : row.action.includes('subscription') ? 'creditCard' : 'activity'} size={16} /></span><div><strong>{activityLabel(row.action)}</strong><small>{row.organization_name || 'Plateforme NCR'} · {row.user_email || 'Système'}</small></div><time>{relativeDate(row.created_at)}</time></div>)}
+            {activity.slice(0, 7).map((row) => <div key={row.id}><span><Icon name={row.action.includes('support') ? 'headset' : row.action.includes('subscription') ? 'creditCard' : 'activity'} size={16} /></span><div><strong>{activityLabel(row.action)}</strong><small>{row.organization_name || 'Plateforme NCR'} · {row.user_email || 'Système'}</small></div><time>{relativeDate(row.created_at)}</time></div>)}
           </div>
         </article>
       </section>

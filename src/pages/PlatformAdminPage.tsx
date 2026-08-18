@@ -294,6 +294,7 @@ export function PlatformAdminPage() {
   const [clientHubLoading, setClientHubLoading] = useState(false);
   const [clientHubError, setClientHubError] = useState('');
   const [supportSearchSeed, setSupportSearchSeed] = useState('');
+  const [supportTicketSeed, setSupportTicketSeed] = useState('');
   const [search, setSearch] = useState('');
   const [globalSearch, setGlobalSearch] = useState('');
   const [globalSearchResults, setGlobalSearchResults] = useState<AdminOrganization[]>([]);
@@ -616,7 +617,15 @@ export function PlatformAdminPage() {
   }
 
   function openSupportForOrganization(organization: AdminOrganization) {
+    setSupportTicketSeed('');
     setSupportSearchSeed(organization.name);
+    setActiveSection('support');
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
+  function openSupportTicket(ticketId?: string) {
+    setSupportSearchSeed('');
+    setSupportTicketSeed(ticketId ?? '');
     setActiveSection('support');
     window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
@@ -739,7 +748,7 @@ export function PlatformAdminPage() {
           <button type="button" className={adminSectionGroup(activeSection) === 'cockpit' ? 'active' : ''} onClick={() => setActiveSection('cockpit')}><Icon name="home" size={19} /><span><strong>Vue d’ensemble</strong><small>Priorités et pilotage du jour</small></span></button>
           <button type="button" className={adminSectionGroup(activeSection) === 'clients' ? 'active' : ''} onClick={() => setActiveSection('overview')}><Icon name="building" size={19} /><span><strong>Clients</strong><small>Entreprises et demandes d’accès</small></span></button>
           <button type="button" className={adminSectionGroup(activeSection) === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}><Icon name="creditCard" size={19} /><span><strong>Abonnements & essais</strong><small>Essais, Stripe, offres et paiements</small></span></button>
-          <button type="button" className={adminSectionGroup(activeSection) === 'support' ? 'active' : ''} onClick={() => { setSupportSearchSeed(''); setActiveSection('support'); }}><Icon name="headset" size={19} /><span><strong>Assistance NCR</strong><small>Conversations et prises en main</small></span></button>
+          <button type="button" className={adminSectionGroup(activeSection) === 'support' ? 'active' : ''} onClick={() => { setSupportSearchSeed(''); setSupportTicketSeed(''); setActiveSection('support'); }}><Icon name="headset" size={19} /><span><strong>Assistance NCR</strong><small>Conversations et prises en main</small></span></button>
           <button type="button" className={adminSectionGroup(activeSection) === 'platform' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}><Icon name="tool" size={19} /><span><strong>Plateforme</strong><small>Surveillance et outils avancés</small></span></button>
         </nav>
 
@@ -778,12 +787,12 @@ export function PlatformAdminPage() {
           <AdminSaasCockpit
             onOpenOrganizations={() => setActiveSection('overview')}
             onOpenBilling={() => setActiveSection('billing')}
-            onOpenSupport={() => setActiveSection('support')}
+            onOpenSupport={openSupportTicket}
             onOpenActivity={() => setActiveSection('activity')}
           />
         )}
 
-        {activeSection === 'support' && <AdminSupportPanel key={supportSearchSeed || 'all-support'} initialSearch={supportSearchSeed} onOpenOrganization={openOrganizationFromSupport} />}
+        {activeSection === 'support' && <AdminSupportPanel key={`${supportSearchSeed || 'all-support'}:${supportTicketSeed || 'queue'}`} initialSearch={supportSearchSeed} initialTicketId={supportTicketSeed} onOpenOrganization={openOrganizationFromSupport} />}
         {activeSection === 'access' && <AdminAccessRequestsPanel canReview={profile?.role === 'super_admin'} />}
         {activeSection === 'activity' && <AdminActivityPanel />}
         {activeSection === 'diagnostics' && <AdminDiagnosticsPanel onOpenSupport={() => setActiveSection('support')} />}
