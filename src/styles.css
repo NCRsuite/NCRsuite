@@ -24790,3 +24790,53 @@ button { max-width: 100%; }
   .admin-client-summary-actions > button { flex: 1 1 170px; }
   .admin-client-section-title { align-items: flex-start; }
 }
+
+/* R5.7 — essai 7 jours Professionnelle */
+.saas-trial-professional-card {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid rgba(10,132,255,.24);
+  border-radius: 24px;
+  background: linear-gradient(145deg,#ffffff 0%,#f4f9ff 100%);
+  box-shadow: 0 18px 42px rgba(10,132,255,.09);
+}
+.saas-trial-professional-head { display:flex;align-items:flex-start;gap:14px; }
+.saas-trial-professional-head > span { width:48px;height:48px;display:grid;place-items:center;flex:0 0 auto;border-radius:15px;color:#fff;background:#0a84ff;box-shadow:0 10px 24px rgba(10,132,255,.22); }
+.saas-trial-professional-head > div { display:grid;gap:5px; }
+.saas-trial-professional-head .eyebrow { margin:0;color:#0a78ea;font-size:.67rem; }
+.saas-trial-professional-head h3 { margin:0;font-size:1.35rem;letter-spacing:-.025em; }
+.saas-trial-professional-head p:last-child { margin:0;color:#66717e;font-size:.82rem;line-height:1.55; }
+.saas-trial-professional-facts { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px; }
+.saas-trial-professional-facts > div { display:grid;gap:4px;padding:14px;border:1px solid #e4ebf2;border-radius:15px;background:#fff; }
+.saas-trial-professional-facts strong { font-size:.86rem; }
+.saas-trial-professional-facts small { color:#77828e;font-size:.68rem;line-height:1.4; }
+.saas-trial-professional-card ul { margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 14px;list-style:none; }
+.saas-trial-professional-card li { display:flex;align-items:flex-start;gap:7px;color:#53606c;font-size:.76rem;line-height:1.45; }
+.saas-trial-professional-card li svg { flex:0 0 auto;margin-top:1px;color:#118b50; }
+.saas-trial-professional-note { display:flex;align-items:flex-start;gap:9px;padding:12px 13px;border-radius:14px;background:#eef6ff;color:#365a7b;font-size:.72rem;line-height:1.45; }
+.saas-trial-professional-note svg { flex:0 0 auto;margin-top:1px; }
+
+.public-trial-plan-card {
+  grid-column: 1 / -1;
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr);
+  gap:12px;
+  align-items:flex-start;
+  padding:16px;
+  border:1px solid rgba(8,120,249,.24);
+  border-radius:8px;
+  background:linear-gradient(145deg,#f8fbff,#eef6ff);
+}
+.public-trial-plan-card > span { width:42px;height:42px;display:grid;place-items:center;border-radius:8px;color:#fff;background:#0878f9; }
+.public-trial-plan-card > div { display:grid;gap:4px; }
+.public-trial-plan-card small { color:#0878f9;font-size:9px;font-weight:900;letter-spacing:.08em; }
+.public-trial-plan-card strong { color:#18242d;font-size:15px; }
+.public-trial-plan-card p { margin:0;color:#61707b;font-size:11px;line-height:1.5; }
+
+@media (max-width: 760px) {
+  .saas-trial-professional-card { padding:18px; }
+  .saas-trial-professional-facts,
+  .saas-trial-professional-card ul { grid-template-columns:1fr; }
+  .public-trial-plan-card { grid-column:auto; }
+}

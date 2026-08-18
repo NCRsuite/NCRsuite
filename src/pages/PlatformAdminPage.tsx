@@ -418,6 +418,27 @@ export function PlatformAdminPage() {
   }, []);
 
   useEffect(() => {
+    if (activeSection !== 'overview') return;
+
+    const refreshVisibleData = () => {
+      if (document.visibilityState !== 'visible') return;
+      void Promise.all([loadDashboard(), loadOrganizations(false)]).catch((requestError: any) => {
+        setError(requestError?.message ?? 'Actualisation automatique impossible.');
+      });
+    };
+
+    const interval = window.setInterval(refreshVisibleData, 10_000);
+    window.addEventListener('focus', refreshVisibleData);
+    document.addEventListener('visibilitychange', refreshVisibleData);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refreshVisibleData);
+      document.removeEventListener('visibilitychange', refreshVisibleData);
+    };
+  }, [activeSection, search, planFilter, statusFilter]);
+
+  useEffect(() => {
     setLoginEmail(user?.email ?? '');
   }, [user?.email]);
 

@@ -9,6 +9,7 @@ type AccessRequest = {
   company_name: string;
   business_type: string;
   requested_plan: string;
+  trial_requested: boolean;
   team_size: string | null;
   message: string | null;
   status: 'pending' | 'approved' | 'rejected';
@@ -139,7 +140,7 @@ Deno.serve(async (request) => {
 
   const { data: accessRequest, error: accessError } = await service
     .from('platform_access_requests')
-    .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,team_size,message,status,invitation_count')
+    .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,trial_requested,team_size,message,status,invitation_count')
     .eq('id', requestId)
     .maybeSingle();
   if (accessError || !accessRequest) return jsonResponse(request, 404, { error: 'Demande introuvable.' });
@@ -196,7 +197,8 @@ Deno.serve(async (request) => {
     phone: row.phone,
     requested_company_name: row.company_name,
     requested_business_type: row.business_type,
-    requested_plan: row.requested_plan,
+    requested_plan: row.trial_requested ? 'professionnelle' : row.requested_plan,
+    trial_requested: row.trial_requested,
     requested_team_size: row.team_size,
     access_request_message: row.message,
     access_request_id: row.id,
@@ -235,12 +237,16 @@ Deno.serve(async (request) => {
     await sendBrevoEmail({
       to: row.email,
       toName: row.full_name,
-      subject: `Votre accès NCR Suite est autorisé · ${row.reference}`,
+      subject: row.trial_requested
+        ? `Votre essai NCR Suite 7 jours est autorisé · ${row.reference}`
+        : `Votre accès NCR Suite est autorisé · ${row.reference}`,
       html: emailLayout(
-        'Votre espace NCR Suite peut être activé',
+        row.trial_requested ? 'Votre essai Professionnel peut démarrer' : 'Votre espace NCR Suite peut être activé',
         `Bonjour ${escapeHtml(row.full_name)}, votre demande pour <strong>${escapeHtml(row.company_name)}</strong> a été acceptée par l’équipe NCR Suite.`,
-        '<p style="margin:0;color:#52616c;font-size:14px;line-height:1.65">Définissez votre mot de passe puis complétez les informations de votre entreprise. Ce lien personnel expire automatiquement.</p>',
-        { label: 'Activer mon accès', url: activationUrl },
+        row.trial_requested
+          ? '<p style="margin:0;color:#52616c;font-size:14px;line-height:1.65"><strong>Votre essai inclut la formule Professionnelle pendant 7 jours.</strong><br>Aucune carte bancaire, aucun paiement et aucun contrat d’abonnement ne sont demandés pour commencer. Définissez votre mot de passe, complétez votre entreprise puis accédez directement à votre espace.</p>'
+          : '<p style="margin:0;color:#52616c;font-size:14px;line-height:1.65">Définissez votre mot de passe puis complétez les informations de votre entreprise. Ce lien personnel expire automatiquement.</p>',
+        { label: row.trial_requested ? 'Démarrer mon essai' : 'Activer mon accès', url: activationUrl },
       ),
     });
   } catch (emailError) {

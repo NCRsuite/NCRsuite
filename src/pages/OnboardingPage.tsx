@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { availableBusinessTypeOptions, businessPacks } from '../config/businessPacks';
 import { businessUiAccent, businessUiTheme } from '../config/businessTheme';
@@ -9,12 +9,19 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
 import type { BusinessType, Plan } from '../types';
 
-const steps = [
+const subscriptionSteps = [
   { id: 1, label: 'Activité', icon: 'briefcase' as const },
   { id: 2, label: 'Entreprise', icon: 'building' as const },
   { id: 3, label: 'Formule', icon: 'creditCard' as const },
   { id: 4, label: 'Identité', icon: 'sparkles' as const },
   { id: 5, label: 'Contrat', icon: 'signature' as const }
+];
+
+const trialSteps = [
+  { id: 1, label: 'Activité', icon: 'briefcase' as const },
+  { id: 2, label: 'Entreprise', icon: 'building' as const },
+  { id: 3, label: 'Essai Pro', icon: 'sparkles' as const },
+  { id: 4, label: 'Démarrage', icon: 'check' as const }
 ];
 
 const planOrder: Plan[] = ['decouverte', 'essentielle', 'professionnelle', 'metier'];
@@ -37,6 +44,9 @@ export function OnboardingPage() {
   const { user } = useAuth();
   const { organization, createOrganization } = useOrganization();
   const requestedBusinessType = String(user?.user_metadata?.requested_business_type ?? '');
+  const accessRequestMessage = String(user?.user_metadata?.access_request_message ?? '');
+  const trialRequested = user?.user_metadata?.trial_requested === true
+    || accessRequestMessage.toLocaleLowerCase('fr-FR').startsWith('demande d’essai gratuit de 7 jours.');
   const initialBusinessType = availableBusinessTypeOptions.some((option) => option.id === requestedBusinessType)
     ? requestedBusinessType as BusinessType
     : 'coiffure';
@@ -45,7 +55,9 @@ export function OnboardingPage() {
   const [businessType, setBusinessType] = useState<BusinessType>(initialBusinessType);
   const metadataPlan = String(user?.user_metadata?.requested_plan ?? '');
   const [requestedPlan, setRequestedPlan] = useState<Plan>(
-    planOrder.includes(metadataPlan as Plan) ? metadataPlan as Plan : 'essentielle'
+    trialRequested
+      ? 'professionnelle'
+      : planOrder.includes(metadataPlan as Plan) ? metadataPlan as Plan : 'essentielle'
   );
   const [contactName, setContactName] = useState(String(user?.user_metadata?.full_name ?? ''));
   const [companyEmail, setCompanyEmail] = useState(user?.email ?? '');
@@ -73,13 +85,18 @@ export function OnboardingPage() {
   const selectedPack = businessPacks[businessType];
   const plans = useMemo(() => getDomainPlans(businessType), [businessType]);
   const selectedPlan = plans[requestedPlan];
+  const steps = trialRequested ? trialSteps : subscriptionSteps;
+
+  useEffect(() => {
+    if (trialRequested && requestedPlan !== 'professionnelle') setRequestedPlan('professionnelle');
+  }, [trialRequested, requestedPlan]);
 
   if (organization && !pending && !contractOrganizationId) return <Navigate to="/" replace />;
 
   function canContinue() {
     if (step === 1) return Boolean(businessType);
     if (step === 2) return name.trim().length >= 2 && companyEmail.includes('@');
-    if (step === 3) return Boolean(requestedPlan);
+    if (step === 3) return trialRequested || Boolean(requestedPlan);
     if (step === 4) return contactName.trim().length >= 2 && companyEmail.includes('@') && termsAccepted;
     return Boolean(contract);
   }
@@ -90,7 +107,7 @@ export function OnboardingPage() {
       setError(step === 2 ? 'Renseigne au minimum le nom de l’entreprise et une adresse e-mail valide.' : 'Complète les informations demandées pour continuer.');
       return;
     }
-    setStep((current) => Math.min(5, current + 1));
+    setStep((current) => Math.min(trialRequested ? 4 : 5, current + 1));
   }
 
   async function submit(event: FormEvent) {
@@ -102,12 +119,13 @@ export function OnboardingPage() {
     setPending(true);
     setError('');
     try {
+      const effectivePlan: Plan = trialRequested ? 'professionnelle' : requestedPlan;
       let organizationId = contractOrganizationId;
       if (!organizationId) {
         organizationId = await createOrganization({
           name: name.trim(),
           businessType,
-          requestedPlan,
+          requestedPlan: effectivePlan,
           contactName: contactName.trim(),
           companyEmail: companyEmail.trim(),
           companyPhone: companyPhone.trim(),
@@ -117,14 +135,16 @@ export function OnboardingPage() {
           companySiret: companySiret.trim(),
           objective: objective.trim()
         });
+        if (trialRequested) return;
         setContractOrganizationId(organizationId);
       }
+      if (trialRequested) return;
       if (!supabase) throw new Error('Le service sécurisé NCR Suite est indisponible.');
       const { data, error: contractError } = await supabase.functions.invoke('subscription-contract', {
         body: {
           action: 'prepare',
           organizationId,
-          planKey: requestedPlan
+          planKey: effectivePlan
         }
       });
       if (contractError || data?.error || !data?.contract) throw new Error(data?.error ?? contractError?.message ?? 'Le contrat n’a pas pu être préparé.');
@@ -216,9 +236,9 @@ export function OnboardingPage() {
 
       <main className="saas-onboarding-shell">
         <aside className="saas-onboarding-aside">
-          <p className="eyebrow">NOUVEL ESPACE</p>
-          <h1>Configure ton entreprise en quelques minutes</h1>
-          <p>NCR Suite prépare automatiquement les menus, les fonctions et l’interface correspondant à ton activité.</p>
+          <p className="eyebrow">{trialRequested ? 'ESSAI GRATUIT · 7 JOURS' : 'NOUVEL ESPACE'}</p>
+          <h1>{trialRequested ? 'Active ton essai Professionnel en quelques minutes' : 'Configure ton entreprise en quelques minutes'}</h1>
+          <p>{trialRequested ? 'Ton espace démarre directement avec la formule Professionnelle, sans carte bancaire, sans contrat et sans paiement au démarrage.' : 'NCR Suite prépare automatiquement les menus, les fonctions et l’interface correspondant à ton activité.'}</p>
 
           <div className="saas-onboarding-progress" aria-label="Progression de la configuration">
             {steps.map((item) => (
@@ -282,19 +302,39 @@ export function OnboardingPage() {
           )}
 
           {step === 3 && (
-            <section className="saas-plan-picker">
-              {planOrder.map((planKey) => {
-                const definition = plans[planKey];
-                return (
-                  <button key={planKey} type="button" className={`${requestedPlan === planKey ? 'selected' : ''}${definition.recommended ? ' recommended' : ''}`} onClick={() => setRequestedPlan(planKey)}>
-                    {definition.recommended && <span className="saas-plan-recommended">Recommandée</span>}
-                    <div className="saas-plan-heading"><span><strong>{definition.label}</strong><small>{definition.detail}</small></span><i>{requestedPlan === planKey ? <Icon name="check" size={16} /> : ''}</i></div>
-                    <div className="saas-plan-price"><strong>{definition.startingAt ? 'Dès ' : ''}{money(definition.monthlyPriceCents)}</strong><span>HT / mois</span></div>
-                    <ul>{definition.additions.slice(0, 4).map((item) => <li key={item}><Icon name="check" size={14} />{item}</li>)}</ul>
-                  </button>
-                );
-              })}
-            </section>
+            trialRequested ? (
+              <section className="saas-trial-professional-card">
+                <div className="saas-trial-professional-head">
+                  <span><Icon name="sparkles" size={24} /></span>
+                  <div>
+                    <p className="eyebrow">FORMULE D’ESSAI</p>
+                    <h3>Professionnelle · 7 jours offerts</h3>
+                    <p>Tu disposes directement de la formule Professionnelle correspondant à ton métier pour tester NCR Suite dans de vraies conditions.</p>
+                  </div>
+                </div>
+                <div className="saas-trial-professional-facts">
+                  <div><strong>0 € aujourd’hui</strong><small>Aucune carte bancaire demandée</small></div>
+                  <div><strong>7 jours complets</strong><small>Le compteur démarre à la création de l’espace</small></div>
+                  <div><strong>Sans engagement</strong><small>Tu choisiras ton abonnement seulement si tu continues</small></div>
+                </div>
+                <ul>{plans.professionnelle.additions.slice(0, 6).map((item) => <li key={item}><Icon name="check" size={14} />{item}</li>)}</ul>
+                <div className="saas-trial-professional-note"><Icon name="info" size={17} /><span>À la fin de l’essai, tes données sont conservées. Les fonctions payantes sont verrouillées jusqu’à la souscription d’une formule.</span></div>
+              </section>
+            ) : (
+              <section className="saas-plan-picker">
+                {planOrder.map((planKey) => {
+                  const definition = plans[planKey];
+                  return (
+                    <button key={planKey} type="button" className={`${requestedPlan === planKey ? 'selected' : ''}${definition.recommended ? ' recommended' : ''}`} onClick={() => setRequestedPlan(planKey)}>
+                      {definition.recommended && <span className="saas-plan-recommended">Recommandée</span>}
+                      <div className="saas-plan-heading"><span><strong>{definition.label}</strong><small>{definition.detail}</small></span><i>{requestedPlan === planKey ? <Icon name="check" size={16} /> : ''}</i></div>
+                      <div className="saas-plan-price"><strong>{definition.startingAt ? 'Dès ' : ''}{money(definition.monthlyPriceCents)}</strong><span>HT / mois</span></div>
+                      <ul>{definition.additions.slice(0, 4).map((item) => <li key={item}><Icon name="check" size={14} />{item}</li>)}</ul>
+                    </button>
+                  );
+                })}
+              </section>
+            )
           )}
 
           {step === 4 && (
@@ -312,21 +352,21 @@ export function OnboardingPage() {
                 <header><span><Icon name={selectedPack.icon} size={22} /></span><div><small>Ton futur espace</small><h3>{name || 'Entreprise sans nom'}</h3></div></header>
                 <dl>
                   <div><dt>Métier</dt><dd>{selectedPack.label}</dd></div>
-                  <div><dt>Formule souhaitée</dt><dd>{selectedPlan.label}</dd></div>
+                  <div><dt>{trialRequested ? 'Formule d’essai' : 'Formule souhaitée'}</dt><dd>{trialRequested ? 'Professionnelle · 7 jours' : selectedPlan.label}</dd></div>
                   <div><dt>Contact</dt><dd>{contactName || 'À compléter'}</dd></div>
                   <div><dt>E-mail</dt><dd>{companyEmail || 'À compléter'}</dd></div>
                   <div><dt>Localisation</dt><dd>{[companyPostalCode, companyCity].filter(Boolean).join(' ') || 'Non renseignée'}</dd></div>
                 </dl>
-                <div className="saas-onboarding-assurance"><Icon name="shield" size={18} /><span><strong>Aucune fonction métier ne sera mélangée.</strong><small>Chaque espace conserve ses données, ses droits et son abonnement séparés.</small></span></div>
+                <div className="saas-onboarding-assurance"><Icon name="shield" size={18} /><span><strong>{trialRequested ? 'Essai Professionnel, sans paiement.' : 'Aucune fonction métier ne sera mélangée.'}</strong><small>{trialRequested ? 'Aucune carte bancaire ni signature de contrat d’abonnement n’est demandée pour commencer les 7 jours.' : 'Chaque espace conserve ses données, ses droits et son abonnement séparés.'}</small></span></div>
                 <label className="public-privacy-check">
                   <input type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} required />
-                  <span>J’accepte la souscription de la formule <strong>{selectedPlan.label}</strong>. L’espace restera verrouillé jusqu’à la confirmation du paiement.</span>
+                  <span>{trialRequested ? <>Je confirme le démarrage de mon <strong>essai gratuit de 7 jours sur la formule Professionnelle</strong>. Je pourrai choisir un abonnement uniquement si je souhaite continuer.</> : <>J’accepte la souscription de la formule <strong>{selectedPlan.label}</strong>. L’espace restera verrouillé jusqu’à la confirmation du paiement.</>}</span>
                 </label>
               </div>
             </section>
           )}
 
-          {step === 5 && contract && (
+          {!trialRequested && step === 5 && contract && (
             <section className="saas-contract-step">
               <article className="saas-contract-document">
                 <span className="saas-contract-icon"><Icon name="file" size={25} /></span>
@@ -379,7 +419,12 @@ export function OnboardingPage() {
             {step < 4 ? (
               <button type="button" className="primary-button" onClick={nextStep}>Continuer <Icon name="chevronRight" size={17} /></button>
             ) : step === 4 ? (
-              <button className="primary-button" disabled={pending}>{pending ? 'Préparation du contrat…' : 'Créer et préparer le contrat'} <Icon name="file" size={17} /></button>
+              <button className="primary-button" disabled={pending}>
+                {trialRequested
+                  ? pending ? 'Création de l’essai…' : 'Démarrer mon essai Professionnel'
+                  : pending ? 'Préparation du contrat…' : 'Créer et préparer le contrat'}
+                <Icon name={trialRequested ? 'sparkles' : 'file'} size={17} />
+              </button>
             ) : (
               <button type="button" className="primary-button" onClick={() => void signAndPay()} disabled={pending || (contract?.status === 'awaiting_signature' && (!otpSent || otpCode.length !== 6 || !signerName.trim() || !signerTitle.trim() || !acceptedContract || !acceptedCgv || !acceptedCgu || !acceptedPrivacyDpa))}>
                 {pending ? 'Vérification en cours…' : contract?.status === 'signed' || contract?.status === 'payment_pending' ? 'Reprendre le paiement' : 'Signer et passer au paiement'} <Icon name="creditCard" size={17} />

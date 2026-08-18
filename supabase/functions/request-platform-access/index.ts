@@ -102,7 +102,7 @@ Deno.serve(async (request) => {
   const companyName = clean(payload.companyName, 160);
   const rawBusinessType = clean(payload.businessType, 30);
   const businessType = rawBusinessType === 'restaurant' ? 'restauration' : rawBusinessType;
-  const requestedPlan = clean(payload.requestedPlan, 30);
+  const rawRequestedPlan = clean(payload.requestedPlan, 30);
   const teamSize = clean(payload.teamSize, 20);
   const message = String(payload.message ?? '').trim().slice(0, 2000);
   const privacyAccepted = payload.privacyAccepted === true;
@@ -113,6 +113,10 @@ Deno.serve(async (request) => {
   const acquisitionContent = clean(payload.acquisitionContent, 120);
   const landingPath = clean(payload.landingPath, 500);
   const referrer = clean(payload.referrer, 500);
+  const trialRequested = payload.trialRequested === true
+    || acquisitionCampaign === 'essai-7-jours'
+    || message.toLocaleLowerCase('fr-FR').startsWith('demande d’essai gratuit de 7 jours.');
+  const requestedPlan = trialRequested ? 'professionnelle' : rawRequestedPlan;
 
   if (fullName.length < 2 || companyName.length < 2 || !validEmail(email)
     || !allowedBusinesses.has(businessType) || !allowedPlans.has(requestedPlan)
@@ -144,17 +148,73 @@ Deno.serve(async (request) => {
     return jsonResponse(request, 429, { error: 'Trop de demandes ont été envoyées. Réessayez dans une heure.' });
   }
 
-  const { data: existing } = await service
+  const { data: existing, error: existingError } = await service
     .from('platform_access_requests')
-    .select('reference,status')
+    .select('id,reference,status,organization_id,trial_requested')
     .eq('email_hash', emailHash)
     .in('status', ['pending', 'approved'])
     .order('submitted_at', { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (existingError) {
+    console.error('platform_access_request_lookup_failed', existingError);
+    return jsonResponse(request, 503, { error: 'La demande n’a pas pu être vérifiée. Réessayez dans quelques minutes.' });
+  }
 
   if (existing) {
-    return jsonResponse(request, 200, { success: true, reference: existing.reference });
+    if (trialRequested && !existing.organization_id) {
+      const submittedAt = new Date().toISOString();
+      const { error: reopenError } = await service
+        .from('platform_access_requests')
+        .update({
+          full_name: fullName,
+          email,
+          email_normalized: email,
+          phone: phone || null,
+          company_name: companyName,
+          business_type: businessType,
+          requested_plan: 'professionnelle',
+          team_size: teamSize,
+          message: message || 'Demande d’essai gratuit de 7 jours.',
+          privacy_accepted: true,
+          request_fingerprint_hash: fingerprintHash,
+          source_ip_hash: sourceIpHash,
+          user_agent: userAgent || null,
+          turnstile_verified: turnstileVerified,
+          acquisition_source: acquisitionSource,
+          acquisition_medium: acquisitionMedium,
+          acquisition_campaign: acquisitionCampaign || 'essai-7-jours',
+          acquisition_content: acquisitionContent || null,
+          landing_path: landingPath || null,
+          referrer_url: referrer || null,
+          trial_requested: true,
+          status: 'pending',
+          submitted_at: submittedAt,
+          reviewed_at: null,
+          reviewed_by: null,
+          decision_note: null,
+          last_invitation_error: null,
+        })
+        .eq('id', existing.id);
+      if (reopenError) {
+        console.error('platform_access_request_reopen_failed', reopenError);
+        return jsonResponse(request, 503, { error: 'La demande d’essai n’a pas pu être réouverte. Réessayez dans quelques minutes.' });
+      }
+      return jsonResponse(request, 200, {
+        success: true,
+        reference: existing.reference,
+        resubmitted: true,
+        trialRequested: true,
+        trialPlan: 'professionnelle',
+      });
+    }
+
+    return jsonResponse(request, 200, {
+      success: true,
+      reference: existing.reference,
+      existing: true,
+      accountAlreadyExists: Boolean(existing.organization_id),
+    });
   }
 
   const { data, error } = await service
@@ -181,6 +241,7 @@ Deno.serve(async (request) => {
       acquisition_content: acquisitionContent || null,
       landing_path: landingPath || null,
       referrer_url: referrer || null,
+      trial_requested: trialRequested,
     })
     .select('reference')
     .single();
@@ -190,5 +251,10 @@ Deno.serve(async (request) => {
     return jsonResponse(request, 503, { error: 'La demande n’a pas pu être enregistrée. Réessayez dans quelques minutes.' });
   }
 
-  return jsonResponse(request, 200, { success: true, reference: data.reference });
+  return jsonResponse(request, 200, {
+    success: true,
+    reference: data.reference,
+    trialRequested,
+    trialPlan: trialRequested ? 'professionnelle' : null,
+  });
 });

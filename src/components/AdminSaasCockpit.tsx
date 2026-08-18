@@ -125,9 +125,9 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSup
   const [error, setError] = useState('');
   const [lastLoadedAt, setLastLoadedAt] = useState<Date | null>(null);
 
-  async function load() {
+  async function load(silent = false) {
     if (!supabase) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     setError('');
     try {
       const [overviewResponse, activityResponse, ticketResponse] = await Promise.all([
@@ -155,11 +155,26 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSup
     } catch (cause: any) {
       setError(cause?.message ?? 'Impossible de charger le cockpit SaaS.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => { void load(false); }, []);
+
+  useEffect(() => {
+    const refreshVisibleData = () => {
+      if (document.visibilityState !== 'visible') return;
+      void load(true);
+    };
+    const interval = window.setInterval(refreshVisibleData, 10_000);
+    window.addEventListener('focus', refreshVisibleData);
+    document.addEventListener('visibilitychange', refreshVisibleData);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refreshVisibleData);
+      document.removeEventListener('visibilitychange', refreshVisibleData);
+    };
+  }, []);
 
   const attentionItems = useMemo<AttentionItem[]>(() => {
     const items: AttentionItem[] = [];
@@ -196,7 +211,7 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSup
           {lastLoadedAt && <small className="admin-cockpit-last-update">Dernière actualisation : {lastLoadedAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</small>}
         </div>
         <div className="admin-cockpit-actions">
-          <button type="button" className="secondary-button" onClick={() => void load()} disabled={loading}><Icon name="activity" size={17} /> {loading ? 'Actualisation…' : 'Actualiser'}</button>
+          <button type="button" className="secondary-button" onClick={() => void load(false)} disabled={loading}><Icon name="activity" size={17} /> {loading ? 'Actualisation…' : 'Actualiser'}</button>
           <button type="button" className="primary-button" onClick={onOpenOrganizations}><Icon name="building" size={17} /> Clients</button>
           <button type="button" className="secondary-button" onClick={() => onOpenSupport()}><Icon name="headset" size={17} /> Assistance</button>
         </div>

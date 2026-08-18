@@ -27,7 +27,7 @@ export function AccessRequestPage() {
   const [phone, setPhone] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [businessType, setBusinessType] = useState<BusinessType>('formation');
-  const [requestedPlan, setRequestedPlan] = useState<Plan>('essentielle');
+  const [requestedPlan, setRequestedPlan] = useState<Plan>(trialRequested ? 'professionnelle' : 'essentielle');
   const [teamSize, setTeamSize] = useState('1-5');
   const [message, setMessage] = useState('');
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
@@ -46,8 +46,12 @@ export function AccessRequestPage() {
     if (requestedBusiness && availableBusinessTypeOptions.some((business) => business.id === requestedBusiness)) {
       setBusinessType(requestedBusiness);
     }
-    if (requestedOffer && planOrder.includes(requestedOffer)) setRequestedPlan(requestedOffer);
-  }, [location.search]);
+    if (trialRequested) {
+      setRequestedPlan('professionnelle');
+    } else if (requestedOffer && planOrder.includes(requestedOffer)) {
+      setRequestedPlan(requestedOffer);
+    }
+  }, [location.search, trialRequested]);
 
   useEffect(() => {
     if (!turnstileSiteKey || !turnstileHost.current) return;
@@ -112,12 +116,13 @@ export function AccessRequestPage() {
         phone,
         companyName,
         businessType,
-        requestedPlan,
+        requestedPlan: trialRequested ? 'professionnelle' : requestedPlan,
         teamSize,
         message: trialRequested
           ? ['Demande d’essai gratuit de 7 jours.', message.trim()].filter(Boolean).join('\n\n')
           : message,
         privacyAccepted,
+        trialRequested,
         website,
         turnstileToken,
         acquisitionSource: acquisition.source,
@@ -150,7 +155,7 @@ export function AccessRequestPage() {
           <span><Icon name="check" size={32} /></span>
           <p className="public-section-label">DEMANDE TRANSMISE</p>
           <h1>Merci, votre demande va être étudiée</h1>
-          <p>{trialRequested ? 'Votre demande d’essai gratuit de 7 jours a bien été transmise. Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte.' : 'Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte. Après l’invitation, votre espace sera activé dès la confirmation du paiement sécurisé de la formule choisie.'} Vous recevrez l’e-mail depuis <strong>contact@ncr-suite.fr</strong>.</p>
+          <p>{trialRequested ? 'Votre demande d’essai gratuit de 7 jours a bien été transmise. Après validation, vous testerez directement la formule Professionnelle pendant 7 jours, sans carte bancaire et sans contrat d’abonnement à signer au démarrage.' : 'Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte. Après l’invitation, votre espace sera activé dès la confirmation du paiement sécurisé de la formule choisie.'} Vous recevrez l’e-mail depuis <strong>contact@ncr-suite.fr</strong>.</p>
           <div><small>Référence de suivi</small><strong>{reference}</strong></div>
           <Link className="public-primary-action" to="/">Retourner à l’accueil</Link>
         </main>
@@ -195,14 +200,25 @@ export function AccessRequestPage() {
                 {availableBusinessTypeOptions.map((business) => <option key={business.id} value={business.id}>{business.label}</option>)}
               </select>
             </label>
-            <label>Formule souhaitée *
-              <select value={requestedPlan} onChange={(event) => setRequestedPlan(event.target.value as Plan)}>
-                {planOrder.map((planKey) => {
-                  const plan = getDomainPlans(businessType)[planKey];
-                  return <option key={planKey} value={planKey}>{plan.label} · {(plan.monthlyPriceCents / 100).toLocaleString('fr-FR')} € HT/mois</option>;
-                })}
-              </select>
-            </label>
+            {trialRequested ? (
+              <div className="public-trial-plan-card">
+                <span><Icon name="sparkles" size={18} /></span>
+                <div>
+                  <small>FORMULE D’ESSAI INCLUSE</small>
+                  <strong>Professionnelle · 7 jours</strong>
+                  <p>Vous testez directement la formule Professionnelle de votre métier. Aucun paiement ni carte bancaire n’est demandé pour commencer.</p>
+                </div>
+              </div>
+            ) : (
+              <label>Formule souhaitée *
+                <select value={requestedPlan} onChange={(event) => setRequestedPlan(event.target.value as Plan)}>
+                  {planOrder.map((planKey) => {
+                    const plan = getDomainPlans(businessType)[planKey];
+                    return <option key={planKey} value={planKey}>{plan.label} · {(plan.monthlyPriceCents / 100).toLocaleString('fr-FR')} € HT/mois</option>;
+                  })}
+                </select>
+              </label>
+            )}
             <label>Taille de l’équipe
               <select value={teamSize} onChange={(event) => setTeamSize(event.target.value)}>
                 <option value="1">Moi uniquement</option>
@@ -224,7 +240,7 @@ export function AccessRequestPage() {
           <button className="public-primary-action full" disabled={pending}>
             {pending ? 'Envoi de la demande…' : trialRequested ? 'Demander mon essai gratuit' : 'Transmettre ma demande'} <Icon name="chevronRight" size={17} />
           </button>
-          <small className="public-form-note">Aucun paiement n’est réalisé à cette étape. {trialRequested ? 'L’essai de 7 jours reste soumis à la validation de NCR Suite.' : 'Après validation, l’espace sera activé uniquement lorsque la souscription sera confirmée.'}</small>
+          <small className="public-form-note">Aucun paiement n’est réalisé à cette étape. {trialRequested ? 'Après validation, l’essai démarre sur la formule Professionnelle pendant 7 jours. Vous choisirez ensuite votre abonnement si vous souhaitez continuer.' : 'Après validation, l’espace sera activé uniquement lorsque la souscription sera confirmée.'}</small>
         </form>
       </main>
       <PublicSiteFooter />
