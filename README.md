@@ -1,4 +1,4 @@
-# NCR Suite V2.29.20   
+# NCR Suite V2.29.20    
 
 ## Release V2.29.20
 
