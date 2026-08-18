@@ -63,9 +63,9 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  async function load(preserveSelection = true) {
+  async function load(preserveSelection = true, silent = false) {
     if (!supabase) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     setError('');
 
     let query = supabase
@@ -89,12 +89,29 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
         if (next) setDecisionNote(next.decision_note ?? '');
       }
     }
-    setLoading(false);
+    if (!silent) setLoading(false);
   }
 
   useEffect(() => {
     void load(false);
   }, [statusFilter]);
+
+  useEffect(() => {
+    const refreshVisibleRequests = () => {
+      if (document.visibilityState !== 'visible') return;
+      void load(true, true);
+    };
+
+    const interval = window.setInterval(refreshVisibleRequests, 10_000);
+    window.addEventListener('focus', refreshVisibleRequests);
+    document.addEventListener('visibilitychange', refreshVisibleRequests);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', refreshVisibleRequests);
+      document.removeEventListener('visibilitychange', refreshVisibleRequests);
+    };
+  }, [statusFilter, selected?.id]);
 
   const visibleRequests = useMemo(() => {
     const needle = search.trim().toLocaleLowerCase('fr-FR');
