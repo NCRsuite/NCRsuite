@@ -24474,7 +24474,15 @@ button { max-width: 100%; }
 .admin-company-quick-actions .secondary-button.active { border-color:#bed8f5;color:#0b6fda;background:#edf6ff; }
 
 /* NCR Suite V2.29.25 R5.2 — Fiche client centrale NCR Admin */
-.admin-client-hub-panel { overflow:hidden; }
+/* R5.2.1 — la fiche client conserve sa hauteur sticky mais défile indépendamment.
+   La R5.2 masquait l’overflow ici, ce qui neutralisait overflow-y:auto hérité de .admin-editor-panel. */
+.admin-client-hub-panel {
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-gutter:stable;
+}
 .admin-client-hub-form { gap:14px; }
 .admin-client-hub-head {
   position:sticky;
