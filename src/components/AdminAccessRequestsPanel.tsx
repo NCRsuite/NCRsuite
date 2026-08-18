@@ -52,6 +52,52 @@ function dateLabel(value: string | null) {
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 }
 
+async function functionErrorMessage(error: unknown, fallback: string) {
+  const context = (error as { context?: Response } | null)?.context;
+  if (context) {
+    try {
+      const body = await context.clone().json() as { error?: unknown; message?: unknown };
+      const detail = String(body?.error || body?.message || '').trim();
+      if (detail) return detail;
+    } catch {
+      // Le message Supabase standard reste disponible ci-dessous.
+    }
+  }
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
+function isSessionError(value: string) {
+  return /session|jwt|authentification|401|403|unauthor/i.test(value);
+}
+
+async function verifiedAdminAccessToken() {
+  if (!supabase) throw new Error('Le service NCR Suite est indisponible.');
+
+  const current = await supabase.auth.getSession();
+  let session = current.data.session;
+  if (current.error || !session?.access_token) {
+    throw new Error('Votre session administrateur a expiré. Reconnectez-vous pour continuer.');
+  }
+
+  const validation = await supabase.auth.getUser(session.access_token);
+  if (!validation.error && validation.data.user) return session.access_token;
+
+  const refreshed = await supabase.auth.refreshSession();
+  session = refreshed.data.session;
+  if (refreshed.error || !session?.access_token) {
+    await supabase.auth.signOut({ scope: 'local' });
+    throw new Error('Votre session administrateur n’est plus valide. Reconnectez-vous puis validez de nouveau la demande.');
+  }
+
+  const revalidation = await supabase.auth.getUser(session.access_token);
+  if (revalidation.error || !revalidation.data.user) {
+    await supabase.auth.signOut({ scope: 'local' });
+    throw new Error('Votre session administrateur n’est plus valide. Reconnectez-vous puis validez de nouveau la demande.');
+  }
+
+  return session.access_token;
+}
+
 export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) {
   const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [selected, setSelected] = useState<AccessRequest | null>(null);
@@ -146,21 +192,55 @@ export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) 
     setProcessing(action);
     setError('');
     setMessage('');
-    const { data, error: requestError } = await supabase.functions.invoke('admin-review-access-request', {
-      body: {
-        requestId: selected.id,
-        action,
-        decisionNote: decisionNote.trim() || null
-      }
-    });
 
-    if (requestError || data?.error) {
-      setError(String(data?.error || requestError?.message || 'Le traitement de la demande a échoué.'));
-    } else {
-      setMessage(String(data?.message || 'La demande a été traitée.'));
+    const body = {
+      requestId: selected.id,
+      action,
+      decisionNote: decisionNote.trim() || null
+    };
+
+    try {
+      let accessToken = await verifiedAdminAccessToken();
+      let response = await supabase.functions.invoke('admin-review-access-request', {
+        body,
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+
+      if (response.error) {
+        const firstDetail = await functionErrorMessage(response.error, 'Le traitement de la demande a échoué.');
+        if (isSessionError(firstDetail)) {
+          const refreshed = await supabase.auth.refreshSession();
+          accessToken = refreshed.data.session?.access_token ?? '';
+          if (!refreshed.error && accessToken) {
+            const validation = await supabase.auth.getUser(accessToken);
+            if (!validation.error && validation.data.user) {
+              response = await supabase.functions.invoke('admin-review-access-request', {
+                body,
+                headers: { Authorization: `Bearer ${accessToken}` }
+              });
+            }
+          }
+        }
+      }
+
+      if (response.error || response.data?.error) {
+        const detail = response.data?.error
+          ? String(response.data.error)
+          : await functionErrorMessage(response.error, 'Le traitement de la demande a échoué.');
+        if (isSessionError(detail)) {
+          await supabase.auth.signOut({ scope: 'local' });
+          throw new Error('Votre session administrateur a expiré. Reconnectez-vous puis validez de nouveau la demande.');
+        }
+        throw new Error(detail);
+      }
+
+      setMessage(String(response.data?.message || 'La demande a été traitée.'));
       await load(true);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Le traitement de la demande a échoué.');
+    } finally {
+      setProcessing(null);
     }
-    setProcessing(null);
   }
 
   return (
