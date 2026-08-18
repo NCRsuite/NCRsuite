@@ -292,7 +292,8 @@ export function PlatformAdminPage() {
 
   useEffect(() => {
     const needle = globalSearch.trim();
-    if (!supabase || needle.length < 2) {
+    const client = supabase;
+    if (!client || needle.length < 2) {
       setGlobalSearchResults([]);
       setGlobalSearchLoading(false);
       return;
@@ -301,7 +302,7 @@ export function PlatformAdminPage() {
     const timer = window.setTimeout(() => {
       void (async () => {
         setGlobalSearchLoading(true);
-        const { data, error: requestError } = await supabase.rpc('admin_list_organizations', {
+        const { data, error: requestError } = await client.rpc('admin_list_organizations', {
           p_search: needle,
           p_plan: null,
           p_status: null
