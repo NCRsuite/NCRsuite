@@ -56,6 +56,24 @@ function subscriptionPeriod(subscription: Stripe.Subscription) {
   };
 }
 
+function scheduledCancellation(subscription: Stripe.Subscription) {
+  if (subscription.cancel_at_period_end === true) return true;
+  const record = subscription as unknown as {
+    cancel_at?: unknown;
+    current_period_end?: unknown;
+  };
+  const firstItem = subscription.items.data[0] as unknown as { current_period_end?: unknown } | undefined;
+  const cancelAt = typeof record.cancel_at === 'number' && Number.isFinite(record.cancel_at)
+    ? record.cancel_at
+    : null;
+  const periodEnd = typeof record.current_period_end === 'number' && Number.isFinite(record.current_period_end)
+    ? record.current_period_end
+    : typeof firstItem?.current_period_end === 'number' && Number.isFinite(firstItem.current_period_end)
+      ? firstItem.current_period_end
+      : null;
+  return cancelAt !== null && periodEnd !== null && cancelAt <= periodEnd;
+}
+
 function appStatus(status: string): AppStatus {
   if (status === 'trialing') return 'trialing';
   if (status === 'active') return 'active';
@@ -339,6 +357,13 @@ Deno.serve(async (request) => {
       ? 'past_due'
       : appStatus(stripeStatus);
     const period = subscriptionPeriod(subscription);
+    const cancellationScheduled = scheduledCancellation(subscription);
+    const cancelAt = timestamp((subscription as unknown as { cancel_at?: unknown }).cancel_at);
+    eventMetadata = {
+      ...eventMetadata,
+      stripe_cancel_at: cancelAt,
+      stripe_cancel_at_period_end: cancellationScheduled,
+    };
 
     const { data: applied, error: applyError } = await service.rpc('apply_stripe_billing_event', {
       p_stripe_event_id: event.id,
@@ -353,7 +378,7 @@ Deno.serve(async (request) => {
       p_stripe_status: stripeStatus,
       p_period_start: period.start,
       p_period_end: period.end,
-      p_cancel_at_period_end: subscription.cancel_at_period_end,
+      p_cancel_at_period_end: cancellationScheduled,
       p_payment_confirmed: paymentConfirmed,
       p_livemode: event.livemode,
       p_metadata: eventMetadata,
@@ -369,7 +394,7 @@ Deno.serve(async (request) => {
       p_app_status: normalizedStatus,
       p_plan_key: appliedPlan,
       p_period_end: period.end,
-      p_cancel_at_period_end: subscription.cancel_at_period_end,
+      p_cancel_at_period_end: cancellationScheduled,
     });
     if (lifecycleError) throw lifecycleError;
 
