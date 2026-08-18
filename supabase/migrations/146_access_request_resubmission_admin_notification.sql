@@ -6,7 +6,7 @@ create or replace function public.notify_platform_admin_access_request_resubmitt
 returns trigger
 language plpgsql
 security definer
-set search_path to public,pg_catalog
+set search_path = public,pg_catalog
 as $$
 declare
   v_title text;
