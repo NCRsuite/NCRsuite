@@ -6,6 +6,16 @@ import { Icon } from './Icon';
 type ValidationStatus = 'ready' | 'attention' | 'blocked';
 type CheckStatus = 'ok' | 'warning' | 'error';
 
+type ValidationDiagnostics = {
+  rls_disabled_tables?: string[];
+  insecure_security_definer_functions?: string[];
+  unexpected_anon_functions?: string[];
+  sealed_by_rls_tables?: string[];
+  current_failed_jobs?: number;
+  current_stalled_jobs?: number;
+  superseded_failed_jobs?: number;
+};
+
 type ValidationCheck = {
   key: string;
   category: string;
@@ -13,6 +23,7 @@ type ValidationCheck = {
   status: CheckStatus;
   detail: string;
   action: string;
+  diagnostics?: ValidationDiagnostics;
 };
 
 type ManualCheck = {
@@ -53,6 +64,17 @@ type ProductionValidationRun = {
   report: ProductionValidationReport;
 };
 
+type AccessSecurityReport = {
+  rls_disabled_tables?: string[];
+  insecure_security_definer_functions?: string[];
+  unexpected_anon_functions?: string[];
+};
+
+type SecurityIssueGroup = {
+  label: string;
+  values: string[];
+};
+
 function dateTime(value: string | null | undefined) {
   if (!value) return '—';
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
@@ -87,14 +109,59 @@ function reportFilename(extension: 'json' | 'csv') {
   return `validation-production-v${APP_VERSION}-${new Date().toISOString().slice(0, 10)}.${extension}`;
 }
 
+function isMissingCorrectedValidator(error: { code?: string } | null | undefined) {
+  return error?.code === 'PGRST202' || error?.code === '42883';
+}
+
+function securityGroups(report: AccessSecurityReport | null, check?: ValidationCheck): SecurityIssueGroup[] {
+  const diagnostics = check?.diagnostics;
+  const groups: SecurityIssueGroup[] = [
+    {
+      label: 'Table(s) métier sans RLS',
+      values: diagnostics?.rls_disabled_tables ?? report?.rls_disabled_tables ?? []
+    },
+    {
+      label: 'Fonction(s) SECURITY DEFINER sans search_path sécurisé',
+      values: diagnostics?.insecure_security_definer_functions ?? report?.insecure_security_definer_functions ?? []
+    },
+    {
+      label: 'Fonction(s) accessible(s) au rôle anon hors liste autorisée',
+      values: diagnostics?.unexpected_anon_functions ?? report?.unexpected_anon_functions ?? []
+    }
+  ];
+  return groups.filter((group) => group.values.length > 0);
+}
+
 export function AdminProductionValidationPanel() {
   const [report, setReport] = useState<ProductionValidationReport | null>(null);
   const [history, setHistory] = useState<ProductionValidationRun[]>([]);
+  const [securityReport, setSecurityReport] = useState<AccessSecurityReport | null>(null);
   const [manualChecks, setManualChecks] = useState<Set<string>>(() => new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+
+  async function requestValidationReport(store: boolean, checks: string[]) {
+    if (!supabase) throw new Error('Supabase indisponible.');
+
+    const parameters = {
+      p_frontend_version: APP_VERSION,
+      p_pwa_cache: PWA_CACHE_NAME,
+      p_store: store,
+      p_manual_checks: checks
+    };
+
+    const corrected = await supabase.rpc('platform_production_validation_report_corrected', parameters);
+    if (!corrected.error) return corrected.data as ProductionValidationReport;
+    if (!isMissingCorrectedValidator(corrected.error)) throw corrected.error;
+
+    // Compatibilité de déploiement : tant que la migration 151 n'est pas encore
+    // appliquée, l'écran reste utilisable avec le validateur historique.
+    const legacy = await supabase.rpc('platform_production_validation_report', parameters);
+    if (legacy.error) throw legacy.error;
+    return legacy.data as ProductionValidationReport;
+  }
 
   async function loadHistory() {
     if (!supabase) return;
@@ -109,19 +176,15 @@ export function AdminProductionValidationPanel() {
     setError('');
     setMessage('');
     try {
-      const [reportResult, historyResult] = await Promise.all([
-        supabase.rpc('platform_production_validation_report', {
-          p_frontend_version: APP_VERSION,
-          p_pwa_cache: PWA_CACHE_NAME,
-          p_store: false,
-          p_manual_checks: []
-        }),
-        supabase.rpc('platform_production_validation_history', { p_limit: 12 })
+      const [validation, historyResult, securityResult] = await Promise.all([
+        requestValidationReport(false, []),
+        supabase.rpc('platform_production_validation_history', { p_limit: 12 }),
+        supabase.rpc('platform_access_security_report')
       ]);
-      if (reportResult.error) throw reportResult.error;
       if (historyResult.error) throw historyResult.error;
-      setReport(reportResult.data as ProductionValidationReport);
+      setReport(validation);
       setHistory((Array.isArray(historyResult.data) ? historyResult.data : []) as ProductionValidationRun[]);
+      setSecurityReport(securityResult.error ? null : securityResult.data as AccessSecurityReport);
       if (resetManual) setManualChecks(new Set());
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'La validation finale est indisponible.');
@@ -209,14 +272,7 @@ export function AdminProductionValidationPanel() {
     setError('');
     setMessage('');
     try {
-      const { data, error: requestError } = await supabase.rpc('platform_production_validation_report', {
-        p_frontend_version: APP_VERSION,
-        p_pwa_cache: PWA_CACHE_NAME,
-        p_store: true,
-        p_manual_checks: Array.from(manualChecks)
-      });
-      if (requestError) throw requestError;
-      const storedReport = data as ProductionValidationReport;
+      const storedReport = await requestValidationReport(true, Array.from(manualChecks));
       setReport(storedReport);
       await loadHistory();
       setMessage(
@@ -280,18 +336,36 @@ export function AdminProductionValidationPanel() {
                 </div>
               </div>
               <div className="admin-production-validation-check-list">
-                {report.checks.map((check) => (
-                  <article key={check.key} className={check.status}>
-                    <span><Icon name={check.status === 'ok' ? 'check' : 'alert'} size={17} /></span>
-                    <div>
-                      <small>{check.category}</small>
-                      <strong>{check.label}</strong>
-                      <p>{check.detail}</p>
-                      {check.status !== 'ok' && <em>{check.action}</em>}
-                    </div>
-                    <b>{checkStatusLabel(check.status)}</b>
-                  </article>
-                ))}
+                {report.checks.map((check) => {
+                  const issueGroups = check.key === 'access_security' && check.status !== 'ok'
+                    ? securityGroups(securityReport, check)
+                    : [];
+                  return (
+                    <article key={check.key} className={check.status}>
+                      <span><Icon name={check.status === 'ok' ? 'check' : 'alert'} size={17} /></span>
+                      <div>
+                        <small>{check.category}</small>
+                        <strong>{check.label}</strong>
+                        <p>{check.detail}</p>
+                        {issueGroups.length > 0 && (
+                          <div className="admin-production-validation-diagnostics" role="note" aria-label="Détail des anomalies de sécurité">
+                            <strong>Détail exact détecté</strong>
+                            {issueGroups.map((group) => (
+                              <div key={group.label}>
+                                <small>{group.label}</small>
+                                <ul>
+                                  {group.values.map((value) => <li key={`${group.label}-${value}`}><code>{value}</code></li>)}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {check.status !== 'ok' && <em>{check.action}</em>}
+                      </div>
+                      <b>{checkStatusLabel(check.status)}</b>
+                    </article>
+                  );
+                })}
               </div>
             </article>
 
