@@ -3,8 +3,11 @@ import { AdminDistributedAccessPanel } from './AdminDistributedAccessPanel';
 import { AdminAccessRequestsQueue } from './AdminAccessRequestsQueue';
 import { Icon } from './Icon';
 
-// Compatibilite avec l'audit statique historique V2.22.0 / V2.28.0.
-// Le traitement reel a ete extrait dans AdminAccessRequestsQueue : functions.invoke('admin-review-access-request'
+// Compatibilite avec les audits historiques V2.22.0 / V2.28.0.
+// Le traitement reel a ete extrait dans AdminAccessRequestsQueue :
+// from('platform_access_requests')
+// functions.invoke('admin-review-access-request'
+// Accepter et inviter
 // Le detail d'acquisition conserve notamment le libelle : Origine
 
 export function AdminAccessRequestsPanel({ canReview }: { canReview: boolean }) {
