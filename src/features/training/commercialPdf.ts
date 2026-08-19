@@ -285,7 +285,14 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
     }
   }
 
-  ensure(166);
+  const usefulInfoText = normalizeTrainingPdfText(organization.training_document_footer);
+  const usefulInfoLines = usefulInfoText
+    ? wrapTrainingPdfText(usefulInfoText, theme.regular, 6.9, CONTENT_WIDTH - 24)
+    : [];
+  const usefulInfoHeight = usefulInfoLines.length ? 28 + usefulInfoLines.length * 9 : 0;
+  const usefulInfoReserve = usefulInfoHeight ? usefulInfoHeight + 10 : 0;
+
+  ensure(166 + usefulInfoReserve);
   state.y -= 8;
   state.y = drawTrainingSectionTitle(
     state.page,
@@ -326,11 +333,13 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
   });
   state.y -= signHeight + 12;
 
-  if (organization.training_document_footer) {
-    ensure(70);
-    state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: state.y - 52, width: CONTENT_WIDTH, height: 52, color: theme.accentPale });
-    drawTrainingPdfText(state.page, 'INFORMATIONS UTILES', { x: TRAINING_PDF_MARGIN + 12, y: state.y - 17, size: 6.3, font: theme.bold, color: theme.accent });
-    drawTrainingParagraph(state.page, theme, organization.training_document_footer, state.y - 32, { x: TRAINING_PDF_MARGIN + 12, width: CONTENT_WIDTH - 24, size: 7.2, lineHeight: 10, maxLines: 2 });
+  if (usefulInfoLines.length) {
+    state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: state.y - usefulInfoHeight, width: CONTENT_WIDTH, height: usefulInfoHeight, color: theme.accentPale });
+    drawTrainingPdfText(state.page, 'INFORMATIONS UTILES', { x: TRAINING_PDF_MARGIN + 12, y: state.y - 15, size: 6.3, font: theme.bold, color: theme.accent });
+    usefulInfoLines.forEach((line, index) => {
+      drawTrainingPdfText(state.page, line, { x: TRAINING_PDF_MARGIN + 12, y: state.y - 30 - index * 9, size: 6.9, font: theme.regular, color: theme.muted });
+    });
+    state.y -= usefulInfoHeight;
   }
 
   pages.forEach((item) => drawTrainingPremiumFooter(item.page, theme, organization, { reference: document.reference, pageNumber: item.number, totalPages: pages.length }));
