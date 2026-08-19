@@ -1,5 +1,5 @@
 # V2.29.20 — Formation · Documents premium
- 
+  
 - Nouveau socle visuel commun pour les documents Formation générés.
 - Devis, convention et contrat modernisés avec hiérarchie renforcée, synthèse financière et signatures plus propres.
 - Le devis dispose maintenant d'une vraie zone « Bon pour accord ».
