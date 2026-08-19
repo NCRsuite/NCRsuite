@@ -65,22 +65,31 @@ function drawLabelValue(
   lines.forEach((line, index) => drawTrainingPdfText(page, line, { x, y: y - 17 - index * 12, size: 9, font: theme.bold, color: theme.dark }));
 }
 
+function entityCardHeight(theme: TrainingPdfTheme, input: { width: number; name: string; lines: string[] }) {
+  const nameLines = wrapTrainingPdfText(input.name, theme.bold, 10, input.width - 32);
+  const detailLines = input.lines.flatMap((line) => wrapTrainingPdfText(line, theme.regular, 7.2, input.width - 32));
+  return Math.max(112, 58 + nameLines.length * 12 + detailLines.length * 11 + 14);
+}
+
 function drawEntityCard(
   page: PDFPage,
   theme: TrainingPdfTheme,
-  input: { x: number; y: number; width: number; title: string; name: string; lines: string[] }
+  input: { x: number; y: number; width: number; height: number; title: string; name: string; lines: string[] }
 ) {
-  const height = 112;
-  page.drawRectangle({ x: input.x, y: input.y - height, width: input.width, height, color: theme.surface, borderColor: theme.line, borderWidth: 0.7 });
-  page.drawRectangle({ x: input.x, y: input.y - height, width: 5, height, color: theme.accent });
+  page.drawRectangle({ x: input.x, y: input.y - input.height, width: input.width, height: input.height, color: theme.surface, borderColor: theme.line, borderWidth: 0.7 });
+  page.drawRectangle({ x: input.x, y: input.y - input.height, width: 5, height: input.height, color: theme.accent });
   drawTrainingPdfText(page, input.title.toUpperCase(), { x: input.x + 16, y: input.y - 20, size: 6.4, font: theme.bold, color: theme.accent });
-  const nameLines = wrapTrainingPdfText(input.name, theme.bold, 10, input.width - 32).slice(0, 2);
+  const nameLines = wrapTrainingPdfText(input.name, theme.bold, 10, input.width - 32);
   nameLines.forEach((line, index) => drawTrainingPdfText(page, line, { x: input.x + 16, y: input.y - 40 - index * 12, size: 10, font: theme.bold, color: theme.dark }));
-  const start = input.y - 64 - Math.max(0, nameLines.length - 1) * 10;
-  input.lines.slice(0, 4).forEach((line, index) => {
-    drawTrainingPdfText(page, line, { x: input.x + 16, y: start - index * 12, size: 7.2, font: theme.regular, color: theme.muted });
-  });
-  return input.y - height;
+  let cursor = input.y - 56 - nameLines.length * 12;
+  for (const detail of input.lines) {
+    const lines = wrapTrainingPdfText(detail, theme.regular, 7.2, input.width - 32);
+    for (const line of lines) {
+      drawTrainingPdfText(page, line, { x: input.x + 16, y: cursor, size: 7.2, font: theme.regular, color: theme.muted });
+      cursor -= 11;
+    }
+  }
+  return input.y - input.height;
 }
 
 function pageTitle(input: CommercialPdfInput) {
@@ -140,10 +149,15 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
 
   const cardGap = 12;
   const cardWidth = (CONTENT_WIDTH - cardGap) / 2;
+  const issuerHeight = entityCardHeight(theme, { width: cardWidth, name: organization.public_name || organization.name, lines: issuerLines });
+  const recipientHeight = entityCardHeight(theme, { width: cardWidth, name: beneficiaryName(input), lines: recipientLines });
+  const cardHeight = Math.max(issuerHeight, recipientHeight);
+  ensure(cardHeight + 24);
   const cardBottom = drawEntityCard(state.page, theme, {
     x: TRAINING_PDF_MARGIN,
     y: state.y,
     width: cardWidth,
+    height: cardHeight,
     title: 'Organisme de formation',
     name: organization.public_name || organization.name,
     lines: issuerLines
@@ -152,6 +166,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
     x: TRAINING_PDF_MARGIN + cardWidth + cardGap,
     y: state.y,
     width: cardWidth,
+    height: cardHeight,
     title: 'Client / bénéficiaire',
     name: beneficiaryName(input),
     lines: recipientLines

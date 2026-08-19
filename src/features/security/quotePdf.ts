@@ -15,7 +15,21 @@ function safeName(value: string) {
 }
 
 function wrap(text: string, font: PDFFont, size: number, width: number) {
-  const words = clean(text || '-').split(' ');
+  const splitLongToken = (token: string) => {
+    if (!token || font.widthOfTextAtSize(token, size) <= width) return [token];
+    const chunks: string[] = [];
+    let current = '';
+    for (const character of token) {
+      const candidate = `${current}${character}`;
+      if (current && font.widthOfTextAtSize(candidate, size) > width) {
+        chunks.push(current);
+        current = character;
+      } else current = candidate;
+    }
+    if (current) chunks.push(current);
+    return chunks;
+  };
+  const words = clean(text || '-').split(' ').flatMap(splitLongToken);
   const lines: string[] = [];
   let current = '';
   for (const word of words) {
@@ -86,17 +100,29 @@ export async function generateSecurityQuotePdf(organization: Organization, quote
   addPage();
 
   const boxWidth = (PAGE[0] - MARGIN * 2 - 12) / 2;
-  const infoHeight = 116;
+  const issuerNameLines = wrap(clean(issuer.name || organization.name), bold, 10.5, boxWidth - 26);
+  const issuerDetailLines = [issuer.address, [issuer.postal_code, issuer.city].filter(Boolean).join(' '), issuer.siret ? `SIRET : ${issuer.siret}` : '', issuer.vat_number ? `TVA : ${issuer.vat_number}` : '', [issuer.email, issuer.phone].filter(Boolean).join(' · ')].filter(Boolean).flatMap((value) => wrap(clean(value), regular, 7.6, boxWidth - 26));
+  const prospectNameLines = wrap(clean(quote.prospect_company_name), bold, 10.5, boxWidth - 26);
+  const prospectDetailLines = [quote.prospect_contact_name, quote.prospect_billing_address, [quote.prospect_postal_code, quote.prospect_city].filter(Boolean).join(' '), quote.prospect_siret ? `SIRET : ${quote.prospect_siret}` : '', [quote.prospect_email, quote.prospect_phone].filter(Boolean).join(' · ')].filter(Boolean).flatMap((value) => wrap(clean(value), regular, 7.6, boxWidth - 26));
+  const infoHeight = Math.max(
+    116,
+    58 + issuerNameLines.length * 12 + issuerDetailLines.length * 11 + 12,
+    58 + prospectNameLines.length * 12 + prospectDetailLines.length * 11 + 12
+  );
   page.drawRectangle({ x: MARGIN, y: y - infoHeight, width: boxWidth, height: infoHeight, color: soft, borderColor: line, borderWidth: 0.8 });
   page.drawRectangle({ x: MARGIN + boxWidth + 12, y: y - infoHeight, width: boxWidth, height: infoHeight, color: soft, borderColor: line, borderWidth: 0.8 });
+  page.drawRectangle({ x: MARGIN, y: y - infoHeight, width: 5, height: infoHeight, color: accent });
+  page.drawRectangle({ x: MARGIN + boxWidth + 12, y: y - infoHeight, width: 5, height: infoHeight, color: accent });
   page.drawText('ÉMETTEUR', { x: MARGIN + 13, y: y - 18, size: 7, font: bold, color: accent });
-  page.drawText(clean(issuer.name || organization.name).slice(0, 48), { x: MARGIN + 13, y: y - 38, size: 10.5, font: bold, color: dark });
-  [issuer.address, [issuer.postal_code, issuer.city].filter(Boolean).join(' '), issuer.siret ? `SIRET : ${issuer.siret}` : '', issuer.vat_number ? `TVA : ${issuer.vat_number}` : '', [issuer.email, issuer.phone].filter(Boolean).join(' · ')].filter(Boolean).slice(0, 5).forEach((text, index) => page.drawText(clean(text).slice(0, 52), { x: MARGIN + 13, y: y - 55 - index * 12, size: 7.6, font: regular, color: muted }));
+  issuerNameLines.forEach((text, index) => page.drawText(text, { x: MARGIN + 13, y: y - 38 - index * 12, size: 10.5, font: bold, color: dark }));
+  let issuerY = y - 52 - issuerNameLines.length * 12;
+  issuerDetailLines.forEach((text) => { page.drawText(text, { x: MARGIN + 13, y: issuerY, size: 7.6, font: regular, color: muted }); issuerY -= 11; });
 
   const clientX = MARGIN + boxWidth + 25;
   page.drawText('PROSPECT', { x: clientX, y: y - 18, size: 7, font: bold, color: accent });
-  page.drawText(clean(quote.prospect_company_name).slice(0, 48), { x: clientX, y: y - 38, size: 10.5, font: bold, color: dark });
-  [quote.prospect_contact_name, quote.prospect_billing_address, [quote.prospect_postal_code, quote.prospect_city].filter(Boolean).join(' '), quote.prospect_siret ? `SIRET : ${quote.prospect_siret}` : '', [quote.prospect_email, quote.prospect_phone].filter(Boolean).join(' · ')].filter(Boolean).slice(0, 5).forEach((text, index) => page.drawText(clean(text).slice(0, 52), { x: clientX, y: y - 55 - index * 12, size: 7.6, font: regular, color: muted }));
+  prospectNameLines.forEach((text, index) => page.drawText(text, { x: clientX, y: y - 38 - index * 12, size: 10.5, font: bold, color: dark }));
+  let prospectY = y - 52 - prospectNameLines.length * 12;
+  prospectDetailLines.forEach((text) => { page.drawText(text, { x: clientX, y: prospectY, size: 7.6, font: regular, color: muted }); prospectY -= 11; });
   y -= infoHeight + 22;
 
   const created = formatSecurityDate(quote.created_at);
@@ -107,9 +133,9 @@ export async function generateSecurityQuotePdf(organization: Organization, quote
   page.drawText(valid, { x: MARGIN + 190, y: y - 14, size: 8.8, font: bold, color: dark });
   if (quote.proposed_site_name) {
     page.drawText('SITE PROPOSÉ', { x: MARGIN + 380, y, size: 6.8, font: bold, color: muted });
-    page.drawText(clean(quote.proposed_site_name).slice(0, 28), { x: MARGIN + 380, y: y - 14, size: 8.8, font: bold, color: dark });
+    wrap(clean(quote.proposed_site_name), bold, 8.8, PAGE[0] - MARGIN - (MARGIN + 380)).slice(0, 2).forEach((text, index) => page.drawText(text, { x: MARGIN + 380, y: y - 14 - index * 11, size: 8.8, font: bold, color: dark }));
   }
-  y -= 48;
+  y -= 52;
 
   const drawHeader = () => {
     page.drawRectangle({ x: MARGIN, y: y - 25, width: PAGE[0] - MARGIN * 2, height: 25, color: dark });
@@ -121,13 +147,19 @@ export async function generateSecurityQuotePdf(organization: Organization, quote
   };
   drawHeader();
   for (const item of quote.security_quote_lines ?? []) {
-    if (ensure(item.description ? 54 : 42)) drawHeader();
-    page.drawText(clean(item.label).slice(0, 48), { x: MARGIN + 9, y: y - 16, size: 8.5, font: bold, color: dark });
-    if (item.description) page.drawText(clean(item.description).slice(0, 64), { x: MARGIN + 9, y: y - 30, size: 6.7, font: regular, color: muted });
-    page.drawText(`${Number(item.quantity).toLocaleString('fr-FR')} ${item.unit}`, { x: 346, y: y - 16, size: 7.6, font: regular, color: dark });
-    page.drawText(formatSecurityMoney(item.unit_price_cents), { x: 410, y: y - 16, size: 7.6, font: regular, color: dark });
-    page.drawText(formatSecurityMoney(item.line_total_cents), { x: 493, y: y - 16, size: 8, font: bold, color: dark });
-    const rowHeight = item.description ? 48 : 37;
+    const labelLines = wrap(clean(item.label), bold, 8.5, 282);
+    const descriptionLines = item.description ? wrap(clean(item.description), regular, 6.7, 282) : [];
+    const rowHeight = Math.max(38, 18 + labelLines.length * 11 + descriptionLines.length * 9 + (descriptionLines.length ? 6 : 0));
+    if (ensure(rowHeight + 4)) drawHeader();
+    let textY = y - 16;
+    labelLines.forEach((text) => { page.drawText(text, { x: MARGIN + 9, y: textY, size: 8.5, font: bold, color: dark }); textY -= 11; });
+    if (descriptionLines.length) {
+      textY -= 2;
+      descriptionLines.forEach((text) => { page.drawText(text, { x: MARGIN + 9, y: textY, size: 6.7, font: regular, color: muted }); textY -= 9; });
+    }
+    wrap(`${Number(item.quantity).toLocaleString('fr-FR')} ${item.unit}`, regular, 7.4, 54).slice(0, 2).forEach((text, index) => page.drawText(text, { x: 346, y: y - 16 - index * 9, size: 7.4, font: regular, color: dark }));
+    page.drawText(formatSecurityMoney(item.unit_price_cents), { x: 410, y: y - 16, size: 7.2, font: regular, color: dark });
+    page.drawText(formatSecurityMoney(item.line_total_cents), { x: 493, y: y - 16, size: 7.5, font: bold, color: dark });
     page.drawLine({ start: { x: MARGIN, y: y - rowHeight }, end: { x: PAGE[0] - MARGIN, y: y - rowHeight }, thickness: 0.55, color: line });
     y -= rowHeight + 1;
   }
@@ -160,7 +192,7 @@ export async function generateSecurityQuotePdf(organization: Organization, quote
     const bankLine = issuer.bank_iban
       ? clean(`Règlement : ${issuer.bank_account_holder || issuer.name || ''}${issuer.bank_name ? ` · ${issuer.bank_name}` : ''} · IBAN ${issuer.bank_iban}${issuer.bank_bic ? ` · BIC ${issuer.bank_bic}` : ''}`)
       : 'Ce devis est valable jusqu’à la date indiquée ci-dessus.';
-    current.drawText(bankLine.slice(0, 118), { x: MARGIN, y: footerY + 1, size: 5.8, font: issuer.bank_iban ? bold : regular, color: issuer.bank_iban ? dark : muted });
+    wrap(bankLine, issuer.bank_iban ? bold : regular, 5.8, PAGE[0] - MARGIN * 2 - 106).slice(0, 2).forEach((text, index) => current.drawText(text, { x: MARGIN, y: footerY + 1 - index * 8, size: 5.8, font: issuer.bank_iban ? bold : regular, color: issuer.bank_iban ? dark : muted }));
     if ((quote.tax_rate_basis_points || 0) === 0 && issuer.tax_exemption_text) current.drawText(clean(issuer.tax_exemption_text).slice(0, 95), { x: MARGIN, y: footerY - 9, size: 5.6, font: bold, color: dark });
     current.drawText('Généré avec NCR Suite', { x: PAGE[0] - MARGIN - 92, y: footerY + 1, size: 6.2, font: bold, color: accent });
   }

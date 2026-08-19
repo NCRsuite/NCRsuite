@@ -69,12 +69,28 @@ export function drawTrainingPdfText(
 export function wrapTrainingPdfText(value: unknown, font: PDFFont, size: number, maxWidth: number) {
   const normalized = trainingPdfText(value || '-', font);
   const lines: string[] = [];
+
+  const splitLongToken = (token: string) => {
+    if (!token || font.widthOfTextAtSize(token, size) <= maxWidth) return [token];
+    const chunks: string[] = [];
+    let current = '';
+    for (const character of token) {
+      const candidate = `${current}${character}`;
+      if (current && font.widthOfTextAtSize(candidate, size) > maxWidth) {
+        chunks.push(current);
+        current = character;
+      } else current = candidate;
+    }
+    if (current) chunks.push(current);
+    return chunks;
+  };
+
   for (const paragraph of normalized.split('\n')) {
     if (!paragraph.trim()) {
       if (lines.length && lines[lines.length - 1] !== '') lines.push('');
       continue;
     }
-    const words = paragraph.trim().split(' ');
+    const words = paragraph.trim().split(' ').flatMap(splitLongToken);
     let current = '';
     for (const word of words) {
       const candidate = current ? `${current} ${word}` : word;

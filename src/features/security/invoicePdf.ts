@@ -22,7 +22,21 @@ function clean(value: unknown) {
 }
 
 function wrap(text: string, font: PDFFont, size: number, width: number) {
-  const words = clean(text || '-').split(' ');
+  const splitLongToken = (token: string) => {
+    if (!token || font.widthOfTextAtSize(token, size) <= width) return [token];
+    const chunks: string[] = [];
+    let current = '';
+    for (const character of token) {
+      const candidate = `${current}${character}`;
+      if (current && font.widthOfTextAtSize(candidate, size) > width) {
+        chunks.push(current);
+        current = character;
+      } else current = candidate;
+    }
+    if (current) chunks.push(current);
+    return chunks;
+  };
+  const words = clean(text || '-').split(' ').flatMap(splitLongToken);
   const lines: string[] = [];
   let current = '';
   for (const word of words) {
@@ -118,19 +132,29 @@ export async function generateSecurityInvoicePdf(organization: Organization, inv
   addPage();
 
   const boxWidth = (PAGE[0] - MARGIN * 2 - 12) / 2;
-  const infoHeight = 116;
+  const issuerNameLines = wrap(issuerName, bold, 10.5, boxWidth - 26);
+  const issuerLines = [issuer.address, [issuer.postal_code, issuer.city].filter(Boolean).join(' '), issuer.siret ? `SIRET : ${issuer.siret}` : '', issuer.vat_number ? `TVA : ${issuer.vat_number}` : '', [issuer.email, issuer.phone].filter(Boolean).join(' · ')].filter(Boolean).flatMap((value) => wrap(clean(value), regular, 7.6, boxWidth - 26));
+  const clientNameLines = wrap(clientName, bold, 10.5, boxWidth - 26);
+  const clientLines = [client.billing_address, [client.postal_code, client.city].filter(Boolean).join(' '), client.siret ? `SIRET : ${client.siret}` : '', client.vat_number ? `TVA : ${client.vat_number}` : '', [client.email, client.phone].filter(Boolean).join(' · ')].filter(Boolean).flatMap((value) => wrap(clean(value), regular, 7.6, boxWidth - 26));
+  const infoHeight = Math.max(
+    116,
+    58 + issuerNameLines.length * 12 + issuerLines.length * 11 + 12,
+    58 + clientNameLines.length * 12 + clientLines.length * 11 + 12
+  );
   page.drawRectangle({ x: MARGIN, y: y - infoHeight, width: boxWidth, height: infoHeight, color: soft, borderColor: line, borderWidth: 0.8 });
   page.drawRectangle({ x: MARGIN + boxWidth + 12, y: y - infoHeight, width: boxWidth, height: infoHeight, color: soft, borderColor: line, borderWidth: 0.8 });
+  page.drawRectangle({ x: MARGIN, y: y - infoHeight, width: 5, height: infoHeight, color: accent });
+  page.drawRectangle({ x: MARGIN + boxWidth + 12, y: y - infoHeight, width: 5, height: infoHeight, color: accent });
   page.drawText('ÉMETTEUR', { x: MARGIN + 13, y: y - 18, size: 7, font: bold, color: accent });
-  page.drawText(issuerName.slice(0, 48), { x: MARGIN + 13, y: y - 38, size: 10.5, font: bold, color: dark });
-  const issuerLines = [issuer.address, [issuer.postal_code, issuer.city].filter(Boolean).join(' '), issuer.siret ? `SIRET : ${issuer.siret}` : '', issuer.vat_number ? `TVA : ${issuer.vat_number}` : '', [issuer.email, issuer.phone].filter(Boolean).join(' · ')].filter(Boolean) as string[];
-  issuerLines.slice(0, 5).forEach((text, index) => page.drawText(clean(text).slice(0, 52), { x: MARGIN + 13, y: y - 55 - index * 12, size: 7.6, font: regular, color: muted }));
+  issuerNameLines.forEach((text, index) => page.drawText(text, { x: MARGIN + 13, y: y - 38 - index * 12, size: 10.5, font: bold, color: dark }));
+  let issuerY = y - 52 - issuerNameLines.length * 12;
+  issuerLines.forEach((text) => { page.drawText(text, { x: MARGIN + 13, y: issuerY, size: 7.6, font: regular, color: muted }); issuerY -= 11; });
 
   const clientX = MARGIN + boxWidth + 25;
   page.drawText('CLIENT', { x: clientX, y: y - 18, size: 7, font: bold, color: accent });
-  page.drawText(clientName.slice(0, 48), { x: clientX, y: y - 38, size: 10.5, font: bold, color: dark });
-  const clientLines = [client.billing_address, [client.postal_code, client.city].filter(Boolean).join(' '), client.siret ? `SIRET : ${client.siret}` : '', client.vat_number ? `TVA : ${client.vat_number}` : '', [client.email, client.phone].filter(Boolean).join(' · ')].filter(Boolean) as string[];
-  clientLines.slice(0, 5).forEach((text, index) => page.drawText(clean(text).slice(0, 52), { x: clientX, y: y - 55 - index * 12, size: 7.6, font: regular, color: muted }));
+  clientNameLines.forEach((text, index) => page.drawText(text, { x: clientX, y: y - 38 - index * 12, size: 10.5, font: bold, color: dark }));
+  let clientY = y - 52 - clientNameLines.length * 12;
+  clientLines.forEach((text) => { page.drawText(text, { x: clientX, y: clientY, size: 7.6, font: regular, color: muted }); clientY -= 11; });
   y -= infoHeight + 22;
 
   const dateRows = [
@@ -156,17 +180,24 @@ export async function generateSecurityInvoicePdf(organization: Organization, inv
   drawTableHeader();
 
   for (const item of invoice.security_invoice_lines ?? []) {
-    const continued = ensure(44);
-    if (continued) drawTableHeader();
     const minutes = isFinal ? (item.billed_minutes ?? item.scheduled_minutes) : item.scheduled_minutes;
     const description = clean(item.security_sites?.name || item.description);
-    page.drawText(description.slice(0, 48), { x: MARGIN + 9, y: y - 16, size: 8.5, font: bold, color: dark });
-    if (isFinal && item.shift_count) page.drawText(`${item.shift_count} vacation(s)`, { x: MARGIN + 9, y: y - 29, size: 6.8, font: regular, color: muted });
-    page.drawText(formatSecurityDuration(minutes), { x: 330, y: y - 16, size: 8, font: regular, color: dark });
-    page.drawText(`${formatSecurityMoney(item.hourly_rate_cents)}/h`, { x: 410, y: y - 16, size: 8, font: regular, color: dark });
-    page.drawText(formatSecurityMoney(item.line_total_cents), { x: 486, y: y - 16, size: 8, font: bold, color: dark });
-    page.drawLine({ start: { x: MARGIN, y: y - 38 }, end: { x: PAGE[0] - MARGIN, y: y - 38 }, thickness: 0.6, color: line });
-    y -= 39;
+    const descriptionLines = wrap(description, bold, 8.5, 274);
+    const detailLines = isFinal && item.shift_count ? wrap(`${item.shift_count} vacation(s)`, regular, 6.8, 274) : [];
+    const rowHeight = Math.max(39, 18 + descriptionLines.length * 11 + detailLines.length * 9 + (detailLines.length ? 4 : 0));
+    const continued = ensure(rowHeight + 4);
+    if (continued) drawTableHeader();
+    let textY = y - 16;
+    descriptionLines.forEach((text) => { page.drawText(text, { x: MARGIN + 9, y: textY, size: 8.5, font: bold, color: dark }); textY -= 11; });
+    if (detailLines.length) {
+      textY -= 2;
+      detailLines.forEach((text) => { page.drawText(text, { x: MARGIN + 9, y: textY, size: 6.8, font: regular, color: muted }); textY -= 9; });
+    }
+    page.drawText(formatSecurityDuration(minutes), { x: 330, y: y - 16, size: 7.6, font: regular, color: dark });
+    page.drawText(`${formatSecurityMoney(item.hourly_rate_cents)}/h`, { x: 410, y: y - 16, size: 7.2, font: regular, color: dark });
+    page.drawText(formatSecurityMoney(item.line_total_cents), { x: 486, y: y - 16, size: 7.5, font: bold, color: dark });
+    page.drawLine({ start: { x: MARGIN, y: y - rowHeight }, end: { x: PAGE[0] - MARGIN, y: y - rowHeight }, thickness: 0.6, color: line });
+    y -= rowHeight + 1;
   }
 
   ensure(116);
@@ -185,8 +216,10 @@ export async function generateSecurityInvoicePdf(organization: Organization, inv
   y -= totalRows.length * 24 + 12;
 
   if (invoice.notes) {
-    const notes = wrap(`Note : ${invoice.notes}`, regular, 7.5, 285).slice(0, 4);
+    const notes = wrap(`Note : ${invoice.notes}`, regular, 7.5, PAGE[0] - MARGIN * 2);
+    ensure(notes.length * 10 + 12);
     notes.forEach((text, index) => page.drawText(text, { x: MARGIN, y: y - index * 10, size: 7.5, font: regular, color: muted }));
+    y -= notes.length * 10 + 8;
   }
 
   if (isFinal && (invoice.security_invoice_shift_items?.length ?? 0) > 0) {
@@ -198,11 +231,16 @@ export async function generateSecurityInvoicePdf(organization: Organization, inv
       const agent = item.security_agents ? securityPersonName(item.security_agents.first_name, item.security_agents.last_name) : 'Agent';
       const site = item.security_sites?.name || 'Site';
       const hours = `${new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(item.starts_at))}–${new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(item.ends_at))}`;
-      page.drawText(`${formatSecurityDate(item.service_date)} · ${site}`, { x: MARGIN, y: y - 12, size: 8.4, font: bold, color: dark });
-      page.drawText(`${agent} · ${hours} · ${formatSecurityDuration(item.actual_minutes)}`, { x: MARGIN, y: y - 25, size: 7.2, font: regular, color: muted });
+      const titleLines = wrap(`${formatSecurityDate(item.service_date)} · ${site}`, bold, 8.4, 400);
+      const detailLines = wrap(`${agent} · ${hours} · ${formatSecurityDuration(item.actual_minutes)}`, regular, 7.2, 400);
+      const detailHeight = 12 + titleLines.length * 11 + detailLines.length * 9;
+      ensure(detailHeight + 8);
+      let detailY = y - 12;
+      titleLines.forEach((text) => { page.drawText(text, { x: MARGIN, y: detailY, size: 8.4, font: bold, color: dark }); detailY -= 11; });
+      detailLines.forEach((text) => { page.drawText(text, { x: MARGIN, y: detailY, size: 7.2, font: regular, color: muted }); detailY -= 9; });
       page.drawText(formatSecurityMoney(item.line_total_cents), { x: 486, y: y - 18, size: 8, font: bold, color: dark });
-      page.drawLine({ start: { x: MARGIN, y: y - 35 }, end: { x: PAGE[0] - MARGIN, y: y - 35 }, thickness: 0.5, color: line });
-      y -= 38;
+      page.drawLine({ start: { x: MARGIN, y: y - detailHeight }, end: { x: PAGE[0] - MARGIN, y: y - detailHeight }, thickness: 0.5, color: line });
+      y -= detailHeight + 3;
     }
   }
 
@@ -212,11 +250,11 @@ export async function generateSecurityInvoicePdf(organization: Organization, inv
     const footerText = isFinal
       ? clean(issuer.late_penalty_text || 'Indemnité forfaitaire pour frais de recouvrement : 40 €.')
       : 'Document prévisionnel sans valeur de facture définitive.';
-    current.drawText(footerText.slice(0, 104), { x: MARGIN, y: footerY + 1, size: 5.8, font: regular, color: muted });
+    wrap(footerText, regular, 5.8, PAGE[0] - MARGIN * 2 - 106).slice(0, 2).forEach((text, index) => current.drawText(text, { x: MARGIN, y: footerY + 1 - index * 8, size: 5.8, font: regular, color: muted }));
     const bankLine = isFinal && issuer.bank_iban
       ? clean(`Virement : ${issuer.bank_account_holder || issuer.name || ''}${issuer.bank_name ? ` · ${issuer.bank_name}` : ''} · IBAN ${issuer.bank_iban}${issuer.bank_bic ? ` · BIC ${issuer.bank_bic}` : ''}`)
       : '';
-    if (bankLine) current.drawText(bankLine.slice(0, 118), { x: MARGIN, y: footerY - 9, size: 5.8, font: bold, color: dark });
+    if (bankLine) wrap(bankLine, bold, 5.8, PAGE[0] - MARGIN * 2 - 106).slice(0, 2).forEach((text, index) => current.drawText(text, { x: MARGIN, y: footerY - 9 - index * 8, size: 5.8, font: bold, color: dark }));
     if (isFinal && (invoice.tax_rate_basis_points || 0) === 0 && issuer.tax_exemption_text) {
       current.drawText(clean(issuer.tax_exemption_text).slice(0, 95), { x: MARGIN, y: footerY - (bankLine ? 18 : 9), size: 5.6, font: bold, color: dark });
     }
