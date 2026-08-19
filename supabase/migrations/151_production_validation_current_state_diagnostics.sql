@@ -1,7 +1,7 @@
 -- NCR Suite V2.29.25 — Validation production : état courant et diagnostics lisibles.
 -- Corrige deux faux angles morts du contrôle final sans masquer de vraie anomalie :
 -- 1) les échecs de documents Formation supersédés par une génération plus récente ne bloquent plus ;
--- 2) les anomalies RLS / SECURITY DEFINER / anon sont intégrées au rapport avec leur nom exact.
+-- 2) les anomalies RLS / fonctions à privilèges élevés / anon sont intégrées au rapport avec leur nom exact.
 --
 -- La fonction existante reste la source du rapport global. Cette fonction corrigée l'enrichit,
 -- ce qui préserve les évolutions de version, de checklist et de readiness déjà présentes en base.
