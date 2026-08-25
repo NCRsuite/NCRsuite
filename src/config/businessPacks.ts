@@ -145,6 +145,8 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Stagiaires', path: '/stagiaires', icon: 'users' },
       { label: 'Formateurs', path: '/formateurs', icon: 'briefcase' },
       { label: 'Sessions', path: '/sessions', icon: 'calendar' },
+      { label: 'Mon activité', path: '/mon-activite', icon: 'briefcase' },
+      { label: 'Mon planning', path: '/mon-planning', icon: 'calendar' },
       { label: 'CRM & commercial', path: '/commercial', icon: 'creditCard' },
       { label: 'Facturation', path: '/facturation-formation', icon: 'file' },
       { label: 'BPF automatique', path: '/bpf', icon: 'chart' },

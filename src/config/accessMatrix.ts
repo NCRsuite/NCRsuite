@@ -27,7 +27,7 @@ export const BUSINESS_ROUTE_PATHS: Record<BusinessType, Set<string>> = {
   ]),
   formation: new Set([
     ...common(),
-    '/parcours-formation', '/profil-organisme', '/formations', '/stagiaires', '/formateurs', '/sessions', '/commercial', '/facturation-formation', '/bpf', '/qualite-formation', '/portails-formation', '/dossiers-formation', '/documents', '/emargements', '/evaluations', '/attestations', '/etablissements', '/acces-equipe', '/personnalisation'
+    '/parcours-formation', '/profil-organisme', '/formations', '/stagiaires', '/formateurs', '/sessions', '/mon-activite', '/mon-planning', '/commercial', '/facturation-formation', '/bpf', '/qualite-formation', '/portails-formation', '/dossiers-formation', '/documents', '/emargements', '/evaluations', '/attestations', '/etablissements', '/acces-equipe', '/personnalisation'
   ]),
   securite: new Set([
     ...common(),
@@ -49,7 +49,7 @@ const MANAGER_COMMON_PATHS = new Set(['/', '/notifications', '/assistance', '/pa
 
 const EMPLOYEE_PATHS: Record<BusinessType, Set<string>> = {
   coiffure: new Set(['/', '/rendez-vous', '/notifications', '/assistance']),
-  formation: new Set(['/', '/formations', '/stagiaires', '/formateurs', '/sessions', '/documents', '/emargements', '/evaluations', '/attestations', '/notifications', '/assistance']),
+  formation: new Set(['/', '/formations', '/stagiaires', '/formateurs', '/sessions', '/mon-activite', '/mon-planning', '/documents', '/emargements', '/evaluations', '/attestations', '/notifications', '/assistance']),
   securite: new Set(['/', '/terrain', '/planning', '/rondes', '/main-courante', '/consignes', '/pti', '/notifications', '/assistance']),
   nettoyage: new Set(['/', '/terrain', '/planning', '/interventions', '/rapports', '/anomalies', '/notifications', '/assistance']),
   restauration: new Set(['/', '/terrain', '/planning', '/carte', '/recettes', '/reservations', '/commandes', '/cuisine', '/salle', '/hygiene', '/notifications', '/assistance'])

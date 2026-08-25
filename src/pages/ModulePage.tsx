@@ -2,7 +2,8 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
 import { Icon } from '../components/Icon';
 import { useOrganization } from '../contexts/OrganizationContext';
-
+import { TrainingPersonalActivityPage } from './TrainingPersonalActivityPage';
+import { TrainingPersonalPlanningPage } from './TrainingPersonalPlanningPage';
 
 const MODULE_BY_PATH: Record<string, string> = {
   '/fidelite': 'loyalty',
@@ -21,6 +22,8 @@ const MODULE_BY_PATH: Record<string, string> = {
   '/stagiaires': 'trainees',
   '/formateurs': 'trainers',
   '/sessions': 'sessions',
+  '/mon-activite': 'sessions',
+  '/mon-planning': 'sessions',
   '/emargements': 'attendance',
   '/attestations': 'certificates',
   '/devis': 'quotes'
@@ -41,6 +44,10 @@ export function ModulePage() {
       return <Navigate to="/" replace />;
     }
   }
+
+  if (organization.business_type === 'formation' && location.pathname === '/mon-activite') return <TrainingPersonalActivityPage />;
+  if (organization.business_type === 'formation' && location.pathname === '/mon-planning') return <TrainingPersonalPlanningPage />;
+
   const title = item?.label ?? 'Module';
   const icon = item?.icon ?? 'briefcase';
 

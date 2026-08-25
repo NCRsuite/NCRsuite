@@ -40,6 +40,8 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/stagiaires': 'trainees',
   '/formateurs': 'trainers',
   '/sessions': 'sessions',
+  '/mon-activite': 'sessions',
+  '/mon-planning': 'sessions',
   '/commercial': 'training_commercial',
   '/facturation-formation': 'training_billing',
   '/bpf': 'training_bpf',
