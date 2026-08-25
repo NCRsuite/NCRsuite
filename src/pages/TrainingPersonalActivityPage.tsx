@@ -22,6 +22,7 @@ interface PersonalIntervention {
   employment_mode: EmploymentMode;
   regulatory_scope: RegulatoryScope;
   status: InterventionStatus;
+  hourly_rate_cents: number | null;
   amount_excl_tax_cents: number | null;
   invoice_reference: string | null;
   invoice_date: string | null;
@@ -45,6 +46,7 @@ type ActivityForm = {
   repeatWeekly: boolean;
   repeatUntil: string;
   weekdays: number[];
+  hourlyRate: string;
   amount: string;
   invoiceReference: string;
   invoiceDate: string;
@@ -104,6 +106,7 @@ function initialForm(): ActivityForm {
     repeatWeekly: false,
     repeatUntil: dateInputValue(today),
     weekdays: [today.getDay()],
+    hourlyRate: '',
     amount: '',
     invoiceReference: '',
     invoiceDate: '',
@@ -127,6 +130,14 @@ function nullable(value: string) {
 
 function displayDateTime(value: string) {
   return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+}
+
+function displayMoney(cents: number) {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(cents / 100);
+}
+
+function durationHours(startsAt: string, endsAt: string) {
+  return Math.max(0, (new Date(endsAt).getTime() - new Date(startsAt).getTime()) / 3_600_000);
 }
 
 function buildOccurrenceDates(form: ActivityForm) {
@@ -166,7 +177,7 @@ export function TrainingPersonalActivityPage() {
     setError('');
     const { data, error: loadError } = await supabase
       .from('training_personal_interventions')
-      .select('id,reporting_organization_id,user_id,series_id,center_name,activity_title,starts_at,ends_at,location,employment_mode,regulatory_scope,status,amount_excl_tax_cents,invoice_reference,invoice_date,trainee_count,trainee_hours,notes,created_at,updated_at')
+      .select('id,reporting_organization_id,user_id,series_id,center_name,activity_title,starts_at,ends_at,location,employment_mode,regulatory_scope,status,hourly_rate_cents,amount_excl_tax_cents,invoice_reference,invoice_date,trainee_count,trainee_hours,notes,created_at,updated_at')
       .eq('reporting_organization_id', organization.id)
       .eq('user_id', user.id)
       .order('starts_at', { ascending: false });
@@ -186,7 +197,7 @@ export function TrainingPersonalActivityPage() {
 
   const completedHours = useMemo(() => rows
     .filter((row) => row.status === 'completed')
-    .reduce((total, row) => total + Math.max(0, (new Date(row.ends_at).getTime() - new Date(row.starts_at).getTime()) / 3_600_000), 0), [rows]);
+    .reduce((total, row) => total + durationHours(row.starts_at, row.ends_at), 0), [rows]);
 
   function toggleWeekday(value: number) {
     setForm((current) => ({
@@ -209,6 +220,11 @@ export function TrainingPersonalActivityPage() {
     }
     if (occurrenceDates.length > 366) {
       setError('La série est trop longue. Limite-la à 366 interventions maximum.');
+      return;
+    }
+    const hourlyRateCents = form.employmentMode === 'salaried' ? moneyToCents(form.hourlyRate) : null;
+    if (Number.isNaN(hourlyRateCents)) {
+      setError('Le tarif horaire doit être un nombre positif.');
       return;
     }
     const amountCents = form.employmentMode === 'subcontractor' ? moneyToCents(form.amount) : null;
@@ -242,6 +258,7 @@ export function TrainingPersonalActivityPage() {
         employment_mode: form.employmentMode,
         regulatory_scope: form.regulatoryScope,
         status: form.status,
+        hourly_rate_cents: hourlyRateCents,
         amount_excl_tax_cents: amountCents,
         invoice_reference: form.employmentMode === 'subcontractor' ? nullable(form.invoiceReference) : null,
         invoice_date: form.employmentMode === 'subcontractor' ? (form.invoiceDate || null) : null,
@@ -341,8 +358,9 @@ export function TrainingPersonalActivityPage() {
             <label>Début *<input type="time" required value={form.startTime} onChange={(event) => setForm((current) => ({ ...current, startTime: event.target.value }))} /></label>
             <label>Fin *<input type="time" required value={form.endTime} onChange={(event) => setForm((current) => ({ ...current, endTime: event.target.value }))} /></label>
             <label>Situation<select value={form.employmentMode} onChange={(event) => setForm((current) => ({ ...current, employmentMode: event.target.value as EmploymentMode }))}><option value="salaried">Salarié / rémunéré à l’heure</option><option value="subcontractor">Sous-traitance facturée via mon organisme</option></select></label>
-            <label>Nature BPF<select value={form.regulatoryScope} onChange={(event) => setForm((current) => ({ ...current, regulatoryScope: event.target.value as RegulatoryScope }))}>{Object.entries(scopeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <label>{form.employmentMode === 'salaried' ? 'Nature de l’activité' : 'Nature BPF'}<select value={form.regulatoryScope} onChange={(event) => setForm((current) => ({ ...current, regulatoryScope: event.target.value as RegulatoryScope }))}>{Object.entries(scopeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <label>Statut<select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as InterventionStatus }))}><option value="planned">Planifiée</option><option value="completed">Terminée</option><option value="canceled">Annulée</option></select></label>
+            {form.employmentMode === 'salaried' && <label>Tarif horaire convenu (€ / h)<input inputMode="decimal" value={form.hourlyRate} onChange={(event) => setForm((current) => ({ ...current, hourlyRate: event.target.value }))} placeholder="Ex. 35,00" /><small>Suivi personnel uniquement : ce montant n’entre ni dans le CA ni dans le BPF de {organization.public_name || organization.name}.</small></label>}
             <label className="full-field"><span><input type="checkbox" checked={form.repeatWeekly} onChange={(event) => setForm((current) => ({ ...current, repeatWeekly: event.target.checked, repeatUntil: current.repeatUntil || current.date }))} /> Répéter chaque semaine</span></label>
             {form.repeatWeekly && <><label>Jusqu’au *<input type="date" required min={form.date} value={form.repeatUntil} onChange={(event) => setForm((current) => ({ ...current, repeatUntil: event.target.value }))} /></label><fieldset><legend>Jours</legend><div className="training-checkbox-grid">{weekdays.map((day) => <label key={day.value}><input type="checkbox" checked={form.weekdays.includes(day.value)} onChange={() => toggleWeekday(day.value)} />{day.label}</label>)}</div></fieldset></>}
 
@@ -368,12 +386,15 @@ export function TrainingPersonalActivityPage() {
           <div className="training-card-list">
             {filteredRows.map((row) => {
               const bpfEligible = row.employment_mode === 'subcontractor' && ['professional_continuing', 'apprenticeship'].includes(row.regulatory_scope);
+              const hours = durationHours(row.starts_at, row.ends_at);
+              const estimatedPayCents = row.employment_mode === 'salaried' && row.hourly_rate_cents !== null ? Math.round(hours * row.hourly_rate_cents) : null;
               return <article key={row.id} className="training-record-card">
                 <span className="training-record-icon"><Icon name={row.employment_mode === 'salaried' ? 'calendar' : 'briefcase'} size={21} /></span>
                 <div className="training-record-main">
                   <strong>{row.activity_title}</strong>
                   <span>{row.center_name} · {displayDateTime(row.starts_at)} → {new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' }).format(new Date(row.ends_at))}</span>
                   <small>{employmentLabels[row.employment_mode]} · {scopeLabels[row.regulatory_scope]}{row.location ? ` · ${row.location}` : ''}</small>
+                  {row.employment_mode === 'salaried' && row.hourly_rate_cents !== null && <small>Tarif horaire : {displayMoney(row.hourly_rate_cents)} / h · estimation {new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(hours)} h = {displayMoney(estimatedPayCents ?? 0)}</small>}
                   <small>{row.employment_mode === 'salaried' ? `Planning uniquement · hors BPF ${organization.public_name || organization.name}` : bpfEligible ? 'Consolidation BPF possible une fois terminée' : 'Sous-traitance hors BPF tant que la nature n’est pas éligible'}</small>
                 </div>
                 <span className={`training-status-pill ${row.status}`}>{statusLabels[row.status]}</span>
