@@ -1,3 +1,8 @@
+.personal-activity-page-scope {
+  width: 100%;
+  min-width: 0;
+}
+
 .personal-activity-billing-shortcut {
   display: flex;
   align-items: center;
@@ -76,6 +81,229 @@
   box-shadow: 0 7px 18px rgba(37, 99, 235, 0.11);
 }
 
+/* Liste des interventions — scope volontairement limité à Mon activité. */
+.personal-activity-page-scope .training-list-panel {
+  padding: 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(248, 250, 252, 0.98));
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.06);
+  overflow: visible;
+}
+
+.personal-activity-page-scope .training-list-panel .training-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.personal-activity-page-scope .training-list-panel .training-toolbar h2 {
+  margin: 3px 0 0;
+  color: #0f172a;
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+  line-height: 1.2;
+}
+
+.personal-activity-page-scope .training-list-panel .search-field {
+  width: min(360px, 100%);
+  min-width: 240px;
+}
+
+.personal-activity-page-scope .training-list-panel .search-field input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.personal-activity-page-scope .training-list-panel .search-field input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.11);
+}
+
+.personal-activity-page-scope .training-card-list {
+  display: grid;
+  gap: 12px;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "icon main status"
+    "icon main actions";
+  align-items: start;
+  gap: 10px 16px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.045);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-card:hover {
+  transform: translateY(-1px);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.075);
+}
+
+.personal-activity-page-scope .training-card-list .training-record-icon {
+  grid-area: icon;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  border: 1px solid #dbeafe;
+  border-radius: 15px;
+  background: #eff6ff;
+  color: #2563eb;
+  box-shadow: none;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-main {
+  grid-area: main;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  align-self: stretch;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-main > strong {
+  min-width: 0;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-main > span {
+  min-width: 0;
+  color: #334155;
+  font-size: 0.86rem;
+  font-weight: 650;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-main > small {
+  display: block;
+  min-width: 0;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-main > small:first-of-type {
+  color: #475569;
+  font-weight: 650;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-main > small:last-child {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 2px;
+  padding: 7px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #475569;
+}
+
+.personal-activity-page-scope .training-card-list .training-status-pill {
+  grid-area: status;
+  justify-self: end;
+  align-self: start;
+  min-width: max-content;
+  margin: 0;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  align-self: end;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-actions .compact-button {
+  min-height: 36px;
+  padding: 7px 11px;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 750;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-actions .compact-button:last-child {
+  border-color: #fecaca;
+  background: #fff;
+  color: #b91c1c;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-actions .compact-button:last-child:hover:not(:disabled) {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-card:has(.training-status-pill.completed) {
+  border-left: 3px solid #22c55e;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-card:has(.training-status-pill.planned) {
+  border-left: 3px solid #3b82f6;
+}
+
+.personal-activity-page-scope .training-card-list .training-record-card:has(.training-status-pill.canceled) {
+  border-left: 3px solid #94a3b8;
+  background: #fbfcfd;
+}
+
+@media (max-width: 900px) {
+  .personal-activity-page-scope .training-card-list .training-record-card {
+    grid-template-columns: 46px minmax(0, 1fr);
+    grid-template-areas:
+      "icon main"
+      "status status"
+      "actions actions";
+  }
+
+  .personal-activity-page-scope .training-card-list .training-status-pill {
+    justify-self: start;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-actions {
+    justify-content: flex-start;
+    padding-top: 11px;
+    border-top: 1px solid #eef2f7;
+  }
+}
+
 @media (max-width: 720px) {
   .personal-activity-billing-shortcut {
     align-items: flex-start;
@@ -91,6 +319,76 @@
     align-self: center;
     padding-inline: 11px;
   }
+
+  .personal-activity-page-scope .training-list-panel {
+    padding: 15px;
+    border-radius: 20px;
+  }
+
+  .personal-activity-page-scope .training-list-panel .training-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+  }
+
+  .personal-activity-page-scope .training-list-panel .search-field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .personal-activity-page-scope .training-card-list {
+    gap: 10px;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-card {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px 12px;
+    padding: 15px;
+    border-radius: 16px;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-main {
+    gap: 5px;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-main > strong {
+    font-size: 0.96rem;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-main > span {
+    font-size: 0.82rem;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-main > small {
+    font-size: 0.75rem;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-actions .compact-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 43px;
+    padding: 8px 10px;
+    white-space: normal;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-actions .compact-button:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 480px) {
@@ -102,5 +400,21 @@
   .personal-activity-billing-shortcut-action {
     grid-column: 1 / -1;
     width: 100%;
+  }
+
+  .personal-activity-page-scope .training-list-panel {
+    padding: 12px;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-card {
+    padding: 13px;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .personal-activity-page-scope .training-card-list .training-record-actions .compact-button:last-child:nth-child(odd) {
+    grid-column: auto;
   }
 }
