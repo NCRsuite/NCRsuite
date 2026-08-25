@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
 import { Icon } from '../components/Icon';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { TrainingPersonalActivityPage } from './TrainingPersonalActivityPage';
+import { TrainingPersonalActivityOrganizer } from './TrainingPersonalActivityOrganizer';
 import { TrainingPersonalPlanningPage } from './TrainingPersonalPlanningPage';
 import { TrainingPersonalMonthlyBillingPage } from './TrainingPersonalMonthlyBillingPage';
 import './TrainingPersonalActivityShortcut.css';
@@ -35,6 +37,7 @@ const MODULE_BY_PATH: Record<string, string> = {
 export function ModulePage() {
   const location = useLocation();
   const { organization } = useOrganization();
+  const [activityRevision, setActivityRevision] = useState(0);
   if (!organization) return null;
   const pack = businessPacks[organization.business_type];
   const item = pack.navigation.find((nav) => nav.path === location.pathname);
@@ -61,7 +64,8 @@ export function ModulePage() {
         <Icon name="chevronRight" size={16} />
       </Link>
     </div>
-    <TrainingPersonalActivityPage />
+    <TrainingPersonalActivityPage key={activityRevision} />
+    <TrainingPersonalActivityOrganizer revision={activityRevision} onChanged={() => setActivityRevision((value) => value + 1)} />
   </div>;
   if (organization.business_type === 'formation' && location.pathname === '/mon-planning') return <TrainingPersonalPlanningPage />;
   if (organization.business_type === 'formation' && location.pathname === '/facturation-mensuelle') return <TrainingPersonalMonthlyBillingPage />;
