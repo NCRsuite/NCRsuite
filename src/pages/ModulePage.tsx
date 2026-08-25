@@ -48,7 +48,7 @@ export function ModulePage() {
     }
   }
 
-  if (organization.business_type === 'formation' && location.pathname === '/mon-activite') return <>
+  if (organization.business_type === 'formation' && location.pathname === '/mon-activite') return <div className="personal-activity-page-scope">
     <div className="personal-activity-billing-shortcut">
       <span className="personal-activity-billing-shortcut-icon"><Icon name="file" size={19} /></span>
       <div className="personal-activity-billing-shortcut-copy">
@@ -62,7 +62,7 @@ export function ModulePage() {
       </Link>
     </div>
     <TrainingPersonalActivityPage />
-  </>;
+  </div>;
   if (organization.business_type === 'formation' && location.pathname === '/mon-planning') return <TrainingPersonalPlanningPage />;
   if (organization.business_type === 'formation' && location.pathname === '/facturation-mensuelle') return <TrainingPersonalMonthlyBillingPage />;
 
