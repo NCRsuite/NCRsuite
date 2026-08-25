@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { businessPacks } from '../config/businessPacks';
 import { Icon } from '../components/Icon';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -47,7 +47,10 @@ export function ModulePage() {
     }
   }
 
-  if (organization.business_type === 'formation' && location.pathname === '/mon-activite') return <TrainingPersonalActivityPage />;
+  if (organization.business_type === 'formation' && location.pathname === '/mon-activite') return <>
+    <div className="training-portal-notice"><Icon name="file" size={18} /><span>Tu factures tes interventions externes au mois ? <Link to="/facturation-mensuelle"><strong>Préparer la facturation mensuelle →</strong></Link></span></div>
+    <TrainingPersonalActivityPage />
+  </>;
   if (organization.business_type === 'formation' && location.pathname === '/mon-planning') return <TrainingPersonalPlanningPage />;
   if (organization.business_type === 'formation' && location.pathname === '/facturation-mensuelle') return <TrainingPersonalMonthlyBillingPage />;
 
