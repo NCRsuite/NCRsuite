@@ -63,11 +63,19 @@ const employmentLabels: Record<EmploymentMode, string> = {
 };
 
 const scopeLabels: Record<RegulatoryScope, string> = {
-  review_required: 'À qualifier',
-  professional_continuing: 'Formation professionnelle continue',
-  apprenticeship: 'Apprentissage',
-  initial_education: 'Formation initiale / scolaire',
+  review_required: 'À qualifier / je ne sais pas encore',
+  professional_continuing: 'Formation professionnelle continue (adultes / salariés)',
+  apprenticeship: 'Apprentissage (CFA / contrat d’apprentissage)',
+  initial_education: 'Formation initiale / scolaire (dont BTS hors apprentissage)',
   out_of_scope: 'Hors champ BPF'
+};
+
+const scopeHelp: Record<RegulatoryScope, string> = {
+  review_required: 'Choisis cette option si le statut du public n’est pas encore certain. Tu pourras qualifier l’intervention plus tard.',
+  professional_continuing: 'À utiliser pour une action relevant de la formation professionnelle continue, par exemple auprès d’adultes, salariés ou demandeurs d’emploi.',
+  apprenticeship: 'À choisir uniquement lorsque les apprenants suivent la formation sous contrat d’apprentissage. Un BTS MCO n’est pas automatiquement de l’apprentissage.',
+  initial_education: 'À utiliser pour une formation scolaire ou initiale, par exemple un BTS MCO lorsque les étudiants ne sont pas sous contrat d’apprentissage.',
+  out_of_scope: 'L’activité reste suivie dans ton planning mais elle est explicitement exclue du périmètre BPF.'
 };
 
 const statusLabels: Record<InterventionStatus, string> = {
@@ -202,6 +210,25 @@ export function TrainingPersonalActivityPage() {
     .filter((row) => row.status === 'completed')
     .reduce((total, row) => total + durationHours(row.starts_at, row.ends_at), 0), [rows]);
 
+  const estimatedSalariedPayCents = useMemo(() => rows
+    .filter((row) => row.status !== 'canceled' && row.employment_mode === 'salaried' && row.hourly_rate_cents !== null)
+    .reduce((total, row) => total + Math.round(durationHours(row.starts_at, row.ends_at) * (row.hourly_rate_cents ?? 0)), 0), [rows]);
+
+  const previewOccurrenceCount = useMemo(() => buildOccurrenceDates(form).length, [form]);
+  const previewHours = useMemo(() => {
+    const startsAt = new Date(`${form.date}T${form.startTime}:00`);
+    const endsAt = new Date(`${form.date}T${form.endTime}:00`);
+    if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) return 0;
+    return durationHours(startsAt.toISOString(), endsAt.toISOString());
+  }, [form.date, form.startTime, form.endTime]);
+  const previewHourlyRateCents = useMemo(() => moneyToCents(form.hourlyRate), [form.hourlyRate]);
+  const previewUnitAmountCents = typeof previewHourlyRateCents === 'number' && Number.isFinite(previewHourlyRateCents) && previewHours > 0
+    ? Math.round(previewHours * previewHourlyRateCents)
+    : null;
+  const previewSeriesAmountCents = previewUnitAmountCents !== null && previewOccurrenceCount > 0
+    ? previewUnitAmountCents * previewOccurrenceCount
+    : null;
+
   function toggleWeekday(value: number) {
     setForm((current) => ({
       ...current,
@@ -223,6 +250,10 @@ export function TrainingPersonalActivityPage() {
     }
     if (occurrenceDates.length > 366) {
       setError('La série est trop longue. Limite-la à 366 interventions maximum.');
+      return;
+    }
+    if (previewHours <= 0) {
+      setError('L’heure de fin doit être postérieure à l’heure de début.');
       return;
     }
 
@@ -257,9 +288,6 @@ export function TrainingPersonalActivityPage() {
     const payloads = occurrenceDates.map((date) => {
       const startsAt = new Date(`${date}T${form.startTime}:00`);
       const endsAt = new Date(`${date}T${form.endTime}:00`);
-      if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) {
-        throw new Error('Les horaires sont invalides.');
-      }
       const hours = durationHours(startsAt.toISOString(), endsAt.toISOString());
       const amountCents = form.employmentMode !== 'subcontractor'
         ? null
@@ -365,6 +393,7 @@ export function TrainingPersonalActivityPage() {
         <article className="panel"><span className="training-record-icon"><Icon name="calendar" size={20} /></span><div><small>Interventions</small><strong>{rows.length}</strong></div></article>
         <article className="panel"><span className="training-record-icon"><Icon name="check" size={20} /></span><div><small>Heures terminées</small><strong>{new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(completedHours)} h</strong></div></article>
         <article className="panel"><span className="training-record-icon"><Icon name="briefcase" size={20} /></span><div><small>Sous-traitances</small><strong>{rows.filter((row) => row.employment_mode === 'subcontractor').length}</strong></div></article>
+        <article className="panel"><span className="training-record-icon"><Icon name="activity" size={20} /></span><div><small>Rémunération estimée</small><strong>{displayMoney(estimatedSalariedPayCents)}</strong><small>Activités salariées non annulées</small></div></article>
       </div>
 
       {formOpen && (
@@ -378,16 +407,16 @@ export function TrainingPersonalActivityPage() {
             <label>Début *<input type="time" required value={form.startTime} onChange={(event) => setForm((current) => ({ ...current, startTime: event.target.value }))} /></label>
             <label>Fin *<input type="time" required value={form.endTime} onChange={(event) => setForm((current) => ({ ...current, endTime: event.target.value }))} /></label>
             <label>Situation<select value={form.employmentMode} onChange={(event) => setForm((current) => ({ ...current, employmentMode: event.target.value as EmploymentMode }))}><option value="salaried">Salarié / rémunéré à l’heure</option><option value="subcontractor">Sous-traitance facturée via mon organisme</option></select></label>
-            <label>{form.employmentMode === 'salaried' ? 'Nature de l’activité' : 'Nature BPF'}<select value={form.regulatoryScope} onChange={(event) => setForm((current) => ({ ...current, regulatoryScope: event.target.value as RegulatoryScope }))}>{Object.entries(scopeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <label className="full-field">{form.employmentMode === 'salaried' ? 'Nature de l’activité' : 'Nature BPF'}<select value={form.regulatoryScope} onChange={(event) => setForm((current) => ({ ...current, regulatoryScope: event.target.value as RegulatoryScope }))}>{Object.entries(scopeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><small>{scopeHelp[form.regulatoryScope]}{form.employmentMode === 'salaried' ? ` Cette qualification reste informative pour ton suivi personnel et n’alimente pas le BPF de ${organization.public_name || organization.name}.` : ''}</small></label>
             <label>Statut<select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as InterventionStatus }))}><option value="planned">Planifiée</option><option value="completed">Terminée</option><option value="canceled">Annulée</option></select></label>
-            {form.employmentMode === 'salaried' && <label>Tarif horaire convenu (€ / h)<input inputMode="decimal" value={form.hourlyRate} onChange={(event) => setForm((current) => ({ ...current, hourlyRate: event.target.value }))} placeholder="Ex. 35,00" /><small>Suivi personnel uniquement : ce montant n’entre ni dans le CA ni dans le BPF de {organization.public_name || organization.name}.</small></label>}
-            <label className="full-field"><span><input type="checkbox" checked={form.repeatWeekly} onChange={(event) => setForm((current) => ({ ...current, repeatWeekly: event.target.checked, repeatUntil: current.repeatUntil || current.date }))} /> Répéter chaque semaine</span></label>
+            {form.employmentMode === 'salaried' && <label>Tarif horaire convenu (€ / h)<input inputMode="decimal" value={form.hourlyRate} onChange={(event) => setForm((current) => ({ ...current, hourlyRate: event.target.value }))} placeholder="Ex. 35,00" /><small>Suivi personnel uniquement : ce montant n’entre ni dans le CA ni dans le BPF de {organization.public_name || organization.name}.</small>{previewUnitAmountCents !== null && <small><strong>Estimation :</strong> {new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(previewHours)} h × {displayMoney(previewHourlyRateCents as number)} = {displayMoney(previewUnitAmountCents)}{form.repeatWeekly && previewOccurrenceCount > 1 && previewSeriesAmountCents !== null ? ` par intervention · ${previewOccurrenceCount} interventions = ${displayMoney(previewSeriesAmountCents)} sur la série` : ''}.</small>}</label>}
+            <label className="full-field"><span><input type="checkbox" checked={form.repeatWeekly} onChange={(event) => setForm((current) => ({ ...current, repeatWeekly: event.target.checked, repeatUntil: event.target.checked && current.repeatUntil < current.date ? current.date : current.repeatUntil }))} /> Répéter chaque semaine</span></label>
             {form.repeatWeekly && <><label>Jusqu’au *<input type="date" required min={form.date} value={form.repeatUntil} onChange={(event) => setForm((current) => ({ ...current, repeatUntil: event.target.value }))} /></label><fieldset><legend>Jours</legend><div className="training-checkbox-grid">{weekdays.map((day) => <label key={day.value}><input type="checkbox" checked={form.weekdays.includes(day.value)} onChange={() => toggleWeekday(day.value)} />{day.label}</label>)}</div></fieldset></>}
 
             {form.employmentMode === 'subcontractor' && <>
               <label>Mode de tarification<select value={form.subcontractorPricingMode} onChange={(event) => setForm((current) => ({ ...current, subcontractorPricingMode: event.target.value as SubcontractorPricingMode }))}><option value="fixed">Forfait / montant par intervention</option><option value="hourly">Tarif horaire</option></select></label>
               {form.subcontractorPricingMode === 'hourly'
-                ? <label>Tarif horaire HT (€ / h) *<input required inputMode="decimal" value={form.hourlyRate} onChange={(event) => setForm((current) => ({ ...current, hourlyRate: event.target.value }))} placeholder="Ex. 35,00" /><small>Le montant HT de chaque intervention est calculé automatiquement d’après sa durée.</small></label>
+                ? <label>Tarif horaire HT (€ / h) *<input required inputMode="decimal" value={form.hourlyRate} onChange={(event) => setForm((current) => ({ ...current, hourlyRate: event.target.value }))} placeholder="Ex. 35,00" /><small>Le montant HT de chaque intervention est calculé automatiquement d’après sa durée.</small>{previewUnitAmountCents !== null && <small><strong>Calcul :</strong> {new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(previewHours)} h × {displayMoney(previewHourlyRateCents as number)} = {displayMoney(previewUnitAmountCents)} HT{form.repeatWeekly && previewOccurrenceCount > 1 && previewSeriesAmountCents !== null ? ` par intervention · total prévisionnel de la série : ${displayMoney(previewSeriesAmountCents)} HT` : ''}.</small>}</label>
                 : <label>Montant HT par intervention<input inputMode="decimal" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} placeholder="Ex. 500,00" /></label>}
               <label>Référence facture<input value={form.invoiceReference} onChange={(event) => setForm((current) => ({ ...current, invoiceReference: event.target.value }))} placeholder="Ex. FAC-2026-018" /></label>
               <label>Date de facture<input type="date" value={form.invoiceDate} onChange={(event) => setForm((current) => ({ ...current, invoiceDate: event.target.value }))} /></label>
