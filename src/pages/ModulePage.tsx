@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { TrainingPersonalActivityPage } from './TrainingPersonalActivityPage';
 import { TrainingPersonalPlanningPage } from './TrainingPersonalPlanningPage';
+import { TrainingPersonalMonthlyBillingPage } from './TrainingPersonalMonthlyBillingPage';
 
 const MODULE_BY_PATH: Record<string, string> = {
   '/fidelite': 'loyalty',
@@ -24,6 +25,7 @@ const MODULE_BY_PATH: Record<string, string> = {
   '/sessions': 'sessions',
   '/mon-activite': 'sessions',
   '/mon-planning': 'sessions',
+  '/facturation-mensuelle': 'training_billing',
   '/emargements': 'attendance',
   '/attestations': 'certificates',
   '/devis': 'quotes'
@@ -47,6 +49,7 @@ export function ModulePage() {
 
   if (organization.business_type === 'formation' && location.pathname === '/mon-activite') return <TrainingPersonalActivityPage />;
   if (organization.business_type === 'formation' && location.pathname === '/mon-planning') return <TrainingPersonalPlanningPage />;
+  if (organization.business_type === 'formation' && location.pathname === '/facturation-mensuelle') return <TrainingPersonalMonthlyBillingPage />;
 
   const title = item?.label ?? 'Module';
   const icon = item?.icon ?? 'briefcase';
