@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
+import './TrainingPersonalMonthlyBillingPage.css';
 
 type InterventionStatus = 'planned' | 'completed' | 'canceled';
 type RegulatoryScope = 'review_required' | 'professional_continuing' | 'apprenticeship' | 'initial_education' | 'out_of_scope';
@@ -91,8 +92,18 @@ function normalized(value: string) {
   return value.trim().toLocaleLowerCase('fr');
 }
 
-function dateTime(value: string) {
-  return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
+function datePart(value: string) {
+  return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value));
+}
+
+function timePart(value: string) {
+  return new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+}
+
+function scopeBadgeClass(scope: RegulatoryScope) {
+  if (scope === 'review_required') return 'review';
+  if (scope === 'professional_continuing' || scope === 'apprenticeship') return 'included';
+  return '';
 }
 
 export function TrainingPersonalMonthlyBillingPage() {
@@ -259,7 +270,7 @@ export function TrainingPersonalMonthlyBillingPage() {
   if (!organization || organization.business_type !== 'formation') return null;
 
   return (
-    <div className="page training-page">
+    <div className="page training-page personal-monthly-billing">
       <header className="page-header">
         <div>
           <p className="eyebrow">FORMATION · ACTIVITÉ PERSONNELLE</p>
@@ -272,60 +283,84 @@ export function TrainingPersonalMonthlyBillingPage() {
         </div>
       </header>
 
-      <section className="panel training-form-panel">
-        <div className="training-form-grid">
+      <section className="monthly-billing-controls">
+        <div className="monthly-billing-control-grid">
           <label>Mois à facturer<input type="month" value={month} onChange={(event) => setMonth(event.target.value)} /></label>
           <label>TVA appliquée (%)<input inputMode="decimal" value={vatRate} onChange={(event) => setVatRate(event.target.value)} /></label>
         </div>
-        <div className="training-portal-notice"><Icon name="activity" size={18} /><span>Seules les interventions <strong>Sous-traitance facturée via mon organisme</strong> et marquées <strong>Terminée</strong> sont facturées. Les activités salariées restent dans ton planning mais ne créent jamais de facture NCR.</span></div>
+        <div className="monthly-billing-rule"><Icon name="info" size={18} /><span>Seules les interventions <strong>Sous-traitance facturée via mon organisme</strong> et marquées <strong>Terminée</strong> entrent dans la facture. Les activités salariées restent suivies, sans créer de facture NCR.</span></div>
       </section>
 
-      <div className="training-kpi-grid">
-        <article className="panel"><span className="training-record-icon"><Icon name="calendar" size={20} /></span><div><small>Heures à facturer</small><strong>{totals.billableHours.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} h</strong></div></article>
-        <article className="panel"><span className="training-record-icon"><Icon name="creditCard" size={20} /></span><div><small>HT à facturer</small><strong>{money(totals.billableAmount)}</strong></div></article>
-        <article className="panel"><span className="training-record-icon"><Icon name="file" size={20} /></span><div><small>Déjà mis en facture</small><strong>{money(totals.billedAmount)}</strong></div></article>
-        <article className="panel"><span className="training-record-icon"><Icon name="briefcase" size={20} /></span><div><small>Heures salariées suivies</small><strong>{totals.salariedHours.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} h</strong></div></article>
+      <div className="monthly-billing-kpis">
+        <article className="monthly-billing-kpi"><span className="monthly-billing-kpi-icon"><Icon name="clock" size={20} /></span><div><small>Heures à facturer</small><strong>{totals.billableHours.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} h</strong></div></article>
+        <article className="monthly-billing-kpi"><span className="monthly-billing-kpi-icon"><Icon name="creditCard" size={20} /></span><div><small>HT à facturer</small><strong>{money(totals.billableAmount)}</strong></div></article>
+        <article className="monthly-billing-kpi"><span className="monthly-billing-kpi-icon"><Icon name="file" size={20} /></span><div><small>Déjà mis en facture</small><strong>{money(totals.billedAmount)}</strong></div></article>
+        <article className="monthly-billing-kpi"><span className="monthly-billing-kpi-icon"><Icon name="briefcase" size={20} /></span><div><small>Heures salariées suivies</small><strong>{totals.salariedHours.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} h</strong></div></article>
       </div>
 
       {error && <div className="error-message page-message" role="alert">{error}</div>}
       {success && <div className="success-message page-message">{success}{createdInvoiceId && <> <Link to="/facturation-formation">Ouvrir le brouillon dans Facturation →</Link></>}</div>}
 
       {loading ? <div className="training-empty">Chargement de la facturation mensuelle…</div> : groups.length === 0 ? (
-        <section className="panel training-empty"><Icon name="calendar" size={30} /><strong>Aucune activité sur ce mois</strong><span>Les interventions de Mon activité apparaîtront ici automatiquement.</span></section>
+        <section className="panel monthly-billing-empty"><Icon name="calendar" size={30} /><strong>Aucune activité sur ce mois</strong><span>Les interventions de Mon activité apparaîtront ici automatiquement.</span></section>
       ) : (
-        <div className="training-record-list">
+        <div className="monthly-billing-groups">
           {groups.map((group) => {
             const selectedCustomer = customers.find((customer) => customer.id === customerByCenter[group.key]);
             const relatedInvoices = invoices.filter((invoice) => normalized(invoice.personal_activity_center_name || '') === group.key);
-            return <article className="panel training-record-card" key={group.key}>
-              <div className="training-record-main">
-                <div className="training-record-title"><span className="training-record-icon"><Icon name="building" size={19} /></span><div><small>CENTRE DE FORMATION</small><strong>{group.center}</strong></div></div>
-                <div className="training-record-meta">
-                  <span>{group.billable.length} intervention(s) à facturer</span>
-                  <span>{group.hours.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} h</span>
-                  <span>{money(group.amountCents)} HT</span>
-                </div>
-                {group.billable.length > 0 && <div className="training-record-lines">{group.billable.map((row) => <span key={row.id}><strong>{dateTime(row.starts_at)}</strong> · {row.activity_title} · {durationHours(row).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} h · {money(row.amount_excl_tax_cents ?? 0)} · {scopeLabels[row.regulatory_scope]}</span>)}</div>}
-                {group.toQualify > 0 && <div className="training-portal-notice warning"><Icon name="alert" size={16} /><span>{group.toQualify} intervention(s) restent à qualifier pour le BPF. Cela ne bloque pas la facture : la qualification BPF reste indépendante.</span></div>}
-                {group.planned.length > 0 && <p>{group.planned.length} intervention(s) encore planifiée(s) : elles entreront dans la facturation lorsqu’elles seront terminées.</p>}
-                {group.salaried.length > 0 && <p>{group.salaried.length} activité(s) salariée(s) suivie(s), volontairement exclue(s) de la facturation NCR.</p>}
-                {relatedInvoices.map((invoice) => <p key={invoice.id}><strong>{invoice.invoice_number || 'Brouillon'}</strong> · {invoice.status} · {money(invoice.subtotal_cents)} HT</p>)}
+            return <article className="monthly-billing-card" key={group.key}>
+              <div className="monthly-billing-card-head">
+                <span className="monthly-billing-center-icon"><Icon name="building" size={21} /></span>
+                <div className="monthly-billing-center-copy"><small>CENTRE DE FORMATION</small><h2>{group.center}</h2></div>
               </div>
 
-              <div className="training-record-actions">
-                {group.billable.length > 0 && <>
-                  <label>Client à facturer<select value={customerByCenter[group.key] || ''} onChange={(event) => setCustomerByCenter((current) => ({ ...current, [group.key]: event.target.value }))}><option value="">Sélectionner le centre client</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.legal_name}</option>)}</select></label>
-                  {selectedCustomer && (!selectedCustomer.billing_address || !selectedCustomer.postal_code || !selectedCustomer.city) && <small>Adresse de facturation incomplète : le brouillon pourra être créé, mais il faudra compléter le client avant l’émission.</small>}
-                  {group.missingPrice > 0 ? <span className="status-badge inactive">Tarif manquant</span> : <button type="button" className="primary-button" disabled={!canManage || busyCenter === group.key || !customerByCenter[group.key]} onClick={() => void createMonthlyInvoice(group)}><Icon name="file" size={17} />{busyCenter === group.key ? 'Création…' : `Créer le brouillon · ${money(group.amountCents)} HT`}</button>}
-                </>}
-                {group.alreadyBilled.length > 0 && <span className="status-badge active">{group.alreadyBilled.length} intervention(s) déjà rattachée(s) à une facture</span>}
+              <div className="monthly-billing-summary">
+                <div className="monthly-billing-summary-item"><Icon name="file" size={19} /><div><strong>{group.billable.length}</strong><span>intervention(s) à facturer</span></div></div>
+                <div className="monthly-billing-summary-item"><Icon name="clock" size={19} /><div><strong>{group.hours.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} h</strong><span>heures terminées</span></div></div>
+                <div className="monthly-billing-summary-item"><Icon name="creditCard" size={19} /><div><strong>{money(group.amountCents)} HT</strong><span>montant à facturer</span></div></div>
               </div>
+
+              {group.billable.length > 0 && <section className="monthly-billing-section">
+                <h3 className="monthly-billing-section-title">Interventions à facturer</h3>
+                <div className="monthly-billing-interventions">
+                  {group.billable.map((row) => <div className="monthly-billing-intervention" key={row.id}>
+                    <div className="monthly-billing-intervention-grid">
+                      <div className="monthly-billing-detail"><Icon name="calendar" size={18} /><div><strong>{datePart(row.starts_at)}</strong><small>Date</small></div></div>
+                      <div className="monthly-billing-detail"><Icon name="clock" size={18} /><div><strong>{timePart(row.starts_at)}</strong><small>Heure</small></div></div>
+                      <div className="monthly-billing-detail"><Icon name="graduation" size={18} /><div><strong>{row.activity_title}</strong><small>Formation</small></div></div>
+                      <div className="monthly-billing-detail"><Icon name="clock" size={18} /><div><strong>{durationHours(row).toLocaleString('fr-FR', { maximumFractionDigits: 2 })} h</strong><small>Durée</small></div></div>
+                      <div className="monthly-billing-detail"><Icon name="creditCard" size={18} /><div><strong>{money(row.amount_excl_tax_cents ?? 0)}</strong><small>Montant HT</small></div></div>
+                    </div>
+                    <div className="monthly-billing-scope-row">
+                      <span className={`monthly-billing-scope-badge ${scopeBadgeClass(row.regulatory_scope)}`}>{scopeLabels[row.regulatory_scope]}</span>
+                      <span className="monthly-billing-scope-copy">La qualification BPF reste indépendante de la facturation.</span>
+                    </div>
+                  </div>)}
+                </div>
+              </section>}
+
+              {group.billable.length > 0 && <div className="monthly-billing-action-area">
+                <label className="monthly-billing-client-field"><span>Client à facturer</span><select value={customerByCenter[group.key] || ''} onChange={(event) => setCustomerByCenter((current) => ({ ...current, [group.key]: event.target.value }))}><option value="">Sélectionner le centre client</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.legal_name}</option>)}</select></label>
+                {selectedCustomer && (!selectedCustomer.billing_address || !selectedCustomer.postal_code || !selectedCustomer.city) && <div className="monthly-billing-address-warning"><Icon name="alert" size={16} /><span>Adresse de facturation incomplète : le brouillon peut être créé, mais le client devra être complété avant l’émission.</span></div>}
+                {group.missingPrice > 0 ? <span className="monthly-billing-state-pill warning">Tarif manquant sur {group.missingPrice} intervention(s)</span> : <button type="button" className="monthly-billing-primary-action" disabled={!canManage || busyCenter === group.key || !customerByCenter[group.key]} onClick={() => void createMonthlyInvoice(group)}><Icon name="file" size={18} />{busyCenter === group.key ? 'Création du brouillon…' : `Créer le brouillon · ${money(group.amountCents)} HT`}</button>}
+              </div>}
+
+              {group.toQualify > 0 && <div className="monthly-billing-notice warning"><Icon name="info" size={17} /><span><strong>{group.toQualify} intervention(s)</strong> restent à qualifier pour le BPF. Cela ne bloque pas la facture : la qualification BPF reste indépendante.</span></div>}
+              {group.billable.length > 0 && group.toQualify === 0 && <div className="monthly-billing-notice"><Icon name="info" size={17} /><span>La qualification BPF est gérée séparément et ne bloque pas la création de la facture mensuelle.</span></div>}
+
+              {(relatedInvoices.length > 0 || group.alreadyBilled.length > 0) && <div className="monthly-billing-invoice-history">
+                {relatedInvoices.map((invoice) => <span className="monthly-billing-invoice-pill" key={invoice.id}><Icon name="file" size={14} /><strong>{invoice.invoice_number || 'Brouillon'}</strong> · {invoice.status} · {money(invoice.subtotal_cents)} HT</span>)}
+                {group.alreadyBilled.length > 0 && <span className="monthly-billing-state-pill success"><Icon name="check" size={14} />{group.alreadyBilled.length} intervention(s) déjà rattachée(s) à une facture</span>}
+              </div>}
+
+              {group.planned.length > 0 && <div className="monthly-billing-footer-row"><span className="monthly-billing-footer-icon"><Icon name="calendar" size={18} /></span><div className="monthly-billing-footer-copy"><strong>{group.planned.length} intervention(s) encore planifiée(s)</strong><span>Elles entreront automatiquement dans la facturation lorsqu’elles seront terminées.</span></div></div>}
+              {group.salaried.length > 0 && <div className="monthly-billing-footer-row"><span className="monthly-billing-footer-icon"><Icon name="briefcase" size={18} /></span><div className="monthly-billing-footer-copy"><strong>{group.salaried.length} activité(s) salariée(s) suivie(s)</strong><span>Elles restent volontairement exclues de la facturation NCR.</span></div></div>}
             </article>;
           })}
         </div>
       )}
 
-      {customers.length === 0 && !loading && <section className="panel training-empty"><Icon name="building" size={28} /><strong>Aucun client facturable</strong><span>Crée d’abord le centre de formation comme client dans CRM & commercial, puis reviens ici. NCR Suite ne crée pas automatiquement une identité légale à partir du simple nom saisi dans ton planning.</span><Link className="secondary-button" to="/commercial">Ouvrir CRM & commercial</Link></section>}
+      {customers.length === 0 && !loading && <section className="panel monthly-billing-empty"><Icon name="building" size={28} /><strong>Aucun client facturable</strong><span>Crée d’abord le centre de formation comme client dans CRM & commercial, puis reviens ici. NCR Suite ne crée pas automatiquement une identité légale à partir du simple nom saisi dans ton planning.</span><Link className="secondary-button" to="/commercial">Ouvrir CRM & commercial</Link></section>}
     </div>
   );
 }
