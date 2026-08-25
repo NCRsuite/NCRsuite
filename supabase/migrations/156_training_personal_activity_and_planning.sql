@@ -97,7 +97,7 @@ returns table(
 language sql
 stable
 security definer
-set search_path to 'public','pg_catalog'
+set search_path = public,pg_catalog
 as $function$
   with permitted as (
     select 1
@@ -187,7 +187,7 @@ create or replace function public.training_reporting_org_external_bpf_rows(p_rep
 returns table(user_id uuid, source_organization_id uuid, trainer_id uuid, session_id uuid, trainee_count integer, trainee_hours numeric, amount_excl_tax_cents bigint, invoice_reference text)
 language sql
 stable security definer
-set search_path to 'public'
+set search_path = public,pg_catalog
 as $function$
   with contributors as (
     select pref.user_id
