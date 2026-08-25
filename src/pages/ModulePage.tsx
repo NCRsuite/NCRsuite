@@ -5,6 +5,7 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import { TrainingPersonalActivityPage } from './TrainingPersonalActivityPage';
 import { TrainingPersonalPlanningPage } from './TrainingPersonalPlanningPage';
 import { TrainingPersonalMonthlyBillingPage } from './TrainingPersonalMonthlyBillingPage';
+import './TrainingPersonalActivityShortcut.css';
 
 const MODULE_BY_PATH: Record<string, string> = {
   '/fidelite': 'loyalty',
@@ -48,7 +49,18 @@ export function ModulePage() {
   }
 
   if (organization.business_type === 'formation' && location.pathname === '/mon-activite') return <>
-    <div className="training-portal-notice"><Icon name="file" size={18} /><span>Tu factures tes interventions externes au mois ? <Link to="/facturation-mensuelle"><strong>Préparer la facturation mensuelle →</strong></Link></span></div>
+    <div className="personal-activity-billing-shortcut">
+      <span className="personal-activity-billing-shortcut-icon"><Icon name="file" size={19} /></span>
+      <div className="personal-activity-billing-shortcut-copy">
+        <small>FACTURATION MENSUELLE</small>
+        <strong>Facturer tes heures terminées</strong>
+        <span>Regroupe automatiquement tes interventions externes par centre et par mois.</span>
+      </div>
+      <Link className="personal-activity-billing-shortcut-action" to="/facturation-mensuelle">
+        Ouvrir
+        <Icon name="chevronRight" size={16} />
+      </Link>
+    </div>
     <TrainingPersonalActivityPage />
   </>;
   if (organization.business_type === 'formation' && location.pathname === '/mon-planning') return <TrainingPersonalPlanningPage />;
