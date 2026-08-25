@@ -3,8 +3,11 @@
 
 begin;
 
--- Une facture issue de "Mon activité" est, par définition, une prestation réalisée
--- pour un autre organisme de formation : elle doit alimenter le C10 lorsqu'elle est émise.
+-- Une facture issue de "Mon activité" reste classée comme prestation pour un autre
+-- organisme de formation, mais n'est PAS injectée telle quelle dans le BPF.
+-- Le BPF consolide ensuite uniquement les interventions éligibles (formation pro / apprentissage),
+-- ce qui évite de compter à tort des heures de formation initiale ou hors champ présentes
+-- sur une même facture mensuelle.
 create or replace function public.enforce_training_personal_invoice_bpf()
 returns trigger
 language plpgsql
@@ -14,7 +17,7 @@ as $function$
 begin
   if new.personal_activity_user_id is not null and new.document_kind = 'invoice' then
     new.bpf_revenue_category := 'training_organizations';
-    new.bpf_included := true;
+    new.bpf_included := false;
   end if;
   return new;
 end;
@@ -29,10 +32,10 @@ before insert or update of personal_activity_user_id,bpf_revenue_category,bpf_in
 on public.training_invoices
 for each row execute function public.enforce_training_personal_invoice_bpf();
 
--- Corrige aussi les brouillons/factures déjà créés par la migration 161.
+-- Corrige aussi d'éventuels brouillons/factures déjà créés par la migration 161.
 update public.training_invoices
 set bpf_revenue_category = 'training_organizations',
-    bpf_included = true
+    bpf_included = false
 where personal_activity_user_id is not null
   and document_kind = 'invoice';
 
@@ -94,9 +97,9 @@ create trigger protect_billed_training_personal_intervention_before_write
 before update or delete on public.training_personal_interventions
 for each row execute function public.protect_billed_training_personal_intervention();
 
--- Le calcul BPF existant consolide déjà C10 et G pour les interventions personnelles.
--- On l'enveloppe afin d'ajouter aussi, au cadre formateurs, les heures réellement
--- dispensées par les personnes de l'organisme déclarant dans "Mon activité".
+-- Le calcul BPF existant consolide déjà le C10 et le cadre G intervention par intervention,
+-- uniquement pour les natures réglementaires éligibles. On l'enveloppe afin d'ajouter aussi,
+-- au cadre formateurs, les heures réellement dispensées par les personnes de l'organisme déclarant.
 do $block$
 begin
   if to_regprocedure('public.refresh_training_bpf_report_core_before_personal_hours(uuid,uuid)') is null then
@@ -219,7 +222,7 @@ revoke all on function public.refresh_training_bpf_report(uuid,uuid) from public
 grant execute on function public.refresh_training_bpf_report(uuid,uuid) to authenticated,service_role;
 
 comment on function public.refresh_training_bpf_report(uuid,uuid) is
-  'Calcul BPF NCR Suite incluant les heures de sous-traitance saisies dans Mon activité : C10, cadre G et heures formateurs.';
+  'Calcul BPF NCR Suite incluant les interventions saisies dans Mon activité : C10 et cadre G uniquement pour les natures éligibles, plus heures formateurs.';
 
 select pg_notify('pgrst','reload schema');
 commit;
