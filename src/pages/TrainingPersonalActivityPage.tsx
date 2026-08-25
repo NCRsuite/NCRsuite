@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 type EmploymentMode = 'salaried' | 'subcontractor';
 type RegulatoryScope = 'review_required' | 'professional_continuing' | 'apprenticeship' | 'initial_education' | 'out_of_scope';
 type InterventionStatus = 'planned' | 'completed' | 'canceled';
+type SubcontractorPricingMode = 'fixed' | 'hourly';
 
 interface PersonalIntervention {
   id: string;
@@ -46,6 +47,7 @@ type ActivityForm = {
   repeatWeekly: boolean;
   repeatUntil: string;
   weekdays: number[];
+  subcontractorPricingMode: SubcontractorPricingMode;
   hourlyRate: string;
   amount: string;
   invoiceReference: string;
@@ -106,6 +108,7 @@ function initialForm(): ActivityForm {
     repeatWeekly: false,
     repeatUntil: dateInputValue(today),
     weekdays: [today.getDay()],
+    subcontractorPricingMode: 'fixed',
     hourlyRate: '',
     amount: '',
     invoiceReference: '',
@@ -222,16 +225,27 @@ export function TrainingPersonalActivityPage() {
       setError('La série est trop longue. Limite-la à 366 interventions maximum.');
       return;
     }
-    const hourlyRateCents = form.employmentMode === 'salaried' ? moneyToCents(form.hourlyRate) : null;
+
+    const hourlyPricing = form.employmentMode === 'salaried'
+      || (form.employmentMode === 'subcontractor' && form.subcontractorPricingMode === 'hourly');
+    const hourlyRateCents = hourlyPricing ? moneyToCents(form.hourlyRate) : null;
     if (Number.isNaN(hourlyRateCents)) {
       setError('Le tarif horaire doit être un nombre positif.');
       return;
     }
-    const amountCents = form.employmentMode === 'subcontractor' ? moneyToCents(form.amount) : null;
-    if (Number.isNaN(amountCents)) {
+    if (form.employmentMode === 'subcontractor' && form.subcontractorPricingMode === 'hourly' && hourlyRateCents === null) {
+      setError('Renseigne le tarif horaire HT de la sous-traitance.');
+      return;
+    }
+
+    const fixedAmountCents = form.employmentMode === 'subcontractor' && form.subcontractorPricingMode === 'fixed'
+      ? moneyToCents(form.amount)
+      : null;
+    if (Number.isNaN(fixedAmountCents)) {
       setError('Le montant HT doit être un nombre positif.');
       return;
     }
+
     const traineeCount = form.employmentMode === 'subcontractor' ? Number(form.traineeCount || 0) : 0;
     const traineeHours = form.employmentMode === 'subcontractor' ? Number(String(form.traineeHours || '0').replace(',', '.')) : 0;
     if (!Number.isInteger(traineeCount) || traineeCount < 0 || !Number.isFinite(traineeHours) || traineeHours < 0) {
@@ -246,6 +260,12 @@ export function TrainingPersonalActivityPage() {
       if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) {
         throw new Error('Les horaires sont invalides.');
       }
+      const hours = durationHours(startsAt.toISOString(), endsAt.toISOString());
+      const amountCents = form.employmentMode !== 'subcontractor'
+        ? null
+        : form.subcontractorPricingMode === 'hourly' && hourlyRateCents !== null
+          ? Math.round(hours * hourlyRateCents)
+          : fixedAmountCents;
       return {
         reporting_organization_id: organization.id,
         user_id: user.id,
@@ -365,7 +385,10 @@ export function TrainingPersonalActivityPage() {
             {form.repeatWeekly && <><label>Jusqu’au *<input type="date" required min={form.date} value={form.repeatUntil} onChange={(event) => setForm((current) => ({ ...current, repeatUntil: event.target.value }))} /></label><fieldset><legend>Jours</legend><div className="training-checkbox-grid">{weekdays.map((day) => <label key={day.value}><input type="checkbox" checked={form.weekdays.includes(day.value)} onChange={() => toggleWeekday(day.value)} />{day.label}</label>)}</div></fieldset></>}
 
             {form.employmentMode === 'subcontractor' && <>
-              <label>Montant HT facturé<input inputMode="decimal" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} placeholder="Ex. 500,00" /></label>
+              <label>Mode de tarification<select value={form.subcontractorPricingMode} onChange={(event) => setForm((current) => ({ ...current, subcontractorPricingMode: event.target.value as SubcontractorPricingMode }))}><option value="fixed">Forfait / montant par intervention</option><option value="hourly">Tarif horaire</option></select></label>
+              {form.subcontractorPricingMode === 'hourly'
+                ? <label>Tarif horaire HT (€ / h) *<input required inputMode="decimal" value={form.hourlyRate} onChange={(event) => setForm((current) => ({ ...current, hourlyRate: event.target.value }))} placeholder="Ex. 35,00" /><small>Le montant HT de chaque intervention est calculé automatiquement d’après sa durée.</small></label>
+                : <label>Montant HT par intervention<input inputMode="decimal" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} placeholder="Ex. 500,00" /></label>}
               <label>Référence facture<input value={form.invoiceReference} onChange={(event) => setForm((current) => ({ ...current, invoiceReference: event.target.value }))} placeholder="Ex. FAC-2026-018" /></label>
               <label>Date de facture<input type="date" value={form.invoiceDate} onChange={(event) => setForm((current) => ({ ...current, invoiceDate: event.target.value }))} /></label>
               <label>Nombre de stagiaires<input type="number" min={0} value={form.traineeCount} onChange={(event) => setForm((current) => ({ ...current, traineeCount: event.target.value }))} /></label>
@@ -387,14 +410,16 @@ export function TrainingPersonalActivityPage() {
             {filteredRows.map((row) => {
               const bpfEligible = row.employment_mode === 'subcontractor' && ['professional_continuing', 'apprenticeship'].includes(row.regulatory_scope);
               const hours = durationHours(row.starts_at, row.ends_at);
-              const estimatedPayCents = row.employment_mode === 'salaried' && row.hourly_rate_cents !== null ? Math.round(hours * row.hourly_rate_cents) : null;
+              const hourlyAmountCents = row.hourly_rate_cents !== null ? Math.round(hours * row.hourly_rate_cents) : null;
               return <article key={row.id} className="training-record-card">
                 <span className="training-record-icon"><Icon name={row.employment_mode === 'salaried' ? 'calendar' : 'briefcase'} size={21} /></span>
                 <div className="training-record-main">
                   <strong>{row.activity_title}</strong>
                   <span>{row.center_name} · {displayDateTime(row.starts_at)} → {new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' }).format(new Date(row.ends_at))}</span>
                   <small>{employmentLabels[row.employment_mode]} · {scopeLabels[row.regulatory_scope]}{row.location ? ` · ${row.location}` : ''}</small>
-                  {row.employment_mode === 'salaried' && row.hourly_rate_cents !== null && <small>Tarif horaire : {displayMoney(row.hourly_rate_cents)} / h · estimation {new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(hours)} h = {displayMoney(estimatedPayCents ?? 0)}</small>}
+                  {row.employment_mode === 'salaried' && row.hourly_rate_cents !== null && <small>Tarif horaire : {displayMoney(row.hourly_rate_cents)} / h · estimation {new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(hours)} h = {displayMoney(hourlyAmountCents ?? 0)}</small>}
+                  {row.employment_mode === 'subcontractor' && row.hourly_rate_cents !== null && <small>Tarif horaire HT : {displayMoney(row.hourly_rate_cents)} / h · {new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 2 }).format(hours)} h = {displayMoney(row.amount_excl_tax_cents ?? hourlyAmountCents ?? 0)} HT</small>}
+                  {row.employment_mode === 'subcontractor' && row.hourly_rate_cents === null && row.amount_excl_tax_cents !== null && <small>Montant HT : {displayMoney(row.amount_excl_tax_cents)}</small>}
                   <small>{row.employment_mode === 'salaried' ? `Planning uniquement · hors BPF ${organization.public_name || organization.name}` : bpfEligible ? 'Consolidation BPF possible une fois terminée' : 'Sous-traitance hors BPF tant que la nature n’est pas éligible'}</small>
                 </div>
                 <span className={`training-status-pill ${row.status}`}>{statusLabels[row.status]}</span>
