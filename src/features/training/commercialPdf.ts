@@ -55,7 +55,7 @@ function beneficiaryName(input: CommercialPdfInput) {
 }
 
 function documentTitle(input: CommercialPdfInput) {
-  if (input.document.document_type === 'quote') return 'Devis';
+  if (input.document.document_type === 'quote') return 'Devis de formation';
   if (input.document.document_type === 'agreement') return 'Convention de formation';
   return 'Contrat de formation';
 }
@@ -487,7 +487,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
   theme.pdf.setAuthor(organization.public_name || organization.name);
   theme.pdf.setSubject(program?.title || document.training_summary || document.title);
   theme.pdf.setCreator('NCR Suite');
-  theme.pdf.setProducer('NCR Suite · Card-based document system');
+  theme.pdf.setProducer('NCR Suite V2.29.20 · Card-based document system');
 
   const bytes = await theme.pdf.save();
   const pdfBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
