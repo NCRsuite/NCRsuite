@@ -1,18 +1,23 @@
-import { rgb, type PDFPage } from 'pdf-lib';
+import type { PDFPage } from 'pdf-lib';
 import type { Organization } from '../../types';
 import {
   createTrainingPdfTheme,
-  drawTrainingParagraph,
   drawTrainingPdfText,
-  drawTrainingPremiumFooter,
-  drawTrainingPremiumHeader,
-  drawTrainingSectionTitle,
   safeTrainingPdfName,
-  TRAINING_PDF_MARGIN,
-  TRAINING_PDF_PAGE,
   wrapTrainingPdfText,
   type TrainingPdfTheme
 } from './premiumPdf';
+import {
+  CARD_DOCUMENT_BOTTOM_LIMIT,
+  CARD_DOCUMENT_CONTENT_WIDTH,
+  drawCardDocumentFooter,
+  drawCardDocumentHeader,
+  drawCardFrame,
+  drawCardHeading,
+  drawCardMetric,
+  drawCardSectionTitle,
+  drawCardTextBlock
+} from './cardDocumentPdf';
 import {
   formatTrainingMoney,
   modalityLabels,
@@ -21,8 +26,26 @@ import {
   type TrainingTrainerRecord
 } from './types';
 
-const CONTENT_WIDTH = TRAINING_PDF_PAGE[0] - TRAINING_PDF_MARGIN * 2;
-const BOTTOM_LIMIT = 74;
+const CONTENT_WIDTH = CARD_DOCUMENT_CONTENT_WIDTH;
+const MARGIN = 42;
+
+type PageState = { page: PDFPage; number: number; y: number };
+
+function drawKeyCard(
+  page: PDFPage,
+  theme: TrainingPdfTheme,
+  input: { x: number; y: number; width: number; height: number; title: string; lines: string[] }
+) {
+  drawCardFrame(page, theme, { x: input.x, y: input.y, width: input.width, height: input.height, fill: 'white' });
+  drawCardHeading(page, theme, input.title, input.x + 12, input.y - 18);
+  input.lines.forEach((line, index) => drawTrainingPdfText(page, line || ' ', {
+    x: input.x + 12,
+    y: input.y - 39 - index * 10,
+    size: 7.1,
+    font: theme.regular,
+    color: theme.muted
+  }));
+}
 
 export async function generateTrainingProgramPdf(input: {
   organization: Organization;
@@ -31,17 +54,19 @@ export async function generateTrainingProgramPdf(input: {
 }) {
   const { organization, program, trainers } = input;
   const theme = await createTrainingPdfTheme(organization);
-  const pages: Array<{ page: PDFPage; number: number; y: number }> = [];
+  const pages: PageState[] = [];
+  const versionDate = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(program.updated_at || program.created_at));
 
   const addPage = (continuation = false) => {
-    const page = theme.pdf.addPage(TRAINING_PDF_PAGE);
+    const page = theme.pdf.addPage([595.28, 841.89]);
     const number = pages.length + 1;
-    const y = drawTrainingPremiumHeader(page, theme, organization, {
-      eyebrow: continuation ? 'FORMATION · PROGRAMME PÉDAGOGIQUE' : 'FORMATION · CATALOGUE OFFICIEL',
-      title: continuation ? `${program.title} · suite` : 'Programme de formation',
-      subtitle: program.title,
+    const y = drawCardDocumentHeader(page, theme, organization, {
+      badge: 'PROGRAMME',
+      title: 'Programme de formation',
+      subtitle: continuation ? `${program.title} · suite` : program.title,
       reference: program.code || 'PROGRAMME',
-      pageNumber: number
+      meta: continuation ? `Page ${number}` : `Version ${versionDate}`,
+      continuation
     });
     const state = { page, number, y };
     pages.push(state);
@@ -50,90 +75,185 @@ export async function generateTrainingProgramPdf(input: {
 
   let state = addPage();
   const ensure = (height: number) => {
-    if (state.y - height < BOTTOM_LIMIT) state = addPage(true);
+    if (state.y - height < CARD_DOCUMENT_BOTTOM_LIMIT) state = addPage(true);
   };
 
-  drawTrainingPdfText(state.page, program.title, { x: TRAINING_PDF_MARGIN, y: state.y, size: 19, font: theme.bold, color: theme.dark });
-  state.y -= 30;
-  if (program.description) {
-    state.y = drawTrainingParagraph(state.page, theme, program.description, state.y, { size: 9.4, lineHeight: 14, maxLines: 7 });
-    state.y -= 12;
-  }
-
-  const facts = [
+  const factGap = 8;
+  const factWidth = (CONTENT_WIDTH - factGap * 3) / 4;
+  [
     ['Durée', `${String(program.duration_hours).replace('.', ',')} heures`],
-    ['Modalité', modalityLabels[program.modality]],
+    ['Format', modalityLabels[program.modality]],
     ['Capacité', `${program.default_capacity} participant${program.default_capacity > 1 ? 's' : ''}`],
     ['Tarif indicatif', `${formatTrainingMoney(program.price_excl_tax_cents)} HT`]
-  ];
-  const factWidth = (CONTENT_WIDTH - 24) / 4;
-  facts.forEach(([label, value], index) => {
-    const x = TRAINING_PDF_MARGIN + index * (factWidth + 8);
-    state.page.drawRectangle({ x, y: state.y - 62, width: factWidth, height: 62, color: index === 0 ? theme.accentSoft : theme.surface, borderColor: theme.line, borderWidth: 0.6 });
-    drawTrainingPdfText(state.page, label.toUpperCase(), { x: x + 10, y: state.y - 18, size: 5.8, font: theme.bold, color: theme.accent });
-    const lines = wrapTrainingPdfText(value, theme.bold, 8.2, factWidth - 20).slice(0, 2);
-    lines.forEach((line, lineIndex) => drawTrainingPdfText(state.page, line, { x: x + 10, y: state.y - 38 - lineIndex * 11, size: 8.2, font: theme.bold, color: theme.dark }));
-  });
-  state.y -= 86;
+  ].forEach(([label, value], index) => drawCardMetric(state.page, theme, {
+    x: MARGIN + index * (factWidth + factGap),
+    y: state.y,
+    width: factWidth,
+    height: 68,
+    label,
+    value,
+    emphasized: index === 0
+  }));
+  state.y -= 84;
 
-  const sections: Array<{ title: string; value: string | null; index: string }> = [
-    { title: 'Objectifs pédagogiques', value: program.objectives, index: '01' },
-    { title: 'Public concerné', value: program.audience, index: '02' },
-    { title: 'Prérequis', value: program.prerequisites, index: '03' },
-    { title: 'Programme détaillé', value: program.detailed_program, index: '04' },
-    { title: 'Méthodes pédagogiques', value: program.teaching_methods, index: '05' },
-    { title: 'Moyens techniques et ressources', value: program.training_resources, index: '06' },
-    { title: 'Modalités d’évaluation', value: program.assessment_methods, index: '07' },
-    { title: 'Accessibilité', value: program.accessibility, index: '08' }
-  ];
-
-  for (const section of sections) {
-    if (!section.value?.trim()) continue;
-    const remaining = [...wrapTrainingPdfText(section.value, theme.regular, 8.7, CONTENT_WIDTH)];
-    let continuation = false;
-    while (remaining.length) {
-      ensure(64);
-      state.y = drawTrainingSectionTitle(
-        state.page,
-        theme,
-        continuation ? `${section.title} · suite` : section.title,
-        state.y,
-        section.index
-      );
-      const room = Math.max(1, Math.floor((state.y - BOTTOM_LIMIT - 10) / 12.7));
-      const chunk = remaining.splice(0, room);
-      chunk.forEach((line) => {
-        drawTrainingPdfText(state.page, line || ' ', { x: TRAINING_PDF_MARGIN, y: state.y, size: 8.7, font: theme.regular, color: theme.muted });
-        state.y -= 12.7;
-      });
-      state.y -= 14;
-      continuation = remaining.length > 0;
-      if (continuation) state = addPage(true);
+  if (program.description?.trim()) {
+    ensure(86);
+    state.y = drawCardSectionTitle(state.page, theme, 'Vue d’ensemble', state.y, 'FORMATION');
+    const descriptionLines = wrapTrainingPdfText(program.description, theme.regular, 7.7, CONTENT_WIDTH - 24);
+    const firstChunk = descriptionLines.splice(0, 9);
+    state.y = drawCardTextBlock(state.page, theme, {
+      x: MARGIN,
+      y: state.y,
+      width: CONTENT_WIDTH,
+      title: program.title,
+      lines: firstChunk,
+      fill: 'surface',
+      accentEdge: true
+    }) - 14;
+    if (descriptionLines.length) {
+      state = addPage(true);
+      while (descriptionLines.length) {
+        const available = Math.max(60, state.y - CARD_DOCUMENT_BOTTOM_LIMIT - 38);
+        const maxLines = Math.max(3, Math.min(26, Math.floor((available - 52) / 10.5)));
+        const chunk = descriptionLines.splice(0, maxLines);
+        state.y = drawCardTextBlock(state.page, theme, {
+          x: MARGIN,
+          y: state.y,
+          width: CONTENT_WIDTH,
+          title: 'Présentation · suite',
+          lines: chunk,
+          fill: 'white'
+        }) - 12;
+        if (descriptionLines.length) state = addPage(true);
+      }
     }
   }
 
-  ensure(108);
-  state.y = drawTrainingSectionTitle(state.page, theme, 'Organisation pratique', state.y, '09');
+  const keySections = [
+    { title: 'Objectifs pédagogiques', value: program.objectives || 'À préciser' },
+    { title: 'Public visé', value: program.audience || 'À préciser' },
+    { title: 'Prérequis', value: program.prerequisites || 'Aucun prérequis spécifique' }
+  ];
+  const keyGap = 9;
+  const keyWidth = (CONTENT_WIDTH - keyGap * 2) / 3;
+  const keyData = keySections.map((section) => {
+    const allLines = wrapTrainingPdfText(section.value, theme.regular, 7.1, keyWidth - 24);
+    return { ...section, allLines, visible: allLines.slice(0, 7), overflow: allLines.slice(7) };
+  });
+  const keyHeight = Math.max(104, 50 + Math.max(...keyData.map((section) => section.visible.length)) * 10);
+  ensure(keyHeight + 48);
+  state.y = drawCardSectionTitle(state.page, theme, 'À qui s’adresse la formation ?', state.y, 'OBJECTIFS & PUBLIC');
+  keyData.forEach((section, index) => drawKeyCard(state.page, theme, {
+    x: MARGIN + index * (keyWidth + keyGap),
+    y: state.y,
+    width: keyWidth,
+    height: keyHeight,
+    title: section.title,
+    lines: section.visible
+  }));
+  state.y -= keyHeight + 16;
+
+  for (const section of keyData.filter((item) => item.overflow.length)) {
+    let remaining = [...section.overflow];
+    while (remaining.length) {
+      ensure(78);
+      const available = Math.max(60, state.y - CARD_DOCUMENT_BOTTOM_LIMIT - 38);
+      const maxLines = Math.max(3, Math.min(25, Math.floor((available - 52) / 10.5)));
+      const chunk = remaining.splice(0, maxLines);
+      state.y = drawCardTextBlock(state.page, theme, {
+        x: MARGIN,
+        y: state.y,
+        width: CONTENT_WIDTH,
+        title: `${section.title} · suite`,
+        lines: chunk,
+        fill: 'white'
+      }) - 12;
+      if (remaining.length) state = addPage(true);
+    }
+  }
+
+  const renderLongSection = (title: string, value: string | null, options?: { fill?: 'white' | 'surface' | 'accent'; eyebrow?: string }) => {
+    if (!value?.trim()) return;
+    let remaining = [...wrapTrainingPdfText(value, theme.regular, 7.5, CONTENT_WIDTH - 24)];
+    let continuation = false;
+    while (remaining.length) {
+      ensure(84);
+      if (!continuation) state.y = drawCardSectionTitle(state.page, theme, title, state.y, options?.eyebrow);
+      const available = Math.max(60, state.y - CARD_DOCUMENT_BOTTOM_LIMIT - 38);
+      const maxLines = Math.max(3, Math.min(28, Math.floor((available - 52) / 10.5)));
+      const chunk = remaining.splice(0, maxLines);
+      state.y = drawCardTextBlock(state.page, theme, {
+        x: MARGIN,
+        y: state.y,
+        width: CONTENT_WIDTH,
+        title: continuation ? `${title} · suite` : title,
+        lines: chunk,
+        fill: options?.fill || 'white',
+        accentEdge: options?.fill === 'surface'
+      }) - 12;
+      continuation = remaining.length > 0;
+      if (continuation) state = addPage(true);
+    }
+  };
+
+  renderLongSection('Programme détaillé', program.detailed_program, { fill: 'surface', eyebrow: 'CONTENU PÉDAGOGIQUE' });
+  renderLongSection('Méthodes pédagogiques', program.teaching_methods, { eyebrow: 'MÉTHODES' });
+  renderLongSection('Moyens techniques et ressources', program.training_resources, { eyebrow: 'RESSOURCES' });
+  renderLongSection('Modalités d’évaluation', program.assessment_methods, { eyebrow: 'ÉVALUATION' });
+  renderLongSection('Accessibilité', program.accessibility, { fill: 'accent', eyebrow: 'ACCESSIBILITÉ' });
+
+  ensure(182);
+  state.y = drawCardSectionTitle(state.page, theme, 'Organisation pratique', state.y, 'REPÈRES');
+  const practicalGap = 10;
+  const practicalWidth = (CONTENT_WIDTH - practicalGap) / 2;
+  const trainerNames = trainers.length
+    ? trainers.map((trainer) => personName(trainer.first_name, trainer.last_name)).join(', ')
+    : 'À définir selon la session';
   const practical = [
     ['Lieu habituel', program.default_location || 'À définir selon la session'],
-    ['Formateurs habilités', trainers.length ? trainers.map((trainer) => personName(trainer.first_name, trainer.last_name)).join(', ') : 'À définir'],
+    ['Formateur(s)', trainerNames],
     ['Code formation', program.code || '-'],
-    ['Version du programme', new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(new Date(program.updated_at || program.created_at))]
+    ['Version du programme', versionDate]
   ];
   practical.forEach(([label, value], index) => {
-    const y = state.y - index * 35;
-    state.page.drawRectangle({ x: TRAINING_PDF_MARGIN, y: y - 27, width: CONTENT_WIDTH, height: 27, color: index % 2 === 0 ? theme.surface : rgb(1, 1, 1) });
-    drawTrainingPdfText(state.page, label, { x: TRAINING_PDF_MARGIN + 10, y: y - 17, size: 7, font: theme.bold, color: theme.muted });
-    const text = wrapTrainingPdfText(value, theme.regular, 7.8, CONTENT_WIDTH - 160).slice(0, 2);
-    text.forEach((line, lineIndex) => drawTrainingPdfText(state.page, line, { x: TRAINING_PDF_MARGIN + 150, y: y - 17 - lineIndex * 10, size: 7.8, font: theme.regular, color: theme.dark }));
+    const column = index % 2;
+    const row = Math.floor(index / 2);
+    drawCardMetric(state.page, theme, {
+      x: MARGIN + column * (practicalWidth + practicalGap),
+      y: state.y - row * 76,
+      width: practicalWidth,
+      height: 66,
+      label,
+      value
+    });
   });
+  state.y -= 164;
 
-  pages.forEach((item) => drawTrainingPremiumFooter(item.page, theme, organization, { reference: program.code || 'PROGRAMME', pageNumber: item.number, totalPages: pages.length }));
+  if (organization.training_document_footer?.trim()) {
+    const lines = wrapTrainingPdfText(organization.training_document_footer, theme.regular, 6.6, CONTENT_WIDTH - 24);
+    ensure(42 + lines.length * 9);
+    state.y = drawCardTextBlock(state.page, theme, {
+      x: MARGIN,
+      y: state.y,
+      width: CONTENT_WIDTH,
+      title: 'Informations utiles',
+      lines,
+      lineHeight: 9,
+      fill: 'accent'
+    }) - 6;
+  }
+
+  pages.forEach((item) => drawCardDocumentFooter(item.page, theme, organization, {
+    reference: program.code || 'PROGRAMME',
+    pageNumber: item.number,
+    totalPages: pages.length
+  }));
+
   theme.pdf.setTitle(`Programme de formation - ${program.title}`);
   theme.pdf.setAuthor(organization.public_name || organization.name);
   theme.pdf.setSubject(program.objectives || program.title);
   theme.pdf.setCreator('NCR Suite');
-  theme.pdf.setProducer('NCR Suite V2.18.0');
+  theme.pdf.setProducer('NCR Suite · Card-based document system');
 
   const bytes = await theme.pdf.save();
   const pdfBuffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
