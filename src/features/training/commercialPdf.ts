@@ -1,4 +1,4 @@
-import { rgb, type PDFPage } from 'pdf-lib';
+import type { PDFPage } from 'pdf-lib';
 import type { Organization } from '../../types';
 import {
   createTrainingPdfTheme,
@@ -257,7 +257,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
   const issuerHeight = entityCardHeight(theme, partyWidth, organization.public_name || organization.name, issuerLines);
   const recipientHeight = entityCardHeight(theme, partyWidth, clientLabel, recipientLines);
   const partyHeight = Math.max(issuerHeight, recipientHeight);
-  ensure(partyHeight + 50);
+  ensure(partyHeight + 58);
   state.y = drawCardSectionTitle(
     state.page,
     theme,
@@ -285,7 +285,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
   });
   state.y -= partyHeight + 18;
 
-  ensure(122);
+  ensure(210);
   state.y = drawCardSectionTitle(
     state.page,
     theme,
@@ -305,7 +305,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
     accentEdge: true
   }) - 16;
 
-  ensure(86);
+  ensure(90);
   const factGap = 8;
   const factWidth = (CONTENT_WIDTH - factGap * 3) / 4;
   const duration = program
@@ -317,22 +317,21 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
   const period = session ? `${trainingPdfDate(session.starts_at, true)} → ${trainingPdfDate(session.ends_at, true)}` : 'À convenir';
   const location = session?.location || program?.default_location || 'À convenir';
   [
-    ['Durée', duration, null],
-    ['Format', modality, null],
-    ['Période', period, null],
-    ['Lieu', location, null]
+    ['Durée', duration],
+    ['Format', modality],
+    ['Période', period],
+    ['Lieu', location]
   ].forEach(([label, value], index) => drawCardMetric(state.page, theme, {
     x: MARGIN + index * (factWidth + factGap),
     y: state.y,
     width: factWidth,
     height: 70,
-    label: String(label),
-    value,
-    detail: null
+    label,
+    value
   }));
   state.y -= 86;
 
-  ensure(92);
+  ensure(136);
   state.y = drawCardSectionTitle(state.page, theme, 'Conditions financières', state.y, 'SYNTHÈSE');
   const financeGap = 10;
   const financeWidth = (CONTENT_WIDTH - financeGap * 2) / 3;
@@ -358,7 +357,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
     ['Bénéficiaire', trainee ? `${trainee.first_name} ${trainee.last_name}`.trim() : clientLabel],
     ['Financeur', funder ? `${funder.name} · ${trainingFunderTypeLabels[funder.funder_type]}` : 'Sans financeur identifié']
   ];
-  ensure(132);
+  ensure(204);
   state.y = drawCardSectionTitle(state.page, theme, 'Cadre de la prestation', state.y, 'REPÈRES');
   const detailGap = 10;
   const detailWidth = (CONTENT_WIDTH - detailGap) / 2;
@@ -431,7 +430,7 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
     }
   }
 
-  ensure(168);
+  ensure(document.document_type === 'quote' ? 214 : 182);
   state.y = drawCardSectionTitle(
     state.page,
     theme,
