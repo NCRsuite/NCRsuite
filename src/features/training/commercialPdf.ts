@@ -332,7 +332,13 @@ export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
   state.y -= 86;
 
   ensure(136);
-  state.y = drawCardSectionTitle(state.page, theme, 'Conditions financières', state.y, 'SYNTHÈSE');
+  state.y = drawCardSectionTitle(
+    state.page,
+    theme,
+    'Conditions financières',
+    state.y,
+    document.document_type === 'quote' ? 'SYNTHÈSE DE L’OFFRE' : 'SYNTHÈSE FINANCIÈRE'
+  );
   const financeGap = 10;
   const financeWidth = (CONTENT_WIDTH - financeGap * 2) / 3;
   [
