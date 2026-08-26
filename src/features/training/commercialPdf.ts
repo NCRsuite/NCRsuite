@@ -20,6 +20,7 @@ import {
   drawCardSectionTitle,
   drawCardTextBlock
 } from './cardDocumentPdf';
+import { generatePremiumTrainingQuotePdf } from './quotePremiumPdf';
 import {
   formatTrainingMoney,
   modalityLabels,
@@ -177,6 +178,10 @@ function drawSignatureBoxes(
 }
 
 export async function generateTrainingCommercialPdf(input: CommercialPdfInput) {
+  if (input.document.document_type === 'quote') {
+    return generatePremiumTrainingQuotePdf(input);
+  }
+
   const { organization, document, customer, funder, session, trainee, program } = input;
   const theme = await createTrainingPdfTheme(organization);
   const pages: PageState[] = [];
