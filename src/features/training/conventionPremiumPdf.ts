@@ -473,8 +473,8 @@ export async function generatePremiumTrainingConventionPdf(input: ConventionPdfI
   const formationTitle = program?.title || session?.title || document.title;
 
   state.y = drawSectionLabel(state.page, theme, 'Objet de la convention', state.y, 'ACTION DE FORMATION');
-  page.drawRectangle({ x: MARGIN, y: state.y - 62, width: CONTENT_WIDTH, height: 62, color: theme.surface });
-  page.drawRectangle({ x: MARGIN, y: state.y - 62, width: 4, height: 62, color: theme.accent });
+  state.page.drawRectangle({ x: MARGIN, y: state.y - 62, width: CONTENT_WIDTH, height: 62, color: theme.surface });
+  state.page.drawRectangle({ x: MARGIN, y: state.y - 62, width: 4, height: 62, color: theme.accent });
   drawTrainingPdfText(state.page, 'FORMATION', {
     x: MARGIN + 16,
     y: state.y - 18,
