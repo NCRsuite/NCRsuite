@@ -97,7 +97,7 @@ export async function generateTrainingProgramPdf(input: {
   state.y -= 84;
 
   if (program.description?.trim()) {
-    ensure(86);
+    ensure(210);
     state.y = drawCardSectionTitle(state.page, theme, 'Vue d’ensemble', state.y, 'FORMATION');
     const descriptionLines = wrapTrainingPdfText(program.description, theme.regular, 7.7, CONTENT_WIDTH - 24);
     const firstChunk = descriptionLines.splice(0, 9);
@@ -141,7 +141,7 @@ export async function generateTrainingProgramPdf(input: {
     return { ...section, allLines, visible: allLines.slice(0, 7), overflow: allLines.slice(7) };
   });
   const keyHeight = Math.max(104, 50 + Math.max(...keyData.map((section) => section.visible.length)) * 10);
-  ensure(keyHeight + 48);
+  ensure(keyHeight + 62);
   state.y = drawCardSectionTitle(state.page, theme, 'À qui s’adresse la formation ?', state.y, 'OBJECTIFS & PUBLIC');
   keyData.forEach((section, index) => drawKeyCard(state.page, theme, {
     x: MARGIN + index * (keyWidth + keyGap),
@@ -202,7 +202,7 @@ export async function generateTrainingProgramPdf(input: {
   renderLongSection('Modalités d’évaluation', program.assessment_methods, { eyebrow: 'ÉVALUATION' });
   renderLongSection('Accessibilité', program.accessibility, { fill: 'accent', eyebrow: 'ACCESSIBILITÉ' });
 
-  ensure(182);
+  ensure(214);
   state.y = drawCardSectionTitle(state.page, theme, 'Organisation pratique', state.y, 'REPÈRES');
   const practicalGap = 10;
   const practicalWidth = (CONTENT_WIDTH - practicalGap) / 2;
