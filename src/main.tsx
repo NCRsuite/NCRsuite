@@ -22,6 +22,7 @@ import './ncrUi2026TrainingMobilePolish.css';
 import './ncrUi2026TrainingPersonalWork.css';
 import './ncrUi2026TrainingCommercialBilling.css';
 import './ncrUi2026TrainingPeopleQuality.css';
+import './ncrUi2026TrainingGovernance.css';
 import './trainingDossierContrastFix.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
