@@ -44,6 +44,7 @@ Le rendu historique reprend alors la main.
 - `src/ncrUi2026TrainingSessions.css`
 - `src/ncrUi2026TrainingSessionsSummary.css`
 - `src/ncrUi2026TrainingMobileFixes.css`
+- `src/ncrUi2026TrainingMobilePolish.css`
 - `src/main.tsx` uniquement pour charger les couches et poser le flag HTML
 
 Le cockpit Formation V2 est contenu dans `src/ncrUi2026TrainingDashboard.css`. Il ne modifie ni `TrainingDashboardPage.tsx`, ni ses calculs, ni ses requêtes, ni ses actions.
@@ -58,7 +59,9 @@ La refonte premium de `Sessions` est isolée dans `src/ncrUi2026TrainingSessions
 
 La carte de synthèse `Planning pédagogique / sessions` est raffinée séparément dans `src/ncrUi2026TrainingSessionsSummary.css`. Elle ne modifie pas le calendrier, la logique ni `TrainingSessionsPage.tsx`.
 
-La passe mobile Formation est isolée dans `src/ncrUi2026TrainingMobileFixes.css`. Elle compacte les hero, KPI et boutons de `Formations`, transforme le stepper mobile `Parcours Formation` en grille 2 × 3, ajoute l'espace de sécurité sous les contenus pour la navigation basse et réduit légèrement l'emprise de cette navigation. Elle ne modifie aucun JSX, aucune donnée, aucune requête ni aucune action métier.
+La passe mobile Formation est isolée dans `src/ncrUi2026TrainingMobileFixes.css`. Elle compacte les hero et KPI de `Formations`, transforme le stepper mobile `Parcours Formation` en grille 2 × 3 et ajoute l'espace de sécurité sous les contenus pour la navigation basse. Elle ne modifie aucun JSX, aucune donnée, aucune requête ni aucune action métier.
+
+La finition mobile corrective est isolée dans `src/ncrUi2026TrainingMobilePolish.css`. Elle remet les boutons `Profil organisme` et création de formation entièrement à l'intérieur des hero, supprime la séparation qui les coupait visuellement et restaure une navigation basse Formation flottante, plus légère et arrondie sur les quatre coins. Elle ne modifie aucun JSX ni aucune logique métier.
 
 Le fichier historique `src/styles.css` n'est pas modifié par cette refonte.
 
