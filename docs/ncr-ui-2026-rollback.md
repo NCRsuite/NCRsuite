@@ -37,7 +37,10 @@ Le rendu historique reprend alors la main.
 - `src/config/ui2026.ts`
 - `src/ncrUi2026.css`
 - `src/ncrUi2026Pages.css`
+- `src/ncrUi2026TrainingDashboard.css`
 - `src/main.tsx` uniquement pour charger la couche et poser le flag HTML
+
+Le cockpit Formation V2 est contenu dans `src/ncrUi2026TrainingDashboard.css`. Il ne modifie ni `TrainingDashboardPage.tsx`, ni ses calculs, ni ses requêtes, ni ses actions.
 
 Le fichier historique `src/styles.css` n'est pas modifié par cette refonte.
 
