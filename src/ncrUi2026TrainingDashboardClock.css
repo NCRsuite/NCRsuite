@@ -1,0 +1,94 @@
+/*
+ * NCR UI 2026 — Dashboard desktop clock
+ * Widget léger pour rééquilibrer le hero sans ajouter de donnée métier.
+ */
+
+html[data-ncr-ui-2026="true"] .app-shell .ncr-dashboard-clock {
+  display: none;
+}
+
+@container (min-width: 1120px) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-quality-header .ncr-dashboard-clock {
+    position: absolute;
+    top: clamp(24px, 2.8vw, 32px);
+    right: clamp(26px, 3vw, 36px);
+    z-index: 2;
+    display: grid;
+    justify-items: end;
+    min-width: 220px;
+    max-width: 260px;
+    pointer-events: none;
+    text-align: right;
+    animation: ncrDashboardClockEnter 520ms cubic-bezier(.2,.8,.2,1) 240ms both;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-dashboard-clock-time-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-dashboard-clock-icon {
+    display: grid;
+    place-items: center;
+    width: 31px;
+    height: 31px;
+    border: 1px solid color-mix(in srgb, var(--ncr26-brand) 14%, var(--ncr26-border));
+    border-radius: 10px;
+    color: var(--ncr26-brand);
+    background: color-mix(in srgb, var(--ncr26-brand) 5%, rgba(255,255,255,.76));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-dashboard-clock-time {
+    color: var(--ncr26-text);
+    font-size: clamp(1.78rem, 2.4vw, 2.3rem);
+    line-height: .95;
+    font-weight: 690;
+    letter-spacing: -.055em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-dashboard-clock-date {
+    margin: 7px 0 0;
+    color: var(--ncr26-text-muted);
+    font-size: .7rem;
+    line-height: 1.35;
+    font-weight: 610;
+    text-transform: capitalize;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-dashboard-clock-session {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 0;
+    padding: 6px 9px;
+    border: 1px solid color-mix(in srgb, var(--ncr26-brand) 12%, var(--ncr26-border));
+    border-radius: 999px;
+    color: var(--ncr26-brand-strong);
+    background: color-mix(in srgb, var(--ncr26-brand) 4.5%, rgba(255,255,255,.8));
+    font-size: .64rem;
+    line-height: 1;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(15,23,42,.035);
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-dashboard-clock-session > span {
+    display: grid;
+    place-items: center;
+    color: var(--ncr26-brand);
+  }
+}
+
+@keyframes ncrDashboardClockEnter {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-dashboard-clock {
+    animation: none !important;
+  }
+}
