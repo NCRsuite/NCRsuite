@@ -1,0 +1,140 @@
+/*
+ * NCR UI 2026 — Training Governance Polish
+ * Correctifs ciblés : Dossiers Formation + Qualité & conformité.
+ * Couche strictement visuelle et réversible.
+ */
+
+/* Dossiers : neutralise complètement les anciens anneaux décoratifs.
+   Le gros motif aperçu venait des dimensions/bordures historiques
+   encore héritées par ::before. */
+html[data-ncr-ui-2026="true"] .training-dossier-page .training-dossier-hero::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0;
+  right: auto;
+  bottom: auto;
+  left: 24px;
+  width: 64px;
+  height: 3px;
+  box-sizing: border-box;
+  border: 0 !important;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(
+    90deg,
+    var(--ncr26-brand),
+    color-mix(in srgb, var(--ncr26-brand) 45%, #8bc6ff)
+  );
+  pointer-events: none;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-page .training-dossier-hero::after {
+  content: none !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  border: 0 !important;
+}
+
+/* Dossiers : la synthèse a désormais un fond clair,
+   donc on remplace explicitement les couleurs héritées de l'ancienne carte sombre. */
+html[data-ncr-ui-2026="true"] .training-dossier-action-card {
+  color: var(--ncr26-text);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-action-card::after {
+  content: none !important;
+  display: none !important;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-action-card .eyebrow {
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-action-card h3 {
+  color: var(--ncr26-text);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-action-card > p:not(.eyebrow) {
+  color: var(--ncr26-text-soft);
+  font-size: 0.79rem;
+  line-height: 1.58;
+  font-weight: 500;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-scoreline > span {
+  height: 7px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 10%, var(--ncr26-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ncr26-brand) 7%, #edf2f7);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-scoreline > span > i {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ncr26-brand) 10%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-scoreline b {
+  color: var(--ncr26-text-soft);
+  font-weight: 700;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-pdf-actions {
+  gap: 9px;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-pdf-actions :where(button, a) {
+  line-height: 1.25;
+}
+
+/* Qualité : le trait générique du page-header était positionné en bas.
+   On le transforme en accent supérieur cohérent avec le reste de NCR UI 2026. */
+html[data-ncr-ui-2026="true"][data-business-theme]
+  .app-shell-v265
+  .page.training-quality-compliance-page
+  > .page-header.training-compliance-header::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 24px !important;
+  width: 64px !important;
+  height: 3px !important;
+  border: 0 !important;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(
+    90deg,
+    var(--ncr26-brand),
+    color-mix(in srgb, var(--ncr26-brand) 45%, #8bc6ff)
+  );
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  html[data-ncr-ui-2026="true"] .training-dossier-page .training-dossier-hero::before {
+    left: 18px;
+    width: 52px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme]
+    .app-shell-v265
+    .page.training-quality-compliance-page
+    > .page-header.training-compliance-header::after {
+    left: 18px !important;
+    width: 52px !important;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-action-card > p:not(.eyebrow) {
+    font-size: 0.82rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .training-dossier-page .training-dossier-hero::before,
+  html[data-ncr-ui-2026="true"] .training-quality-compliance-page > .training-compliance-header::after {
+    transition: none !important;
+  }
+}
