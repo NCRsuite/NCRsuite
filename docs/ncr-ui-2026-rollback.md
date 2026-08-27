@@ -48,6 +48,7 @@ Le rendu historique reprend alors la main.
 - `src/ncrUi2026TrainingPersonalWork.css`
 - `src/ncrUi2026TrainingCommercialBilling.css`
 - `src/ncrUi2026TrainingPeopleQuality.css`
+- `src/ncrUi2026TrainingGovernance.css`
 - `src/main.tsx` uniquement pour charger les couches et poser le flag HTML
 
 Le cockpit Formation V2 est contenu dans `src/ncrUi2026TrainingDashboard.css`. Il ne modifie ni `TrainingDashboardPage.tsx`, ni ses calculs, ni ses requêtes, ni ses actions.
@@ -71,6 +72,8 @@ La refonte V2 du parcours personnel `Mon activité` → `Mon planning` → `Fact
 La refonte V2 du parcours `CRM & commercial` → `Facturation Formation` → `Documents / Attestations` est isolée dans `src/ncrUi2026TrainingCommercialBilling.css`. Elle modernise le pipeline CRM, les opportunités et relances, les dossiers commerciaux, clients et financeurs, les KPI financiers, factures et encaissements ainsi que la bibliothèque documentaire et ses regroupements par session/catégorie. Elle ne modifie ni `TrainingCommercialPage.tsx`, ni `TrainingCrmPipeline.tsx`, ni `TrainingBillingPage.tsx`, ni `TrainingDocumentsPage.tsx`, ni leurs données, requêtes, calculs, génération PDF, stockage, envois ou actions métier.
 
 La refonte V2 du parcours `Stagiaires` → `Formateurs` → `Émargements` → `Évaluations` est isolée dans `src/ncrUi2026TrainingPeopleQuality.css`. Elle modernise les répertoires et formulaires, le statut BPF des formateurs, le cockpit d'émargement, les signatures, les KPI de présence, le parcours d'automatisation des évaluations et le suivi individuel des réponses. Elle ne modifie ni `TrainingTraineesPage.tsx`, ni `TrainingTrainersPage.tsx`, ni `TrainingAttendancePage.tsx`, ni `TrainingEvaluationsPage.tsx`, ni leurs données, requêtes, signatures, PDF, réglages, envois ou actions métier.
+
+La refonte V2 du bloc `Dossiers Formation` → `Qualité & conformité` → `BPF` → `Profil organisme / Établissements` → `Espaces & signatures` est isolée dans `src/ncrUi2026TrainingGovernance.css`. Elle modernise le cockpit administratif des dossiers, les contrôles et preuves Qualiopi, le BPF guidé et expert, le profil organisme et ses documents, la liste des établissements ainsi que la console d'accès, de partage documentaire et de signature. Elle ne modifie ni `TrainingDossiersPage.tsx`, ni `TrainingQualityCompliancePage.tsx`, ni `TrainingBpfPage.tsx`, ni `TrainingBpfAssistant.tsx`, ni `TrainingOrganizationProfilePage.tsx`, ni `TrainingSitesPage.tsx`, ni `TrainingPortalAdminPage.tsx`, ni leurs calculs, données, requêtes, PDF, preuves, invitations, signatures ou actions métier.
 
 Le fichier historique `src/styles.css` n'est pas modifié par cette refonte.
 
