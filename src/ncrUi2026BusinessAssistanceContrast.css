@@ -1,0 +1,47 @@
+/*
+ * NCR UI 2026 — Assistance NCR contrast for dark business heroes
+ * Formation is intentionally excluded: its Assistance hero uses the validated light treatment.
+ */
+
+html[data-ncr-ui-2026="true"]:is(
+  [data-business-theme="nettoyage"],
+  [data-business-theme="securite"],
+  [data-business-theme="coiffure"],
+  [data-business-theme="restauration"]
+) .support-center-page .support-center-hero h1 {
+  color: #ffffff !important;
+  opacity: 1 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .16);
+}
+
+html[data-ncr-ui-2026="true"]:is(
+  [data-business-theme="nettoyage"],
+  [data-business-theme="securite"],
+  [data-business-theme="coiffure"],
+  [data-business-theme="restauration"]
+) .support-center-page .support-center-hero > div > p:last-child {
+  color: rgba(255, 255, 255, .90) !important;
+  opacity: 1 !important;
+}
+
+html[data-ncr-ui-2026="true"]:is(
+  [data-business-theme="nettoyage"],
+  [data-business-theme="securite"],
+  [data-business-theme="coiffure"],
+  [data-business-theme="restauration"]
+) .support-center-page .support-center-hero .eyebrow {
+  color: rgba(255, 255, 255, .78) !important;
+  opacity: 1 !important;
+  text-shadow: none;
+}
+
+html[data-ncr-ui-2026="true"]:is(
+  [data-business-theme="nettoyage"],
+  [data-business-theme="securite"],
+  [data-business-theme="coiffure"],
+  [data-business-theme="restauration"]
+) .support-center-page .support-center-hero .support-center-icon {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, .10);
+  border-color: rgba(255, 255, 255, .14);
+}
