@@ -45,6 +45,7 @@ Le rendu historique reprend alors la main.
 - `src/ncrUi2026TrainingSessionsSummary.css`
 - `src/ncrUi2026TrainingMobileFixes.css`
 - `src/ncrUi2026TrainingMobilePolish.css`
+- `src/ncrUi2026TrainingPersonalWork.css`
 - `src/main.tsx` uniquement pour charger les couches et poser le flag HTML
 
 Le cockpit Formation V2 est contenu dans `src/ncrUi2026TrainingDashboard.css`. Il ne modifie ni `TrainingDashboardPage.tsx`, ni ses calculs, ni ses requêtes, ni ses actions.
@@ -62,6 +63,8 @@ La carte de synthèse `Planning pédagogique / sessions` est raffinée séparém
 La passe mobile Formation est isolée dans `src/ncrUi2026TrainingMobileFixes.css`. Elle compacte les hero et KPI de `Formations`, transforme le stepper mobile `Parcours Formation` en grille 2 × 3 et ajoute l'espace de sécurité sous les contenus pour la navigation basse. Elle ne modifie aucun JSX, aucune donnée, aucune requête ni aucune action métier.
 
 La finition mobile corrective est isolée dans `src/ncrUi2026TrainingMobilePolish.css`. Elle remet les boutons `Profil organisme` et création de formation entièrement à l'intérieur des hero, supprime la séparation qui les coupait visuellement et restaure une navigation basse Formation flottante, plus légère et arrondie sur les quatre coins. Elle ne modifie aucun JSX ni aucune logique métier.
+
+La refonte V2 du parcours personnel `Mon activité` → `Mon planning` → `Facturation mensuelle` est isolée dans `src/ncrUi2026TrainingPersonalWork.css`. Elle modernise le raccourci de facturation, les hero, KPI, formulaire et liste d'interventions, l'organisateur mensuel, le planning consolidé et les cartes de facturation par centre. Elle ne modifie ni `TrainingPersonalActivityPage.tsx`, ni `TrainingPersonalActivityOrganizer.tsx`, ni `TrainingPersonalPlanningPage.tsx`, ni `TrainingPersonalMonthlyBillingPage.tsx`, ni leurs requêtes, calculs, RPC, données ou actions. Les CSS historiques propres à ces composants restent inchangés.
 
 Le fichier historique `src/styles.css` n'est pas modifié par cette refonte.
 
