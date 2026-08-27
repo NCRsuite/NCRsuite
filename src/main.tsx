@@ -11,6 +11,7 @@ import { OrganizationProvider } from './contexts/OrganizationContext';
 import { PlatformAdminProvider } from './contexts/PlatformAdminContext';
 import './ncrUi2026.css';
 import './ncrUi2026Pages.css';
+import './ncrUi2026TrainingDashboard.css';
 import './trainingDossierContrastFix.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
