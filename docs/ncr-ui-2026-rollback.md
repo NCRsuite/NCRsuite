@@ -58,6 +58,7 @@ Le rendu historique reprend alors la main. Le Smart Cockpit est également désa
 - `src/ncrUi2026TrainingDashboardMotion.css`
 - `src/ncrUi2026TrainingDashboardInteractive.css`
 - `src/ncrUi2026TrainingDashboardSmart.css`
+- `src/ncrUi2026TrainingDashboardSmartPolish.css`
 - `src/hooks/useTrainingDashboardMotion.ts`
 - `src/components/TrainingDashboardSmartCockpit.tsx`
 - `src/ncrUi2026TrainingOperations.css`
@@ -81,6 +82,8 @@ La couche d'animation premium du tableau de bord est isolée dans `src/ncrUi2026
 La partie 2 interactive du tableau de bord repose sur `src/hooks/useTrainingDashboardMotion.ts`, `src/ncrUi2026TrainingDashboardInteractive.css` et des modifications d'affichage limitées à `TrainingDashboardPage.tsx`. Elle ajoute le count-up réel des KPI, le reveal au scroll, les transitions lors d'un changement de période, un signal visuel ponctuel pour les sessions prêtes à clôturer et une profondeur légère au pointeur sur desktop. Les requêtes Supabase, `buildTrainingQualityDashboard`, les données, les exports PDF/CSV et les actions restent inchangés. Pour annuler uniquement cette partie, utiliser `2af6cc397c4322b797e03915ff8b06368b33ac99` comme point de référence.
 
 La partie 3 Smart Cockpit est isolée par `src/config/dashboardSmart2026.ts`, `src/components/TrainingDashboardSmartCockpit.tsx` et `src/ncrUi2026TrainingDashboardSmart.css`, avec un branchement minimal dans `TrainingDashboardPage.tsx`. Elle classe uniquement les informations déjà calculées par le dashboard selon l'ordre Bloquant → Prêt à clôturer → Vigilance → Information, affiche la prochaine activité et des raccourcis adaptés aux droits, et enrichit le graphique avec des tooltips visuels. Elle n'ajoute aucune requête Supabase, ne modifie pas `buildTrainingQualityDashboard`, n'écrit aucune donnée et ne change aucun export ou action métier. Pour la désactiver seule, passer `NCR_DASHBOARD_SMART_2026_FEATURE_ENABLED` à `false`; pour retrouver strictement l'état pré-Partie 3, utiliser `149dc204b68eb1e21227e07c36771aa722c77979` comme référence.
+
+La finition d'espacement des en-têtes du Smart Cockpit est isolée dans `src/ncrUi2026TrainingDashboardSmartPolish.css`. Elle sépare clairement les labels `SMART COCKPIT`, `À FAIRE ENSUITE`, `PROCHAINE ACTIVITÉ` et `RACCOURCIS` de leurs textes contextuels, améliore l'alignement et autorise les retours à la ligne propres sur les cartes étroites. Elle ne modifie aucun JSX, aucune donnée, aucune priorisation ni aucune action.
 
 Les refontes V2 des pages `Formations` et `Parcours Formation` sont contenues dans `src/ncrUi2026TrainingOperations.css`. Elles ne modifient ni `TrainingProgramsPage.tsx`, ni `TrainingWorkflowPage.tsx`, ni leurs données, requêtes ou actions.
 
