@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { PremiumSkeleton } from '../components/PremiumSkeleton';
@@ -21,6 +21,7 @@ import type {
   TrainingSatisfactionRecord,
   TrainingSessionRecord
 } from '../features/training/types';
+import { useAnimatedNumber, useTrainingDashboardMotion } from '../hooks/useTrainingDashboardMotion';
 import { closeFileWindow, navigateFileWindow, prepareFileWindow, showBlobDownload } from '../lib/browserFiles';
 import { supabase } from '../lib/supabase';
 
@@ -48,6 +49,7 @@ function dateRangeLabel(startsAt: string, endsAt: string) {
 export function TrainingDashboardPage() {
   const { organization, activeSiteId, activeSite } = useOrganization();
   const { demoMode } = useAuth();
+  const dashboardRef = useRef<HTMLDivElement>(null);
   const [sessions, setSessions] = useState<TrainingSessionRecord[]>([]);
   const [enrollments, setEnrollments] = useState<TrainingEnrollmentRecord[]>([]);
   const [documents, setDocuments] = useState<TrainingDocumentRecord[]>([]);
@@ -172,6 +174,18 @@ export function TrainingDashboardPage() {
     : dashboard.issues.filter((issue) => issue.severity === issueFilter), [dashboard.issues, issueFilter]);
   const maxTrendValue = Math.max(1, ...dashboard.trend.flatMap((point) => [point.sessions, point.trainees]));
 
+  const animatedPlannedSessions = useAnimatedNumber(dashboard.metrics.plannedSessions, !loading);
+  const animatedInProgressSessions = useAnimatedNumber(dashboard.metrics.inProgressSessions, !loading);
+  const animatedReadyToCloseSessions = useAnimatedNumber(dashboard.metrics.readyToCloseSessions, !loading);
+  const animatedClosedSessions = useAnimatedNumber(dashboard.metrics.closedSessions, !loading);
+  const animatedTrainedTrainees = useAnimatedNumber(dashboard.metrics.trainedTrainees, !loading);
+  const animatedAttendanceRate = useAnimatedNumber(dashboard.metrics.attendanceRate, !loading);
+  const animatedDocumentCompletionRate = useAnimatedNumber(dashboard.metrics.documentCompletionRate, !loading);
+  const animatedSatisfactionAverage = useAnimatedNumber(dashboard.metrics.satisfactionAverage, !loading, { decimals: 1 });
+  const animatedSatisfactionResponseRate = useAnimatedNumber(dashboard.metrics.satisfactionResponseRate, !loading);
+
+  useTrainingDashboardMotion(dashboardRef, periodDays);
+
   async function exportPdf() {
     if (!organization) return;
     const fileWindow = prepareFileWindow('Rapport de pilotage Formation', 'NCR Suite prépare le rapport qualité…');
@@ -210,7 +224,7 @@ export function TrainingDashboardPage() {
   if (!organization) return null;
 
   return (
-    <div className="page training-dashboard-page training-quality-dashboard">
+    <div ref={dashboardRef} className="page training-dashboard-page training-quality-dashboard">
       <header className="page-header training-quality-header">
         <div>
           <p className="eyebrow">PILOTAGE & CONTRÔLE QUALITÉ</p>
@@ -238,17 +252,17 @@ export function TrainingDashboardPage() {
       {error && <div className="error-message page-message" role="alert">{error}</div>}
 
       <section className="training-quality-overview" aria-label="État des sessions">
-        <article className="training-quality-overview-card planned"><span><Icon name="calendar" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.plannedSessions}</strong><small>Planifiées à 30 jours</small></div><Link to="/sessions?view=planned">Voir</Link></article>
-        <article className="training-quality-overview-card current"><span><Icon name="activity" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.inProgressSessions}</strong><small>En cours maintenant</small></div><Link to="/sessions?view=current">Voir</Link></article>
-        <article className="training-quality-overview-card ready"><span><Icon name="check" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.readyToCloseSessions}</strong><small>Prêtes à clôturer</small></div>{canManage ? <Link to="/dossiers-formation?tab=to_close">Traiter</Link> : <Link to="/sessions?view=current">Voir</Link>}</article>
-        <article className="training-quality-overview-card closed"><span><Icon name="lock" size={20} /></span><div><strong>{loading ? '…' : dashboard.metrics.closedSessions}</strong><small>Clôturées · {qualityPeriodLabel(periodDays)}</small></div><Link to={canManage ? "/dossiers-formation?tab=closed" : "/sessions?view=closed"}>Voir</Link></article>
+        <article className="training-quality-overview-card planned"><span><Icon name="calendar" size={20} /></span><div><strong>{loading ? '…' : animatedPlannedSessions}</strong><small>Planifiées à 30 jours</small></div><Link to="/sessions?view=planned">Voir</Link></article>
+        <article className="training-quality-overview-card current"><span><Icon name="activity" size={20} /></span><div><strong>{loading ? '…' : animatedInProgressSessions}</strong><small>En cours maintenant</small></div><Link to="/sessions?view=current">Voir</Link></article>
+        <article className={`training-quality-overview-card ready${!loading && dashboard.metrics.readyToCloseSessions > 0 ? ' ncr-dashboard-attention' : ''}`}><span><Icon name="check" size={20} /></span><div><strong>{loading ? '…' : animatedReadyToCloseSessions}</strong><small>Prêtes à clôturer</small></div>{canManage ? <Link to="/dossiers-formation?tab=to_close">Traiter</Link> : <Link to="/sessions?view=current">Voir</Link>}</article>
+        <article className="training-quality-overview-card closed"><span><Icon name="lock" size={20} /></span><div><strong>{loading ? '…' : animatedClosedSessions}</strong><small>Clôturées · {qualityPeriodLabel(periodDays)}</small></div><Link to={canManage ? "/dossiers-formation?tab=closed" : "/sessions?view=closed"}>Voir</Link></article>
       </section>
 
       <section className="stats-grid training-quality-stats">
-        <StatCard label="Stagiaires formés" value={String(dashboard.metrics.trainedTrainees)} detail={qualityPeriodLabel(periodDays)} icon="users" loading={loading} />
-        <StatCard label="Taux de présence" value={percentValue(dashboard.metrics.attendanceRate)} detail={digitalAttendanceEnabled ? 'émargements finalisés' : 'selon les données disponibles'} icon="signature" loading={loading} />
-        <StatCard label="Documents complets" value={percentValue(dashboard.metrics.documentCompletionRate)} detail="convocations et attestations" icon="file" loading={loading} />
-        <StatCard label="Satisfaction" value={dashboard.metrics.satisfactionAverage == null ? '—' : `${dashboard.metrics.satisfactionAverage.toLocaleString('fr-FR')} / 5`} detail={satisfactionEnabled ? `${percentValue(dashboard.metrics.satisfactionResponseRate)} de réponses` : 'disponible avec Professionnelle'} icon="chart" loading={loading} />
+        <StatCard label="Stagiaires formés" value={String(animatedTrainedTrainees ?? 0)} detail={qualityPeriodLabel(periodDays)} icon="users" loading={loading} />
+        <StatCard label="Taux de présence" value={percentValue(animatedAttendanceRate)} detail={digitalAttendanceEnabled ? 'émargements finalisés' : 'selon les données disponibles'} icon="signature" loading={loading} />
+        <StatCard label="Documents complets" value={percentValue(animatedDocumentCompletionRate)} detail="convocations et attestations" icon="file" loading={loading} />
+        <StatCard label="Satisfaction" value={animatedSatisfactionAverage == null ? '—' : `${animatedSatisfactionAverage.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} / 5`} detail={satisfactionEnabled ? `${percentValue(animatedSatisfactionResponseRate)} de réponses` : 'disponible avec Professionnelle'} icon="chart" loading={loading} />
       </section>
 
       <section className="training-quality-grid">
@@ -316,8 +330,8 @@ export function TrainingDashboardPage() {
                 ? `${dashboard.warningCount} point${dashboard.warningCount > 1 ? 's méritent' : ' mérite'} une vérification avant la prochaine échéance.`
                 : 'Aucune anomalie bloquante ou vigilance détectée dans les sessions analysées.'}</p>
             <div className="training-quality-score-lines">
-              <span><strong>{dashboard.metrics.documentCompletionRate == null ? '—' : `${dashboard.metrics.documentCompletionRate} %`}</strong><small>Couverture documentaire</small></span>
-              {satisfactionEnabled && <span><strong>{dashboard.metrics.satisfactionResponseRate == null ? '—' : `${dashboard.metrics.satisfactionResponseRate} %`}</strong><small>Réponses satisfaction</small></span>}
+              <span><strong>{animatedDocumentCompletionRate == null ? '—' : `${animatedDocumentCompletionRate} %`}</strong><small>Couverture documentaire</small></span>
+              {satisfactionEnabled && <span><strong>{animatedSatisfactionResponseRate == null ? '—' : `${animatedSatisfactionResponseRate} %`}</strong><small>Réponses satisfaction</small></span>}
             </div>
           </article>
         </aside>
