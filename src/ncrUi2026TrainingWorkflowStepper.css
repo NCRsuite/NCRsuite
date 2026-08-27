@@ -1,0 +1,290 @@
+/*
+ * NCR UI 2026 — Parcours Formation stepper premium
+ * Couche visuelle uniquement, réversible avec NCR_UI_2026_ENABLED.
+ */
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline {
+  position: relative;
+  gap: 14px;
+  margin-top: 10px;
+  padding-top: 24px;
+  border-top: 1px solid color-mix(in srgb, var(--ncr26-border) 86%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  min-height: 94px;
+  padding: 15px 16px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-border) 95%, transparent);
+  border-radius: 17px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.995), rgba(249,251,254,.97));
+  box-shadow:
+    0 1px 2px rgba(15,23,42,.035),
+    0 8px 24px rgba(15,23,42,.028);
+  overflow: visible;
+  transition:
+    transform var(--ncr26-ui) var(--ncr26-ease),
+    border-color var(--ncr26-ui) var(--ncr26-ease),
+    box-shadow var(--ncr26-ui) var(--ncr26-ease),
+    background var(--ncr26-ui) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 18%, var(--ncr26-border));
+  box-shadow:
+    0 2px 4px rgba(15,23,42,.04),
+    0 14px 30px rgba(15,23,42,.05);
+}
+
+/* Accent discret en haut de chaque étape */
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -1px;
+  left: 18px;
+  width: 44px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: color-mix(in srgb, var(--ncr26-brand) 58%, #8ebdff);
+  opacity: .88;
+}
+
+/* Connecteur entre les étapes */
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  right: -19px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 1px solid var(--ncr26-border);
+  border-radius: 999px;
+  color: color-mix(in srgb, var(--ncr26-brand) 68%, var(--ncr26-text-muted));
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(15,23,42,.07);
+  font-size: .72rem;
+  font-weight: 760;
+  line-height: 1;
+}
+
+/* Numéro d'étape */
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > span {
+  position: relative;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 17%, var(--ncr26-border));
+  border-radius: 15px;
+  color: var(--ncr26-brand-strong);
+  background:
+    linear-gradient(145deg, #fff, color-mix(in srgb, var(--ncr26-brand-soft) 72%, #fff));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.95),
+    0 4px 12px rgba(18,103,234,.07);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .045em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > span::after {
+  content: "";
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ncr26-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ncr26-brand-soft) 78%, #fff);
+}
+
+/* Bloc texte */
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > div {
+  position: relative;
+  min-width: 0;
+  padding-top: 15px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > div::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--ncr26-text-muted);
+  font-size: .55rem;
+  line-height: 1;
+  font-weight: 760;
+  letter-spacing: .105em;
+  text-transform: uppercase;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(1) > div::before { content: "Catalogue"; }
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(2) > div::before { content: "Commercial"; }
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(3) > div::before { content: "Conversion"; }
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(4) > div::before { content: "Préparation"; }
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(5) > div::before { content: "Production"; }
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(6) > div::before { content: "Clôture"; }
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline strong {
+  display: block;
+  color: var(--ncr26-text);
+  font-size: clamp(1.38rem, 1.7vw, 1.68rem);
+  line-height: .95;
+  font-weight: 750;
+  letter-spacing: -.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline small {
+  display: block;
+  margin-top: 7px;
+  color: var(--ncr26-text-soft);
+  font-size: .7rem;
+  line-height: 1.3;
+  font-weight: 570;
+  text-wrap: balance;
+}
+
+/* Étape 01 : catalogue / prêt */
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(1) {
+  border-color: color-mix(in srgb, var(--ncr26-success) 13%, var(--ncr26-border));
+  background:
+    linear-gradient(145deg, #fff, color-mix(in srgb, var(--ncr26-success) 3.6%, #fff));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(1)::before {
+  background: color-mix(in srgb, var(--ncr26-success) 72%, #78c9aa);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(1) > span {
+  border-color: color-mix(in srgb, var(--ncr26-success) 19%, var(--ncr26-border));
+  color: var(--ncr26-success);
+  background: linear-gradient(145deg, #fff, color-mix(in srgb, var(--ncr26-success) 7%, #fff));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(1) > span::after {
+  background: var(--ncr26-success);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ncr26-success) 9%, #fff);
+}
+
+/* Étape 05 : session active */
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(5)::before {
+  background: color-mix(in srgb, var(--ncr26-brand) 70%, #42b7cf);
+}
+
+/* Étapes demandant une action */
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article.attention {
+  border-color: color-mix(in srgb, var(--ncr26-warning) 30%, var(--ncr26-border));
+  background:
+    linear-gradient(145deg, #fff, color-mix(in srgb, var(--ncr26-warning) 6%, #fff));
+  box-shadow:
+    0 1px 2px rgba(15,23,42,.035),
+    0 10px 28px color-mix(in srgb, var(--ncr26-warning) 8%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article.attention::before {
+  background: var(--ncr26-warning);
+  opacity: 1;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article.attention > span {
+  border-color: color-mix(in srgb, var(--ncr26-warning) 33%, var(--ncr26-border));
+  color: var(--ncr26-warning);
+  background: linear-gradient(145deg, #fff, color-mix(in srgb, var(--ncr26-warning) 10%, #fff));
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--ncr26-warning) 10%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article.attention > span::after {
+  background: var(--ncr26-warning);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ncr26-warning) 10%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article.attention > div::before,
+html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article.attention small {
+  color: color-mix(in srgb, var(--ncr26-warning) 72%, var(--ncr26-text-soft));
+}
+
+/* Écrans intermédiaires : 3 x 2, comme sur le MacBook de référence */
+@container (max-width: 1100px) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(3)::after {
+    display: none;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(4)::before {
+    width: 44px;
+  }
+}
+
+/* Tablette étroite : 2 x 3 */
+@container (max-width: 720px) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(3)::after,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(2)::after,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(4)::after {
+    display: none;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(3)::after,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article:nth-child(5)::after {
+    display: grid;
+  }
+}
+
+/* Mobile : une vraie timeline verticale */
+@container (max-width: 500px) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding-top: 20px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article {
+    grid-template-columns: 46px minmax(0, 1fr);
+    min-height: 86px;
+    padding: 13px 14px;
+    border-radius: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > span {
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article::after {
+    display: none !important;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline strong {
+    font-size: 1.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article {
+    transition: none !important;
+    transform: none !important;
+  }
+}
