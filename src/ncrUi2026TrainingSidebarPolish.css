@@ -1,0 +1,96 @@
+/*
+ * NCR UI 2026 — Formation desktop sidebar polish
+ * Tableau de bord épinglé visuellement + sidebar pleine hauteur.
+ * Couche strictement visuelle : aucun comportement métier.
+ */
+
+@media (min-width: 901px) {
+  /* Sidebar continue jusqu'en bas du viewport, sans modifier son mode de positionnement historique. */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > :is(
+    .brand,
+    .desktop-context-switchers,
+    .support-sidebar-identity,
+    .navigation-search,
+    .sidebar-subscription-link,
+    .sidebar-footer
+  ) {
+    flex: 0 0 auto;
+  }
+
+  /* Seule la zone de navigation devient scrollable lorsque le menu dépasse la hauteur disponible. */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .main-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    padding-bottom: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .sidebar-footer {
+    margin-top: auto;
+  }
+
+  /*
+   * En Formation, Vue d'ensemble ne contient que le Tableau de bord.
+   * Le groupe est ouvert par défaut par AppShell : on masque donc uniquement son en-tête
+   * et on transforme son unique lien en accès permanent, sans toucher au JSX.
+   */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) {
+    margin: 2px 0 10px;
+    padding: 0 0 10px;
+    border-bottom: 1px solid color-mix(in srgb, var(--ncr26-border) 78%, transparent);
+    border-radius: 0;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) > .navigation-group-trigger {
+    display: none;
+    pointer-events: none;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) > .navigation-group-items {
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group-items > a[href="/"] {
+    min-height: 44px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--ncr26-brand) 10%, var(--ncr26-border));
+    border-radius: 13px;
+    background: color-mix(in srgb, var(--ncr26-brand-pale) 44%, var(--ncr26-surface));
+    color: var(--ncr26-text-soft);
+    box-shadow: var(--ncr26-shadow-xs);
+    font-weight: 650;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group-items > a[href="/"]:hover {
+    border-color: color-mix(in srgb, var(--ncr26-brand) 22%, var(--ncr26-border));
+    background: color-mix(in srgb, var(--ncr26-brand-soft) 58%, var(--ncr26-surface));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group-items > a[href="/"].active {
+    border-color: color-mix(in srgb, var(--ncr26-brand) 24%, var(--ncr26-border));
+    background: linear-gradient(90deg, var(--ncr26-brand-soft), color-mix(in srgb, var(--ncr26-brand-soft) 48%, var(--ncr26-surface)));
+    color: var(--ncr26-brand-strong);
+    box-shadow: inset 3px 0 0 var(--ncr26-brand), var(--ncr26-shadow-xs);
+  }
+
+  /* Le premier vrai groupe retrouve une respiration nette sous le dashboard épinglé. */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) + .navigation-group {
+    margin-top: 2px;
+  }
+}
