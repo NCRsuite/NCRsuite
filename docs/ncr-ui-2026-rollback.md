@@ -46,6 +46,7 @@ Le rendu historique reprend alors la main.
 - `src/ncrUi2026TrainingMobileFixes.css`
 - `src/ncrUi2026TrainingMobilePolish.css`
 - `src/ncrUi2026TrainingPersonalWork.css`
+- `src/ncrUi2026TrainingCommercialBilling.css`
 - `src/main.tsx` uniquement pour charger les couches et poser le flag HTML
 
 Le cockpit Formation V2 est contenu dans `src/ncrUi2026TrainingDashboard.css`. Il ne modifie ni `TrainingDashboardPage.tsx`, ni ses calculs, ni ses requêtes, ni ses actions.
@@ -65,6 +66,8 @@ La passe mobile Formation est isolée dans `src/ncrUi2026TrainingMobileFixes.css
 La finition mobile corrective est isolée dans `src/ncrUi2026TrainingMobilePolish.css`. Elle remet les boutons `Profil organisme` et création de formation entièrement à l'intérieur des hero, supprime la séparation qui les coupait visuellement et restaure une navigation basse Formation flottante, plus légère et arrondie sur les quatre coins. Elle ne modifie aucun JSX ni aucune logique métier.
 
 La refonte V2 du parcours personnel `Mon activité` → `Mon planning` → `Facturation mensuelle` est isolée dans `src/ncrUi2026TrainingPersonalWork.css`. Elle modernise le raccourci de facturation, les hero, KPI, formulaire et liste d'interventions, l'organisateur mensuel, le planning consolidé et les cartes de facturation par centre. Elle ne modifie ni `TrainingPersonalActivityPage.tsx`, ni `TrainingPersonalActivityOrganizer.tsx`, ni `TrainingPersonalPlanningPage.tsx`, ni `TrainingPersonalMonthlyBillingPage.tsx`, ni leurs requêtes, calculs, RPC, données ou actions. Les CSS historiques propres à ces composants restent inchangés.
+
+La refonte V2 du parcours `CRM & commercial` → `Facturation Formation` → `Documents / Attestations` est isolée dans `src/ncrUi2026TrainingCommercialBilling.css`. Elle modernise le pipeline CRM, les opportunités et relances, les dossiers commerciaux, clients et financeurs, les KPI financiers, factures et encaissements ainsi que la bibliothèque documentaire et ses regroupements par session/catégorie. Elle ne modifie ni `TrainingCommercialPage.tsx`, ni `TrainingCrmPipeline.tsx`, ni `TrainingBillingPage.tsx`, ni `TrainingDocumentsPage.tsx`, ni leurs données, requêtes, calculs, génération PDF, stockage, envois ou actions métier.
 
 Le fichier historique `src/styles.css` n'est pas modifié par cette refonte.
 
