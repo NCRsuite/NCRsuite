@@ -1,0 +1,1246 @@
+/*
+ * NCR UI 2026 — Sessions Formation
+ * Refonte visuelle uniquement. Aucune logique métier.
+ * Inactif dès que data-ncr-ui-2026 != true.
+ */
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium {
+  container-type: inline-size;
+  --ncr26-session-gap-xs: 8px;
+  --ncr26-session-gap-sm: 12px;
+  --ncr26-session-gap-md: 16px;
+  --ncr26-session-gap-lg: 24px;
+  --ncr26-session-gap-xl: 32px;
+  --ncr26-session-gap-2xl: 40px;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-planning-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 28px;
+  margin-bottom: var(--ncr26-session-gap-xl);
+  padding: clamp(24px, 3vw, 34px);
+  border: 1px solid var(--ncr26-border);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--ncr26-brand) 9%, transparent), transparent 18rem),
+    linear-gradient(145deg, rgba(255,255,255,.995), rgba(248,250,253,.97));
+  box-shadow: 0 1px 2px rgba(15,23,42,.035), 0 18px 50px rgba(15,23,42,.045);
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-planning-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 32px;
+  width: 78px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(90deg, var(--ncr26-brand), color-mix(in srgb, var(--ncr26-brand) 35%, #68a9ff));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-planning-hero::after {
+  content: "";
+  position: absolute;
+  right: -75px;
+  bottom: -105px;
+  width: 220px;
+  height: 220px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 9%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 30px color-mix(in srgb, var(--ncr26-brand) 2.4%, transparent),
+    0 0 0 64px color-mix(in srgb, var(--ncr26-brand) 1.3%, transparent);
+  pointer-events: none;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-planning-hero > div {
+  position: relative;
+  z-index: 1;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-planning-hero h1 {
+  margin-top: 6px;
+  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  line-height: 1.03;
+  font-weight: 720;
+  letter-spacing: -.045em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-planning-hero > div:first-child > p:not(.eyebrow) {
+  max-width: 62ch;
+  margin-top: 12px;
+  line-height: 1.58;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-hero-actions .primary-button {
+  min-height: 44px;
+  padding-inline: 18px;
+}
+
+/* =========================================================
+   CREATION DE SESSION
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel {
+  margin-bottom: var(--ncr26-session-gap-xl);
+  border-radius: 22px;
+  box-shadow: 0 12px 40px rgba(15,23,42,.055);
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel > .panel-header {
+  gap: 20px;
+  padding: 24px 26px;
+  background: linear-gradient(180deg, #fff, var(--ncr26-surface-soft));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel > form,
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel .training-form-grid {
+  gap: 18px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel > form {
+  padding: 26px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel label {
+  gap: 8px;
+  color: var(--ncr26-text-soft);
+  font-size: .77rem;
+  font-weight: 610;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel :where(input, select, textarea) {
+  min-height: 44px;
+  border-radius: 11px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel textarea {
+  min-height: 92px;
+  padding-block: 11px;
+  line-height: 1.55;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker {
+  margin: 6px 0 2px;
+  padding: 20px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 16px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker legend {
+  padding-inline: 5px;
+  color: var(--ncr26-text);
+  font-size: .82rem;
+  font-weight: 680;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker legend small {
+  margin-left: 7px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--ncr26-brand-strong);
+  background: var(--ncr26-brand-soft);
+  font-size: .66rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker > div > label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  min-height: 62px;
+  padding: 11px 13px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 13px;
+  background: #fff;
+  cursor: pointer;
+  transition: transform var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker > div > label:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 22%, var(--ncr26-border));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker > div > label.selected {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 38%, var(--ncr26-border));
+  background: var(--ncr26-brand-pale);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker strong {
+  color: var(--ncr26-text);
+  font-size: .76rem;
+  font-weight: 650;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker small {
+  display: block;
+  margin-top: 3px;
+  color: var(--ncr26-text-muted);
+  font-size: .66rem;
+  font-weight: 450;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel .form-actions {
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel .form-actions :where(button, a) {
+  min-height: 44px;
+  padding-inline: 18px;
+}
+
+/* messages */
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium > :where(.page-message, .error-message, .success-message) {
+  margin: 0 0 var(--ncr26-session-gap-lg);
+}
+
+/* =========================================================
+   WORKSPACE
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-workspace {
+  border: 0;
+  border-radius: 22px;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+  padding: 0 2px 18px;
+  border-bottom: 1px solid var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-toolbar h2 {
+  margin-top: 4px;
+  color: var(--ncr26-text);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -.03em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-toolbar > div:first-child > p:last-child {
+  max-width: 62ch;
+  margin-top: 6px;
+  color: var(--ncr26-text-muted);
+  font-size: .76rem;
+  line-height: 1.5;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-toolbar-filters .segmented-control {
+  padding: 4px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 12px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-toolbar-filters .segmented-control button {
+  min-height: 36px;
+  padding-inline: 14px;
+}
+
+/* =========================================================
+   CALENDRIER
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 330px);
+  gap: 20px;
+  align-items: start;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-main,
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-agenda {
+  border: 1px solid var(--ncr26-border);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-main {
+  min-width: 0;
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-navigation {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: linear-gradient(180deg, #fff, var(--ncr26-surface-soft));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-navigation > div:last-child {
+  margin-left: auto;
+  text-align: right;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-navigation h3 {
+  margin-top: 3px;
+  color: var(--ncr26-text);
+  font-size: 1.05rem;
+  font-weight: 690;
+  letter-spacing: -.02em;
+  text-transform: capitalize;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .icon-nav-button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 11px;
+  color: var(--ncr26-text-soft);
+  background: #fff;
+  font: inherit;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), transform var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .icon-nav-button:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 20%, var(--ncr26-border));
+  background: var(--ncr26-brand-pale);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-month-calendar {
+  padding: 16px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 7px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-weekdays span {
+  padding: 5px 4px;
+  color: var(--ncr26-text-muted);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .055em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 94px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 9px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 12px;
+  color: var(--ncr26-text-soft);
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 18%, var(--ncr26-border));
+  background: var(--ncr26-brand-pale);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button.outside {
+  opacity: .38;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button.today {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 27%, var(--ncr26-border));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button.selected {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 48%, var(--ncr26-border));
+  background: linear-gradient(145deg, var(--ncr26-brand-pale), #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ncr26-brand) 8%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button > span:first-child {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--ncr26-text);
+  font-size: .72rem;
+  font-weight: 690;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button.today > span:first-child {
+  color: #fff;
+  background: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button > strong {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  min-width: 21px;
+  min-height: 21px;
+  place-items: center;
+  padding-inline: 5px;
+  border-radius: 999px;
+  color: var(--ncr26-brand-strong);
+  background: var(--ncr26-brand-soft);
+  font-size: .59rem;
+  font-weight: 760;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-dots {
+  display: flex;
+  gap: 4px;
+  min-height: 6px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-dots i.completed { background: var(--ncr26-success); }
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-dots i.in_progress { background: var(--ncr26-warning); }
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-dots i.draft { background: var(--ncr26-text-muted); }
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-dots i.canceled { background: var(--ncr26-danger); }
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button > small {
+  display: block;
+  width: 100%;
+  color: var(--ncr26-text-muted);
+  font-size: .58rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* agenda */
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-agenda {
+  position: sticky;
+  top: 18px;
+  padding: 20px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-agenda > div:first-child {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-agenda > div:first-child h3 {
+  margin-top: 4px;
+  color: var(--ncr26-text);
+  font-size: 1rem;
+  font-weight: 690;
+  letter-spacing: -.02em;
+  text-transform: capitalize;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-agenda-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+  padding: 13px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-agenda-card > div:first-child {
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  min-height: 48px;
+  padding: 7px 4px;
+  border-radius: 11px;
+  text-align: center;
+  color: var(--ncr26-brand-strong);
+  background: var(--ncr26-brand-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-agenda-card > div:first-child strong {
+  font-size: .72rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-agenda-card > div:first-child span {
+  color: var(--ncr26-text-muted);
+  font-size: .59rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-agenda-card > section {
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-agenda-card > section > strong {
+  display: block;
+  color: var(--ncr26-text);
+  font-size: .76rem;
+  font-weight: 650;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-agenda-card > section > span,
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-agenda-card > section > small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ncr26-text-muted);
+  font-size: .64rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-agenda-card > .secondary-button {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-top: 2px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-upcoming-strip {
+  display: grid;
+  gap: 7px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-upcoming-strip > button {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--ncr26-text-soft);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-upcoming-strip > button:hover {
+  background: var(--ncr26-brand-pale);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-upcoming-strip > button span {
+  color: var(--ncr26-brand);
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-upcoming-strip > button strong {
+  min-width: 0;
+  color: var(--ncr26-text);
+  font-size: .69rem;
+  font-weight: 620;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* =========================================================
+   LISTE
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-list-layout {
+  padding-top: 4px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs > button {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  min-height: 68px;
+  padding: 12px 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  color: var(--ncr26-text-soft);
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--ncr26-shadow-xs);
+  transition: transform var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs > button:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 20%, var(--ncr26-border));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs > button.active {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 35%, var(--ncr26-border));
+  color: var(--ncr26-brand-strong);
+  background: linear-gradient(145deg, var(--ncr26-brand-pale), #fff);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs > button > svg {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  padding: 9px;
+  border-radius: 11px;
+  color: var(--ncr26-brand);
+  background: var(--ncr26-brand-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs strong {
+  display: block;
+  color: inherit;
+  font-size: .76rem;
+  font-weight: 670;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ncr26-text-muted);
+  font-size: .63rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-list {
+  display: grid;
+  gap: 12px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto minmax(250px, auto);
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+  padding: 18px 20px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+  overflow: hidden;
+  transition: transform var(--ncr26-ui) var(--ncr26-ease), border-color var(--ncr26-ui) var(--ncr26-ease), box-shadow var(--ncr26-ui) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: color-mix(in srgb, var(--ncr26-brand) 45%, var(--ncr26-border));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 19%, var(--ncr26-border));
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-card.closed::before {
+  background: var(--ncr26-success);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-card.focused {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 50%, var(--ncr26-border));
+  box-shadow: 0 0 0 3px var(--ncr26-ring), var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-date {
+  display: grid;
+  width: 60px;
+  min-height: 66px;
+  place-content: center;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  text-align: center;
+  background: linear-gradient(145deg, #fff, var(--ncr26-surface-soft));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-date strong {
+  color: var(--ncr26-text);
+  font-size: 1.3rem;
+  line-height: 1;
+  font-weight: 730;
+  letter-spacing: -.04em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-date span {
+  margin-top: 5px;
+  color: var(--ncr26-brand);
+  font-size: .62rem;
+  font-weight: 720;
+  text-transform: uppercase;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-main {
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-main > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 9px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-main > div:first-child > strong {
+  color: var(--ncr26-text);
+  font-size: .92rem;
+  font-weight: 680;
+  letter-spacing: -.018em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-main > div:first-child > span {
+  color: var(--ncr26-text-muted);
+  font-size: .67rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-main > p {
+  margin-top: 8px;
+  color: var(--ncr26-text-soft);
+  font-size: .72rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-main > small {
+  display: block;
+  margin-top: 6px;
+  color: var(--ncr26-text-muted);
+  font-size: .66rem;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-test-badge {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: var(--ncr26-warning);
+  background: color-mix(in srgb, var(--ncr26-warning) 8%, #fff);
+  font-size: .58rem;
+  font-style: normal;
+  font-weight: 760;
+  letter-spacing: .04em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-closed-meta {
+  display: block;
+  margin-top: 8px;
+  color: var(--ncr26-success);
+  font-size: .63rem;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-capacity {
+  display: grid;
+  min-width: 72px;
+  min-height: 62px;
+  place-content: center;
+  padding: 9px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 13px;
+  text-align: center;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-capacity strong {
+  color: var(--ncr26-text);
+  font-size: 1rem;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-capacity span {
+  margin-top: 3px;
+  color: var(--ncr26-text-muted);
+  font-size: .59rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-controls {
+  display: grid;
+  justify-items: end;
+  gap: 9px;
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-status-select select {
+  min-height: 36px;
+  padding: 7px 30px 7px 10px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 10px;
+  color: var(--ncr26-text-soft);
+  background: var(--ncr26-surface-soft);
+  font-size: .67rem;
+  font-weight: 650;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-document-automation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+  max-width: 430px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-document-automation-actions :where(a, button) {
+  min-height: 36px;
+  padding-inline: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-document-automation-actions > small {
+  flex-basis: 100%;
+  margin-top: 2px;
+  color: var(--ncr26-text-muted);
+  font-size: .59rem;
+  text-align: right;
+}
+
+/* =========================================================
+   MODALES TEST / CLOTURE
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .training-closure-modal-backdrop {
+  padding: 24px;
+  background: rgba(15,23,42,.28);
+}
+
+@supports (backdrop-filter: blur(12px)) {
+  html[data-ncr-ui-2026="true"] .training-closure-modal-backdrop {
+    backdrop-filter: blur(10px) saturate(115%);
+    -webkit-backdrop-filter: blur(10px) saturate(115%);
+  }
+}
+
+html[data-ncr-ui-2026="true"] .training-closure-modal,
+html[data-ncr-ui-2026="true"] .training-test-session-modal {
+  width: min(680px, calc(100vw - 36px));
+  max-height: min(88vh, 820px);
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-float);
+  overflow: auto;
+}
+
+html[data-ncr-ui-2026="true"] .training-closure-modal > .panel-header,
+html[data-ncr-ui-2026="true"] .training-test-session-modal > .panel-header {
+  gap: 20px;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: linear-gradient(180deg, #fff, var(--ncr26-surface-soft));
+}
+
+html[data-ncr-ui-2026="true"] .training-closure-checklist,
+html[data-ncr-ui-2026="true"] .training-test-session-explainer {
+  display: grid;
+  gap: 10px;
+  padding: 22px 24px 0;
+}
+
+html[data-ncr-ui-2026="true"] .training-closure-checklist article,
+html[data-ncr-ui-2026="true"] .training-test-session-explainer article {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 13px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-closure-checklist article > svg,
+html[data-ncr-ui-2026="true"] .training-test-session-explainer article > svg {
+  width: 36px;
+  height: 36px;
+  padding: 9px;
+  border-radius: 11px;
+  color: var(--ncr26-brand);
+  background: var(--ncr26-brand-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-closure-checklist article.ok > svg { color: var(--ncr26-success); background: color-mix(in srgb, var(--ncr26-success) 8%, #fff); }
+html[data-ncr-ui-2026="true"] .training-closure-checklist article.blocked > svg { color: var(--ncr26-danger); background: color-mix(in srgb, var(--ncr26-danger) 8%, #fff); }
+
+html[data-ncr-ui-2026="true"] .training-closure-checklist strong,
+html[data-ncr-ui-2026="true"] .training-test-session-explainer strong {
+  display: block;
+  color: var(--ncr26-text);
+  font-size: .76rem;
+  font-weight: 650;
+}
+
+html[data-ncr-ui-2026="true"] .training-closure-checklist small,
+html[data-ncr-ui-2026="true"] .training-test-session-explainer small {
+  display: block;
+  margin-top: 4px;
+  color: var(--ncr26-text-muted);
+  font-size: .65rem;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"] .training-closure-notes,
+html[data-ncr-ui-2026="true"] .training-test-email-field {
+  display: grid;
+  gap: 8px;
+  margin: 20px 24px 0;
+  color: var(--ncr26-text-soft);
+  font-size: .76rem;
+  font-weight: 610;
+}
+
+html[data-ncr-ui-2026="true"] .training-closure-notes textarea,
+html[data-ncr-ui-2026="true"] .training-test-email-field input {
+  border-radius: 11px;
+}
+
+html[data-ncr-ui-2026="true"] .training-test-session-warning {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  margin: 16px 24px 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-warning) 20%, var(--ncr26-border));
+  border-radius: 12px;
+  color: var(--ncr26-warning);
+  background: color-mix(in srgb, var(--ncr26-warning) 6%, #fff);
+  font-size: .68rem;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"] .training-closure-modal > .form-actions,
+html[data-ncr-ui-2026="true"] .training-test-session-modal > .form-actions {
+  gap: 12px;
+  margin-top: 22px;
+  padding: 18px 24px 22px;
+  border-top: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@container (max-width: 1120px) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-workspace {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-card {
+    grid-template-columns: 60px minmax(0, 1fr) auto;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-controls {
+    grid-column: 1 / -1;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: start;
+    padding-top: 12px;
+    border-top: 1px solid var(--ncr26-border);
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-document-automation-actions {
+    max-width: none;
+    justify-content: flex-start;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-document-automation-actions > small {
+    text-align: left;
+  }
+}
+
+@container (max-width: 900px) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-agenda {
+    position: static;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button {
+    min-height: 82px;
+  }
+}
+
+@media (max-width: 700px) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium {
+    --ncr26-session-gap-lg: 20px;
+    --ncr26-session-gap-xl: 24px;
+    --ncr26-session-gap-2xl: 30px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-planning-hero {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-hero-actions,
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-hero-actions .primary-button {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-hero-actions .primary-button {
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel,
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-main,
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-agenda {
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel > .panel-header,
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel > form {
+    padding: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker {
+    padding: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker > div {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel .form-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-form-panel .form-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-toolbar-filters,
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-toolbar-filters .segmented-control {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-toolbar-filters .segmented-control {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-navigation {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+    gap: 8px;
+    padding: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-navigation .secondary-button {
+    min-width: 0;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-navigation > div:last-child {
+    grid-column: 1 / -1;
+    margin-left: 0;
+    padding-top: 6px;
+    text-align: left;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-month-calendar {
+    padding: 10px;
+    overflow-x: auto;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-weekdays,
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid {
+    min-width: 630px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button {
+    min-height: 78px;
+    padding: 7px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-calendar-agenda {
+    padding: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs > button {
+    grid-template-columns: 34px minmax(0, 1fr);
+    min-height: 62px;
+    padding: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs > button > svg {
+    width: 34px;
+    height: 34px;
+    padding: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-card {
+    grid-template-columns: 54px minmax(0, 1fr);
+    gap: 12px;
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-date {
+    width: 52px;
+    min-height: 58px;
+    border-radius: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-capacity {
+    grid-column: 1 / -1;
+    grid-auto-flow: column;
+    justify-content: start;
+    gap: 6px;
+    min-width: 0;
+    min-height: 0;
+    width: fit-content;
+    padding: 7px 10px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-controls {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+    padding-top: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-status-select,
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-status-select select {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-document-automation-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-document-automation-actions :where(a, button) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-document-automation-actions > small {
+    grid-column: 1 / -1;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-closure-modal-backdrop {
+    padding: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-closure-modal,
+  html[data-ncr-ui-2026="true"] .training-test-session-modal {
+    width: calc(100vw - 24px);
+    max-height: 92vh;
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-closure-modal > .panel-header,
+  html[data-ncr-ui-2026="true"] .training-test-session-modal > .panel-header,
+  html[data-ncr-ui-2026="true"] .training-closure-checklist,
+  html[data-ncr-ui-2026="true"] .training-test-session-explainer {
+    padding-inline: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-closure-notes,
+  html[data-ncr-ui-2026="true"] .training-test-email-field,
+  html[data-ncr-ui-2026="true"] .training-test-session-warning {
+    margin-inline: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-closure-modal > .form-actions,
+  html[data-ncr-ui-2026="true"] .training-test-session-modal > .form-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    padding-inline: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-closure-modal > .form-actions button,
+  html[data-ncr-ui-2026="true"] .training-test-session-modal > .form-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-card,
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .planning-month-grid > button,
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-session-view-tabs > button,
+  html[data-ncr-ui-2026="true"] .app-shell .training-planning-premium .training-trainee-picker > div > label {
+    transition: none !important;
+    transform: none !important;
+  }
+}
