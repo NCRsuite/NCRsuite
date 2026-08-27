@@ -1,0 +1,282 @@
+/*
+ * NCR UI 2026 — Formation final coherence polish
+ * Finition transversale et prudente : contrôles, boutons, focus, panels,
+ * messages et responsive. Aucun comportement métier n'est modifié.
+ */
+
+/* =========================================================
+   GARDE-FOUS DE LAYOUT
+   ========================================================= */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  .page,
+  .training-page,
+  .panel,
+  .panel-header,
+  .form-actions,
+  .header-actions
+) {
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  .panel,
+  .training-program-v215-card,
+  .training-dossier-check-group,
+  .training-dossier-action-card,
+  .training-dossier-notes-card,
+  .training-dossier-shortcuts,
+  .subscription-portfolio-card,
+  .support-ticket-card
+) {
+  border-color: var(--ncr26-border);
+}
+
+/* =========================================================
+   TYPOGRAPHIE ET EN-TÊTES
+   ========================================================= */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage .eyebrow {
+  line-height: 1.22;
+  text-wrap: pretty;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(h1, h2, h3, strong) {
+  text-wrap: pretty;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage .panel-header {
+  align-items: flex-start;
+  gap: 16px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage .panel-header > div:first-child {
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage .panel-header > div:first-child > :where(p, small):last-child {
+  color: var(--ncr26-text-muted);
+  line-height: 1.5;
+}
+
+/* =========================================================
+   BOUTONS ET ACTIONS
+   ========================================================= */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  .primary-button,
+  .secondary-button
+):not(.compact-button):not(.compact) {
+  min-height: 44px;
+  border-radius: 12px;
+  line-height: 1.15;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  .primary-button,
+  .secondary-button,
+  .compact-button,
+  button
+) {
+  max-width: 100%;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  .compact-button,
+  .primary-button.compact,
+  .secondary-button.compact
+) {
+  min-height: 38px;
+  border-radius: 11px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  .header-actions,
+  .form-actions,
+  .subscription-current-actions,
+  .subscription-request-actions,
+  .training-dossier-hero-actions,
+  .training-profile-submit,
+  .support-access-actions,
+  .support-access-request-actions
+) {
+  gap: 10px;
+}
+
+/* Focus clavier cohérent et visible */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  button,
+  a,
+  input,
+  select,
+  textarea
+):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ncr26-ring);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  button,
+  a,
+  input,
+  select,
+  textarea
+):disabled {
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   FORMULAIRES
+   ========================================================= */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage label {
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage label:has(> :where(input, select, textarea)) {
+  gap: 7px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+  select
+) {
+  min-height: 44px;
+  border-radius: 11px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage textarea {
+  min-height: 96px;
+  border-radius: 11px;
+  resize: vertical;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(input, select, textarea)::placeholder {
+  color: color-mix(in srgb, var(--ncr26-text-muted) 78%, transparent);
+  opacity: 1;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage label > small {
+  color: var(--ncr26-text-muted);
+  line-height: 1.42;
+}
+
+/* =========================================================
+   MESSAGES ET ÉTATS
+   ========================================================= */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  .page-message,
+  .error-message,
+  .success-message
+) {
+  border-radius: 13px;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  .admin-empty-state,
+  .training-quality-empty,
+  .training-dossier-empty,
+  .empty-state
+) {
+  border-radius: 15px;
+}
+
+/* =========================================================
+   TABLEAUX, LISTES ET TEXTE LONG
+   ========================================================= */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+  td,
+  th,
+  p,
+  small,
+  dd,
+  .training-dossier-check-copy,
+  .training-quality-issue-main,
+  .support-message,
+  .support-access-card-copy
+) {
+  overflow-wrap: anywhere;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage table {
+  max-width: 100%;
+}
+
+/* =========================================================
+   MICRO-INTERACTIONS — DESKTOP UNIQUEMENT
+   ========================================================= */
+@media (hover: hover) and (pointer: fine) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+    .primary-button,
+    .secondary-button,
+    .compact-button
+  ):not(:disabled) {
+    transition:
+      transform 160ms var(--ncr26-ease),
+      box-shadow 160ms var(--ncr26-ease),
+      border-color 160ms var(--ncr26-ease),
+      background 160ms var(--ncr26-ease);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+    .primary-button,
+    .secondary-button
+  ):not(:disabled):hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* =========================================================
+   TABLETTE / MOBILE — COHÉRENCE SANS ÉCRASER LES LAYOUTS
+   ========================================================= */
+@media (max-width: 760px) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage .panel-header {
+    gap: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+    .header-actions,
+    .form-actions,
+    .subscription-current-actions,
+    .subscription-request-actions,
+    .training-dossier-hero-actions,
+    .support-access-actions,
+    .support-access-request-actions
+  ) {
+    flex-wrap: wrap;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+    .primary-button,
+    .secondary-button
+  ):not(.compact-button):not(.compact) {
+    min-height: 46px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+    select
+  ) {
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 520px) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage :where(
+    .page-message,
+    .error-message,
+    .success-message
+  ) {
+    padding-inline: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage .panel-header {
+    align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage *,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage *::before,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage *::after {
+    scroll-behavior: auto !important;
+  }
+}
