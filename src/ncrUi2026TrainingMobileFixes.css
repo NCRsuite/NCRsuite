@@ -1,0 +1,251 @@
+/*
+ * NCR UI 2026 — Correctifs mobile Formation
+ * Formations + Parcours Formation + confort de navigation mobile.
+ * Couche visuelle uniquement, inactive si NCR_UI_2026_ENABLED = false.
+ */
+
+@media (max-width: 700px) {
+  /* Laisser réellement respirer le contenu au-dessus de la navigation fixe. */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage {
+    padding-bottom: calc(132px + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(132px + env(safe-area-inset-bottom));
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page {
+    padding-bottom: 18px;
+  }
+
+  /* =======================================================
+     HERO — plus compact, sans perdre la hiérarchie premium
+     ======================================================= */
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero {
+    row-gap: 16px;
+    margin-bottom: 20px;
+    padding: 18px 16px 16px;
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero::before,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero::before {
+    left: 18px;
+    width: 66px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-copy,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-main {
+    gap: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-icon,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-main > span {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-copy .eyebrow,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-main .eyebrow {
+    font-size: .63rem;
+    line-height: 1.25;
+    letter-spacing: .095em;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-copy h1,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-main h1 {
+    margin-top: 4px;
+    font-size: clamp(1.75rem, 8.2vw, 2.1rem);
+    line-height: 1.02;
+    letter-spacing: -.045em;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-copy p:not(.eyebrow),
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-main p:not(.eyebrow) {
+    margin-top: 10px;
+    font-size: .91rem;
+    line-height: 1.48;
+  }
+
+  /* Boutons du hero moins hauts et mieux séparés. */
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions {
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions :where(button, a),
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions :where(button, a) {
+    min-height: 46px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: .86rem;
+  }
+
+  /* =======================================================
+     FORMATIONS — KPI 2 x 2 plus compacts
+     ======================================================= */
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin: 2px 0 0;
+    padding-top: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics article {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+    min-height: 82px;
+    padding: 11px 10px;
+    border: 1px solid color-mix(in srgb, var(--ncr26-border) 88%, transparent);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .76);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, .025);
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics article:nth-child(2),
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics article:last-child {
+    border-right: 1px solid color-mix(in srgb, var(--ncr26-border) 88%, transparent);
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics article > span {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics strong {
+    font-size: 1.28rem;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics small {
+    margin-top: 4px;
+    font-size: .67rem;
+    line-height: 1.18;
+  }
+
+  /* Catalogue : le titre/recherche ne doit jamais se retrouver sous la nav basse. */
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-library {
+    scroll-margin-bottom: calc(128px + env(safe-area-inset-bottom));
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-library .training-toolbar {
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-library .search-field input {
+    min-height: 46px;
+    padding-inline: 14px;
+    font-size: .86rem;
+  }
+
+  /* =======================================================
+     PARCOURS — stepper 2 x 3 compact sur mobile
+     ======================================================= */
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 4px;
+    padding-top: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 9px;
+    min-height: 92px;
+    padding: 11px 10px;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article::before {
+    left: 12px;
+    width: 36px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article::after {
+    display: none !important;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > span {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    font-size: .62rem;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > span::after {
+    right: 5px;
+    bottom: 5px;
+    width: 4px;
+    height: 4px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > div {
+    padding-top: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > div::before {
+    font-size: .49rem;
+    letter-spacing: .085em;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline strong {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline small {
+    margin-top: 5px;
+    font-size: .62rem;
+    line-height: 1.22;
+    text-wrap: pretty;
+  }
+
+  /* Le premier écran après le hero doit démarrer avec une vraie respiration. */
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-layout {
+    margin-top: 2px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-session-panel,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-cockpit {
+    scroll-margin-bottom: calc(128px + env(safe-area-inset-bottom));
+  }
+
+  /* Navigation basse : conserver son identité mais réduire l'emprise visuelle. */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
+    min-height: 76px;
+    padding-top: 7px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    border-radius: 22px 22px 0 0;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav > :where(a, button) {
+    min-height: 54px;
+    gap: 4px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav > :where(a, button) > span:not(.mobile-create-action) {
+    font-size: .66rem;
+  }
+}
+
+/* Très petits écrans : revenir à une colonne pour préserver la lisibilité. */
+@media (max-width: 350px) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article {
+    min-height: 78px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 *,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page * {
+    transition: none !important;
+  }
+}
