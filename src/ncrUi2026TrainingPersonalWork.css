@@ -1,0 +1,1040 @@
+/*
+ * NCR UI 2026 — Activité personnelle Formation
+ * Mon activité + Mon planning + Facturation mensuelle.
+ * Couche visuelle uniquement, inactive si NCR_UI_2026_ENABLED = false.
+ */
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope,
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) {
+  container-type: inline-size;
+  --ncr26-work-gap-xs: 8px;
+  --ncr26-work-gap-sm: 12px;
+  --ncr26-work-gap-md: 16px;
+  --ncr26-work-gap-lg: 24px;
+  --ncr26-work-gap-xl: 32px;
+  --ncr26-work-gap-2xl: 40px;
+}
+
+/* =========================================================
+   MON ACTIVITÉ — raccourci facturation
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-billing-shortcut {
+  position: relative;
+  gap: 16px;
+  margin: 0 0 24px;
+  padding: 17px 18px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 14%, var(--ncr26-border));
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--ncr26-brand) 8%, transparent), transparent 13rem),
+    linear-gradient(135deg, #fff, var(--ncr26-brand-pale));
+  box-shadow: var(--ncr26-shadow-sm);
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-billing-shortcut::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  width: 56px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-billing-shortcut-icon {
+  width: 44px;
+  height: 44px;
+  border-color: color-mix(in srgb, var(--ncr26-brand) 17%, var(--ncr26-border));
+  border-radius: 13px;
+  color: var(--ncr26-brand);
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-billing-shortcut-copy small {
+  color: var(--ncr26-brand);
+  font-size: .63rem;
+  font-weight: 780;
+  letter-spacing: .105em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-billing-shortcut-copy strong {
+  color: var(--ncr26-text);
+  font-size: .95rem;
+  font-weight: 690;
+  letter-spacing: -.015em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-billing-shortcut-copy span {
+  color: var(--ncr26-text-muted);
+  font-size: .76rem;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-billing-shortcut-action {
+  min-height: 42px;
+  padding-inline: 14px;
+  border-color: color-mix(in srgb, var(--ncr26-brand) 18%, var(--ncr26-border));
+  border-radius: 11px;
+  color: var(--ncr26-brand-strong);
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+/* =========================================================
+   HERO partagé : Mon activité / Mon planning / Facturation
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope > .training-page > .page-header,
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing > .page-header,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .page-header {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 26px;
+  margin-bottom: 24px;
+  padding: clamp(24px, 3vw, 34px);
+  border: 1px solid var(--ncr26-border);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 92% 2%, color-mix(in srgb, var(--ncr26-brand) 9%, transparent), transparent 19rem),
+    linear-gradient(145deg, #fff, #f7fafe 74%);
+  box-shadow: 0 1px 2px rgba(15,23,42,.035), 0 18px 50px rgba(15,23,42,.045);
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope > .training-page > .page-header::before,
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing > .page-header::before,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .page-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 32px;
+  width: 78px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(90deg, var(--ncr26-brand), color-mix(in srgb, var(--ncr26-brand) 35%, #68a9ff));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope > .training-page > .page-header h1,
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing > .page-header h1,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .page-header h1 {
+  margin-top: 6px;
+  color: var(--ncr26-text);
+  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  line-height: 1.03;
+  font-weight: 730;
+  letter-spacing: -.045em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope > .training-page > .page-header > div:first-child > p:last-child,
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing > .page-header > div:first-child > p:last-child,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .page-header > div:first-child > p:last-child {
+  max-width: 68ch;
+  margin-top: 12px;
+  color: var(--ncr26-text-soft);
+  line-height: 1.58;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .page-header-actions,
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .page-header-actions :where(a, button),
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .page-header-actions :where(a, button),
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .page-header > .primary-button {
+  min-height: 44px;
+  padding-inline: 17px;
+}
+
+/* =========================================================
+   KPI activité + planning
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-kpi-grid,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-kpi-grid {
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-kpi-grid > article,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-kpi-grid > article {
+  min-height: 96px;
+  padding: 18px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 17px;
+  background: linear-gradient(145deg, #fff, var(--ncr26-surface-soft));
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-kpi-grid .training-record-icon,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-kpi-grid .training-record-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  color: var(--ncr26-brand);
+  background: var(--ncr26-brand-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-kpi-grid small,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-kpi-grid small {
+  color: var(--ncr26-text-muted);
+  font-size: .69rem;
+  font-weight: 610;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-kpi-grid strong,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-kpi-grid strong {
+  color: var(--ncr26-text);
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  font-weight: 740;
+  letter-spacing: -.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   MON ACTIVITÉ — formulaire
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel {
+  margin-bottom: 28px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 14px 42px rgba(15,23,42,.055);
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel > .panel-header {
+  gap: 22px;
+  padding: 22px 24px;
+  background: linear-gradient(180deg, #fff, var(--ncr26-surface-soft));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel > form {
+  column-gap: 18px;
+  row-gap: 19px;
+  padding: 24px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel label {
+  gap: 8px;
+  font-size: .76rem;
+  font-weight: 620;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel :where(input:not([type="checkbox"]), select) {
+  min-height: 45px;
+  padding-inline: 13px;
+  border-radius: 11px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel textarea {
+  min-height: 94px;
+  padding: 12px 13px;
+  border-radius: 11px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel .training-checkbox-grid {
+  gap: 8px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel .training-checkbox-grid label {
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 10px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel .form-actions {
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ncr26-border);
+}
+
+/* =========================================================
+   MON ACTIVITÉ — liste
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-list-panel {
+  margin-bottom: 28px;
+  padding: 22px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-list-panel .training-toolbar {
+  gap: 18px;
+  margin-bottom: 18px;
+  padding-bottom: 17px;
+  border-bottom-color: var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-card-list {
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-card-list .training-record-card {
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  padding: 17px;
+  border-color: var(--ncr26-border);
+  border-radius: 16px;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-card-list .training-record-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  color: var(--ncr26-brand);
+  background: var(--ncr26-brand-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-card-list .training-record-actions {
+  gap: 6px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-card-list .training-record-actions .compact-button {
+  min-height: 35px;
+  padding-inline: 10px;
+  border-radius: 9px;
+}
+
+/* =========================================================
+   ORGANISATEUR MENSUEL
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer {
+  margin-top: 0;
+  padding: 0;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-sm);
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-organizer-head {
+  gap: 22px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: linear-gradient(180deg, #fff, var(--ncr26-surface-soft));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-organizer-head h2 {
+  margin-top: 4px;
+  color: var(--ncr26-text);
+  font-size: 1.35rem;
+  font-weight: 710;
+  letter-spacing: -.025em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-organizer-head > div:first-child > span {
+  display: block;
+  margin-top: 6px;
+  color: var(--ncr26-text-muted);
+  font-size: .75rem;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-view-switch {
+  padding: 4px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 12px;
+  background: var(--ncr26-surface-muted);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-view-switch button {
+  min-height: 36px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-view-switch button.active {
+  color: var(--ncr26-brand-strong);
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-toolbar {
+  gap: 8px;
+  padding: 18px 24px 10px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-nav,
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-current-month {
+  min-height: 40px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ncr26-text-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-picker {
+  min-height: 40px;
+  border-color: var(--ncr26-border);
+  border-radius: 10px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-stats {
+  gap: 8px;
+  padding: 8px 24px 18px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-stats > span {
+  padding: 9px 11px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 10px;
+  color: var(--ncr26-text-muted);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-stats strong {
+  color: var(--ncr26-text);
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-row {
+  border-color: var(--ncr26-border);
+  border-radius: 14px;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-row-actions button {
+  min-height: 34px;
+  border-radius: 9px;
+}
+
+/* =========================================================
+   MON PLANNING — calendrier personnel
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .training-portal-notice.warning {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-warning) 18%, var(--ncr26-border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ncr26-warning) 4%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .training-calendar-workspace {
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-main,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-agenda {
+  border: 1px solid var(--ncr26-border);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-main {
+  padding: 18px;
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-navigation {
+  gap: 9px;
+  margin-bottom: 16px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-navigation > div:last-child {
+  margin-left: 5px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-navigation h3 {
+  color: var(--ncr26-text);
+  font-size: 1.08rem;
+  font-weight: 690;
+  text-transform: capitalize;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-month-calendar {
+  border: 0;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .planning-month-grid {
+  gap: 5px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .planning-month-grid > button {
+  min-height: 88px;
+  padding: 9px;
+  border-color: var(--ncr26-border);
+  border-radius: 12px;
+  background: #fff;
+  transition: border-color var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease), transform var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .planning-month-grid > button:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 20%, var(--ncr26-border));
+  background: var(--ncr26-brand-pale);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .planning-month-grid > button.selected {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 45%, var(--ncr26-border));
+  background: var(--ncr26-brand-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ncr26-brand) 12%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-agenda {
+  padding: 18px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-agenda-card {
+  border-color: var(--ncr26-border);
+  border-radius: 13px;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .training-list-panel {
+  padding: 22px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .module-checks {
+  gap: 8px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .module-checks span {
+  padding: 10px 12px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 10px;
+  background: var(--ncr26-surface-soft);
+}
+
+/* =========================================================
+   FACTURATION MENSUELLE — contrôles / KPI
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-controls {
+  display: grid;
+  grid-template-columns: minmax(300px, .7fr) minmax(0, 1.3fr);
+  align-items: stretch;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-control-grid {
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-control-grid label {
+  gap: 7px;
+  color: var(--ncr26-text-soft);
+  font-size: .72rem;
+  font-weight: 620;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-control-grid input {
+  min-height: 44px;
+  border-radius: 10px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-rule {
+  align-self: stretch;
+  padding: 14px 15px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 12%, var(--ncr26-border));
+  border-radius: 13px;
+  color: var(--ncr26-text-soft);
+  background: var(--ncr26-brand-pale);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-kpis {
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-kpi {
+  min-height: 96px;
+  padding: 17px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff, var(--ncr26-surface-soft));
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: var(--ncr26-brand);
+  background: var(--ncr26-brand-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-kpi small {
+  color: var(--ncr26-text-muted);
+  font-size: .68rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-kpi strong {
+  color: var(--ncr26-text);
+  font-size: clamp(1.28rem, 2vw, 1.6rem);
+  font-weight: 740;
+  letter-spacing: -.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   FACTURATION MENSUELLE — cartes centre
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-groups {
+  display: grid;
+  gap: 18px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-card {
+  position: relative;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-sm);
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 24px;
+  width: 62px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-card-head {
+  gap: 14px;
+  padding: 22px 24px 17px;
+  background: linear-gradient(180deg, #fff, var(--ncr26-surface-soft));
+  border-bottom: 1px solid var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-center-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  color: var(--ncr26-brand);
+  background: var(--ncr26-brand-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-center-copy small {
+  color: var(--ncr26-text-muted);
+  font-size: .59rem;
+  letter-spacing: .105em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-center-copy h2 {
+  margin-top: 4px;
+  color: var(--ncr26-text);
+  font-size: 1.25rem;
+  font-weight: 710;
+  letter-spacing: -.025em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-summary {
+  gap: 1px;
+  margin: 0;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-summary-item {
+  min-height: 84px;
+  padding: 16px;
+  border-right: 1px solid var(--ncr26-border);
+  background: transparent;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-summary-item:last-child {
+  border-right: 0;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-summary-item > svg {
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-summary-item strong {
+  color: var(--ncr26-text);
+  font-size: 1.15rem;
+  font-weight: 730;
+  letter-spacing: -.025em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-section {
+  padding: 20px 24px 6px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-section-title {
+  margin-bottom: 12px;
+  color: var(--ncr26-text);
+  font-size: .92rem;
+  font-weight: 690;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-interventions {
+  display: grid;
+  gap: 9px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-intervention {
+  padding: 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 13px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-detail strong {
+  color: var(--ncr26-text-soft);
+  font-size: .78rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-detail small {
+  color: var(--ncr26-text-muted);
+  font-size: .61rem;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-action-area {
+  gap: 12px;
+  margin: 18px 24px;
+  padding: 17px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 14%, var(--ncr26-border));
+  border-radius: 15px;
+  background: var(--ncr26-brand-pale);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-client-field select {
+  min-height: 44px;
+  border-radius: 10px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-primary-action {
+  min-height: 46px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ncr26-brand) 91%, #fff), var(--ncr26-brand));
+  box-shadow: 0 8px 20px rgba(18,103,234,.18);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-notice,
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-invoice-history,
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-footer-row {
+  margin-inline: 24px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-footer-row:last-child {
+  margin-bottom: 22px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-empty {
+  padding: 28px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@container (max-width: 980px) {
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-controls {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-intervention-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing,
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) {
+    padding-bottom: 20px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-billing-shortcut {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 15px;
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-billing-shortcut-action {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope > .training-page > .page-header,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing > .page-header,
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .page-header {
+    grid-template-columns: 1fr;
+    gap: 17px;
+    margin-bottom: 20px;
+    padding: 20px 17px;
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope > .training-page > .page-header::before,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing > .page-header::before,
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .page-header::before {
+    left: 18px;
+    width: 64px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope > .training-page > .page-header h1,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing > .page-header h1,
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .page-header h1 {
+    font-size: clamp(1.72rem, 8vw, 2.05rem);
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .page-header-actions,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .page-header-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .page-header-actions :where(a, button),
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .page-header-actions :where(a, button),
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .page-header > .primary-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-kpi-grid,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-kpis,
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-kpi-grid > article,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-kpi,
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-kpi-grid > article {
+    min-height: 84px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel > .panel-header,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel > form {
+    padding-left: 17px;
+    padding-right: 17px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel .form-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-form-panel .form-actions > button {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-list-panel {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-list-panel .training-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-list-panel .search-field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-card-list .training-record-card {
+    grid-template-columns: 42px minmax(0, 1fr);
+    grid-template-areas:
+      "icon main"
+      "status status"
+      "actions actions";
+    padding: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-card-list .training-status-pill {
+    justify-self: start;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-card-list .training-record-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-card-list .training-record-actions button {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer {
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-organizer-head {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+    padding: 18px 16px 15px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-view-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-toolbar {
+    flex-wrap: wrap;
+    padding: 15px 16px 8px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-picker {
+    flex: 1 1 150px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-organizer .activity-month-stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 8px 16px 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) > .training-calendar-workspace {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-main,
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-agenda {
+    border-radius: 17px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-main {
+    padding: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .planning-month-grid {
+    gap: 3px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .planning-month-grid > button {
+    min-height: 66px;
+    padding: 6px;
+    border-radius: 9px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .planning-month-grid > button small {
+    display: none;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-calendar-agenda {
+    padding: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-controls {
+    gap: 10px;
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-card {
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-card-head {
+    padding: 18px 16px 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-summary {
+    grid-template-columns: 1fr;
+    padding: 0 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-summary-item {
+    min-height: 68px;
+    padding: 12px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--ncr26-border);
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-summary-item:last-child {
+    border-bottom: 0;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-section {
+    padding: 18px 16px 4px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-intervention-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-action-area {
+    margin: 16px;
+    padding: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-primary-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-notice,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-invoice-history,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-footer-row {
+    margin-inline: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope .training-kpi-grid,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-kpis,
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) .training-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing .monthly-billing-intervention-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .app-shell .personal-activity-page-scope *,
+  html[data-ncr-ui-2026="true"] .app-shell .personal-monthly-billing *,
+  html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .training-page:has(> .training-calendar-workspace) * {
+    transition: none !important;
+    transform: none !important;
+  }
+}
