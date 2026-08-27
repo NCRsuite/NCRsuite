@@ -14,6 +14,7 @@ import './ncrUi2026Pages.css';
 import './ncrUi2026TrainingDashboard.css';
 import './ncrUi2026TrainingOperations.css';
 import './ncrUi2026TrainingSpacing.css';
+import './ncrUi2026TrainingWorkflowStepper.css';
 import './trainingDossierContrastFix.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
