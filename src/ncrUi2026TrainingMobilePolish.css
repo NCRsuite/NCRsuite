@@ -1,0 +1,121 @@
+/*
+ * NCR UI 2026 — Mobile polish Formation
+ * Corrige les actions de hero et restaure une navigation basse plus légère.
+ * Couche visuelle uniquement, inactive si NCR_UI_2026_ENABLED = false.
+ */
+
+@media (max-width: 700px) {
+  /* =======================================================
+     HERO ACTIONS — boutons complets, jamais coupés par le cadre
+     ======================================================= */
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions {
+    position: relative;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    width: calc(100% - 16px);
+    margin: 5px 8px 12px;
+    padding: 0;
+    overflow: visible;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions :where(a, button),
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions :where(a, button) {
+    position: relative;
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+    padding: 11px 16px;
+    justify-content: center;
+    border-radius: 15px !important;
+    overflow: hidden;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions .secondary-button,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions .secondary-button {
+    border: 1px solid color-mix(in srgb, var(--ncr26-border-strong) 88%, transparent);
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, .035);
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions .primary-button,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions .primary-button {
+    border: 1px solid color-mix(in srgb, var(--ncr26-brand-strong) 34%, var(--ncr26-brand));
+    box-shadow: 0 7px 18px rgba(18, 103, 234, .16);
+  }
+
+  /* La séparation du bloc suivant ne doit plus traverser visuellement le bouton bleu. */
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline {
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 0;
+  }
+
+  /* Petit séparateur volontaire, indépendant des boutons. */
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics::before,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 8px;
+    right: 8px;
+    height: 1px;
+    background: color-mix(in srgb, var(--ncr26-border) 78%, transparent);
+    pointer-events: none;
+  }
+
+  /* =======================================================
+     NAVIGATION BASSE — retour au rendu flottant précédent
+     ======================================================= */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
+    min-height: 68px;
+    padding-top: 5px;
+    padding-bottom: 6px;
+    border: 1px solid color-mix(in srgb, var(--ncr26-border-strong) 88%, transparent);
+    border-radius: 28px;
+    background: rgba(255, 255, 255, .94);
+    box-shadow: 0 12px 34px rgba(15, 23, 42, .11), 0 2px 8px rgba(15, 23, 42, .04);
+    overflow: visible;
+  }
+
+  @supports (backdrop-filter: blur(18px)) {
+    html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
+      background: rgba(255, 255, 255, .88);
+      backdrop-filter: saturate(135%) blur(18px);
+      -webkit-backdrop-filter: saturate(135%) blur(18px);
+    }
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav > :where(a, button) {
+    min-height: 48px;
+    gap: 3px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav > :where(a, button) > span:not(.mobile-create-action) {
+    font-size: .64rem;
+    line-height: 1.1;
+  }
+
+  /* On garde l'espace de scroll sous le contenu sans agrandir visuellement la barre. */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage {
+    padding-bottom: calc(118px + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(118px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 380px) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions,
+  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions {
+    width: calc(100% - 10px);
+    margin-inline: 5px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
+    border-radius: 24px;
+  }
+}
