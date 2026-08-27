@@ -1,6 +1,7 @@
 /*
- * NCR UI 2026 — Formation desktop sidebar polish
+ * NCR UI 2026 — Business desktop sidebar polish
  * Tableau de bord épinglé visuellement + sidebar desktop fixe au viewport.
+ * Commun aux cinq métiers NCR Suite, sans toucher à l'administration NCR.
  * Couche strictement visuelle : aucun comportement métier.
  */
 
@@ -10,13 +11,25 @@
    * La sidebar est sortie du scroll de la page et reste ancrée au viewport.
    * Le contenu principal reste explicitement dans la seconde colonne.
    */
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell {
     grid-template-columns: 276px minmax(0, 1fr);
     min-height: 100vh;
     min-height: 100dvh;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell > .sidebar {
     position: fixed;
     z-index: 30;
     top: 0;
@@ -38,12 +51,24 @@
     box-shadow: 10px 0 36px rgba(15,23,42,.025);
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .main-content {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell > .main-content {
     grid-column: 2;
     min-width: 0;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > :is(
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell > .sidebar > :is(
     .brand,
     .desktop-context-switchers,
     .support-sidebar-identity,
@@ -58,7 +83,13 @@
    * Seule la zone de navigation scrolle si elle dépasse la hauteur disponible.
    * Une réserve à droite maintient les chevrons hors de la zone de scrollbar.
    */
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .main-nav {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell > .sidebar > .main-nav {
     flex: 1 1 auto;
     min-height: 0;
     overflow-x: hidden;
@@ -72,52 +103,106 @@
     padding-bottom: 12px;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .main-nav::-webkit-scrollbar {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell > .sidebar > .main-nav::-webkit-scrollbar {
     width: 6px;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .main-nav::-webkit-scrollbar-track {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell > .sidebar > .main-nav::-webkit-scrollbar-track {
     background: transparent;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .main-nav::-webkit-scrollbar-thumb {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell > .sidebar > .main-nav::-webkit-scrollbar-thumb {
     border-radius: 999px;
     background: color-mix(in srgb, var(--ncr26-border-strong) 72%, transparent);
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar .navigation-group-trigger {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell > .sidebar .navigation-group-trigger {
     box-sizing: border-box;
     padding-right: 8px;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .sidebar-footer {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell > .sidebar > .sidebar-footer {
     margin-top: auto;
   }
 
   /*
-   * En Formation, Vue d'ensemble ne contient que le Tableau de bord.
-   * Le groupe est ouvert par défaut par AppShell : on masque donc uniquement son en-tête
+   * Vue d'ensemble contient uniquement le Tableau de bord pour tous les métiers.
+   * Le groupe est ouvert par défaut par AppShell : on masque uniquement son en-tête
    * et on transforme son unique lien en accès permanent, sans toucher au JSX.
    */
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) {
     margin: 2px 0 10px;
     padding: 0 0 10px;
     border-bottom: 1px solid color-mix(in srgb, var(--ncr26-border) 78%, transparent);
     border-radius: 0;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) > .navigation-group-trigger {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) > .navigation-group-trigger {
     display: none;
     pointer-events: none;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) > .navigation-group-items {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) > .navigation-group-items {
     display: block;
     margin: 0;
     padding: 0;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group-items > a[href="/"] {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .sidebar .main-nav .navigation-group-items > a[href="/"] {
     min-height: 44px;
     margin: 0;
     padding: 10px 12px;
@@ -129,12 +214,24 @@
     font-weight: 650;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group-items > a[href="/"]:hover {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .sidebar .main-nav .navigation-group-items > a[href="/"]:hover {
     border-color: color-mix(in srgb, var(--ncr26-brand) 22%, var(--ncr26-border));
     background: color-mix(in srgb, var(--ncr26-brand-soft) 58%, var(--ncr26-surface));
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group-items > a[href="/"].active {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .sidebar .main-nav .navigation-group-items > a[href="/"].active {
     border-color: color-mix(in srgb, var(--ncr26-brand) 24%, var(--ncr26-border));
     background: linear-gradient(90deg, var(--ncr26-brand-soft), color-mix(in srgb, var(--ncr26-brand-soft) 48%, var(--ncr26-surface)));
     color: var(--ncr26-brand-strong);
@@ -142,7 +239,13 @@
   }
 
   /* Le premier vrai groupe retrouve une respiration nette sous le dashboard épinglé. */
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) + .navigation-group {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .sidebar .main-nav .navigation-group:has(> .navigation-group-items > a[href="/"]) + .navigation-group {
     margin-top: 2px;
   }
 }
