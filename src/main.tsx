@@ -12,7 +12,7 @@ import { PlatformAdminProvider } from './contexts/PlatformAdminContext';
 import './ncrUi2026.css';
 import './trainingDossierContrastFix.css';
 
-document.documentElement.dataset[NCR_UI_2026_DATA_ATTRIBUTE] = NCR_UI_2026_ENABLED ? 'true' : 'false';
+document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
 function announceServiceWorkerUpdate(registration: ServiceWorkerRegistration) {
   window.dispatchEvent(new CustomEvent('ncr:sw-update', { detail: { registration } }));
