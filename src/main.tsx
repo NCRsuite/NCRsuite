@@ -25,6 +25,7 @@ import './ncrUi2026TrainingPeopleQuality.css';
 import './ncrUi2026TrainingGovernance.css';
 import './trainingDossierContrastFix.css';
 import './ncrUi2026TrainingGovernancePolish.css';
+import './ncrUi2026TrainingDashboardMotion.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
