@@ -1,8 +1,12 @@
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
+import { NCR_DASHBOARD_CLOCK_2026_ENABLED } from '../config/dashboardClock2026';
 import type { TrainingQualityDashboard, TrainingQualityIssue } from '../features/training/qualityDashboard';
 import type { TrainingSessionRecord } from '../features/training/types';
 import type { IconName } from '../types';
 import { Icon } from './Icon';
+import { TrainingDashboardClock } from './TrainingDashboardClock';
 
 type SmartTone = 'critical' | 'ready' | 'warning' | 'active' | 'healthy';
 
@@ -172,11 +176,20 @@ function nextRelevantSession(sessions: TrainingSessionRecord[], now: Date) {
 }
 
 export function TrainingDashboardSmartCockpit({ dashboard, sessions, canManage, loading }: Props) {
+  const [clockHost, setClockHost] = useState<HTMLElement | null>(null);
   const now = new Date();
   const issues = rankedIssues(dashboard.issues);
   const priority = buildPriority(dashboard, sessions, now);
   const secondaryIssues = issues.filter((issue) => issue.id !== priority.issueId).slice(0, 3);
   const nextSession = nextRelevantSession(sessions, now);
+
+  useEffect(() => {
+    setClockHost(document.querySelector<HTMLElement>('.training-quality-header'));
+  }, []);
+
+  const clockPortal = NCR_DASHBOARD_CLOCK_2026_ENABLED && clockHost
+    ? createPortal(<TrainingDashboardClock sessions={sessions} loading={loading} />, clockHost)
+    : null;
 
   const shortcuts: Array<{ label: string; path: string; icon: IconName }> = canManage
     ? [
@@ -193,81 +206,87 @@ export function TrainingDashboardSmartCockpit({ dashboard, sessions, canManage, 
 
   if (loading) {
     return (
-      <section className="ncr-smart-cockpit is-loading" aria-label="Cockpit intelligent en cours d’analyse" aria-busy="true">
-        <article className="ncr-smart-priority ncr-smart-skeleton"><i /><i /><i /><i /></article>
-        <aside className="ncr-smart-side"><article className="ncr-smart-next ncr-smart-skeleton"><i /><i /><i /></article><article className="ncr-smart-shortcuts ncr-smart-skeleton"><i /><i /><i /></article></aside>
-      </section>
+      <>
+        {clockPortal}
+        <section className="ncr-smart-cockpit is-loading" aria-label="Cockpit intelligent en cours d’analyse" aria-busy="true">
+          <article className="ncr-smart-priority ncr-smart-skeleton"><i /><i /><i /><i /></article>
+          <aside className="ncr-smart-side"><article className="ncr-smart-next ncr-smart-skeleton"><i /><i /><i /></article><article className="ncr-smart-shortcuts ncr-smart-skeleton"><i /><i /><i /></article></aside>
+        </section>
+      </>
     );
   }
 
   return (
-    <section className={`ncr-smart-cockpit tone-${priority.tone}`} aria-label="Cockpit intelligent" aria-live="polite">
-      <article className={`ncr-smart-priority tone-${priority.tone}`}>
-        <div className="ncr-smart-priority-copy">
-          <div className="ncr-smart-kicker">
-            <span className="ncr-smart-kicker-icon"><Icon name="sparkles" size={17} /></span>
-            <div><p className="eyebrow">SMART COCKPIT</p><small>Priorisation automatique à partir de vos données</small></div>
-          </div>
-
-          <div className="ncr-smart-priority-heading">
-            <span className="ncr-smart-tone-dot" aria-hidden="true" />
-            <p>{priority.eyebrow}</p>
-          </div>
-          <h2>{priority.title}</h2>
-          <p className="ncr-smart-priority-detail">{priority.detail}</p>
-
-          <div className="ncr-smart-priority-footer">
-            <Link className="ncr-smart-primary-action" to={priority.actionPath}>{priority.actionLabel}<Icon name="chevronRight" size={16} /></Link>
-            <span className="ncr-smart-healthline">
-              <b>{dashboard.criticalCount}</b> bloquant{dashboard.criticalCount > 1 ? 's' : ''}
-              <i aria-hidden="true" />
-              <b>{dashboard.warningCount}</b> vigilance{dashboard.warningCount > 1 ? 's' : ''}
-              <i aria-hidden="true" />
-              <b>{dashboard.metrics.readyToCloseSessions}</b> prêt{dashboard.metrics.readyToCloseSessions > 1 ? 'es' : 'e'} à clôturer
-            </span>
-          </div>
-        </div>
-
-        <div className="ncr-smart-todo">
-          <div className="ncr-smart-todo-head"><div><p className="eyebrow">À FAIRE ENSUITE</p><strong>{secondaryIssues.length > 0 ? `${secondaryIssues.length} action${secondaryIssues.length > 1 ? 's' : ''} utile${secondaryIssues.length > 1 ? 's' : ''}` : 'Rien d’urgent'}</strong></div><Icon name="activity" size={19} /></div>
-          {secondaryIssues.length > 0 ? (
-            <div className="ncr-smart-todo-list">
-              {secondaryIssues.map((issue) => (
-                <Link key={issue.id} className={`ncr-smart-todo-item ${issue.severity}`} to={issue.actionPath}>
-                  <span><Icon name={issue.severity === 'critical' || issue.severity === 'warning' ? 'alert' : issue.severity === 'ready' ? 'check' : 'activity'} size={16} /></span>
-                  <div><strong>{issue.title}</strong><small>{issue.sessionTitle}</small></div>
-                  <Icon name="chevronRight" size={15} />
-                </Link>
-              ))}
+    <>
+      {clockPortal}
+      <section className={`ncr-smart-cockpit tone-${priority.tone}`} aria-label="Cockpit intelligent" aria-live="polite">
+        <article className={`ncr-smart-priority tone-${priority.tone}`}>
+          <div className="ncr-smart-priority-copy">
+            <div className="ncr-smart-kicker">
+              <span className="ncr-smart-kicker-icon"><Icon name="sparkles" size={17} /></span>
+              <div><p className="eyebrow">SMART COCKPIT</p><small>Priorisation automatique à partir de vos données</small></div>
             </div>
-          ) : (
-            <div className="ncr-smart-clear-state"><span><Icon name="check" size={18} /></span><div><strong>File d’actions claire</strong><small>Le dashboard ne détecte pas d’autre priorité à traiter.</small></div></div>
-          )}
-        </div>
-      </article>
 
-      <aside className="ncr-smart-side">
-        <article className="ncr-smart-next">
-          <div className="ncr-smart-card-head"><div><p className="eyebrow">PROCHAINE ACTIVITÉ</p><strong>{nextSession ? relativeDateLabel(nextSession.starts_at, now) : 'Aucune échéance'}</strong></div><span><Icon name="calendar" size={19} /></span></div>
-          {nextSession ? (
-            <>
-              <h3>{nextSession.title}</h3>
-              <p>{sessionTimeLabel(nextSession)}</p>
-              {nextSession.location && <small>{nextSession.location}</small>}
-              <Link to={sessionFocusPath(nextSession, now)}>Ouvrir<Icon name="chevronRight" size={15} /></Link>
-            </>
-          ) : (
-            <><h3>Planning dégagé</h3><p>Aucune session ouverte ou planifiée à venir.</p><Link to="/sessions">Voir le planning<Icon name="chevronRight" size={15} /></Link></>
-          )}
-        </article>
+            <div className="ncr-smart-priority-heading">
+              <span className="ncr-smart-tone-dot" aria-hidden="true" />
+              <p>{priority.eyebrow}</p>
+            </div>
+            <h2>{priority.title}</h2>
+            <p className="ncr-smart-priority-detail">{priority.detail}</p>
 
-        <article className="ncr-smart-shortcuts">
-          <div className="ncr-smart-card-head"><div><p className="eyebrow">RACCOURCIS</p><strong>Accès rapide</strong></div><span><Icon name="sparkles" size={18} /></span></div>
-          <div className="ncr-smart-shortcut-grid">
-            {shortcuts.map((shortcut) => <Link key={shortcut.path} to={shortcut.path}><span><Icon name={shortcut.icon} size={17} /></span>{shortcut.label}</Link>)}
+            <div className="ncr-smart-priority-footer">
+              <Link className="ncr-smart-primary-action" to={priority.actionPath}>{priority.actionLabel}<Icon name="chevronRight" size={16} /></Link>
+              <span className="ncr-smart-healthline">
+                <b>{dashboard.criticalCount}</b> bloquant{dashboard.criticalCount > 1 ? 's' : ''}
+                <i aria-hidden="true" />
+                <b>{dashboard.warningCount}</b> vigilance{dashboard.warningCount > 1 ? 's' : ''}
+                <i aria-hidden="true" />
+                <b>{dashboard.metrics.readyToCloseSessions}</b> prêt{dashboard.metrics.readyToCloseSessions > 1 ? 'es' : 'e'} à clôturer
+              </span>
+            </div>
+          </div>
+
+          <div className="ncr-smart-todo">
+            <div className="ncr-smart-todo-head"><div><p className="eyebrow">À FAIRE ENSUITE</p><strong>{secondaryIssues.length > 0 ? `${secondaryIssues.length} action${secondaryIssues.length > 1 ? 's' : ''} utile${secondaryIssues.length > 1 ? 's' : ''}` : 'Rien d’urgent'}</strong></div><Icon name="activity" size={19} /></div>
+            {secondaryIssues.length > 0 ? (
+              <div className="ncr-smart-todo-list">
+                {secondaryIssues.map((issue) => (
+                  <Link key={issue.id} className={`ncr-smart-todo-item ${issue.severity}`} to={issue.actionPath}>
+                    <span><Icon name={issue.severity === 'critical' || issue.severity === 'warning' ? 'alert' : issue.severity === 'ready' ? 'check' : 'activity'} size={16} /></span>
+                    <div><strong>{issue.title}</strong><small>{issue.sessionTitle}</small></div>
+                    <Icon name="chevronRight" size={15} />
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="ncr-smart-clear-state"><span><Icon name="check" size={18} /></span><div><strong>File d’actions claire</strong><small>Le dashboard ne détecte pas d’autre priorité à traiter.</small></div></div>
+            )}
           </div>
         </article>
-      </aside>
-    </section>
+
+        <aside className="ncr-smart-side">
+          <article className="ncr-smart-next">
+            <div className="ncr-smart-card-head"><div><p className="eyebrow">PROCHAINE ACTIVITÉ</p><strong>{nextSession ? relativeDateLabel(nextSession.starts_at, now) : 'Aucune échéance'}</strong></div><span><Icon name="calendar" size={19} /></span></div>
+            {nextSession ? (
+              <>
+                <h3>{nextSession.title}</h3>
+                <p>{sessionTimeLabel(nextSession)}</p>
+                {nextSession.location && <small>{nextSession.location}</small>}
+                <Link to={sessionFocusPath(nextSession, now)}>Ouvrir<Icon name="chevronRight" size={15} /></Link>
+              </>
+            ) : (
+              <><h3>Planning dégagé</h3><p>Aucune session ouverte ou planifiée à venir.</p><Link to="/sessions">Voir le planning<Icon name="chevronRight" size={15} /></Link></>
+            )}
+          </article>
+
+          <article className="ncr-smart-shortcuts">
+            <div className="ncr-smart-card-head"><div><p className="eyebrow">RACCOURCIS</p><strong>Accès rapide</strong></div><span><Icon name="sparkles" size={18} /></span></div>
+            <div className="ncr-smart-shortcut-grid">
+              {shortcuts.map((shortcut) => <Link key={shortcut.path} to={shortcut.path}><span><Icon name={shortcut.icon} size={17} /></span>{shortcut.label}</Link>)}
+            </div>
+          </article>
+        </aside>
+      </section>
+    </>
   );
 }
