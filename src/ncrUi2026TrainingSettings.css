@@ -1,0 +1,1143 @@
+/* NCR UI 2026 — Formation · Réglages & administration
+ * Couche visuelle uniquement. Aucun comportement métier n'est modifié.
+ */
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .settings-page,
+  .notification-page,
+  .commercial-branding-page,
+  .subscription-page,
+  .metier-workspace-page,
+  .launch-center-page,
+  .support-center-page
+) {
+  container-type: inline-size;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .settings-page > .page-header,
+  .notification-page > .page-header,
+  .commercial-branding-page > .page-header,
+  .subscription-page > .page-header,
+  .metier-workspace-page > .page-header,
+  .launch-center-hero,
+  .support-center-hero
+) {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 14%, var(--ncr26-border));
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 92% 12%, color-mix(in srgb, var(--ncr26-brand) 11%, transparent) 0, transparent 31%),
+    linear-gradient(145deg, color-mix(in srgb, var(--ncr26-brand-pale) 32%, var(--ncr26-surface)) 0%, var(--ncr26-surface) 58%, var(--ncr26-surface-soft) 100%);
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .settings-page > .page-header,
+  .notification-page > .page-header,
+  .commercial-branding-page > .page-header,
+  .subscription-page > .page-header,
+  .metier-workspace-page > .page-header
+)::before,
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(.launch-center-hero, .support-center-hero)::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 118px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--ncr26-brand), color-mix(in srgb, var(--ncr26-brand) 30%, transparent));
+  pointer-events: none;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .settings-page > .page-header,
+  .notification-page > .page-header,
+  .commercial-branding-page > .page-header,
+  .subscription-page > .page-header,
+  .metier-workspace-page > .page-header
+) {
+  padding: 27px 30px;
+  margin-bottom: 20px;
+  gap: 24px;
+  align-items: center;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .settings-page > .page-header,
+  .notification-page > .page-header,
+  .commercial-branding-page > .page-header,
+  .subscription-page > .page-header,
+  .metier-workspace-page > .page-header
+) > div:first-child {
+  max-width: 760px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .settings-page > .page-header,
+  .notification-page > .page-header,
+  .commercial-branding-page > .page-header,
+  .subscription-page > .page-header,
+  .metier-workspace-page > .page-header,
+  .launch-center-hero,
+  .support-center-hero
+) h1 {
+  letter-spacing: -0.035em;
+  line-height: 1.03;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .settings-page > .page-header,
+  .notification-page > .page-header,
+  .commercial-branding-page > .page-header,
+  .subscription-page > .page-header,
+  .metier-workspace-page > .page-header
+) > div:first-child > p:last-child {
+  max-width: 68ch;
+  margin-top: 8px;
+  color: var(--ncr26-text-soft);
+  line-height: 1.55;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .settings-page .panel,
+  .notification-page .panel,
+  .commercial-branding-page .panel,
+  .subscription-page .panel,
+  .metier-workspace-page .panel,
+  .launch-center-page .panel,
+  .support-center-page .panel
+) {
+  border-color: var(--ncr26-border);
+  border-radius: 18px;
+  background: var(--ncr26-surface);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .settings-page input,
+  .settings-page textarea,
+  .settings-page select,
+  .notification-page input,
+  .notification-page textarea,
+  .notification-page select,
+  .commercial-branding-page input,
+  .commercial-branding-page textarea,
+  .commercial-branding-page select,
+  .support-center-page input,
+  .support-center-page textarea,
+  .support-center-page select,
+  .metier-workspace-page input,
+  .metier-workspace-page textarea,
+  .metier-workspace-page select,
+  .launch-center-page input,
+  .launch-center-page textarea,
+  .launch-center-page select,
+  .subscription-page input,
+  .subscription-page textarea,
+  .subscription-page select
+) {
+  min-height: 44px;
+  border-radius: 11px;
+  border-color: var(--ncr26-border-strong);
+  background: color-mix(in srgb, var(--ncr26-surface) 94%, var(--ncr26-surface-soft));
+  transition: border-color 160ms var(--ncr26-ease), box-shadow 160ms var(--ncr26-ease), background 160ms var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .settings-page input,
+  .settings-page textarea,
+  .settings-page select,
+  .commercial-branding-page input,
+  .commercial-branding-page textarea,
+  .commercial-branding-page select,
+  .support-center-page input,
+  .support-center-page textarea,
+  .support-center-page select,
+  .metier-workspace-page input,
+  .metier-workspace-page textarea,
+  .metier-workspace-page select
+):focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--ncr26-brand) 58%, var(--ncr26-border-strong));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ncr26-brand) 12%, transparent);
+  background: var(--ncr26-surface);
+}
+
+/* Paramètres */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.32fr) minmax(320px, .68fr);
+  gap: 18px;
+  align-items: start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-form {
+  padding: 22px;
+  gap: 18px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-overview-card {
+  position: relative;
+  overflow: hidden;
+  padding: 24px;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--ncr26-brand-pale) 34%, var(--ncr26-surface)) 0%, var(--ncr26-surface) 54%);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-overview-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-bottom: 19px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-overview-heading h2 {
+  margin-top: 3px;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  letter-spacing: -0.025em;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-price-badge {
+  flex: 0 0 auto;
+  max-width: 230px;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 17%, var(--ncr26-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ncr26-brand-pale) 54%, var(--ncr26-surface));
+  color: var(--ncr26-brand-strong);
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: right;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-entitlement-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-entitlement-grid article {
+  min-height: 82px;
+  padding: 13px 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ncr26-surface-soft) 60%, var(--ncr26-surface));
+  align-items: flex-start;
+  gap: 11px;
+  transition: transform 160ms var(--ncr26-ease), border-color 160ms var(--ncr26-ease), box-shadow 160ms var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-entitlement-grid article.enabled {
+  border-color: color-mix(in srgb, var(--ncr26-success) 22%, var(--ncr26-border));
+  background: color-mix(in srgb, var(--ncr26-success) 5%, var(--ncr26-surface));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-entitlement-grid article.locked {
+  opacity: .78;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-entitlement-grid article > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-entitlement-grid article span {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-entitlement-grid article small {
+  color: var(--ncr26-text-muted);
+  line-height: 1.4;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-usage-line {
+  margin-top: 16px;
+  padding: 13px 15px;
+  border-radius: 13px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-business-theme-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 13px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-business-theme-card > span {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.42), 0 5px 16px rgba(20,36,66,.08);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-business-theme-card > div {
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-business-theme-card small {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--ncr26-text-muted);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-business-theme-card p {
+  margin: 4px 0 0;
+  color: var(--ncr26-text-muted);
+  line-height: 1.4;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 14px;
+  padding: 15px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ncr26-surface-soft) 75%, var(--ncr26-surface));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-summary span {
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-summary :is(strong, code) {
+  justify-self: end;
+  text-align: right;
+}
+
+/* Notifications */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-grid {
+  display: grid;
+  grid-template-columns: minmax(300px, .82fr) minmax(0, 1.18fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page :is(.push-activation-card, .notification-preferences-card, .notification-inbox) {
+  padding: 21px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .push-device-state {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+  margin: 16px 0 18px;
+  padding: 16px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .push-device-icon {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--ncr26-brand) 10%, var(--ncr26-surface));
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .push-device-state p {
+  margin: 4px 0 0;
+  color: var(--ncr26-text-muted);
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-preference-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-preference-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 66px;
+  padding: 12px 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--ncr26-surface-soft) 52%, var(--ncr26-surface));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-preference-row > span {
+  display: grid;
+  gap: 3px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-preference-row small {
+  color: var(--ncr26-text-muted);
+  line-height: 1.35;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-preference-row input[type="checkbox"] {
+  width: 42px;
+  min-height: 23px;
+  height: 23px;
+  accent-color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-inbox {
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-event-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-event {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 13px;
+  background: var(--ncr26-surface);
+  text-align: left;
+  transition: transform 160ms var(--ncr26-ease), border-color 160ms var(--ncr26-ease), background 160ms var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-event.unread {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 22%, var(--ncr26-border));
+  background: color-mix(in srgb, var(--ncr26-brand-pale) 32%, var(--ncr26-surface));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-event-content {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-event-content p {
+  margin: 0;
+  color: var(--ncr26-text-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-event-content small {
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-event-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--ncr26-surface-soft);
+  color: var(--ncr26-brand);
+}
+
+/* Personnalisation Formation */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-branding-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(300px, .82fr);
+  gap: 18px;
+  align-items: start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-branding-form {
+  padding: 23px;
+  gap: 21px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .branding-form-grid {
+  gap: 14px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .branding-upload-card {
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .branding-upload-preview {
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-preview-sticky {
+  top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-preview-sticky > .panel {
+  padding: 18px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .preview-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 2px 3px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .preview-heading > span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: var(--ncr26-surface-soft);
+  color: var(--ncr26-text-muted);
+  font-size: .72rem;
+  font-weight: 700;
+}
+
+/* Assistance NCR */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page {
+  display: grid;
+  gap: 18px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 28px 30px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-hero > div {
+  max-width: 760px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-icon {
+  display: grid;
+  place-items: center;
+  width: 45px;
+  height: 45px;
+  margin-bottom: 13px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ncr26-brand) 11%, var(--ncr26-surface));
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-stats article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 11px;
+  align-items: center;
+  min-height: 78px;
+  padding: 13px 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: var(--ncr26-surface);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-stats article > span {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--ncr26-surface-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-stats article div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-stats small {
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-request-form {
+  padding: 22px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-workspace {
+  display: grid;
+  grid-template-columns: minmax(300px, .78fr) minmax(0, 1.22fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page :is(.support-ticket-inbox, .support-ticket-detail) {
+  min-height: 540px;
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-ticket-inbox {
+  padding: 17px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-ticket-inbox-list {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-ticket-inbox-list > button {
+  display: grid;
+  grid-template-columns: 4px minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: var(--ncr26-surface-soft);
+  text-align: left;
+  transition: border-color 160ms var(--ncr26-ease), background 160ms var(--ncr26-ease), transform 160ms var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-ticket-inbox-list > button.selected {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 24%, var(--ncr26-border));
+  background: color-mix(in srgb, var(--ncr26-brand-pale) 38%, var(--ncr26-surface));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-ticket-inbox-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-ticket-inbox-copy :is(em, time, small) {
+  color: var(--ncr26-text-muted);
+  font-style: normal;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-ticket-detail {
+  padding: 21px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-ticket-detail-head {
+  padding-bottom: 17px;
+  margin-bottom: 17px;
+  border-bottom: 1px solid var(--ncr26-border);
+}
+
+/* Centre de démarrage */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-center-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: center;
+  padding: 29px 30px;
+  margin-bottom: 18px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-center-hero-copy {
+  max-width: 760px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-center-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  color: var(--ncr26-brand-strong);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-progress-card {
+  min-width: 255px;
+  padding: 15px 17px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--ncr26-surface) 88%, var(--ncr26-brand-pale));
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-center-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(330px, .82fr);
+  gap: 16px;
+  align-items: start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page :is(.launch-checklist-panel, .launch-import-panel, .launch-history-panel) {
+  padding: 21px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-checklist {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-step {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+  min-height: 72px;
+  padding: 11px 12px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: var(--ncr26-surface);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-step.completed {
+  border-color: color-mix(in srgb, var(--ncr26-success) 22%, var(--ncr26-border));
+  background: color-mix(in srgb, var(--ncr26-success) 4%, var(--ncr26-surface));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page :is(.launch-step-number, .launch-step-icon) {
+  display: grid;
+  place-items: center;
+  width: 37px;
+  height: 37px;
+  border-radius: 12px;
+  background: var(--ncr26-surface-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  font-size: .76rem;
+  font-weight: 800;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-step > div {
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-step p {
+  margin: 3px 0 0;
+  color: var(--ncr26-text-muted);
+  line-height: 1.4;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-import-types {
+  display: grid;
+  gap: 7px;
+  margin-top: 13px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-import-types > button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 12px;
+  background: var(--ncr26-surface);
+  text-align: left;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-import-types > button.active {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 30%, var(--ncr26-border));
+  background: color-mix(in srgb, var(--ncr26-brand-pale) 38%, var(--ncr26-surface));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-import-types > button > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--ncr26-surface-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-file-drop {
+  border-radius: 15px;
+  border-color: color-mix(in srgb, var(--ncr26-brand) 18%, var(--ncr26-border-strong));
+  background: color-mix(in srgb, var(--ncr26-brand-pale) 18%, var(--ncr26-surface-soft));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-history-panel {
+  margin-top: 16px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-history-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 13px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-history-list article {
+  border-radius: 13px;
+  border-color: var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+/* Offre Métier */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page .metier-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page .metier-summary-grid > article {
+  min-height: 94px;
+  padding: 15px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page .metier-summary-grid > article > span {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--ncr26-surface-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page .metier-tabs {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding: 5px;
+  margin-bottom: 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: var(--ncr26-surface-soft);
+  scrollbar-width: none;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page .metier-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page .metier-tabs button {
+  min-height: 40px;
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border-radius: 11px;
+  border: 0;
+  background: transparent;
+  color: var(--ncr26-text-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page .metier-tabs button.active {
+  background: var(--ncr26-surface);
+  color: var(--ncr26-brand-strong);
+  box-shadow: 0 2px 9px rgba(28,42,68,.07);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page :is(
+  .metier-contract-card,
+  .metier-upgrade-panel,
+  .metier-overview-layout > .panel
+) {
+  padding: 21px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page .metier-contract-grid > div {
+  border-radius: 12px;
+  background: var(--ncr26-surface-soft);
+}
+
+/* Abonnement */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-provider-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 999px;
+  background: var(--ncr26-surface);
+  color: var(--ncr26-text-soft);
+  font-size: .76rem;
+  font-weight: 700;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page :is(
+  .subscription-current-card,
+  .subscription-usage-card,
+  .subscription-portfolio-panel,
+  .subscription-request-banner,
+  .subscription-conversion-contract
+) {
+  padding: 21px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-current-card {
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--ncr26-brand-pale) 30%, var(--ncr26-surface)) 0%, var(--ncr26-surface) 58%);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-plan-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ncr26-brand) 10%, var(--ncr26-surface));
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-price {
+  letter-spacing: -0.035em;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-dates {
+  border-radius: 13px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-usage-grid span {
+  border-radius: 12px;
+  border-color: var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-request-banner {
+  gap: 16px;
+  border-color: color-mix(in srgb, var(--ncr26-brand) 16%, var(--ncr26-border));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-request-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--ncr26-surface-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-portfolio-grid {
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-portfolio-card {
+  border-radius: 14px;
+  border-color: var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-portfolio-card.current {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 28%, var(--ncr26-border));
+  background: color-mix(in srgb, var(--ncr26-brand-pale) 38%, var(--ncr26-surface));
+}
+
+/* États verrouillés / upgrade */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .commercial-branding-page .commercial-upgrade-panel,
+  .metier-workspace-page .metier-upgrade-panel
+) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 17px;
+  align-items: center;
+  padding: 22px;
+  border-color: color-mix(in srgb, var(--ncr26-brand) 17%, var(--ncr26-border));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--ncr26-brand-pale) 32%, var(--ncr26-surface)) 0%, var(--ncr26-surface) 70%);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .commercial-branding-page .upgrade-icon,
+  .metier-workspace-page .upgrade-icon
+) {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--ncr26-brand) 10%, var(--ncr26-surface));
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+  .commercial-branding-page .plan-lock-badge,
+  .metier-workspace-page .plan-lock-badge
+) {
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: var(--ncr26-surface-soft);
+  color: var(--ncr26-text-soft);
+  font-size: .76rem;
+  font-weight: 700;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-entitlement-grid article:hover,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-event:hover,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-ticket-inbox-list > button:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--ncr26-brand) 22%, var(--ncr26-border));
+    box-shadow: 0 8px 20px rgba(25, 42, 70, .06);
+  }
+}
+
+@container (max-width: 1120px) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .settings-layout,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-branding-layout,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-center-layout,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-preview-sticky {
+    position: static;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page :is(.support-ticket-inbox, .support-ticket-detail) {
+    min-height: auto;
+  }
+}
+
+@container (max-width: 900px) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .notification-page .notification-grid,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .subscription-page .subscription-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-stats,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page .metier-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-center-hero {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-progress-card {
+    min-width: 0;
+    width: min(100%, 360px);
+  }
+}
+
+@container (max-width: 680px) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+    .settings-page > .page-header,
+    .notification-page > .page-header,
+    .commercial-branding-page > .page-header,
+    .subscription-page > .page-header,
+    .metier-workspace-page > .page-header,
+    .launch-center-hero,
+    .support-center-hero
+  ) {
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+    .settings-page > .page-header,
+    .notification-page > .page-header,
+    .commercial-branding-page > .page-header,
+    .subscription-page > .page-header,
+    .metier-workspace-page > .page-header
+  ) {
+    padding: 21px 18px;
+    align-items: flex-start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-hero {
+    padding: 22px 18px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-center-hero {
+    padding: 22px 18px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-overview-heading {
+    flex-direction: column;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-price-badge {
+    max-width: none;
+    text-align: left;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .settings-page .plan-entitlement-grid,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .support-center-page .support-center-stats,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .metier-workspace-page .metier-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .branding-upload-card {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .branding-upload-preview {
+    width: min(140px, 100%);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-step {
+    grid-template-columns: auto auto minmax(0, 1fr);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-step > :last-child {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+    .commercial-branding-page .commercial-upgrade-panel,
+    .metier-workspace-page .metier-upgrade-panel
+  ) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+    .commercial-branding-page .commercial-upgrade-panel,
+    .metier-workspace-page .metier-upgrade-panel
+  ) .plan-lock-badge {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] :is(
+    .settings-page *,
+    .notification-page *,
+    .commercial-branding-page *,
+    .subscription-page *,
+    .metier-workspace-page *,
+    .launch-center-page *,
+    .support-center-page *
+  ) {
+    scroll-behavior: auto !important;
+    transition-duration: .001ms !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
