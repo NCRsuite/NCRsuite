@@ -10,6 +10,14 @@ Commit d'origine :
 
 `7d6d6341d812d70441b547c9f88317c5f30fde61`
 
+## Point de restauration Dashboard Motion — avant partie 2
+
+La version du tableau de bord avec la couche Motion CSS premium validée, mais sans count-up / reveal JS / profondeur interactive de la partie 2, correspond au commit :
+
+`2af6cc397c4322b797e03915ff8b06368b33ac99`
+
+Restaurer les fichiers de la partie 2 depuis ce commit permet de revenir uniquement à cette version du dashboard sans annuler le reste de NCR UI 2026.
+
 ## Désactivation immédiate sans rollback Git
 
 Fichier : `src/config/ui2026.ts`
@@ -39,6 +47,8 @@ Le rendu historique reprend alors la main.
 - `src/ncrUi2026Pages.css`
 - `src/ncrUi2026TrainingDashboard.css`
 - `src/ncrUi2026TrainingDashboardMotion.css`
+- `src/ncrUi2026TrainingDashboardInteractive.css`
+- `src/hooks/useTrainingDashboardMotion.ts`
 - `src/ncrUi2026TrainingOperations.css`
 - `src/ncrUi2026TrainingSpacing.css`
 - `src/ncrUi2026TrainingWorkflowStepper.css`
@@ -56,6 +66,8 @@ Le rendu historique reprend alors la main.
 Le cockpit Formation V2 est contenu dans `src/ncrUi2026TrainingDashboard.css`. Il ne modifie ni `TrainingDashboardPage.tsx`, ni ses calculs, ni ses requêtes, ni ses actions.
 
 La couche d'animation premium du tableau de bord est isolée dans `src/ncrUi2026TrainingDashboardMotion.css`. Elle ajoute uniquement des reveals séquencés, micro-interactions, animation du graphique, mouvement ambiant discret du hero et gestion `prefers-reduced-motion`. Elle ne modifie ni `TrainingDashboardPage.tsx`, ni les KPI, ni les calculs, ni les requêtes, ni les exports ou actions métier.
+
+La partie 2 interactive du tableau de bord repose sur `src/hooks/useTrainingDashboardMotion.ts`, `src/ncrUi2026TrainingDashboardInteractive.css` et des modifications d'affichage limitées à `TrainingDashboardPage.tsx`. Elle ajoute le count-up réel des KPI, le reveal au scroll, les transitions lors d'un changement de période, un signal visuel ponctuel pour les sessions prêtes à clôturer et une profondeur légère au pointeur sur desktop. Les requêtes Supabase, `buildTrainingQualityDashboard`, les données, les exports PDF/CSV et les actions restent inchangés. Pour annuler uniquement cette partie, restaurer `TrainingDashboardPage.tsx`, `src/main.tsx` et la documentation depuis `2af6cc397c4322b797e03915ff8b06368b33ac99`, puis supprimer `src/hooks/useTrainingDashboardMotion.ts` et `src/ncrUi2026TrainingDashboardInteractive.css`.
 
 Les refontes V2 des pages `Formations` et `Parcours Formation` sont contenues dans `src/ncrUi2026TrainingOperations.css`. Elles ne modifient ni `TrainingProgramsPage.tsx`, ni `TrainingWorkflowPage.tsx`, ni leurs données, requêtes ou actions.
 
