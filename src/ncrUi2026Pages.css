@@ -1,0 +1,285 @@
+/* NCR UI 2026 — polish des pages métier. Entièrement inactif quand data-ncr-ui-2026 != true. */
+
+/* ===== Page rhythm ===== */
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .page {
+  color: var(--ncr26-text);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .page-header {
+  position: relative;
+  gap: clamp(18px, 2.5vw, 34px);
+  margin-bottom: clamp(22px, 3vw, 34px);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .page-header > div:first-child {
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .page-header .eyebrow,
+html[data-ncr-ui-2026="true"] .app-shell .panel-header .eyebrow,
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage .eyebrow {
+  color: var(--ncr26-brand);
+  font-size: .69rem;
+  font-weight: 720;
+  letter-spacing: .09em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .page-header h1 {
+  margin-top: 6px;
+  color: var(--ncr26-text);
+  font-size: clamp(1.65rem, 2.2vw, 2.25rem);
+  line-height: 1.08;
+  font-weight: 710;
+  letter-spacing: -.035em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .page-header > div:first-child > p:not(.eyebrow) {
+  max-width: 68ch;
+  margin-top: 9px;
+  color: var(--ncr26-text-soft);
+  line-height: 1.55;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .header-actions {
+  gap: 10px;
+}
+
+/* ===== Messages ===== */
+html[data-ncr-ui-2026="true"] .app-shell .page-message,
+html[data-ncr-ui-2026="true"] .app-shell .error-message,
+html[data-ncr-ui-2026="true"] .app-shell .success-message,
+html[data-ncr-ui-2026="true"] .app-shell .warning-message {
+  border-radius: var(--ncr26-radius-md);
+  border-width: 1px;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+/* ===== KPI / stat system ===== */
+html[data-ncr-ui-2026="true"] .app-shell .stats-grid,
+html[data-ncr-ui-2026="true"] .app-shell :where(.kpi-grid, .metrics-grid) {
+  gap: 14px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .stat-card {
+  border: 1px solid var(--ncr26-border);
+  border-radius: var(--ncr26-radius-lg);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,255,255,.94)),
+    var(--ncr26-surface);
+  box-shadow: var(--ncr26-shadow-xs);
+  overflow: hidden;
+  transition: transform var(--ncr26-ui) var(--ncr26-ease), border-color var(--ncr26-ui) var(--ncr26-ease), box-shadow var(--ncr26-ui) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .stat-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 18%, var(--ncr26-border));
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .stat-card strong,
+html[data-ncr-ui-2026="true"] .app-shell .stat-card .stat-value {
+  color: var(--ncr26-text);
+  font-variant-numeric: tabular-nums;
+  font-weight: 710;
+  letter-spacing: -.035em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .stat-card small,
+html[data-ncr-ui-2026="true"] .app-shell .stat-card p {
+  color: var(--ncr26-text-muted);
+}
+
+/* ===== Panels ===== */
+html[data-ncr-ui-2026="true"] .app-shell .panel {
+  border: 1px solid var(--ncr26-border);
+  border-radius: var(--ncr26-radius-lg);
+  background: var(--ncr26-surface);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .panel-header {
+  border-bottom-color: color-mix(in srgb, var(--ncr26-border) 85%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .panel-header h2,
+html[data-ncr-ui-2026="true"] .app-shell .panel-header h3 {
+  color: var(--ncr26-text);
+  font-weight: 680;
+  letter-spacing: -.025em;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .panel-header p:not(.eyebrow) {
+  color: var(--ncr26-text-muted);
+}
+
+/* ===== Formation dashboard hero cards ===== */
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview {
+  gap: 12px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview-card {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--ncr26-border);
+  border-radius: var(--ncr26-radius-lg);
+  background: var(--ncr26-surface);
+  box-shadow: var(--ncr26-shadow-xs);
+  overflow: hidden;
+  transition: transform var(--ncr26-ui) var(--ncr26-ease), border-color var(--ncr26-ui) var(--ncr26-ease), box-shadow var(--ncr26-ui) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview-card::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--ncr26-brand) 4%, transparent), transparent 56%);
+  pointer-events: none;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 19%, var(--ncr26-border));
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview-card > span:first-child {
+  border-radius: 12px;
+  color: var(--ncr26-brand);
+  background: var(--ncr26-brand-soft);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview-card strong {
+  color: var(--ncr26-text);
+  font-size: clamp(1.45rem, 2vw, 1.9rem);
+  font-weight: 720;
+  letter-spacing: -.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview-card small {
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview-card > a {
+  border-radius: 9px;
+  color: var(--ncr26-brand-strong);
+  background: var(--ncr26-brand-pale);
+  font-weight: 650;
+  transition: background var(--ncr26-fast) var(--ncr26-ease), transform var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview-card > a:hover {
+  background: var(--ncr26-brand-soft);
+  transform: translateX(1px);
+}
+
+/* ===== Segmented controls ===== */
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-period-segmented,
+html[data-ncr-ui-2026="true"] .app-shell :where(.segmented-control, .segmented) {
+  border: 1px solid var(--ncr26-border);
+  border-radius: var(--ncr26-radius-sm);
+  background: var(--ncr26-surface-soft);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-period-segmented > span {
+  color: var(--ncr26-text-muted);
+  font-weight: 620;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-period-segmented button,
+html[data-ncr-ui-2026="true"] .app-shell :where(.segmented-control, .segmented) button {
+  border-radius: 8px;
+  color: var(--ncr26-text-muted);
+  transition: color var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-period-segmented button.active,
+html[data-ncr-ui-2026="true"] .app-shell :where(.segmented-control, .segmented) button.active {
+  color: var(--ncr26-text);
+  background: var(--ncr26-surface);
+  box-shadow: 0 1px 3px rgba(15,23,42,.09);
+}
+
+/* ===== Tabs ===== */
+html[data-ncr-ui-2026="true"] .app-shell :where(.tabs, .tab-list, .page-tabs) {
+  border-bottom-color: var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell :where(.tabs, .tab-list, .page-tabs) :where(button, a) {
+  color: var(--ncr26-text-muted);
+  transition: color var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell :where(.tabs, .tab-list, .page-tabs) :where(button.active, a.active, [aria-selected="true"]) {
+  color: var(--ncr26-brand-strong);
+  font-weight: 650;
+}
+
+/* ===== Lists ===== */
+html[data-ncr-ui-2026="true"] .app-shell :where(.list-row, .data-row, .document-row, .customer-row, .session-row) {
+  border-bottom-color: var(--ncr26-border);
+  transition: background var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell :where(.list-row, .data-row, .document-row, .customer-row, .session-row):hover {
+  background: var(--ncr26-brand-pale);
+}
+
+/* ===== Empty states ===== */
+html[data-ncr-ui-2026="true"] .app-shell :where(.empty-state, .empty-panel, .empty-message) {
+  border-color: var(--ncr26-border);
+  border-radius: var(--ncr26-radius-lg);
+  color: var(--ncr26-text-muted);
+  background: var(--ncr26-surface-soft);
+}
+
+/* ===== Quality health ===== */
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-health {
+  border-radius: 999px;
+  font-weight: 650;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-health.healthy { color: var(--ncr26-success); }
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-health.warning { color: var(--ncr26-warning); }
+html[data-ncr-ui-2026="true"] .app-shell .training-quality-health.critical { color: var(--ncr26-danger); }
+
+/* ===== Fine hover on actionable rows/cards ===== */
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(a[class*="card"], button[class*="card"]) {
+  transition: transform var(--ncr26-ui) var(--ncr26-ease), border-color var(--ncr26-ui) var(--ncr26-ease), box-shadow var(--ncr26-ui) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(a[class*="card"], button[class*="card"]):hover {
+  transform: translateY(-1px);
+}
+
+/* ===== Mobile page density ===== */
+@media (max-width: 700px) {
+  html[data-ncr-ui-2026="true"] .app-shell .page-header {
+    margin-bottom: 20px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .page-header h1 {
+    font-size: clamp(1.45rem, 7vw, 1.85rem);
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview {
+    gap: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview-card,
+  html[data-ncr-ui-2026="true"] .app-shell .stat-card,
+  html[data-ncr-ui-2026="true"] .app-shell .panel {
+    border-radius: var(--ncr26-radius-md);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview-card,
+  html[data-ncr-ui-2026="true"] .app-shell .stat-card {
+    transform: none !important;
+  }
+}
