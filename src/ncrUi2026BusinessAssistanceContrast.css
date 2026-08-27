@@ -1,7 +1,19 @@
 /*
- * NCR UI 2026 — Assistance NCR contrast for dark business heroes
- * Formation is intentionally excluded: its Assistance hero uses the validated light treatment.
+ * NCR UI 2026 — Assistance NCR contrast by business hero treatment
+ * Formation keeps its validated light hero; the four other businesses use dark heroes.
  */
+
+/* Formation — light hero: keep the descriptive sentence dark and clearly readable. */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"]
+  .support-center-page .support-center-hero > div > p:last-child {
+  color: var(--ncr26-text-soft, #334155) !important;
+  opacity: 1 !important;
+  font-size: clamp(1rem, .96rem + .15vw, 1.08rem);
+  font-weight: 520;
+  line-height: 1.55;
+  max-width: 68ch;
+  text-shadow: none !important;
+}
 
 html[data-ncr-ui-2026="true"]:is(
   [data-business-theme="nettoyage"],
