@@ -1,0 +1,233 @@
+/*
+ * NCR UI 2026 — Formation visual fixes
+ * Correctifs ciblés issus de la revue visuelle desktop.
+ * Aucun comportement métier, aucune donnée et aucun appel Supabase ne sont modifiés.
+ */
+
+/* =========================================================
+   DASHBOARD — horloge/date desktop
+   Le cockpit utile reste affiché sur les zones desktop plus étroites
+   que l'ancien seuil de 1120 px.
+   ========================================================= */
+@container (min-width: 860px) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 250px);
+    grid-template-rows: auto auto;
+    align-items: start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header > div:first-child {
+    grid-column: 1;
+    grid-row: 1;
+    max-width: 680px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header .training-quality-actions {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+    justify-self: start;
+    max-width: none;
+    margin-top: 4px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header .ncr-dashboard-clock {
+    position: relative;
+    inset: auto;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: start;
+    justify-self: end;
+    z-index: 2;
+    display: grid;
+    justify-items: end;
+    min-width: 210px;
+    max-width: 250px;
+    padding-top: 1px;
+    pointer-events: none;
+    text-align: right;
+    animation: ncrDashboardClockEnter 520ms cubic-bezier(.2,.8,.2,1) 180ms both;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .ncr-dashboard-clock-time-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 9px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .ncr-dashboard-clock-icon {
+    display: grid;
+    place-items: center;
+    width: 31px;
+    height: 31px;
+    border: 1px solid color-mix(in srgb, var(--ncr26-brand) 14%, var(--ncr26-border));
+    border-radius: 10px;
+    color: var(--ncr26-brand);
+    background: color-mix(in srgb, var(--ncr26-brand) 5%, rgba(255,255,255,.82));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .ncr-dashboard-clock-time {
+    color: var(--ncr26-text);
+    font-size: clamp(1.72rem, 2.4vw, 2.25rem);
+    line-height: .95;
+    font-weight: 690;
+    letter-spacing: -.055em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .ncr-dashboard-clock-date {
+    margin: 7px 0 0;
+    color: var(--ncr26-text-muted);
+    font-size: .7rem;
+    line-height: 1.35;
+    font-weight: 610;
+    text-transform: capitalize;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .ncr-dashboard-clock-session {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 0 0;
+    padding: 6px 9px;
+    border: 1px solid color-mix(in srgb, var(--ncr26-brand) 12%, var(--ncr26-border));
+    border-radius: 999px;
+    color: var(--ncr26-brand-strong);
+    background: color-mix(in srgb, var(--ncr26-brand) 4.5%, rgba(255,255,255,.86));
+    font-size: .64rem;
+    line-height: 1;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(15,23,42,.035);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .ncr-dashboard-clock-session > span {
+    display: grid;
+    place-items: center;
+    color: var(--ncr26-brand);
+  }
+}
+
+/* =========================================================
+   PROFIL ORGANISME — aperçu d'en-tête lisible
+   ========================================================= */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-preview {
+  color: var(--ncr26-text);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-preview > .eyebrow {
+  color: var(--ncr26-brand-strong);
+  opacity: 1;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-preview-brand {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-preview-brand > div {
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-preview-brand strong {
+  display: block;
+  color: var(--ncr26-text);
+  opacity: 1;
+  font-weight: 760;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-preview-brand small {
+  display: block;
+  margin-top: 3px;
+  color: var(--ncr26-text-soft);
+  opacity: 1;
+  line-height: 1.4;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-preview footer span {
+  color: var(--ncr26-text-muted);
+  opacity: 1;
+  font-weight: 650;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-score span {
+  color: var(--ncr26-text-soft);
+  opacity: 1;
+}
+
+/* =========================================================
+   PERSONNALISATION — aperçu Attestation / e-mail
+   Les éléments restent empilés : label, organisme, contenu.
+   ========================================================= */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-preview-sticky > .panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  justify-items: stretch;
+  gap: 8px;
+  color: var(--ncr26-text);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-preview-sticky > .panel > .eyebrow {
+  display: block;
+  margin: 0 0 2px;
+  color: var(--ncr26-brand-strong);
+  opacity: 1;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-preview-sticky > .panel > :is(strong, h3) {
+  display: block;
+  margin: 0;
+  color: var(--ncr26-text);
+  line-height: 1.25;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-preview-sticky > .panel > p:not(.eyebrow) {
+  margin: 2px 0 0;
+  color: var(--ncr26-text-soft);
+  line-height: 1.5;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .commercial-branding-page .commercial-preview-sticky > .panel > small {
+  display: block;
+  color: var(--ncr26-text-muted);
+  line-height: 1.45;
+}
+
+/* =========================================================
+   DÉMARRAGE — texte de progression visible sur fond clair
+   ========================================================= */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-progress-card {
+  color: var(--ncr26-text);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-progress-card > div:last-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-progress-card > div:last-child > small {
+  color: var(--ncr26-text-muted);
+  opacity: 1;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-progress-card > div:last-child > strong {
+  color: var(--ncr26-text);
+  opacity: 1;
+  font-weight: 760;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] .launch-center-page .launch-progress-card > div:last-child > span {
+  color: var(--ncr26-text-soft);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .ncr-dashboard-clock {
+    animation: none !important;
+  }
+}
