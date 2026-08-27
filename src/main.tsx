@@ -20,6 +20,7 @@ import './ncrUi2026TrainingSessionsSummary.css';
 import './ncrUi2026TrainingMobileFixes.css';
 import './ncrUi2026TrainingMobilePolish.css';
 import './ncrUi2026TrainingPersonalWork.css';
+import './ncrUi2026TrainingCommercialBilling.css';
 import './trainingDossierContrastFix.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
@@ -34,39 +35,32 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       if (registration.waiting) announceServiceWorkerUpdate(registration);
 
       registration.addEventListener('updatefound', () => {
-        const worker = registration.installing;
-        if (!worker) return;
-        worker.addEventListener('statechange', () => {
-          if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+        const installing = registration.installing;
+        if (!installing) return;
+        installing.addEventListener('statechange', () => {
+          if (installing.state === 'installed' && navigator.serviceWorker.controller) {
             announceServiceWorkerUpdate(registration);
           }
         });
       });
-
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (refreshing) return;
-        refreshing = true;
-        window.location.reload();
-      });
-    }).catch((error) => console.error('Service Worker NCR Suite indisponible.', error));
+    }).catch((error) => console.error('Service worker registration failed', error));
   });
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <PlatformAdminProvider>
-          <OrganizationProvider>
-            <RuntimeMonitor />
-            <ConnectivityStatus />
-            <AppErrorBoundary>
+      <AppErrorBoundary>
+        <AuthProvider>
+          <PlatformAdminProvider>
+            <OrganizationProvider>
+              <RuntimeMonitor />
+              <ConnectivityStatus />
               <App />
-            </AppErrorBoundary>
-          </OrganizationProvider>
-        </PlatformAdminProvider>
-      </AuthProvider>
+            </OrganizationProvider>
+          </PlatformAdminProvider>
+        </AuthProvider>
+      </AppErrorBoundary>
     </BrowserRouter>
   </React.StrictMode>
 );
