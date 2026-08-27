@@ -39,11 +39,14 @@ Le rendu historique reprend alors la main.
 - `src/ncrUi2026Pages.css`
 - `src/ncrUi2026TrainingDashboard.css`
 - `src/ncrUi2026TrainingOperations.css`
+- `src/ncrUi2026TrainingSpacing.css`
 - `src/main.tsx` uniquement pour charger les couches et poser le flag HTML
 
 Le cockpit Formation V2 est contenu dans `src/ncrUi2026TrainingDashboard.css`. Il ne modifie ni `TrainingDashboardPage.tsx`, ni ses calculs, ni ses requêtes, ni ses actions.
 
 Les refontes V2 des pages `Formations` et `Parcours Formation` sont contenues dans `src/ncrUi2026TrainingOperations.css`. Elles ne modifient ni `TrainingProgramsPage.tsx`, ni `TrainingWorkflowPage.tsx`, ni leurs données, requêtes ou actions.
+
+La passe d'espacement premium de `Formations` et `Parcours Formation` est isolée dans `src/ncrUi2026TrainingSpacing.css`. Elle ne touche ni au JSX, ni aux données, ni aux actions et peut être retirée indépendamment des autres couches UI 2026.
 
 Le fichier historique `src/styles.css` n'est pas modifié par cette refonte.
 
