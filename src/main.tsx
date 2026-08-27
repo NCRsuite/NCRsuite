@@ -34,6 +34,7 @@ import './ncrUi2026TrainingSettings.css';
 import './ncrUi2026TrainingVisualFixes.css';
 import './ncrUi2026TrainingSidebarPolish.css';
 import './ncrUi2026BusinessAssistanceContrast.css';
+import './ncrUi2026WorkspaceSwitcherPolish.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
