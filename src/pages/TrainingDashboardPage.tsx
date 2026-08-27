@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { PremiumSkeleton } from '../components/PremiumSkeleton';
 import { StatCard } from '../components/StatCard';
+import { TrainingDashboardSmartCockpit } from '../components/TrainingDashboardSmartCockpit';
+import { NCR_DASHBOARD_SMART_2026_ENABLED } from '../config/dashboardSmart2026';
 import { organizationHasFeature } from '../config/planEntitlements';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -251,6 +253,10 @@ export function TrainingDashboardPage() {
 
       {error && <div className="error-message page-message" role="alert">{error}</div>}
 
+      {NCR_DASHBOARD_SMART_2026_ENABLED && (
+        <TrainingDashboardSmartCockpit dashboard={dashboard} sessions={sessions} canManage={canManage} loading={loading} />
+      )}
+
       <section className="training-quality-overview" aria-label="État des sessions">
         <article className="training-quality-overview-card planned"><span><Icon name="calendar" size={20} /></span><div><strong>{loading ? '…' : animatedPlannedSessions}</strong><small>Planifiées à 30 jours</small></div><Link to="/sessions?view=planned">Voir</Link></article>
         <article className="training-quality-overview-card current"><span><Icon name="activity" size={20} /></span><div><strong>{loading ? '…' : animatedInProgressSessions}</strong><small>En cours maintenant</small></div><Link to="/sessions?view=current">Voir</Link></article>
@@ -311,8 +317,8 @@ export function TrainingDashboardPage() {
               {dashboard.trend.map((point) => (
                 <div key={point.key} className="training-quality-chart-group">
                   <div className="training-quality-chart-bars">
-                    <span className="sessions" style={{ height: `${point.sessions === 0 ? 0 : Math.max(3, (point.sessions / maxTrendValue) * 100)}%` }} title={`${point.sessions} session(s)`} />
-                    <span className="trainees" style={{ height: `${point.trainees === 0 ? 0 : Math.max(3, (point.trainees / maxTrendValue) * 100)}%` }} title={`${point.trainees} stagiaire(s)`} />
+                    <span className="sessions" data-smart-value={`${point.sessions} session${point.sessions > 1 ? 's' : ''}`} style={{ height: `${point.sessions === 0 ? 0 : Math.max(3, (point.sessions / maxTrendValue) * 100)}%` }} title={`${point.sessions} session(s)`} />
+                    <span className="trainees" data-smart-value={`${point.trainees} stagiaire${point.trainees > 1 ? 's' : ''}`} style={{ height: `${point.trainees === 0 ? 0 : Math.max(3, (point.trainees / maxTrendValue) * 100)}%` }} title={`${point.trainees} stagiaire(s)`} />
                   </div>
                   <small>{point.label}</small>
                 </div>
