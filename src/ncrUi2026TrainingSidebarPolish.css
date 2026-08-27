@@ -1,19 +1,46 @@
 /*
  * NCR UI 2026 — Formation desktop sidebar polish
- * Tableau de bord épinglé visuellement + sidebar pleine hauteur.
+ * Tableau de bord épinglé visuellement + sidebar desktop fixe au viewport.
  * Couche strictement visuelle : aucun comportement métier.
  */
 
 @media (min-width: 901px) {
-  /* Sidebar continue jusqu'en bas du viewport, sans modifier son mode de positionnement historique. */
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar {
-    height: 100dvh;
+  /*
+   * App-shell historique : grille 276px / contenu.
+   * La sidebar est sortie du scroll de la page et reste ancrée au viewport.
+   * Le contenu principal reste explicitement dans la seconde colonne.
+   */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell {
+    grid-template-columns: 276px minmax(0, 1fr);
+    min-height: 100vh;
     min-height: 100dvh;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar {
+    position: fixed;
+    z-index: 30;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 276px;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-height: 100vh;
     max-height: 100dvh;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background: rgba(255,255,255,.96);
+    border-right: 1px solid var(--ncr26-border);
+    box-shadow: 10px 0 36px rgba(15,23,42,.025);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .main-content {
+    grid-column: 2;
+    min-width: 0;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > :is(
@@ -27,7 +54,10 @@
     flex: 0 0 auto;
   }
 
-  /* Seule la zone de navigation devient scrollable lorsque le menu dépasse la hauteur disponible. */
+  /*
+   * Seule la zone de navigation scrolle si elle dépasse la hauteur disponible.
+   * Une réserve à droite maintient les chevrons hors de la zone de scrollbar.
+   */
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .main-nav {
     flex: 1 1 auto;
     min-height: 0;
@@ -35,7 +65,29 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--ncr26-border-strong) 76%, transparent) transparent;
+    box-sizing: border-box;
+    padding-right: 12px;
     padding-bottom: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .main-nav::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .main-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .main-nav::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ncr26-border-strong) 72%, transparent);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar .navigation-group-trigger {
+    box-sizing: border-box;
+    padding-right: 8px;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell > .sidebar > .sidebar-footer {
