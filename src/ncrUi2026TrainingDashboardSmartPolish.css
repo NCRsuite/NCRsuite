@@ -1,0 +1,77 @@
+/*
+ * NCR UI 2026 — Smart Cockpit header polish
+ * Correctif visuel ciblé : respiration entre les labels de section
+ * et leurs textes secondaires, sans modification du composant métier.
+ */
+
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-kicker > div,
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-todo-head > div,
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-card-head > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  row-gap: 5px;
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-kicker .eyebrow,
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-todo-head .eyebrow,
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-card-head .eyebrow {
+  display: block;
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-kicker small,
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-todo-head strong,
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-card-head strong {
+  display: block;
+  margin: 0;
+  min-width: 0;
+  line-height: 1.28;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-kicker small {
+  max-width: 44ch;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-todo-head,
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-card-head {
+  align-items: start;
+  column-gap: 16px;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-todo-head > svg,
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-card-head > span {
+  margin-top: 1px;
+}
+
+/* Les textes contextuels peuvent passer proprement sur deux lignes
+   au lieu de se coller au label ou d'être tronqués trop tôt. */
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-todo-head strong,
+html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-card-head strong {
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+
+@container (max-width: 760px) {
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-kicker > div,
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-todo-head > div,
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-card-head > div {
+    row-gap: 4px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-todo-head,
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-card-head {
+    column-gap: 12px;
+  }
+}
+
+@media (max-width: 620px) {
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-kicker .eyebrow,
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-todo-head .eyebrow,
+  html[data-ncr-ui-2026="true"] .app-shell .ncr-smart-card-head .eyebrow {
+    white-space: normal;
+  }
+}
