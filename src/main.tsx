@@ -29,6 +29,7 @@ import './ncrUi2026TrainingDashboardMotion.css';
 import './ncrUi2026TrainingDashboardInteractive.css';
 import './ncrUi2026TrainingDashboardSmart.css';
 import './ncrUi2026TrainingDashboardSmartPolish.css';
+import './ncrUi2026TrainingDashboardClock.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
