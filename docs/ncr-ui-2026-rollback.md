@@ -38,6 +38,7 @@ Le rendu historique reprend alors la main.
 - `src/ncrUi2026.css`
 - `src/ncrUi2026Pages.css`
 - `src/ncrUi2026TrainingDashboard.css`
+- `src/ncrUi2026TrainingDashboardMotion.css`
 - `src/ncrUi2026TrainingOperations.css`
 - `src/ncrUi2026TrainingSpacing.css`
 - `src/ncrUi2026TrainingWorkflowStepper.css`
@@ -53,6 +54,8 @@ Le rendu historique reprend alors la main.
 - `src/main.tsx` uniquement pour charger les couches et poser le flag HTML
 
 Le cockpit Formation V2 est contenu dans `src/ncrUi2026TrainingDashboard.css`. Il ne modifie ni `TrainingDashboardPage.tsx`, ni ses calculs, ni ses requêtes, ni ses actions.
+
+La couche d'animation premium du tableau de bord est isolée dans `src/ncrUi2026TrainingDashboardMotion.css`. Elle ajoute uniquement des reveals séquencés, micro-interactions, animation du graphique, mouvement ambiant discret du hero et gestion `prefers-reduced-motion`. Elle ne modifie ni `TrainingDashboardPage.tsx`, ni les KPI, ni les calculs, ni les requêtes, ni les exports ou actions métier.
 
 Les refontes V2 des pages `Formations` et `Parcours Formation` sont contenues dans `src/ncrUi2026TrainingOperations.css`. Elles ne modifient ni `TrainingProgramsPage.tsx`, ni `TrainingWorkflowPage.tsx`, ni leurs données, requêtes ou actions.
 
