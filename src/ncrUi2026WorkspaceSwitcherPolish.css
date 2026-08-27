@@ -1,0 +1,586 @@
+/*
+ * NCR UI 2026 — Workspace switcher A+
+ * Refonte visuelle réversible des sélecteurs Entreprise / Établissement.
+ * Desktop + mobile, commun aux cinq métiers NCR Suite.
+ * CSS uniquement : aucune logique de sélection, donnée ou permission modifiée.
+ * Point de retour avant cette couche : 2d5952fd9e040f2f404f50be125f0073d2dd1195
+ */
+
+/* =========================================================
+   PÉRIMÈTRE COMMUN — LES CINQ MÉTIERS
+   ========================================================= */
+html[data-ncr-ui-2026="true"]:is(
+  [data-business-theme="formation"],
+  [data-business-theme="nettoyage"],
+  [data-business-theme="securite"],
+  [data-business-theme="coiffure"],
+  [data-business-theme="restauration"]
+) {
+  --ncr26-switcher-border: color-mix(in srgb, var(--ncr26-border) 88%, transparent);
+  --ncr26-switcher-active-border: color-mix(in srgb, var(--ncr26-brand) 38%, var(--ncr26-border));
+  --ncr26-switcher-active-bg: color-mix(in srgb, var(--ncr26-brand-pale) 68%, #fff);
+  --ncr26-switcher-hover-bg: color-mix(in srgb, var(--ncr26-brand-pale) 34%, #fff);
+}
+
+/* =========================================================
+   DESKTOP — SWITCHERS COMPACTS DANS LA SIDEBAR
+   ========================================================= */
+@media (min-width: 901px) {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .desktop-context-switchers {
+    gap: 9px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher {
+    padding: 9px;
+    border-radius: 15px;
+    border-color: var(--ncr26-switcher-border);
+    box-shadow: 0 5px 18px rgba(15, 23, 42, .035);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-label {
+    min-height: 18px;
+    margin-bottom: 5px;
+    padding: 0 2px;
+    align-items: center;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-label > span {
+    font-size: 9.5px;
+    line-height: 1.15;
+    letter-spacing: .085em;
+    font-weight: 750;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-label > small {
+    font-size: 9.5px;
+    line-height: 1.15;
+    color: var(--ncr26-text-muted);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-trigger {
+    min-height: 54px;
+    padding: 7px 8px;
+    gap: 8px;
+    border-radius: 12px;
+    border-color: var(--ncr26-switcher-border);
+    background: rgba(255,255,255,.82);
+    box-shadow: none;
+    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-trigger:hover {
+    border-color: var(--ncr26-switcher-active-border);
+    background: var(--ncr26-switcher-hover-bg);
+    box-shadow: 0 5px 16px rgba(15,23,42,.045);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher.open .context-switcher-trigger {
+    border-color: var(--ncr26-switcher-active-border);
+    background: var(--ncr26-switcher-active-bg);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ncr26-brand) 8%, transparent);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-icon {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-copy {
+    gap: 2px;
+    min-width: 0;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-copy strong {
+    font-size: 12.5px;
+    line-height: 1.2;
+    font-weight: 720;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-copy small {
+    font-size: 10.5px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-chevron {
+    width: 24px;
+    min-width: 24px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-foot {
+    min-height: 17px;
+    margin-top: 4px;
+    padding: 0 3px;
+    font-size: 9.5px;
+    line-height: 1.15;
+    opacity: .84;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-menu {
+    margin-top: 6px;
+    padding: 7px;
+    border-radius: 14px;
+    border-color: var(--ncr26-switcher-border);
+    box-shadow: 0 18px 46px rgba(15,23,42,.15);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-options {
+    gap: 5px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-options > button {
+    min-height: 52px;
+    padding: 6px 8px;
+    gap: 8px;
+    border-radius: 11px;
+    border: 1px solid transparent;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-options > button.active {
+    border-color: var(--ncr26-switcher-active-border);
+    background: var(--ncr26-switcher-active-bg);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-option-icon {
+    width: 35px;
+    height: 35px;
+    min-width: 35px;
+    border-radius: 10px;
+  }
+
+  /* "Tous les établissements" reste une action de vue, pas un établissement normal. */
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-option-icon.all-sites {
+    background: color-mix(in srgb, var(--ncr26-brand-pale) 72%, #fff);
+    color: var(--ncr26-brand-strong);
+    border: 1px solid color-mix(in srgb, var(--ncr26-brand) 14%, var(--ncr26-border));
+  }
+}
+
+/* =========================================================
+   MOBILE — FEUILLE COMPTE / ENTREPRISE / ÉTABLISSEMENT
+   ========================================================= */
+@media (max-width: 900px) {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet {
+    --ncr26-mobile-switcher-gap: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-section {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-section + .mobile-organization-section {
+    margin-top: 0;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-sheet-title {
+    margin-bottom: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-sheet-title > div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-sheet-title span {
+    font-size: 13px;
+    line-height: 1.15;
+    font-weight: 780;
+    letter-spacing: .075em;
+    text-transform: uppercase;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-sheet-title small {
+    font-size: 11.5px;
+    line-height: 1.2;
+    color: var(--ncr26-text-muted);
+    white-space: nowrap;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-list {
+    display: grid;
+    gap: var(--ncr26-mobile-switcher-gap);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-option {
+    min-height: 70px;
+    padding: 9px 11px;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) 28px;
+    align-items: center;
+    column-gap: 11px;
+    border-radius: 16px;
+    border: 1px solid var(--ncr26-switcher-border);
+    background: rgba(255,255,255,.86);
+    box-shadow: 0 3px 12px rgba(15,23,42,.025);
+    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-option:active {
+    transform: scale(.992);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-option.active {
+    border-color: var(--ncr26-switcher-active-border);
+    background: var(--ncr26-switcher-active-bg);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--ncr26-brand) 7%, transparent), 0 7px 18px rgba(15,23,42,.04);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-logo {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 13px;
+    box-shadow: none;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-logo.has-image img {
+    object-fit: contain;
+    padding: 4px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-copy {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+    text-align: left;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-copy strong {
+    font-size: 16px;
+    line-height: 1.16;
+    font-weight: 720;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-copy small {
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--ncr26-text-muted);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* Check compact, lisible et constant — sans gros badge. */
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-option > svg:last-child {
+    width: 24px;
+    height: 24px;
+    padding: 3px;
+    border-radius: 999px;
+    color: var(--ncr26-brand);
+    border: 1px solid color-mix(in srgb, var(--ncr26-brand) 48%, transparent);
+    background: color-mix(in srgb, var(--ncr26-brand-pale) 55%, #fff);
+  }
+
+  /* A+ : la vue consolidée est visuellement une action spéciale, plus légère. */
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-logo.site-all {
+    background: color-mix(in srgb, var(--ncr26-brand-pale) 72%, #fff) !important;
+    color: var(--ncr26-brand-strong);
+    border: 1px solid color-mix(in srgb, var(--ncr26-brand) 14%, var(--ncr26-border));
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-site-section {
+    border-top-color: color-mix(in srgb, var(--ncr26-border) 82%, transparent);
+  }
+}
+
+@media (max-width: 520px) {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-option {
+    min-height: 66px;
+    padding: 8px 10px;
+    grid-template-columns: 44px minmax(0, 1fr) 26px;
+    column-gap: 10px;
+    border-radius: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-logo {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-copy strong {
+    font-size: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-copy small {
+    font-size: 11.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .context-switcher-trigger,
+  html[data-ncr-ui-2026="true"] .mobile-organization-option {
+    transition: none !important;
+  }
+}
