@@ -6,7 +6,7 @@
 
 @media (max-width: 700px) {
   /* =======================================================
-     HERO ACTIONS — boutons complets, jamais coupés par le cadre
+     HERO ACTIONS — boutons complets, centrés dans le cadre
      ======================================================= */
   html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions,
   html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions {
@@ -14,10 +14,12 @@
     z-index: 3;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 9px;
-    width: calc(100% - 16px);
-    margin: 5px 8px 12px;
+    gap: 10px;
+    width: auto;
+    min-width: 0;
+    margin: 8px 16px 18px;
     padding: 0;
+    box-sizing: border-box;
     overflow: visible;
   }
 
@@ -25,9 +27,11 @@
   html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions :where(a, button) {
     position: relative;
     width: 100%;
+    min-width: 0;
     min-height: 48px;
     margin: 0;
     padding: 11px 16px;
+    box-sizing: border-box;
     justify-content: center;
     border-radius: 15px !important;
     overflow: hidden;
@@ -46,29 +50,28 @@
     box-shadow: 0 7px 18px rgba(18, 103, 234, .16);
   }
 
-  /* La séparation du bloc suivant ne doit plus traverser visuellement le bouton bleu. */
+  /* Séparation du bloc suivant : plus basse et indépendante des boutons. */
   html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics,
   html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline {
-    margin-top: 4px;
-    padding-top: 10px;
+    margin-top: 8px;
+    padding-top: 18px;
     border-top: 0;
   }
 
-  /* Petit séparateur volontaire, indépendant des boutons. */
   html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics::before,
   html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline::before {
     content: "";
     position: absolute;
     top: 0;
-    left: 8px;
-    right: 8px;
+    left: 16px;
+    right: 16px;
     height: 1px;
-    background: color-mix(in srgb, var(--ncr26-border) 78%, transparent);
+    background: color-mix(in srgb, var(--ncr26-border) 74%, transparent);
     pointer-events: none;
   }
 
   /* =======================================================
-     NAVIGATION BASSE — retour au rendu flottant précédent
+     NAVIGATION BASSE — rendu flottant conservé
      ======================================================= */
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
     min-height: 68px;
@@ -111,8 +114,7 @@
 @media (max-width: 380px) {
   html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions,
   html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions {
-    width: calc(100% - 10px);
-    margin-inline: 5px;
+    margin-inline: 12px;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
