@@ -1,0 +1,1851 @@
+/*
+ * NCR UI 2026 — Training Governance
+ * Dossiers Formation · Qualité & conformité · BPF · Profil organisme · Établissements · Espaces & signatures
+ * Couche strictement visuelle et réversible.
+ */
+
+/* =========================================================
+   DOSSIERS FORMATION
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .training-dossier-page {
+  display: grid;
+  gap: 24px;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-page .training-dossier-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 26px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--ncr26-brand) 10%, transparent), transparent 28rem),
+    linear-gradient(180deg, #fff, #f9fbfe);
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-page .training-dossier-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--ncr26-brand), color-mix(in srgb, var(--ncr26-brand) 28%, transparent));
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-hero-copy {
+  gap: 16px;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-hero-icon {
+  width: 52px;
+  height: 52px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 20%, var(--ncr26-border));
+  border-radius: 16px;
+  background: var(--ncr26-brand-soft);
+  color: var(--ncr26-brand);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-hero h1 {
+  margin: 4px 0 7px;
+  color: var(--ncr26-text);
+  font-size: clamp(1.7rem, 3vw, 2.35rem);
+  letter-spacing: -.035em;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-hero-copy p:last-child {
+  max-width: 68ch;
+  color: var(--ncr26-text-soft);
+  line-height: 1.6;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-hero-actions {
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"] :is(.training-dossier-ghost-button, .training-dossier-primary-button) {
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 13px;
+  font-weight: 750;
+  transition: transform var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-ghost-button {
+  border: 1px solid var(--ncr26-border);
+  background: rgba(255,255,255,.86);
+  color: var(--ncr26-text-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-primary-button {
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 80%, #fff);
+  background: var(--ncr26-brand);
+  color: #fff;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--ncr26-brand) 18%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] :is(.training-dossier-ghost-button, .training-dossier-primary-button):hover {
+  transform: translateY(-1px);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-metrics {
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid color-mix(in srgb, var(--ncr26-border) 80%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-metrics article {
+  min-height: 82px;
+  padding: 14px 16px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 16px;
+  background: rgba(255,255,255,.78);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-metrics article > span {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--ncr26-brand-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-metrics article strong {
+  color: var(--ncr26-text);
+  font-size: 1.35rem;
+  letter-spacing: -.03em;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-metrics article small {
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-metrics article.has-alert {
+  border-color: color-mix(in srgb, #d97706 26%, var(--ncr26-border));
+  background: color-mix(in srgb, #fff7ed 46%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-metrics article.is-ready {
+  border-color: color-mix(in srgb, var(--ncr26-success) 22%, var(--ncr26-border));
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-commandbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 18px;
+  background: rgba(255,255,255,.86);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-tabs button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--ncr26-text-soft);
+  font-weight: 700;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-tabs button b {
+  margin-left: 7px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--ncr26-surface-muted);
+  color: var(--ncr26-text-muted);
+  font-size: .7rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-tabs button.active {
+  background: var(--ncr26-brand-soft);
+  color: var(--ncr26-brand-strong);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ncr26-brand) 13%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-tabs button.active b {
+  background: #fff;
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-search {
+  min-width: min(320px, 100%);
+  min-height: 42px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 12px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-search:focus-within {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 45%, var(--ncr26-border));
+  box-shadow: 0 0 0 3px var(--ncr26-ring);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-workspace {
+  gap: 16px;
+}
+
+html[data-ncr-ui-2026="true"] :is(.training-dossier-list-panel, .training-dossier-detail) {
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-list-panel {
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-list-heading {
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: linear-gradient(180deg, #fff, #fbfcfe);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-session-list {
+  padding: 9px;
+  gap: 7px;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-session-card {
+  min-height: 92px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 15px;
+  background: transparent;
+  transition: background var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), transform var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-session-card:hover {
+  background: var(--ncr26-surface-soft);
+  border-color: var(--ncr26-border);
+  transform: translateX(1px);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-session-card.selected {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 22%, var(--ncr26-border));
+  background: var(--ncr26-brand-pale);
+  box-shadow: inset 3px 0 0 var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-session-date {
+  border: 1px solid var(--ncr26-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ncr26-text);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-session-copy strong {
+  color: var(--ncr26-text);
+  letter-spacing: -.012em;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-session-copy :is(small, em) {
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-detail {
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-detail-header {
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: linear-gradient(180deg, #fff, #fbfcff);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-detail-title h2 {
+  color: var(--ncr26-text);
+  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+  letter-spacing: -.025em;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-facts {
+  gap: 8px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-facts article {
+  padding: 12px;
+  border-radius: 13px;
+  background: #fff;
+  border: 1px solid var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-detail-grid {
+  gap: 18px;
+  padding: 20px;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-checklist {
+  gap: 16px;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-check-group {
+  overflow: hidden;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 18px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-check-group > header {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-check-group > header h3 {
+  margin: 3px 0;
+  color: var(--ncr26-text);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-check-group > header span {
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-check {
+  padding: 13px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ncr26-border) 72%, transparent);
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-check:last-child {
+  border-bottom: 0;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-check.state-ready .training-dossier-check-icon {
+  background: color-mix(in srgb, var(--ncr26-success) 10%, #fff);
+  color: var(--ncr26-success);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-check.state-missing .training-dossier-check-icon {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-check-copy strong {
+  color: var(--ncr26-text);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-check-copy p {
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-sidepanel {
+  gap: 14px;
+}
+
+html[data-ncr-ui-2026="true"] :is(.training-dossier-action-card, .training-dossier-notes-card, .training-dossier-shortcuts) {
+  border: 1px solid var(--ncr26-border);
+  border-radius: 18px;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-action-card {
+  padding: 18px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(18,103,234,.08), transparent 14rem),
+    linear-gradient(180deg, #fff, #f8fbff);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-action-card h3 {
+  margin: 5px 0 7px;
+  color: var(--ncr26-text);
+  font-size: 1.15rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-pdf-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-pdf-actions > .secondary-button {
+  justify-content: flex-start;
+  min-height: 42px;
+  padding-inline: 12px;
+  border-radius: 12px;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-close-button {
+  min-height: 46px;
+  margin-top: 10px;
+  border-radius: 13px;
+  background: var(--ncr26-brand);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--ncr26-brand) 18%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-notes-card {
+  padding: 16px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-notes-card textarea {
+  border-color: var(--ncr26-border);
+  border-radius: 12px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-shortcuts {
+  overflow: hidden;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-shortcuts > p {
+  padding: 14px 15px 8px;
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-shortcuts a {
+  min-height: 44px;
+  padding: 11px 14px;
+  border-top: 1px solid var(--ncr26-border);
+  color: var(--ncr26-text-soft);
+  transition: background var(--ncr26-fast) var(--ncr26-ease), color var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .training-dossier-shortcuts a:hover {
+  background: var(--ncr26-brand-pale);
+  color: var(--ncr26-brand-strong);
+}
+
+/* =========================================================
+   QUALITÉ & CONFORMITÉ
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .training-quality-compliance-page {
+  display: grid;
+  gap: 22px;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-header {
+  padding: 24px 26px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(22,132,91,.08), transparent 24rem),
+    linear-gradient(180deg, #fff, #f9fbfa);
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-header h1 {
+  letter-spacing: -.035em;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-header .header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-metrics article {
+  min-width: 0;
+  min-height: 104px;
+  padding: 16px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-metrics article > span {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ncr26-success) 9%, #fff);
+  color: var(--ncr26-success);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-metrics strong {
+  color: var(--ncr26-text);
+  font-size: 1.3rem;
+  letter-spacing: -.025em;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-metrics :is(small, em) {
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-metrics article.is-alert {
+  border-color: color-mix(in srgb, #d97706 26%, var(--ncr26-border));
+  background: color-mix(in srgb, #fff7ed 44%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-tabs {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-tabs button {
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ncr26-text-soft);
+  font-weight: 700;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-tabs button.active {
+  background: #fff;
+  color: var(--ncr26-brand-strong);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-workspace {
+  gap: 16px;
+}
+
+html[data-ncr-ui-2026="true"] :is(.training-compliance-list, .training-compliance-editor, .training-compliance-evidence-panel, .training-compliance-audits-panel, .training-compliance-audit-readiness) {
+  border-color: var(--ncr26-border);
+  border-radius: 20px;
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-toolbar {
+  gap: 9px;
+  padding: 12px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-toolbar :is(input, select) {
+  min-height: 42px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 11px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-control-list {
+  padding: 8px;
+  gap: 5px;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-control {
+  min-height: 68px;
+  padding: 10px 11px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: transparent;
+  transition: background var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), transform var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-control:hover {
+  background: var(--ncr26-surface-soft);
+  border-color: var(--ncr26-border);
+  transform: translateX(1px);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-control.selected {
+  background: var(--ncr26-brand-pale);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 24%, var(--ncr26-border));
+  box-shadow: inset 3px 0 0 var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-control .indicator-number {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  background: var(--ncr26-surface-muted);
+  color: var(--ncr26-text-soft);
+  font-weight: 800;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-editor {
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-editor > header {
+  padding: 18px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: linear-gradient(180deg, #fff, #fbfcfe);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-editor > form {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-editor label {
+  gap: 7px;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-editor :is(input, select, textarea) {
+  border-color: var(--ncr26-border);
+  border-radius: 11px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-linked-evidence {
+  padding: 16px 18px 18px;
+  border-top: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-linked-evidence > button {
+  min-height: 48px;
+  border-radius: 11px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-evidence-panel,
+html[data-ncr-ui-2026="true"] .training-compliance-audits-panel {
+  padding: 20px;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-evidence-list,
+html[data-ncr-ui-2026="true"] .training-compliance-audit-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-evidence {
+  min-height: 82px;
+  padding: 13px 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-audits-grid {
+  gap: 16px;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-audit {
+  padding: 13px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-audit .audit-date {
+  width: 54px;
+  min-height: 54px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 13px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-audit-readiness {
+  padding: 22px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(22,132,91,.1), transparent 16rem),
+    linear-gradient(180deg, #fff, #f8fcfa);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-audit-readiness > strong {
+  color: var(--ncr26-success);
+  font-size: 2.4rem;
+  letter-spacing: -.05em;
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-modal-backdrop {
+  background: rgba(15,23,42,.34);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-modal {
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-float);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-modal :is(input, select, textarea) {
+  border-color: var(--ncr26-border);
+  border-radius: 11px;
+}
+
+/* =========================================================
+   BPF — MODE GUIDÉ + EXPERT
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .training-bpf-page {
+  display: grid;
+  gap: 22px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-header {
+  padding: 24px 26px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(18,103,234,.08), transparent 24rem),
+    linear-gradient(180deg, #fff, #f9fbff);
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-header h1 {
+  letter-spacing: -.035em;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-year {
+  min-height: 42px;
+  padding: 6px 9px 6px 12px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-year select {
+  border: 0;
+  background: transparent;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 7px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 18px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-mode-switch button {
+  min-height: 64px;
+  padding: 11px 14px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: transparent;
+  color: var(--ncr26-text-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-mode-switch button.active {
+  border-color: var(--ncr26-border);
+  background: #fff;
+  color: var(--ncr26-text);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant {
+  display: grid;
+  gap: 16px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 18%, var(--ncr26-border));
+  border-radius: 21px;
+  background:
+    radial-gradient(circle at 95% 0%, rgba(18,103,234,.11), transparent 22rem),
+    linear-gradient(180deg, #fff, #f7faff);
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-hero.ready {
+  border-color: color-mix(in srgb, var(--ncr26-success) 24%, var(--ncr26-border));
+  background:
+    radial-gradient(circle at 95% 0%, rgba(22,132,91,.1), transparent 22rem),
+    linear-gradient(180deg, #fff, #f7fcfa);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-hero-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: var(--ncr26-brand-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-hero-copy h2 {
+  margin: 4px 0 7px;
+  color: var(--ncr26-text);
+  font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+  letter-spacing: -.025em;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-hero-copy > p:last-child {
+  max-width: 70ch;
+  color: var(--ncr26-text-soft);
+  line-height: 1.55;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-progress {
+  min-width: 145px;
+  padding: 13px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: rgba(255,255,255,.88);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-progress strong {
+  color: var(--ncr26-brand-strong);
+  font-size: 1.5rem;
+  letter-spacing: -.04em;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 7px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps button {
+  position: relative;
+  min-width: 0;
+  min-height: 76px;
+  padding: 11px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: #fff;
+  color: var(--ncr26-text-soft);
+  text-align: left;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps button.active {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 30%, var(--ncr26-border));
+  background: var(--ncr26-brand-pale);
+  box-shadow: inset 0 -3px 0 var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps button.done > span:first-child {
+  background: color-mix(in srgb, var(--ncr26-success) 11%, #fff);
+  color: var(--ncr26-success);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps button > div {
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps strong {
+  color: var(--ncr26-text);
+  font-size: .82rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps small {
+  color: var(--ncr26-text-muted);
+  font-size: .68rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-card {
+  overflow: hidden;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 21px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-card > header {
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: linear-gradient(180deg, #fff, #fbfcfe);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-card > header > span {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: var(--ncr26-brand-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-card > header h3 {
+  margin: 3px 0 5px;
+  color: var(--ncr26-text);
+  font-size: 1.3rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-identity-grid {
+  gap: 9px;
+  padding: 18px 22px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-identity-grid > div {
+  min-height: 78px;
+  padding: 13px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-identity-grid > div.ok {
+  border-color: color-mix(in srgb, var(--ncr26-success) 19%, var(--ncr26-border));
+  background: color-mix(in srgb, #f0fdf4 35%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-identity-grid > div.missing {
+  border-color: color-mix(in srgb, #d97706 22%, var(--ncr26-border));
+  background: color-mix(in srgb, #fff7ed 40%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-card > footer {
+  padding: 16px 22px 20px;
+  border-top: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-question {
+  padding: 20px 22px 22px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-question-head {
+  padding: 14px 16px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-choice-grid {
+  gap: 9px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-choice-grid button {
+  min-height: 104px;
+  padding: 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: #fff;
+  text-align: left;
+  transition: transform var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-choice-grid button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 28%, var(--ncr26-border));
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-tip {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 16%, var(--ncr26-border));
+  border-radius: 13px;
+  background: var(--ncr26-brand-pale);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-assistant-complete {
+  padding: 34px 22px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-metrics article {
+  min-height: 94px;
+  padding: 15px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-tabs {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-tabs button {
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ncr26-text-soft);
+  font-weight: 700;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-tabs button.active {
+  background: #fff;
+  color: var(--ncr26-brand-strong);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-readiness {
+  padding: 18px 20px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-readiness.ready {
+  border-color: color-mix(in srgb, var(--ncr26-success) 22%, var(--ncr26-border));
+  background: color-mix(in srgb, #f0fdf4 25%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-readiness.attention {
+  border-color: color-mix(in srgb, #d97706 22%, var(--ncr26-border));
+  background: color-mix(in srgb, #fff7ed 30%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-overview-grid {
+  gap: 16px;
+}
+
+html[data-ncr-ui-2026="true"] :is(.training-bpf-checklist, .training-bpf-source-summary, .training-bpf-workflow, .training-bpf-identity, .training-bpf-revenue, .training-bpf-charges, .training-bpf-table-section) {
+  border-color: var(--ncr26-border);
+  border-radius: 18px;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-warning-list button {
+  min-height: 54px;
+  border-radius: 11px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-source-summary dl > div,
+html[data-ncr-ui-2026="true"] .training-bpf-workflow li {
+  border-color: var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-form-grid :is(input, select, textarea),
+html[data-ncr-ui-2026="true"] .training-bpf-revenue-row input {
+  border-color: var(--ncr26-border);
+  border-radius: 11px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-revenue-row {
+  min-height: 58px;
+  border-color: var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-data-table {
+  overflow: hidden;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-data-table > div {
+  min-height: 48px;
+  border-color: var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-data-table > .head {
+  background: var(--ncr26-surface-soft);
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"] .training-bpf-savebar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 6;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 18%, var(--ncr26-border));
+  border-radius: 15px;
+  background: rgba(255,255,255,.92);
+  box-shadow: var(--ncr26-shadow-md);
+  backdrop-filter: blur(14px);
+}
+
+/* =========================================================
+   PROFIL ORGANISME
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .training-profile-page {
+  display: grid;
+  gap: 22px;
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-hero {
+  padding: 24px 26px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 88% 0%, rgba(18,103,234,.08), transparent 23rem),
+    linear-gradient(180deg, #fff, #f9fbff);
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-hero > div:first-child > span {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: var(--ncr26-brand-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-hero h1 {
+  margin: 4px 0 7px;
+  color: var(--ncr26-text);
+  letter-spacing: -.035em;
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-score {
+  min-width: 128px;
+  padding: 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: rgba(255,255,255,.86);
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-score strong {
+  color: var(--ncr26-brand-strong);
+  font-size: 1.55rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-layout {
+  gap: 18px;
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-form {
+  overflow: hidden;
+  border-color: var(--ncr26-border);
+  border-radius: 22px;
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-form > section {
+  padding: 22px;
+  border-bottom: 1px solid var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-form > section > header {
+  margin-bottom: 18px;
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-form > section > header > span {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--ncr26-brand-soft);
+  color: var(--ncr26-brand);
+  font-weight: 800;
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-form > section h2 {
+  margin: 2px 0 0;
+  color: var(--ncr26-text);
+  font-size: 1.2rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-form :is(input, select, textarea) {
+  border-color: var(--ncr26-border);
+  border-radius: 11px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-document-assets {
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .training-document-asset {
+  padding: 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-document-asset-preview {
+  border: 1px dashed var(--ncr26-border-strong);
+  border-radius: 12px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-submit {
+  padding: 16px 20px;
+  border-top: 1px solid var(--ncr26-border);
+  background: linear-gradient(180deg, #fff, var(--ncr26-brand-pale));
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-aside {
+  gap: 14px;
+}
+
+html[data-ncr-ui-2026="true"] :is(.training-profile-preview, .training-profile-check) {
+  border: 1px solid var(--ncr26-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-preview {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(18,103,234,.08), transparent 15rem),
+    #fff;
+}
+
+/* =========================================================
+   ÉTABLISSEMENTS
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .metier-site-list {
+  display: grid;
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .metier-site-card {
+  min-height: 94px;
+  padding: 16px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+  transition: transform var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease);
+}
+
+html[data-ncr-ui-2026="true"] .metier-site-card:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 20%, var(--ncr26-border));
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .metier-site-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--ncr26-brand-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .metier-site-main strong {
+  color: var(--ncr26-text);
+  font-size: 1rem;
+}
+
+html[data-ncr-ui-2026="true"] .metier-site-main :is(span, small) {
+  color: var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"] .metier-site-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+/* =========================================================
+   ESPACES & SIGNATURES
+   ========================================================= */
+html[data-ncr-ui-2026="true"] .training-portal-admin-page {
+  display: grid;
+  gap: 20px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-header {
+  padding: 24px 26px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(18,103,234,.08), transparent 22rem),
+    linear-gradient(180deg, #fff, #f9fbff);
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-header h1 {
+  letter-spacing: -.035em;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-metrics article {
+  min-height: 88px;
+  padding: 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-metrics article > span {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--ncr26-brand-soft);
+  color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-metrics article.attention {
+  border-color: color-mix(in srgb, #d97706 25%, var(--ncr26-border));
+  background: color-mix(in srgb, #fff7ed 40%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-tabs {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-tabs button {
+  min-height: 40px;
+  padding: 8px 13px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ncr26-text-soft);
+  font-weight: 700;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-tabs button.active {
+  background: #fff;
+  color: var(--ncr26-brand-strong);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-notice {
+  padding: 12px 14px;
+  border-radius: 13px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-workspace {
+  overflow: hidden;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 21px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-subjects {
+  border-right: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-kind-switch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 4px;
+  padding: 8px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-kind-switch button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ncr26-text-muted);
+  font-weight: 700;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-kind-switch button.active {
+  background: #fff;
+  color: var(--ncr26-brand-strong);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-subject-search {
+  margin: 0 8px 8px;
+  min-height: 40px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 11px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-subject-list {
+  padding: 0 7px 8px;
+  gap: 4px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-subject-list > button {
+  min-height: 62px;
+  padding: 9px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-subject-list > button:hover {
+  background: #fff;
+  border-color: var(--ncr26-border);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-subject-list > button.active {
+  background: var(--ncr26-brand-pale);
+  border-color: color-mix(in srgb, var(--ncr26-brand) 22%, var(--ncr26-border));
+  box-shadow: inset 3px 0 0 var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-main {
+  min-width: 0;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-subject-header {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: linear-gradient(180deg, #fff, #fbfcfe);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-subject-header > div > span {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--ncr26-brand-soft);
+  color: var(--ncr26-brand-strong);
+  font-weight: 800;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-two-columns,
+html[data-ncr-ui-2026="true"] .training-portal-document-console {
+  gap: 14px;
+  padding: 16px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-section,
+html[data-ncr-ui-2026="true"] .training-portal-publish-form {
+  border: 1px solid var(--ncr26-border);
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: var(--ncr26-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-section > header,
+html[data-ncr-ui-2026="true"] .training-portal-publish-form > header {
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-access-list,
+html[data-ncr-ui-2026="true"] .training-portal-admin-document-list,
+html[data-ncr-ui-2026="true"] .training-portal-source-list,
+html[data-ncr-ui-2026="true"] .training-portal-admin-signature-list {
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+}
+
+html[data-ncr-ui-2026="true"] :is(.training-portal-access-list, .training-portal-admin-document-list, .training-portal-source-list) > article {
+  min-height: 64px;
+  padding: 10px 11px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 13px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-invite-form,
+html[data-ncr-ui-2026="true"] .training-portal-publish-form {
+  padding: 15px;
+}
+
+html[data-ncr-ui-2026="true"] :is(.training-portal-invite-form, .training-portal-publish-form, .training-portal-manual-link) :is(input, select) {
+  min-height: 43px;
+  border-color: var(--ncr26-border);
+  border-radius: 11px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-pending-invite {
+  margin: 8px 12px;
+  padding: 10px 11px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 12px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-manual-link {
+  margin: 10px 12px 12px;
+  padding: 13px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 20%, var(--ncr26-border));
+  border-radius: 14px;
+  background: var(--ncr26-brand-pale);
+}
+
+html[data-ncr-ui-2026="true"] .training-toggle-field {
+  padding: 12px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 13px;
+  background: var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-signature-console {
+  margin: 16px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-signature-list > article {
+  overflow: hidden;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 15px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-signature-list > article.highlighted {
+  border-color: color-mix(in srgb, var(--ncr26-brand) 35%, var(--ncr26-border));
+  box-shadow: 0 0 0 3px var(--ncr26-ring);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-signature-row {
+  padding: 12px 13px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-admin-signature-list details {
+  border-top: 1px solid var(--ncr26-border);
+  background: var(--ncr26-surface-soft);
+}
+
+/* =========================================================
+   RESPONSIVE — GOVERNANCE
+   ========================================================= */
+@media (max-width: 1180px) {
+  html[data-ncr-ui-2026="true"] .training-compliance-metrics,
+  html[data-ncr-ui-2026="true"] .training-bpf-metrics,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  html[data-ncr-ui-2026="true"] .training-dossier-commandbar,
+  html[data-ncr-ui-2026="true"] .training-bpf-header,
+  html[data-ncr-ui-2026="true"] .training-compliance-header,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-header {
+    align-items: stretch;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-commandbar {
+    flex-direction: column;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-search {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-hero {
+    grid-template-columns: auto 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-progress {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-profile-aside {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-admin-workspace {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  html[data-ncr-ui-2026="true"] .training-dossier-page,
+  html[data-ncr-ui-2026="true"] .training-quality-compliance-page,
+  html[data-ncr-ui-2026="true"] .training-bpf-page,
+  html[data-ncr-ui-2026="true"] .training-profile-page,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-page {
+    gap: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-page .training-dossier-hero,
+  html[data-ncr-ui-2026="true"] .training-compliance-header,
+  html[data-ncr-ui-2026="true"] .training-bpf-header,
+  html[data-ncr-ui-2026="true"] .training-profile-hero,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-header {
+    padding: 18px 16px;
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-hero-copy,
+  html[data-ncr-ui-2026="true"] .training-profile-hero > div:first-child {
+    align-items: flex-start;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-hero-actions,
+  html[data-ncr-ui-2026="true"] .training-compliance-header .header-actions,
+  html[data-ncr-ui-2026="true"] .training-bpf-header-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] :is(.training-dossier-hero-actions, .training-compliance-header .header-actions, .training-bpf-header-actions) :is(button, a, label) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-metrics,
+  html[data-ncr-ui-2026="true"] .training-compliance-metrics,
+  html[data-ncr-ui-2026="true"] .training-bpf-metrics,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-metrics article,
+  html[data-ncr-ui-2026="true"] .training-compliance-metrics article,
+  html[data-ncr-ui-2026="true"] .training-bpf-metrics article,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-metrics article {
+    min-height: 84px;
+    padding: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-tabs,
+  html[data-ncr-ui-2026="true"] .training-compliance-tabs,
+  html[data-ncr-ui-2026="true"] .training-bpf-tabs,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-tabs button,
+  html[data-ncr-ui-2026="true"] .training-compliance-tabs button,
+  html[data-ncr-ui-2026="true"] .training-bpf-tabs button,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-tabs button {
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-workspace,
+  html[data-ncr-ui-2026="true"] .training-compliance-workspace,
+  html[data-ncr-ui-2026="true"] .training-compliance-audits-grid,
+  html[data-ncr-ui-2026="true"] .training-bpf-overview-grid,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-list-panel {
+    max-height: 390px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-detail-header,
+  html[data-ncr-ui-2026="true"] .training-dossier-detail-grid {
+    padding: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-facts {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    padding: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-check {
+    grid-template-columns: auto minmax(0,1fr);
+    gap: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-check-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-compliance-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-compliance-toolbar > * {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-compliance-editor {
+    min-height: auto;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-compliance-evidence,
+  html[data-ncr-ui-2026="true"] .training-compliance-audit {
+    grid-template-columns: auto minmax(0,1fr);
+    gap: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"] :is(.training-compliance-evidence .evidence-meta, .training-compliance-evidence .evidence-actions, .training-compliance-audit .audit-actions) {
+    grid-column: 2;
+    justify-self: stretch;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-mode-switch {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-hero {
+    grid-template-columns: 1fr;
+    padding: 17px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-hero-icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps button {
+    min-height: 72px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-card > header,
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-question,
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-identity-grid,
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-card > footer {
+    padding-inline: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-identity-grid,
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-data-table {
+    overflow-x: auto;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-data-table > div {
+    min-width: 560px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-savebar {
+    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  }
+
+  html[data-ncr-ui-2026="true"] .training-profile-hero {
+    align-items: stretch;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-profile-score {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-profile-form > section {
+    padding: 17px 15px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-profile-aside {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-profile-submit {
+    display: grid;
+    gap: 12px;
+    padding: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-profile-submit .primary-button {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .metier-site-card {
+    grid-template-columns: auto minmax(0,1fr);
+    gap: 10px 12px;
+    padding: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .metier-site-badges,
+  html[data-ncr-ui-2026="true"] .metier-site-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-subjects {
+    border-right: 0;
+    border-bottom: 1px solid var(--ncr26-border);
+    max-height: 350px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-kind-switch {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--ncr26-surface-soft);
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-admin-two-columns {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-document-console {
+    padding: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-subject-header {
+    padding: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-signature-console {
+    margin: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-signature-row {
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr);
+    gap: 9px;
+  }
+
+  html[data-ncr-ui-2026="true"] :is(.training-portal-signature-row .training-portal-status, .training-portal-signature-row .training-portal-signature-actions) {
+    grid-column: 2;
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 420px) {
+  html[data-ncr-ui-2026="true"] .training-dossier-metrics,
+  html[data-ncr-ui-2026="true"] .training-compliance-metrics,
+  html[data-ncr-ui-2026="true"] .training-bpf-metrics,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-metrics,
+  html[data-ncr-ui-2026="true"] .training-dossier-facts {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-bpf-assistant-steps {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-dossier-tabs,
+  html[data-ncr-ui-2026="true"] .training-compliance-tabs,
+  html[data-ncr-ui-2026="true"] .training-bpf-tabs,
+  html[data-ncr-ui-2026="true"] .training-portal-admin-tabs {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] :is(.training-dossier-page, .training-quality-compliance-page, .training-bpf-page, .training-profile-page, .training-portal-admin-page) * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
