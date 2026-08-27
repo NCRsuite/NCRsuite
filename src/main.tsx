@@ -5,10 +5,14 @@ import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { ConnectivityStatus } from './components/ConnectivityStatus';
 import { RuntimeMonitor } from './components/RuntimeMonitor';
+import { NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED } from './config/ui2026';
 import { AuthProvider } from './contexts/AuthContext';
 import { OrganizationProvider } from './contexts/OrganizationContext';
 import { PlatformAdminProvider } from './contexts/PlatformAdminContext';
+import './ncrUi2026.css';
 import './trainingDossierContrastFix.css';
+
+document.documentElement.dataset[NCR_UI_2026_DATA_ATTRIBUTE] = NCR_UI_2026_ENABLED ? 'true' : 'false';
 
 function announceServiceWorkerUpdate(registration: ServiceWorkerRegistration) {
   window.dispatchEvent(new CustomEvent('ncr:sw-update', { detail: { registration } }));
