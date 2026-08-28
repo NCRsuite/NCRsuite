@@ -1,0 +1,384 @@
+/*
+ * NCR UI 2026 — Workspace context polish
+ * Simplifie visuellement les sélecteurs Entreprise / Établissement.
+ * Desktop + mobile, commun aux cinq métiers NCR Suite.
+ * CSS uniquement : aucune logique, donnée, permission ou action modifiée.
+ * Point de retour avant cette couche : 65fa8d293e40d58508e6e1ed72b3b4f178a9e835
+ */
+
+html[data-ncr-ui-2026="true"]:is(
+  [data-business-theme="formation"],
+  [data-business-theme="nettoyage"],
+  [data-business-theme="securite"],
+  [data-business-theme="coiffure"],
+  [data-business-theme="restauration"]
+) {
+  --ncr26-context-border: color-mix(in srgb, var(--ncr26-border) 86%, transparent);
+  --ncr26-context-soft: color-mix(in srgb, var(--ncr26-surface-soft) 78%, #fff);
+  --ncr26-context-active: color-mix(in srgb, var(--ncr26-brand-pale) 72%, #fff);
+}
+
+/* =========================================================
+   DESKTOP — UN SEUL BLOC DE CONTEXTE
+   ========================================================= */
+@media (min-width: 901px) {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .desktop-context-switchers {
+    position: relative;
+    display: grid;
+    gap: 0;
+    padding: 8px;
+    overflow: visible;
+    border: 1px solid var(--ncr26-context-border);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, .74);
+    box-shadow: 0 8px 28px rgba(15, 23, 42, .045);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .desktop-context-switchers > .context-switcher {
+    position: relative;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .desktop-context-switchers > .context-switcher + .context-switcher {
+    margin-top: 7px;
+    padding-top: 8px;
+    border-top: 1px solid color-mix(in srgb, var(--ncr26-border) 76%, transparent);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-label {
+    min-height: 16px;
+    margin: 0 3px 4px;
+    padding: 0;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-label > span {
+    font-size: 9px;
+    letter-spacing: .095em;
+    font-weight: 790;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-label > small {
+    font-size: 9px;
+    opacity: .82;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-trigger {
+    min-height: 50px;
+    padding: 6px 7px;
+    gap: 8px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-trigger:hover {
+    background: var(--ncr26-context-soft);
+    box-shadow: none;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher.open .context-switcher-trigger {
+    background: var(--ncr26-context-active);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ncr26-brand) 22%, transparent);
+  }
+
+  /* L’entreprise reste le repère visuel principal : logo toujours visible. */
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .organization-switcher .context-switcher-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 11px;
+    background: #fff;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, .055);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .site-switcher .context-switcher-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    border-radius: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-copy {
+    min-width: 0;
+    gap: 2px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-copy strong {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    text-overflow: clip;
+    font-size: 12.5px;
+    line-height: 1.15;
+    font-weight: 740;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-copy small {
+    font-size: 9.8px;
+    line-height: 1.18;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-chevron {
+    width: 22px;
+    min-width: 22px;
+    opacity: .72;
+  }
+
+  /* Les informations secondaires ne prennent plus une ligne permanente. */
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-foot {
+    display: none;
+  }
+
+  /* Les listes deviennent de vrais popovers et n’allongent plus la sidebar. */
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher.open {
+    z-index: 90;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-menu {
+    position: absolute;
+    top: calc(100% + 7px);
+    left: -1px;
+    right: -1px;
+    z-index: 100;
+    margin: 0;
+    padding: 7px;
+    max-height: min(330px, 44dvh);
+    overflow: auto;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .98);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 22px 58px rgba(15, 23, 42, .18);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .app-shell .context-switcher-options > button {
+    min-height: 48px;
+    padding: 6px 7px;
+  }
+}
+
+/* =========================================================
+   MOBILE — PLUS COMPACT, MAIS LE LOGO RESTE LE REPÈRE
+   ========================================================= */
+@media (max-width: 900px) {
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-section {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-sheet-title {
+    margin-bottom: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-list {
+    gap: 7px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-option {
+    min-height: 64px;
+    padding: 8px 10px;
+    grid-template-columns: 44px minmax(0, 1fr) 25px;
+    column-gap: 10px;
+    border-radius: 14px;
+    box-shadow: none;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-logo {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-option.active {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ncr26-brand) 18%, transparent);
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-copy strong {
+    font-size: 15px;
+    line-height: 1.15;
+  }
+
+  html[data-ncr-ui-2026="true"]:is(
+    [data-business-theme="formation"],
+    [data-business-theme="nettoyage"],
+    [data-business-theme="securite"],
+    [data-business-theme="coiffure"],
+    [data-business-theme="restauration"]
+  ) .mobile-account-sheet .mobile-organization-copy small {
+    font-size: 11.3px;
+    line-height: 1.18;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .context-switcher-trigger,
+  html[data-ncr-ui-2026="true"] .mobile-organization-option {
+    transition: none !important;
+  }
+}
