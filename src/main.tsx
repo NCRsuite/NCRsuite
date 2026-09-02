@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { ClientPortalConfigurationGuard } from './components/ClientPortalLanding';
 import { ClientPortalInstallGuide } from './components/ClientPortalInstallGuide';
 import { ConnectivityStatus } from './components/ConnectivityStatus';
 import { RuntimeMonitor } from './components/RuntimeMonitor';
@@ -80,9 +81,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <OrganizationProvider>
             <RuntimeMonitor />
             <ConnectivityStatus />
-            <AppErrorBoundary>
-              <App />
-            </AppErrorBoundary>
+            <ClientPortalConfigurationGuard>
+              <AppErrorBoundary>
+                <App />
+              </AppErrorBoundary>
+            </ClientPortalConfigurationGuard>
           </OrganizationProvider>
         </PlatformAdminProvider>
       </AuthProvider>
