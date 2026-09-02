@@ -121,11 +121,14 @@ export function MetierRuntimeBranding() {
 
     const restore = new Map<HTMLImageElement, { src: string; alt: string }>();
 
-    function applyToShell() {
+    function applyBranding() {
       if (!branding.logo_url) return;
       const selectors = [
         '.sidebar .brand.brand-horizontal img',
-        '.mobile-drawer-header img'
+        '.mobile-drawer-header img',
+        '.showcase-brand img',
+        '.auth-wordmark',
+        '.loading-screen img'
       ];
       document.querySelectorAll<HTMLImageElement>(selectors.join(',')).forEach((image) => {
         if (!restore.has(image)) restore.set(image, { src: image.src, alt: image.alt });
@@ -134,8 +137,8 @@ export function MetierRuntimeBranding() {
       });
     }
 
-    applyToShell();
-    const observer = new MutationObserver(applyToShell);
+    applyBranding();
+    const observer = new MutationObserver(applyBranding);
     observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
