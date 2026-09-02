@@ -184,6 +184,7 @@ export type IconName =
   | 'refresh'
   | 'bell'
   | 'message'
+  | 'phone'
   | 'headset'
   | 'monitor'
   | 'camera'
