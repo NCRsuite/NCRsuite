@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import type { BusinessType, Plan } from '../types';
 import { Icon } from './Icon';
 
-type AccessRequestStatus = 'pending' | 'approved' | 'rejected';
+type AccessRequestStatus = 'pending' | 'approved' | 'rejected' | 'revoked';
 
 interface AccessRequest {
   id: string;
@@ -23,6 +23,7 @@ interface AccessRequest {
   reviewed_at: string | null;
   decision_note: string | null;
   invited_user_id: string | null;
+  organization_id: string | null;
   invitation_sent_at: string | null;
   invitation_count: number;
   last_invitation_error: string | null;
@@ -37,7 +38,8 @@ interface AccessRequest {
 const statusLabels: Record<AccessRequestStatus, string> = {
   pending: 'À étudier',
   approved: 'Acceptée',
-  rejected: 'Refusée'
+  rejected: 'Refusée',
+  revoked: 'Révoquée'
 };
 
 const planLabels: Record<Plan, string> = {
@@ -105,7 +107,7 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
   const [search, setSearch] = useState('');
   const [decisionNote, setDecisionNote] = useState('');
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState<'approve' | 'reject' | 'resend' | null>(null);
+  const [processing, setProcessing] = useState<'approve' | 'reject' | 'resend' | 'revoke' | null>(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
@@ -116,7 +118,7 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
 
     let query = supabase
       .from('platform_access_requests')
-      .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,trial_requested,team_size,message,status,submitted_at,reviewed_at,decision_note,invited_user_id,invitation_sent_at,invitation_count,last_invitation_error,acquisition_source,acquisition_medium,acquisition_campaign,acquisition_content,landing_path,referrer_url')
+      .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,trial_requested,team_size,message,status,submitted_at,reviewed_at,decision_note,invited_user_id,organization_id,invitation_sent_at,invitation_count,last_invitation_error,acquisition_source,acquisition_medium,acquisition_campaign,acquisition_content,landing_path,referrer_url')
       .order('submitted_at', { ascending: false })
       .limit(250);
 
@@ -182,11 +184,17 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
     setMessage('');
   }
 
-  async function review(action: 'approve' | 'reject' | 'resend') {
+  async function review(action: 'approve' | 'reject' | 'resend' | 'revoke') {
     if (!supabase || !selected || !canReview || processing) return;
     if (action === 'reject' && decisionNote.trim().length < 3) {
       setError('Ajoutez une courte note interne avant de refuser la demande.');
       return;
+    }
+    if (action === 'revoke') {
+      const confirmed = window.confirm(
+        `Révoquer l’autorisation ${selected.reference} pour ${selected.email} ?\n\nCe compte ne pourra plus ouvrir un espace entreprise avec cette demande.`
+      );
+      if (!confirmed) return;
     }
 
     setProcessing(action);
@@ -258,7 +266,7 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
 
       {error && <div className="error-message" role="alert">{error}</div>}
       {message && <div className="success-message" role="status">{message}</div>}
-      {!canReview && <div className="info-message">Ce rôle peut consulter les demandes. Seul le super-administrateur peut décider et envoyer une invitation.</div>}
+      {!canReview && <div className="info-message">Ce rôle peut consulter les demandes. Seul le super-administrateur peut décider, inviter ou révoquer une autorisation.</div>}
 
       <section className="admin-access-layout">
         <article className="panel admin-access-list-panel">
@@ -268,6 +276,7 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
               <option value="pending">À étudier</option>
               <option value="approved">Acceptées</option>
               <option value="rejected">Refusées</option>
+              <option value="revoked">Révoquées</option>
               <option value="all">Toutes les demandes</option>
             </select>
             <button type="button" className="icon-button" onClick={() => void load(true)} disabled={loading} aria-label="Actualiser les demandes" title="Actualiser">
@@ -343,13 +352,23 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
 
               <label className="admin-access-note">
                 Note interne de décision
-                <textarea rows={4} maxLength={2000} value={decisionNote} onChange={(event) => setDecisionNote(event.target.value)} disabled={!canReview} placeholder="Vérification effectuée, échange commercial, motif du refus…" />
+                <textarea rows={4} maxLength={2000} value={decisionNote} onChange={(event) => setDecisionNote(event.target.value)} disabled={!canReview} placeholder="Vérification effectuée, échange commercial, motif du refus ou de la révocation…" />
               </label>
 
-              {selected.status === 'approved' && (
+              {selected.status === 'approved' && !selected.organization_id && (
                 <div className="admin-access-invitation">
                   <Icon name="check" size={18} />
-                  <span><strong>Invitation envoyée {dateLabel(selected.invitation_sent_at)}</strong><small>{selected.invitation_count} envoi(s). Le compte sera configuré après activation.</small></span>
+                  <span><strong>Autorisation active · invitation envoyée {dateLabel(selected.invitation_sent_at)}</strong><small>{selected.invitation_count} envoi(s). Cette demande peut encore ouvrir un espace entreprise.</small></span>
+                </div>
+              )}
+              {selected.status === 'approved' && selected.organization_id && (
+                <div className="info-message">
+                  Cette autorisation a déjà été consommée pour créer une entreprise. L’accès se gère désormais depuis la fiche de cette entreprise.
+                </div>
+              )}
+              {selected.status === 'revoked' && (
+                <div className="warning-message">
+                  Autorisation révoquée : cette demande ne peut plus ouvrir d’espace entreprise. Une nouvelle demande d’accès pourra être déposée avec cette adresse.
                 </div>
               )}
               {selected.last_invitation_error && <div className="warning-message">{selected.last_invitation_error}</div>}
@@ -366,10 +385,15 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
                       </button>
                     </>
                   )}
-                  {selected.status === 'approved' && (
-                    <button type="button" className="secondary-button" onClick={() => void review('resend')} disabled={Boolean(processing)}>
-                      <Icon name="refresh" size={17} /> {processing === 'resend' ? 'Nouvel envoi…' : 'Renvoyer l’invitation'}
-                    </button>
+                  {selected.status === 'approved' && !selected.organization_id && (
+                    <>
+                      <button type="button" className="secondary-button" onClick={() => void review('resend')} disabled={Boolean(processing)}>
+                        <Icon name="refresh" size={17} /> {processing === 'resend' ? 'Nouvel envoi…' : 'Renvoyer l’invitation'}
+                      </button>
+                      <button type="button" className="secondary-button danger-button" onClick={() => void review('revoke')} disabled={Boolean(processing)}>
+                        {processing === 'revoke' ? 'Révocation…' : 'Révoquer l’autorisation'}
+                      </button>
+                    </>
                   )}
                 </div>
               )}
