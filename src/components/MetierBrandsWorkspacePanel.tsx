@@ -10,6 +10,7 @@ interface MetierBrand {
   name: string;
   code: string | null;
   logo_url: string | null;
+  compact_logo_url: string | null;
   primary_color: string;
   platform_subdomain: string | null;
   platform_domain: string | null;
@@ -59,6 +60,8 @@ export function MetierBrandsWorkspacePanel({ organizationId, siteLimit, canManag
   const [code, setCode] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [compactLogoUrl, setCompactLogoUrl] = useState('');
+  const [compactLogoFile, setCompactLogoFile] = useState<File | null>(null);
   const [primaryColor, setPrimaryColor] = useState('#2997ff');
   const [customDomain, setCustomDomain] = useState('');
   const [isPrimary, setIsPrimary] = useState(false);
@@ -89,6 +92,7 @@ export function MetierBrandsWorkspacePanel({ organizationId, siteLimit, canManag
     setShowEditor(false);
     setEditingId(null);
     setLogoFile(null);
+    setCompactLogoFile(null);
     setError('');
     setMessage('');
     void load();
@@ -105,6 +109,8 @@ export function MetierBrandsWorkspacePanel({ organizationId, siteLimit, canManag
     setCode('');
     setLogoUrl('');
     setLogoFile(null);
+    setCompactLogoUrl('');
+    setCompactLogoFile(null);
     setPrimaryColor('#2997ff');
     setCustomDomain('');
     setIsPrimary(brands.length === 0);
@@ -119,6 +125,8 @@ export function MetierBrandsWorkspacePanel({ organizationId, siteLimit, canManag
     setCode(brand.code ?? '');
     setLogoUrl(brand.logo_url ?? '');
     setLogoFile(null);
+    setCompactLogoUrl(brand.compact_logo_url ?? '');
+    setCompactLogoFile(null);
     setPrimaryColor(brand.primary_color || '#2997ff');
     setCustomDomain(brand.custom_domain ?? '');
     setIsPrimary(brand.is_primary);
@@ -127,7 +135,7 @@ export function MetierBrandsWorkspacePanel({ organizationId, siteLimit, canManag
     setMessage('');
   }
 
-  function selectLogo(file?: File) {
+  function selectLogo(file: File | undefined, kind: 'main' | 'compact') {
     if (!file) return;
     setError('');
     if (!allowedLogoTypes.includes(file.type)) {
@@ -138,12 +146,13 @@ export function MetierBrandsWorkspacePanel({ organizationId, siteLimit, canManag
       setError('Le logo ne doit pas dépasser 2 Mo.');
       return;
     }
-    setLogoFile(file);
+    if (kind === 'main') setLogoFile(file);
+    else setCompactLogoFile(file);
   }
 
-  async function uploadLogo(file: File) {
+  async function uploadLogo(file: File, kind: 'main' | 'compact') {
     if (!supabase) throw new Error('Le service de données est indisponible.');
-    const path = `${organizationId}/brand-${editingId ?? crypto.randomUUID()}-${Date.now()}.${logoExtension(file)}`;
+    const path = `${organizationId}/brand-${kind}-${editingId ?? crypto.randomUUID()}-${Date.now()}.${logoExtension(file)}`;
     const { error: uploadError } = await supabase.storage
       .from('organization-branding')
       .upload(path, file, { contentType: file.type, cacheControl: '3600', upsert: false });
@@ -162,8 +171,11 @@ export function MetierBrandsWorkspacePanel({ organizationId, siteLimit, canManag
     setMessage('');
     try {
       let nextLogoUrl = logoUrl.trim() || null;
-      if (logoFile) nextLogoUrl = await uploadLogo(logoFile);
-      const { error: requestError } = await supabase.rpc('metier_upsert_brand', {
+      let nextCompactLogoUrl = compactLogoUrl.trim() || null;
+      if (logoFile) nextLogoUrl = await uploadLogo(logoFile, 'main');
+      if (compactLogoFile) nextCompactLogoUrl = await uploadLogo(compactLogoFile, 'compact');
+
+      const { data: savedBrandId, error: requestError } = await supabase.rpc('metier_upsert_brand', {
         p_organization_id: organizationId,
         p_brand_id: editingId,
         p_name: name.trim(),
@@ -174,12 +186,25 @@ export function MetierBrandsWorkspacePanel({ organizationId, siteLimit, canManag
         p_is_primary: isPrimary
       });
       if (requestError) throw requestError;
+
+      const brandId = typeof savedBrandId === 'string' ? savedBrandId : editingId;
+      if (!brandId) throw new Error('Enseigne enregistrée mais identifiant indisponible.');
+
+      const { error: logoError } = await supabase.rpc('metier_update_brand_logos', {
+        p_organization_id: organizationId,
+        p_brand_id: brandId,
+        p_logo_url: nextLogoUrl,
+        p_compact_logo_url: nextCompactLogoUrl
+      });
+      if (logoError) throw logoError;
+
       setMessage(customDomain.trim()
         ? 'L’enseigne est enregistrée. Son adresse NCR Suite est automatique ; le domaine externe reste à valider par NCR.'
         : 'L’enseigne est enregistrée avec son adresse NCR Suite automatique.');
       setShowEditor(false);
       setEditingId(null);
       setLogoFile(null);
+      setCompactLogoFile(null);
       await load();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Enregistrement impossible.');
@@ -272,37 +297,54 @@ export function MetierBrandsWorkspacePanel({ organizationId, siteLimit, canManag
       </div>
 
       <div className="metier-role-list">
-        {brands.map((brand) => (
-          <article key={brand.id}>
-            {brand.logo_url
-              ? <img src={brand.logo_url} alt="" style={{ width: 38, height: 38, objectFit: 'contain', borderRadius: 10, flex: '0 0 auto' }} />
-              : <span style={{ width: 12, height: 12, borderRadius: 99, background: brand.primary_color, flex: '0 0 auto' }} />}
-            <div>
-              <strong>{brand.name}{brand.is_primary ? ' · principale' : ''}</strong>
-              <span>{brand.active_sites} établissement(s){brand.code ? ` · ${brand.code}` : ''}</span>
-              <small><b>Incluse :</b> {brand.platform_domain ? `https://${brand.platform_domain}` : 'Adresse NCR Suite en préparation'}</small>
-              <small>{brand.custom_domain ? <><b>Domaine client :</b> {brand.custom_domain} · {statusLabels[brand.custom_domain_status]}</> : 'Domaine client : optionnel'}</small>
-            </div>
-            {canManage && <div><button type="button" className="secondary-button compact-button" onClick={() => editBrand(brand)}>Modifier</button>{!brand.is_primary && <button type="button" className="danger-text-button" onClick={() => void archiveBrand(brand)} disabled={busy === `archive-${brand.id}`}>Archiver</button>}</div>}
-          </article>
-        ))}
+        {brands.map((brand) => {
+          const listLogo = brand.compact_logo_url || brand.logo_url;
+          return (
+            <article key={brand.id}>
+              {listLogo
+                ? <img src={listLogo} alt="" style={{ width: 38, height: 38, objectFit: 'contain', borderRadius: 10, flex: '0 0 auto' }} />
+                : <span style={{ width: 12, height: 12, borderRadius: 99, background: brand.primary_color, flex: '0 0 auto' }} />}
+              <div>
+                <strong>{brand.name}{brand.is_primary ? ' · principale' : ''}</strong>
+                <span>{brand.active_sites} établissement(s){brand.code ? ` · ${brand.code}` : ''}</span>
+                <small><b>Incluse :</b> {brand.platform_domain ? `https://${brand.platform_domain}` : 'Adresse NCR Suite en préparation'}</small>
+                <small>{brand.custom_domain ? <><b>Domaine client :</b> {brand.custom_domain} · {statusLabels[brand.custom_domain_status]}</> : 'Domaine client : optionnel'}</small>
+              </div>
+              {canManage && <div><button type="button" className="secondary-button compact-button" onClick={() => editBrand(brand)}>Modifier</button>{!brand.is_primary && <button type="button" className="danger-text-button" onClick={() => void archiveBrand(brand)} disabled={busy === `archive-${brand.id}`}>Archiver</button>}</div>}
+            </article>
+          );
+        })}
       </div>
 
       {showEditor && (
         <div className="form-grid" style={{ marginTop: 18 }}>
           <label>Nom de l’enseigne<input required minLength={2} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} /></label>
           <label>Code interne<input maxLength={40} value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} /></label>
-          <label className="full-field">Logo de l’enseigne
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-              <label className="secondary-button compact-button">Choisir un logo<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => selectLogo(event.target.files?.[0])} /></label>
+
+          <div className="full-field">
+            <strong>Logo principal</strong>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
+              <label className="secondary-button compact-button">Choisir le logo principal<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => selectLogo(event.target.files?.[0], 'main')} /></label>
               <input value={logoUrl} onChange={(event) => setLogoUrl(event.target.value)} placeholder="ou https://…" style={{ flex: '1 1 260px' }} />
+              {(logoUrl || logoFile) && <button type="button" className="danger-text-button" onClick={() => { setLogoFile(null); setLogoUrl(''); }}>Retirer</button>}
             </div>
-            <small>PNG, JPG ou WebP · 2 Mo maximum. Le logo remplacera NCR Suite dans l’interface lorsque la marque blanche est active.</small>
-          </label>
+            <small>Utilisé sur la connexion, les écrans de marque et comme logo principal de l’enseigne.</small>
+          </div>
+
+          <div className="full-field">
+            <strong>Logo compact / icône</strong>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginTop: 8 }}>
+              <label className="secondary-button compact-button">Choisir le logo compact<input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => selectLogo(event.target.files?.[0], 'compact')} /></label>
+              <input value={compactLogoUrl} onChange={(event) => setCompactLogoUrl(event.target.value)} placeholder="ou https://…" style={{ flex: '1 1 260px' }} />
+              {(compactLogoUrl || compactLogoFile) && <button type="button" className="danger-text-button" onClick={() => { setCompactLogoFile(null); setCompactLogoUrl(''); }}>Retirer</button>}
+            </div>
+            <small>Conseillé en format carré ou pictogramme. Utilisé dans la barre latérale, le menu mobile, le chargement et le favicon. S’il est vide, NCR Suite utilise automatiquement le logo principal en le redimensionnant.</small>
+          </div>
+
           <label>Couleur<input type="color" value={primaryColor} onChange={(event) => setPrimaryColor(event.target.value)} /></label>
           <label className="full-field">Domaine propre du client · optionnel<input value={customDomain} onChange={(event) => setCustomDomain(event.target.value.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, ''))} placeholder="gestion.mon-entreprise.fr" /><small>L’adresse *.ncr-suite.fr reste attribuée automatiquement. Ce domaine externe est un alias premium et repasse en validation DNS après chaque modification.</small></label>
           <label className="full-field admin-checkbox-field"><input type="checkbox" checked={isPrimary} onChange={(event) => setIsPrimary(event.target.checked)} /><span><strong>Enseigne principale</strong><small>Elle sert d’identité par défaut pour cet espace Métier.</small></span></label>
-          <div className="modal-actions full-field"><button type="button" className="secondary-button" onClick={() => { setShowEditor(false); setLogoFile(null); }}>Annuler</button><button type="button" className="primary-button" onClick={() => void saveBrand()} disabled={busy === 'brand'}>{busy === 'brand' ? 'Enregistrement…' : 'Enregistrer l’enseigne'}</button></div>
+          <div className="modal-actions full-field"><button type="button" className="secondary-button" onClick={() => { setShowEditor(false); setLogoFile(null); setCompactLogoFile(null); }}>Annuler</button><button type="button" className="primary-button" onClick={() => void saveBrand()} disabled={busy === 'brand'}>{busy === 'brand' ? 'Enregistrement…' : 'Enregistrer l’enseigne'}</button></div>
         </div>
       )}
 
@@ -312,7 +354,7 @@ export function MetierBrandsWorkspacePanel({ organizationId, siteLimit, canManag
         ))}
       </div>
 
-      <div className="info-message">Adresse NCR Suite incluse : automatique et sans réglage DNS client. Domaine propre : optionnel et soumis à validation technique. Avec la marque blanche active, le logo de l’enseigne remplace le logo NCR Suite dans l’interface Métier.</div>
+      <div className="info-message">Adresse NCR Suite incluse : automatique et sans réglage DNS client. Domaine propre : optionnel et soumis à validation technique. Avec la marque blanche active, la sidebar utilise le logo compact et les écrans de connexion utilisent le logo principal.</div>
     </section>
   );
 }
