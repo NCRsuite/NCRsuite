@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link, Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useOrganization } from '../contexts/OrganizationContext';
+import { usePlatformAdmin } from '../contexts/PlatformAdminContext';
 import { supabase } from '../lib/supabase';
 
 type ClientPortalDestination = {
@@ -40,19 +43,43 @@ const portalChecks: Array<ClientPortalDestination & { rpc: string }> = [
   }
 ];
 
-export function ClientPortalLanding() {
-  const [loading, setLoading] = useState(true);
+export function ClientPortalConfigurationGuard({ children }: { children: ReactNode }) {
+  const { user, loading: authLoading } = useAuth();
+  const { organization, loading: organizationLoading } = useOrganization();
+  const { isAdmin, loading: adminLoading } = usePlatformAdmin();
+  const location = useLocation();
+  const shouldResolve = location.pathname === '/configuration'
+    && Boolean(user)
+    && !authLoading
+    && !organizationLoading
+    && !adminLoading
+    && !organization
+    && !isAdmin;
+  const [loading, setLoading] = useState(false);
+  const [resolvedForUserId, setResolvedForUserId] = useState('');
   const [destinations, setDestinations] = useState<ClientPortalDestination[]>([]);
 
   useEffect(() => {
     let active = true;
 
+    if (!shouldResolve || !user) {
+      setLoading(false);
+      setResolvedForUserId('');
+      setDestinations([]);
+      return () => { active = false; };
+    }
+
     async function resolveClientPortals() {
       if (!supabase) {
-        if (active) setLoading(false);
+        if (active) {
+          setDestinations([]);
+          setResolvedForUserId(user.id);
+          setLoading(false);
+        }
         return;
       }
 
+      setLoading(true);
       const checks = await Promise.all(portalChecks.map(async ({ rpc, ...destination }) => {
         const { data, error } = await supabase.rpc(rpc);
         if (error) {
@@ -64,18 +91,20 @@ export function ClientPortalLanding() {
 
       if (!active) return;
       setDestinations(checks.filter((item): item is ClientPortalDestination => Boolean(item)));
+      setResolvedForUserId(user.id);
       setLoading(false);
     }
 
     void resolveClientPortals();
     return () => { active = false; };
-  }, []);
+  }, [shouldResolve, user?.id]);
 
-  if (loading) {
+  if (!shouldResolve) return <>{children}</>;
+  if (loading || resolvedForUserId !== user?.id) {
     return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Identification de ton espace…</span></div>;
   }
 
-  if (destinations.length === 0) return <Navigate to="/configuration" replace />;
+  if (destinations.length === 0) return <>{children}</>;
   if (destinations.length === 1) return <Navigate to={destinations[0].path} replace />;
 
   return (
@@ -101,7 +130,7 @@ export function ClientPortalLanding() {
 
         <div style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid #eef1f5', display: 'flex', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
           <span style={{ color: '#98a2b3', fontSize: 13 }}>Accès client détecté automatiquement</span>
-          <Link to="/configuration" style={{ color: '#475467', fontSize: 13, fontWeight: 700 }}>Configurer une entreprise</Link>
+          <Link to="/configuration?nouvelle-entreprise=1" style={{ color: '#475467', fontSize: 13, fontWeight: 700 }}>Configurer une entreprise</Link>
         </div>
       </section>
     </main>
