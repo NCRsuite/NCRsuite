@@ -7,6 +7,7 @@ import { ClientPortalConfigurationGuard } from './components/ClientPortalLanding
 import { ClientPortalInstallGuide } from './components/ClientPortalInstallGuide';
 import { ConnectivityStatus } from './components/ConnectivityStatus';
 import { EnterpriseOnboardingGuard } from './components/EnterpriseOnboardingGuard';
+import { MetierRuntimeBranding } from './components/MetierRuntimeBranding';
 import { RuntimeMonitor } from './components/RuntimeMonitor';
 import { NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED } from './config/ui2026';
 import { AuthProvider } from './contexts/AuthContext';
@@ -80,6 +81,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <ClientPortalInstallGuide />
         <PlatformAdminProvider>
           <OrganizationProvider>
+            <MetierRuntimeBranding />
             <RuntimeMonitor />
             <ConnectivityStatus />
             <ClientPortalConfigurationGuard>
