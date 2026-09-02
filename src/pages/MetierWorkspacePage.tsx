@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Icon } from '../components/Icon';
+import { MetierBrandsWorkspacePanel } from '../components/MetierBrandsWorkspacePanel';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
 
@@ -23,6 +24,7 @@ interface MetierOrganizationConfig {
 interface MetierUsage {
   active_members: number;
   active_sites: number;
+  active_brands?: number;
   custom_roles: number;
   enabled_modules: number;
 }
@@ -182,7 +184,7 @@ export function MetierWorkspacePage() {
         <header className="page-header"><div><p className="eyebrow">OFFRE MÉTIER</p><h1>Configuration sur mesure</h1><p>Un environnement dédié aux structures multi-sites et aux besoins spécifiques.</p></div></header>
         <section className="panel upgrade-panel metier-upgrade-panel">
           <div className="upgrade-icon"><Icon name="tool" size={28} /></div>
-          <div><p className="eyebrow">SUR ÉTUDE</p><h2>Une configuration adaptée à votre organisation</h2><p>Établissements multiples, modules à la carte, rôles personnalisés, limites contractuelles, marque blanche et domaine propre.</p></div>
+          <div><p className="eyebrow">SUR ÉTUDE</p><h2>Une configuration adaptée à votre organisation</h2><p>Établissements et enseignes multiples, modules à la carte, rôles personnalisés, limites contractuelles, marque blanche et domaines propres.</p></div>
           <span className="plan-lock-badge">Devis personnalisé</span>
         </section>
       </div>
@@ -258,7 +260,6 @@ export function MetierWorkspacePage() {
       await load();
     }
   }
-
 
   function newRole() {
     setRoleId(null);
@@ -343,7 +344,7 @@ export function MetierWorkspacePage() {
   return (
     <div className="page metier-workspace-page">
       <header className="page-header metier-page-header">
-        <div><p className="eyebrow">OFFRE MÉTIER</p><h1>Configuration sur mesure</h1><p>Pilotez vos établissements, modules, profils d’accès et identité en marque blanche.</p></div>
+        <div><p className="eyebrow">OFFRE MÉTIER</p><h1>Configuration sur mesure</h1><p>Pilotez vos enseignes, établissements, modules, profils d’accès et identité en marque blanche.</p></div>
         <button className="secondary-button" type="button" onClick={() => void load()} disabled={loading}>Actualiser</button>
       </header>
 
@@ -354,6 +355,7 @@ export function MetierWorkspacePage() {
         <>
           <section className="metier-summary-grid">
             <article className="panel"><span><Icon name="building" size={21} /></span><div><small>Établissements</small><strong>{usage?.active_sites ?? 0} / {config?.site_limit ?? 0}</strong><em>sites actifs</em></div></article>
+            <article className="panel"><span><Icon name="sparkles" size={21} /></span><div><small>Enseignes</small><strong>{usage?.active_brands ?? 1}</strong><em>identités actives</em></div></article>
             <article className="panel"><span><Icon name="users" size={21} /></span><div><small>Accès</small><strong>{usage?.active_members ?? 0} / {config?.member_limit ?? 0}</strong><em>utilisateurs actifs</em></div></article>
             <article className="panel"><span><Icon name="tool" size={21} /></span><div><small>Modules</small><strong>{usage?.enabled_modules ?? 0}</strong><em>activés</em></div></article>
             <article className="panel"><span><Icon name="shield" size={21} /></span><div><small>Profils sur mesure</small><strong>{usage?.custom_roles ?? 0}</strong><em>rôles actifs</em></div></article>
@@ -365,7 +367,7 @@ export function MetierWorkspacePage() {
               ['sites', 'Établissements', 'building'],
               ['modules', 'Modules', 'tool'],
               ['roles', 'Rôles', 'users'],
-              ['identity', 'Marque blanche', 'sparkles']
+              ['identity', 'Identité & enseignes', 'sparkles']
             ].map(([key, label, icon]) => (
               <button key={key} type="button" className={activeTab === key ? 'active' : ''} onClick={() => setActiveTab(key as typeof activeTab)}>
                 <Icon name={icon as any} size={19} /><span>{label}</span>
@@ -383,15 +385,16 @@ export function MetierWorkspacePage() {
                   <div><span>Stockage prévu</span><strong>{Math.round((config?.storage_limit_mb ?? 0) / 100) / 10} Go</strong></div>
                   <div><span>Signature NCR</span><strong>{config?.white_label_enabled ? 'Optionnelle' : 'Conservée'}</strong></div>
                 </div>
-                <div className="info-message">Les limites contractuelles, le domaine et l’activation de la marque blanche sont gérés par NCR depuis l’administration centrale.</div>
+                <div className="info-message">Les limites contractuelles et l’activation technique des domaines restent gérées par NCR. Les propriétaires et administrateurs peuvent gérer les enseignes et leurs rattachements.</div>
               </section>
               <section className="panel metier-readiness-card">
                 <div><p className="eyebrow">ÉTAT DE PRÉPARATION</p><h2>Votre environnement</h2></div>
                 <ul className="metier-check-list">
                   <li className={(usage?.active_sites ?? 0) > 0 ? 'done' : ''}><Icon name={(usage?.active_sites ?? 0) > 0 ? 'check' : 'close'} size={17} /><span>Au moins un établissement configuré</span></li>
+                  <li className={(usage?.active_brands ?? 0) > 0 ? 'done' : ''}><Icon name={(usage?.active_brands ?? 0) > 0 ? 'check' : 'close'} size={17} /><span>Au moins une enseigne configurée</span></li>
                   <li className={(usage?.enabled_modules ?? 0) > 3 ? 'done' : ''}><Icon name={(usage?.enabled_modules ?? 0) > 3 ? 'check' : 'close'} size={17} /><span>Modules métier sélectionnés</span></li>
                   <li className={config?.white_label_enabled ? 'done' : ''}><Icon name={config?.white_label_enabled ? 'check' : 'close'} size={17} /><span>Marque blanche autorisée</span></li>
-                  <li className={config?.custom_domain_status === 'active' ? 'done' : ''}><Icon name={config?.custom_domain_status === 'active' ? 'check' : 'close'} size={17} /><span>Domaine personnalisé actif</span></li>
+                  <li className={config?.custom_domain_status === 'active' ? 'done' : ''}><Icon name={config?.custom_domain_status === 'active' ? 'check' : 'close'} size={17} /><span>Domaine global personnalisé actif</span></li>
                 </ul>
               </section>
             </div>
@@ -399,7 +402,7 @@ export function MetierWorkspacePage() {
 
           {activeTab === 'sites' && (
             <section className="panel metier-sites-panel">
-              <div className="panel-header"><div><p className="eyebrow">MULTI-ÉTABLISSEMENTS</p><h2>Sites et agences</h2><p className="muted">Créez jusqu’à {config?.site_limit} établissements selon votre contrat.</p></div>{canManage && <button className="primary-button" type="button" onClick={newSite}>Ajouter un établissement</button>}</div>
+              <div className="panel-header"><div><p className="eyebrow">MULTI-ÉTABLISSEMENTS</p><h2>Sites et agences</h2><p className="muted">Créez jusqu’à {config?.site_limit} établissements selon votre contrat. Leur enseigne se choisit ensuite dans Identité & enseignes.</p></div>{canManage && <button className="primary-button" type="button" onClick={newSite}>Ajouter un établissement</button>}</div>
               {(summary.sites ?? []).length === 0 ? <div className="admin-empty-state">Aucun établissement configuré.</div> : (
                 <div className="metier-site-list">
                   {summary.sites.map((site) => (
@@ -452,13 +455,14 @@ export function MetierWorkspacePage() {
 
           {activeTab === 'identity' && (
             <div className="metier-identity-layout">
+              <MetierBrandsWorkspacePanel organizationId={organization.id} siteLimit={config?.site_limit ?? 1} canManage={canManage} />
               <section className="panel metier-white-label-card">
                 <span className={`metier-identity-icon ${config?.white_label_enabled ? 'active' : ''}`}><Icon name="sparkles" size={27} /></span>
                 <div><p className="eyebrow">MARQUE BLANCHE</p><h2>{config?.white_label_enabled ? 'Option activée' : 'Option non activée'}</h2><p>{config?.white_label_enabled ? 'Vous pouvez masquer la mention « Propulsé par NCR Suite » depuis la page Personnalisation.' : 'La signature NCR Suite reste visible. L’activation est réalisée par NCR après validation commerciale.'}</p></div>
               </section>
               <section className="panel metier-domain-card">
-                <div className="panel-header"><div><p className="eyebrow">DOMAINE PERSONNALISÉ</p><h2>{config?.custom_domain || 'Aucun domaine configuré'}</h2></div><span className={`admin-status-pill ${config?.custom_domain_status === 'active' ? 'positive' : config?.custom_domain_status === 'error' ? 'negative' : 'warning'}`}>{domainStatusLabels[config?.custom_domain_status ?? 'not_configured']}</span></div>
-                <p>Le domaine doit être configuré puis validé par NCR avant sa mise en service. Cette étape reste contrôlée afin d’éviter une mauvaise configuration.</p>
+                <div className="panel-header"><div><p className="eyebrow">DOMAINE GLOBAL PERSONNALISÉ</p><h2>{config?.custom_domain || 'Aucun domaine configuré'}</h2></div><span className={`admin-status-pill ${config?.custom_domain_status === 'active' ? 'positive' : config?.custom_domain_status === 'error' ? 'negative' : 'warning'}`}>{domainStatusLabels[config?.custom_domain_status ?? 'not_configured']}</span></div>
+                <p>Le domaine global doit être configuré puis validé par NCR avant sa mise en service. Chaque enseigne peut aussi demander son propre domaine ci-dessus.</p>
                 {config?.custom_domain && <code className="metier-domain-url">https://{config.custom_domain}</code>}
               </section>
             </div>
