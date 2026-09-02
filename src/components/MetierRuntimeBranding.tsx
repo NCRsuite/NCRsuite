@@ -123,7 +123,8 @@ export function MetierRuntimeBranding() {
     const restore = new Map<HTMLImageElement, { src: string; alt: string }>();
 
     function applyBranding() {
-      if (!activeBranding.logo_url) return;
+      const logoUrl = activeBranding.logo_url;
+      if (!logoUrl) return;
       const selectors = [
         '.sidebar .brand.brand-horizontal img',
         '.mobile-drawer-header img',
@@ -133,7 +134,7 @@ export function MetierRuntimeBranding() {
       ];
       document.querySelectorAll<HTMLImageElement>(selectors.join(',')).forEach((image) => {
         if (!restore.has(image)) restore.set(image, { src: image.src, alt: image.alt });
-        image.src = activeBranding.logo_url;
+        image.src = logoUrl;
         image.alt = activeBranding.brand_name;
       });
     }
@@ -159,5 +160,3 @@ export function MetierRuntimeBranding() {
 
   return null;
 }
-
-// Deployment trigger: force Cloudflare to rebuild the fixed main branch.
