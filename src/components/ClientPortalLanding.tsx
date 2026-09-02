@@ -70,11 +70,14 @@ export function ClientPortalConfigurationGuard({ children }: { children: ReactNo
       return () => { active = false; };
     }
 
+    const userId = user.id;
+    const client = supabase;
+
     async function resolveClientPortals() {
-      if (!supabase) {
+      if (!client) {
         if (active) {
           setDestinations([]);
-          setResolvedForUserId(user.id);
+          setResolvedForUserId(userId);
           setLoading(false);
         }
         return;
@@ -82,7 +85,7 @@ export function ClientPortalConfigurationGuard({ children }: { children: ReactNo
 
       setLoading(true);
       const checks = await Promise.all(portalChecks.map(async ({ rpc, ...destination }) => {
-        const { data, error } = await supabase.rpc(rpc);
+        const { data, error } = await client.rpc(rpc);
         if (error) {
           console.warn(`Impossible de vérifier le portail client ${destination.key}.`, error);
           return null;
@@ -92,7 +95,7 @@ export function ClientPortalConfigurationGuard({ children }: { children: ReactNo
 
       if (!active) return;
       setDestinations(checks.filter((item): item is ClientPortalDestination => Boolean(item)));
-      setResolvedForUserId(user.id);
+      setResolvedForUserId(userId);
       setLoading(false);
     }
 
