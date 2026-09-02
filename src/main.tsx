@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, useLocation } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { ClientPortalConfigurationGuard } from './components/ClientPortalLanding';
@@ -8,6 +8,7 @@ import { ClientPortalInstallGuide } from './components/ClientPortalInstallGuide'
 import { ConnectivityStatus } from './components/ConnectivityStatus';
 import { EnterpriseOnboardingGuard } from './components/EnterpriseOnboardingGuard';
 import { MetierBrandSwitcher } from './components/MetierBrandSwitcher';
+import { MetierCoiffurePublicPagesPanel } from './components/MetierCoiffurePublicPagesPanel';
 import { MetierRuntimeBranding } from './components/MetierRuntimeBranding';
 import { MetierSimpleExperience } from './components/MetierSimpleExperience';
 import { RuntimeMonitor } from './components/RuntimeMonitor';
@@ -15,6 +16,7 @@ import { NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED } from './config/ui2026
 import { AuthProvider } from './contexts/AuthContext';
 import { OrganizationProvider } from './contexts/OrganizationContext';
 import { PlatformAdminProvider } from './contexts/PlatformAdminContext';
+import { PublicMetierCoiffureCompanyPage } from './pages/PublicMetierCoiffureCompanyPage';
 import './ncrUi2026.css';
 import './ncrUi2026Pages.css';
 import './ncrUi2026TrainingDashboard.css';
@@ -48,6 +50,8 @@ import './ncrUi2026MetierWhiteLabel.css';
 import './metierStructure.css';
 import './metierSimpleExperience.css';
 import './metierReceptionOverlay.css';
+import './metierCoiffurePublicPages.css';
+import './publicMetierCoiffureCompany.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
@@ -84,28 +88,41 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
   });
 }
 
+function RoutedApplication() {
+  const location = useLocation();
+
+  if (location.pathname.startsWith('/salon/')) {
+    return <PublicMetierCoiffureCompanyPage />;
+  }
+
+  return (
+    <AuthProvider>
+      <ClientPortalInstallGuide />
+      <PlatformAdminProvider>
+        <OrganizationProvider>
+          <MetierRuntimeBranding />
+          <MetierBrandSwitcher />
+          <MetierSimpleExperience />
+          <MetierCoiffurePublicPagesPanel />
+          <RuntimeMonitor />
+          <ConnectivityStatus />
+          <ClientPortalConfigurationGuard>
+            <EnterpriseOnboardingGuard>
+              <AppErrorBoundary>
+                <App />
+              </AppErrorBoundary>
+            </EnterpriseOnboardingGuard>
+          </ClientPortalConfigurationGuard>
+        </OrganizationProvider>
+      </PlatformAdminProvider>
+    </AuthProvider>
+  );
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <ClientPortalInstallGuide />
-        <PlatformAdminProvider>
-          <OrganizationProvider>
-            <MetierRuntimeBranding />
-            <MetierBrandSwitcher />
-            <MetierSimpleExperience />
-            <RuntimeMonitor />
-            <ConnectivityStatus />
-            <ClientPortalConfigurationGuard>
-              <EnterpriseOnboardingGuard>
-                <AppErrorBoundary>
-                  <App />
-                </AppErrorBoundary>
-              </EnterpriseOnboardingGuard>
-            </ClientPortalConfigurationGuard>
-          </OrganizationProvider>
-        </PlatformAdminProvider>
-      </AuthProvider>
+      <RoutedApplication />
     </BrowserRouter>
   </React.StrictMode>
 );
