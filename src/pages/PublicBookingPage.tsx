@@ -19,7 +19,6 @@ interface PublicOrganization {
   timezone: string;
 }
 
-
 interface PublicSite {
   id: string;
   name: string;
@@ -102,6 +101,20 @@ interface CustomerForm {
   consent: boolean;
 }
 
+interface PortalAccountSummary {
+  account_id: string;
+  organization_id: string;
+}
+
+interface PortalDashboardPrefill {
+  client: {
+    first_name: string;
+    last_name: string | null;
+    email: string | null;
+    phone: string | null;
+  };
+}
+
 const currencyFormatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
 const fullDateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const timeFormatter = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -174,6 +187,40 @@ export function PublicBookingPage() {
     loadPage();
     return () => { active = false; };
   }, [slug]);
+
+  useEffect(() => {
+    let active = true;
+    async function prefillFromClientPortal() {
+      if (!supabase || !pageData) return;
+
+      const { data: authData } = await supabase.auth.getUser();
+      if (!active || !authData.user) return;
+
+      const { data: accountData, error: accountError } = await supabase.rpc('current_coiffure_client_portal_accounts');
+      if (!active || accountError) return;
+
+      const account = ((accountData ?? []) as PortalAccountSummary[])
+        .find((item) => item.organization_id === pageData.organization.id);
+      if (!account) return;
+
+      const { data: dashboardData, error: dashboardError } = await supabase.rpc('coiffure_client_portal_dashboard', {
+        p_account_id: account.account_id
+      });
+      if (!active || dashboardError || !dashboardData) return;
+
+      const portalClient = (dashboardData as PortalDashboardPrefill).client;
+      setCustomer((current) => ({
+        ...current,
+        firstName: current.firstName || portalClient.first_name || '',
+        lastName: current.lastName || portalClient.last_name || '',
+        email: current.email || portalClient.email || '',
+        phone: current.phone || portalClient.phone || ''
+      }));
+    }
+
+    void prefillFromClientPortal();
+    return () => { active = false; };
+  }, [pageData]);
 
   const availableServices = useMemo(() => {
     if (!pageData) return [];
@@ -456,10 +503,10 @@ export function PublicBookingPage() {
               </div>
             )}
             <form className="public-customer-form" onSubmit={submitBooking}>
-              <label>Prénom <span aria-hidden="true">*</span><input required minLength={2} maxLength={80} value={customer.firstName} onChange={(event) => setCustomer((current) => ({ ...current, firstName: event.target.value }))} disabled={!selectedSlot} /></label>
-              <label>Nom<input maxLength={100} value={customer.lastName} onChange={(event) => setCustomer((current) => ({ ...current, lastName: event.target.value }))} disabled={!selectedSlot} /></label>
-              <label>E-mail<input type="email" value={customer.email} onChange={(event) => setCustomer((current) => ({ ...current, email: event.target.value }))} disabled={!selectedSlot} placeholder="vous@exemple.fr" /></label>
-              <label>Téléphone<input type="tel" value={customer.phone} onChange={(event) => setCustomer((current) => ({ ...current, phone: event.target.value }))} disabled={!selectedSlot} placeholder="06 00 00 00 00" /></label>
+              <label>Prénom <span aria-hidden="true">*</span><input required minLength={2} maxLength={80} autoComplete="given-name" value={customer.firstName} onChange={(event) => setCustomer((current) => ({ ...current, firstName: event.target.value }))} disabled={!selectedSlot} /></label>
+              <label>Nom<input maxLength={100} autoComplete="family-name" value={customer.lastName} onChange={(event) => setCustomer((current) => ({ ...current, lastName: event.target.value }))} disabled={!selectedSlot} /></label>
+              <label>E-mail<input type="email" autoComplete="email" value={customer.email} onChange={(event) => setCustomer((current) => ({ ...current, email: event.target.value }))} disabled={!selectedSlot} placeholder="vous@exemple.fr" /></label>
+              <label>Téléphone<input type="tel" autoComplete="tel" value={customer.phone} onChange={(event) => setCustomer((current) => ({ ...current, phone: event.target.value }))} disabled={!selectedSlot} placeholder="06 00 00 00 00" /></label>
               <label className="full-field">Message facultatif<textarea rows={3} maxLength={1000} value={customer.notes} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} disabled={!selectedSlot} placeholder="Une précision utile pour le rendez-vous…" /></label>
               <label className="public-honeypot" aria-hidden="true">Site internet<input tabIndex={-1} autoComplete="off" value={customer.website} onChange={(event) => setCustomer((current) => ({ ...current, website: event.target.value }))} /></label>
               {error && <div className="error-message full-field" role="alert">{error}</div>}
