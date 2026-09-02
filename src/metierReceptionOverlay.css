@@ -1,0 +1,5 @@
+/* Accueil partagé Métier : la secrétaire reste sur une route autorisée (/)
+   et NCR Suite remplace visuellement le tableau de bord par l'accueil commun. */
+html[data-metier-simple-ui="reception"] .premium-route-stage > :not(.metier-simple-experience-host) {
+  display: none !important;
+}
