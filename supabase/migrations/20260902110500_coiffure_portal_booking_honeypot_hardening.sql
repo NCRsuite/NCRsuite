@@ -21,7 +21,7 @@ CREATE OR REPLACE FUNCTION public.create_public_booking_v3(
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO 'public'
+SET search_path = public,pg_catalog
 AS $function$
 declare
   v_org_id uuid;

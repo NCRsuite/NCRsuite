@@ -2,7 +2,7 @@ create or replace function public.get_public_booking_page(p_slug text)
 returns jsonb
 language plpgsql
 stable security definer
-set search_path to 'public'
+set search_path = public,pg_catalog
 as $function$
 declare
   v_organization public.organizations%rowtype;
