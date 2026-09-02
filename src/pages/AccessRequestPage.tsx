@@ -38,6 +38,8 @@ export function AccessRequestPage() {
   const [reference, setReference] = useState('');
   const turnstileHost = useRef<HTMLDivElement | null>(null);
   const turnstileWidget = useRef<string | null>(null);
+  const metierPlan = getDomainPlans(businessType).metier;
+  const isMetierRequest = !trialRequested && requestedPlan === 'metier';
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -120,7 +122,9 @@ export function AccessRequestPage() {
         teamSize,
         message: trialRequested
           ? ['Demande d’essai gratuit de 7 jours.', message.trim()].filter(Boolean).join('\n\n')
-          : message,
+          : isMetierRequest
+            ? ['Demande de configuration sur mesure — offre Métier.', `Tarif de référence affiché : à partir de ${(metierPlan.monthlyPriceCents / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} € HT/mois.`, message.trim()].filter(Boolean).join('\n\n')
+            : message,
         privacyAccepted,
         trialRequested,
         website,
@@ -155,7 +159,7 @@ export function AccessRequestPage() {
           <span><Icon name="check" size={32} /></span>
           <p className="public-section-label">DEMANDE TRANSMISE</p>
           <h1>Merci, votre demande va être étudiée</h1>
-          <p>{trialRequested ? 'Votre demande d’essai gratuit de 7 jours a bien été transmise. Après validation, vous testerez directement la formule Professionnelle pendant 7 jours, sans carte bancaire et sans contrat d’abonnement à signer au démarrage.' : 'Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte. Après l’invitation, votre espace sera activé dès la confirmation du paiement sécurisé de la formule choisie.'} Vous recevrez l’e-mail depuis <strong>contact@ncr-suite.fr</strong>.</p>
+          <p>{trialRequested ? 'Votre demande d’essai gratuit de 7 jours a bien été transmise. Après validation, vous testerez directement la formule Professionnelle pendant 7 jours, sans carte bancaire et sans contrat d’abonnement à signer au démarrage.' : isMetierRequest ? 'Votre demande Métier a bien été transmise. NCR Suite va valider avec vous les enseignes, établissements, accès, modules, identité et domaines nécessaires avant de fixer le tarif contractuel final et d’ouvrir l’espace.' : 'Le super administrateur NCR Suite vérifiera votre besoin avant d’autoriser la création du compte. Après l’invitation, votre espace sera activé dès la confirmation du paiement sécurisé de la formule choisie.'} Vous recevrez l’e-mail depuis <strong>contact@ncr-suite.fr</strong>.</p>
           <div><small>Référence de suivi</small><strong>{reference}</strong></div>
           <Link className="public-primary-action" to="/">Retourner à l’accueil</Link>
         </main>
@@ -174,13 +178,13 @@ export function AccessRequestPage() {
       <PublicSiteHeader compact />
       <main className="public-request-layout">
         <section className="public-request-intro">
-          <p className="public-section-label">{trialRequested ? 'ESSAI GRATUIT DE 7 JOURS' : 'ACCÈS SUR VALIDATION'}</p>
-          <h1>{trialRequested ? 'Découvrez NCR Suite dans votre propre environnement métier' : 'Parlons de votre activité avant d’ouvrir votre espace'}</h1>
-          <p>Cette courte demande nous permet de vérifier le métier, le bon niveau d’équipement et la personne qui deviendra propriétaire du compte.</p>
+          <p className="public-section-label">{trialRequested ? 'ESSAI GRATUIT DE 7 JOURS' : isMetierRequest ? 'OFFRE MÉTIER SUR MESURE' : 'ACCÈS SUR VALIDATION'}</p>
+          <h1>{trialRequested ? 'Découvrez NCR Suite dans votre propre environnement métier' : isMetierRequest ? 'Construisons votre environnement NCR Suite Métier' : 'Parlons de votre activité avant d’ouvrir votre espace'}</h1>
+          <p>{isMetierRequest ? 'Cette demande sert à cadrer les enseignes, établissements, utilisateurs, modules et options avant de créer votre espace avec un tarif contractuel adapté.' : 'Cette courte demande nous permet de vérifier le métier, le bon niveau d’équipement et la personne qui deviendra propriétaire du compte.'}</p>
           <ol>
             <li><span>1</span><div><strong>Vous présentez votre besoin</strong><small>Aucun compte n’est créé automatiquement.</small></div></li>
             <li><span>2</span><div><strong>NCR Suite examine la demande</strong><small>Le super administrateur accepte ou refuse l’ouverture.</small></div></li>
-            <li><span>3</span><div><strong>Vous recevez votre invitation</strong><small>Vous définissez votre mot de passe sur ncr-suite.fr.</small></div></li>
+            <li><span>3</span><div><strong>{isMetierRequest ? 'La configuration est validée' : 'Vous recevez votre invitation'}</strong><small>{isMetierRequest ? 'Le tarif final et les limites contractuelles sont définis avant l’ouverture.' : 'Vous définissez votre mot de passe sur ncr-suite.fr.'}</small></div></li>
           </ol>
           <div className="public-request-assurance"><Icon name="shield" size={21} /><span><strong>Vos informations restent privées.</strong><small>Elles servent uniquement à traiter votre demande d’accès.</small></span></div>
         </section>
@@ -210,14 +214,27 @@ export function AccessRequestPage() {
                 </div>
               </div>
             ) : (
-              <label>Formule souhaitée *
-                <select value={requestedPlan} onChange={(event) => setRequestedPlan(event.target.value as Plan)}>
-                  {planOrder.map((planKey) => {
-                    const plan = getDomainPlans(businessType)[planKey];
-                    return <option key={planKey} value={planKey}>{plan.label} · {(plan.monthlyPriceCents / 100).toLocaleString('fr-FR')} € HT/mois</option>;
-                  })}
-                </select>
-              </label>
+              <>
+                <label>Formule souhaitée *
+                  <select value={requestedPlan} onChange={(event) => setRequestedPlan(event.target.value as Plan)}>
+                    {planOrder.map((planKey) => {
+                      const plan = getDomainPlans(businessType)[planKey];
+                      const price = (plan.monthlyPriceCents / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                      return <option key={planKey} value={planKey}>{plan.label} · {plan.startingAt ? 'à partir de ' : ''}{price} € HT/mois</option>;
+                    })}
+                  </select>
+                </label>
+                {requestedPlan === 'metier' && (
+                  <div className="public-trial-plan-card">
+                    <span><Icon name="tool" size={18} /></span>
+                    <div>
+                      <small>CONFIGURATION SUR MESURE</small>
+                      <strong>À partir de {(metierPlan.monthlyPriceCents / 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} € HT / mois</strong>
+                      <p>Ce montant est un minimum, pas un prix fixe. Le tarif final dépend notamment du nombre d’établissements et d’accès, des modules activés, de la marque blanche et des domaines personnalisés.</p>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
             <label>Taille de l’équipe
               <select value={teamSize} onChange={(event) => setTeamSize(event.target.value)}>
@@ -228,7 +245,7 @@ export function AccessRequestPage() {
                 <option value="51+">Plus de 50 personnes</option>
               </select>
             </label>
-            <label className="full-field">Votre besoin principal<textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={2000} rows={5} placeholder="Ex. Centraliser mes sessions, automatiser mes documents et préparer mon BPF." /></label>
+            <label className="full-field">Votre besoin principal<textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={2000} rows={5} placeholder={isMetierRequest ? 'Ex. 3 salons sous 2 enseignes, 15 collaborateurs, marque blanche et domaine de réservation dédié.' : 'Ex. Centraliser mes sessions, automatiser mes documents et préparer mon BPF.'} /></label>
             <label className="public-honeypot" aria-hidden="true">Site internet<input value={website} onChange={(event) => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" /></label>
             <label className="public-privacy-check full-field">
               <input type="checkbox" checked={privacyAccepted} onChange={(event) => setPrivacyAccepted(event.target.checked)} required />
@@ -238,9 +255,9 @@ export function AccessRequestPage() {
           </div>
           {error && <div className="error-message" role="alert">{error}</div>}
           <button className="public-primary-action full" disabled={pending}>
-            {pending ? 'Envoi de la demande…' : trialRequested ? 'Demander mon essai gratuit' : 'Transmettre ma demande'} <Icon name="chevronRight" size={17} />
+            {pending ? 'Envoi de la demande…' : trialRequested ? 'Demander mon essai gratuit' : isMetierRequest ? 'Demander ma configuration Métier' : 'Transmettre ma demande'} <Icon name="chevronRight" size={17} />
           </button>
-          <small className="public-form-note">Aucun paiement n’est réalisé à cette étape. {trialRequested ? 'Après validation, l’essai démarre sur la formule Professionnelle pendant 7 jours. Vous choisirez ensuite votre abonnement si vous souhaitez continuer.' : 'Après validation, l’espace sera activé uniquement lorsque la souscription sera confirmée.'}</small>
+          <small className="public-form-note">Aucun paiement n’est réalisé à cette étape. {trialRequested ? 'Après validation, l’essai démarre sur la formule Professionnelle pendant 7 jours. Vous choisirez ensuite votre abonnement si vous souhaitez continuer.' : isMetierRequest ? 'Le tarif affiché est un minimum. Le contrat final est défini après validation de votre configuration Métier.' : 'Après validation, l’espace sera activé uniquement lorsque la souscription sera confirmée.'}</small>
         </form>
       </main>
       <PublicSiteFooter />
