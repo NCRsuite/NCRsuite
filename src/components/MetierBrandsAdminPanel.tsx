@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Icon } from './Icon';
 
@@ -119,8 +119,7 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
     setMessage('');
   }
 
-  async function saveBrand(event: FormEvent) {
-    event.preventDefault();
+  async function saveBrand() {
     if (!supabase || !canManage || busy) return;
     if (name.trim().length < 2) {
       setError('Le nom de l’enseigne doit contenir au moins 2 caractères.');
@@ -242,7 +241,7 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
       </div>
 
       {showEditor && (
-        <form className="metier-admin-form-grid" onSubmit={saveBrand} style={{ marginTop: 16 }}>
+        <div className="metier-admin-form-grid" style={{ marginTop: 16 }}>
           <label>Nom de l’enseigne<input value={name} onChange={(event) => setName(event.target.value)} maxLength={120} placeholder="Ex. AZZERA CUT" required /></label>
           <label>Code interne<input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} maxLength={40} placeholder="Ex. CUT" /></label>
           <label>Logo de l’enseigne<input value={logoUrl} onChange={(event) => setLogoUrl(event.target.value)} placeholder="https://…" /></label>
@@ -252,9 +251,9 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
           <label className="admin-checkbox-field"><input type="checkbox" checked={isPrimary} onChange={(event) => setIsPrimary(event.target.checked)} /><span><strong>Enseigne principale</strong><small>Elle devient l’identité par défaut des nouveaux établissements.</small></span></label>
           <div style={{ display: 'flex', alignItems: 'end', gap: 10 }}>
             <button type="button" className="secondary-button" onClick={() => setShowEditor(false)} disabled={busy === 'brand'}>Annuler</button>
-            <button type="submit" className="primary-button" disabled={busy === 'brand'}>{busy === 'brand' ? 'Enregistrement…' : editingId ? 'Mettre à jour' : 'Créer l’enseigne'}</button>
+            <button type="button" className="primary-button" onClick={() => void saveBrand()} disabled={busy === 'brand'}>{busy === 'brand' ? 'Enregistrement…' : editingId ? 'Mettre à jour' : 'Créer l’enseigne'}</button>
           </div>
-        </form>
+        </div>
       )}
 
       <div className="metier-admin-module-group" style={{ marginTop: 18 }}>
