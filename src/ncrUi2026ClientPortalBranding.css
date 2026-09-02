@@ -1,0 +1,60 @@
+/* NCR UI 2026 — client portal branding consistency */
+html[data-ncr-ui-2026="true"] .hair-client-portal {
+  --ncr-client-accent: var(--hair-accent, #c026d3);
+}
+
+html[data-ncr-ui-2026="true"] .security-client-portal,
+html[data-ncr-ui-2026="true"] .training-portal-app {
+  --ncr-client-accent: var(--portal-accent, #3678ef);
+}
+
+html[data-ncr-ui-2026="true"] .hair-client-portal,
+html[data-ncr-ui-2026="true"] .security-client-portal,
+html[data-ncr-ui-2026="true"] .training-portal-app {
+  --ncr-client-accent-strong: color-mix(in srgb, var(--ncr-client-accent) 82%, #111827 18%);
+  --ncr-client-accent-soft: color-mix(in srgb, var(--ncr-client-accent) 11%, #fff 89%);
+  --ncr-client-accent-border: color-mix(in srgb, var(--ncr-client-accent) 32%, #d9e0ea 68%);
+}
+
+html[data-ncr-ui-2026="true"] .hair-client-portal .primary-button,
+html[data-ncr-ui-2026="true"] .security-client-portal .primary-button,
+html[data-ncr-ui-2026="true"] .training-portal-app .primary-button {
+  background: var(--ncr-client-accent-strong) !important;
+  border-color: var(--ncr-client-accent-strong) !important;
+  color: #fff !important;
+}
+
+html[data-ncr-ui-2026="true"] .hair-client-portal .eyebrow,
+html[data-ncr-ui-2026="true"] .security-client-portal .eyebrow,
+html[data-ncr-ui-2026="true"] .training-portal-app .eyebrow {
+  color: var(--ncr-client-accent-strong) !important;
+}
+
+html[data-ncr-ui-2026="true"] .hair-client-portal-nav button.active,
+html[data-ncr-ui-2026="true"] .security-client-portal .security-client-sidebar nav button.active,
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar nav button.active {
+  color: var(--ncr-client-accent-strong) !important;
+  background: var(--ncr-client-accent-soft) !important;
+  border-color: var(--ncr-client-accent-border) !important;
+}
+
+html[data-ncr-ui-2026="true"] .hair-client-portal .hair-client-progress > span {
+  background: var(--ncr-client-accent-strong) !important;
+}
+
+html[data-ncr-ui-2026="true"] .hair-client-portal .hair-client-brand > span,
+html[data-ncr-ui-2026="true"] .security-client-portal .security-client-topbar-brand > span,
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-public-brand > span,
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-list-icon {
+  color: var(--ncr-client-accent-strong) !important;
+  background: var(--ncr-client-accent-soft) !important;
+}
+
+html[data-ncr-ui-2026="true"] .hair-client-portal a:focus-visible,
+html[data-ncr-ui-2026="true"] .hair-client-portal button:focus-visible,
+html[data-ncr-ui-2026="true"] .security-client-portal a:focus-visible,
+html[data-ncr-ui-2026="true"] .security-client-portal button:focus-visible,
+html[data-ncr-ui-2026="true"] .training-portal-app a:focus-visible,
+html[data-ncr-ui-2026="true"] .training-portal-app button:focus-visible {
+  outline-color: var(--ncr-client-accent-strong) !important;
+}
