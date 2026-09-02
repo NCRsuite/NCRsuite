@@ -201,6 +201,7 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
           price: (plan.monthlyPriceCents / 100).toFixed(2),
           priceCurrency: 'EUR',
           availability: 'https://schema.org/OnlineOnly',
+          description: plan.custom ? `Tarif à partir de ${(plan.monthlyPriceCents / 100).toFixed(2)} EUR HT par mois, selon configuration.` : plan.summary,
           url: `https://ncr-suite.fr/demande-acces?metier=${page.key}&offre=${plan.key}`
         }))
       },
@@ -329,16 +330,20 @@ export function PublicSolutionPage({ businessType }: { businessType: BusinessTyp
               <p className="public-section-label">OFFRES {page.name.toUpperCase()}</p>
               <h2>Commencez au bon niveau, évoluez quand vous êtes prêt</h2>
             </div>
-            <p>Les données restent conservées lors d’un changement de formule. Seuls les droits suivent le niveau réellement actif.</p>
+            <p>Les offres standard ont un tarif fixe. L’offre Métier est une configuration contractuelle affichée à partir d’un minimum, puis ajustée selon les établissements, accès, modules, marque blanche et domaines nécessaires.</p>
           </header>
           <div>
             {offers.plans.map((plan) => (
-              <article className={plan.recommended ? 'recommended' : ''} key={plan.key}>
-                <div>{plan.recommended && <em>RECOMMANDÉE</em>}<small>{plan.name}</small></div>
-                <p><strong>{formatPublicMonthlyPrice(plan.monthlyPriceCents)} €</strong><span>HT / mois</span></p>
+              <article className={[plan.recommended ? 'recommended' : '', plan.custom ? 'custom' : ''].filter(Boolean).join(' ')} key={plan.key}>
+                <div>{plan.recommended && <em>RECOMMANDÉE</em>}{plan.custom && <em>SUR MESURE</em>}<small>{plan.name}</small></div>
+                <p>{plan.custom && <small>À partir de</small>}<strong>{formatPublicMonthlyPrice(plan.monthlyPriceCents)} €</strong><span>HT / mois</span></p>
                 <p>{plan.summary}</p>
                 <ul>{plan.highlights.map((item) => <li key={item}><Icon name="check" size={13} />{item}</li>)}</ul>
-                <Link to={`/demande-acces?metier=${page.key}&offre=${plan.key}&essai=7&utm_source=page-metier&utm_medium=cta&utm_campaign=essai-7-jours&utm_content=${page.key}-${plan.key}`}>Essayer {plan.name} 7 jours <Icon name="chevronRight" size={14} /></Link>
+                {plan.custom ? (
+                  <Link to={`/demande-acces?metier=${page.key}&offre=${plan.key}&utm_source=page-metier&utm_medium=cta&utm_campaign=offre-metier&utm_content=${page.key}-${plan.key}`}>Configurer mon offre Métier <Icon name="chevronRight" size={14} /></Link>
+                ) : (
+                  <Link to={`/demande-acces?metier=${page.key}&offre=${plan.key}&essai=7&utm_source=page-metier&utm_medium=cta&utm_campaign=essai-7-jours&utm_content=${page.key}-${plan.key}`}>Essayer {plan.name} 7 jours <Icon name="chevronRight" size={14} /></Link>
+                )}
               </article>
             ))}
           </div>
