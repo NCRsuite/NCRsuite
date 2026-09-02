@@ -108,21 +108,22 @@ export function MetierRuntimeBranding() {
 
   useEffect(() => {
     if (!branding?.white_label_enabled) return;
+    const activeBranding = branding;
 
     const originalTitle = document.title;
     const root = document.documentElement;
     const previousTenantAccent = root.style.getPropertyValue('--tenant-brand-color');
-    if (branding.primary_color) root.style.setProperty('--tenant-brand-color', branding.primary_color);
-    document.title = branding.brand_name;
+    if (activeBranding.primary_color) root.style.setProperty('--tenant-brand-color', activeBranding.primary_color);
+    document.title = activeBranding.brand_name;
 
     const favicon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
     const originalFavicon = favicon?.href ?? null;
-    if (branding.logo_url && favicon) favicon.href = branding.logo_url;
+    if (activeBranding.logo_url && favicon) favicon.href = activeBranding.logo_url;
 
     const restore = new Map<HTMLImageElement, { src: string; alt: string }>();
 
     function applyBranding() {
-      if (!branding.logo_url) return;
+      if (!activeBranding.logo_url) return;
       const selectors = [
         '.sidebar .brand.brand-horizontal img',
         '.mobile-drawer-header img',
@@ -132,8 +133,8 @@ export function MetierRuntimeBranding() {
       ];
       document.querySelectorAll<HTMLImageElement>(selectors.join(',')).forEach((image) => {
         if (!restore.has(image)) restore.set(image, { src: image.src, alt: image.alt });
-        image.src = branding.logo_url as string;
-        image.alt = branding.brand_name;
+        image.src = activeBranding.logo_url;
+        image.alt = activeBranding.brand_name;
       });
     }
 
