@@ -49,14 +49,13 @@ export function ClientPortalConfigurationGuard({ children }: { children: ReactNo
   const { isAdmin, loading: adminLoading } = usePlatformAdmin();
   const location = useLocation();
   const explicitEnterpriseOnboarding = new URLSearchParams(location.search).get('nouvelle-entreprise') === '1';
-  const shouldResolve = location.pathname === '/configuration'
+  const configurationCandidate = location.pathname === '/configuration'
     && !explicitEnterpriseOnboarding
     && Boolean(user)
     && !authLoading
-    && !organizationLoading
     && !adminLoading
-    && !organization
     && !isAdmin;
+  const shouldResolve = configurationCandidate && !organizationLoading && !organization;
   const [loading, setLoading] = useState(false);
   const [resolvedForUserId, setResolvedForUserId] = useState('');
   const [destinations, setDestinations] = useState<ClientPortalDestination[]>([]);
@@ -101,6 +100,9 @@ export function ClientPortalConfigurationGuard({ children }: { children: ReactNo
     return () => { active = false; };
   }, [shouldResolve, user?.id]);
 
+  if (configurationCandidate && organizationLoading) {
+    return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Identification de ton espace…</span></div>;
+  }
   if (!shouldResolve) return <>{children}</>;
   if (loading || resolvedForUserId !== user?.id) {
     return <div className="loading-screen"><img src="/brand/ncr-suite-icon.png" alt="" /><span>Identification de ton espace…</span></div>;
