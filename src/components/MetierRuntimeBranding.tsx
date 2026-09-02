@@ -121,8 +121,30 @@ export function MetierRuntimeBranding() {
 
     const originalTitle = document.title;
     const root = document.documentElement;
-    const previousTenantAccent = root.style.getPropertyValue('--tenant-brand-color');
-    if (activeBranding.primary_color) root.style.setProperty('--tenant-brand-color', activeBranding.primary_color);
+    const themedVariables = [
+      '--tenant-brand-color',
+      '--ncr26-brand',
+      '--ncr26-brand-hover',
+      '--ncr26-brand-strong',
+      '--ncr26-brand-soft',
+      '--ncr26-brand-pale',
+      '--ncr26-ring'
+    ] as const;
+    const previousVariables = new Map<string, string>();
+    themedVariables.forEach((variable) => previousVariables.set(variable, root.style.getPropertyValue(variable)));
+    const previousMetierWhiteLabel = root.dataset.metierWhiteLabel;
+
+    if (activeBranding.primary_color) {
+      const color = activeBranding.primary_color;
+      root.dataset.metierWhiteLabel = 'true';
+      root.style.setProperty('--tenant-brand-color', color);
+      root.style.setProperty('--ncr26-brand', color);
+      root.style.setProperty('--ncr26-brand-hover', `color-mix(in srgb, ${color} 86%, #000)`);
+      root.style.setProperty('--ncr26-brand-strong', `color-mix(in srgb, ${color} 72%, #000)`);
+      root.style.setProperty('--ncr26-brand-soft', `color-mix(in srgb, ${color} 11%, #fff)`);
+      root.style.setProperty('--ncr26-brand-pale', `color-mix(in srgb, ${color} 5%, #fff)`);
+      root.style.setProperty('--ncr26-ring', `color-mix(in srgb, ${color} 22%, transparent)`);
+    }
     document.title = activeBranding.brand_name;
 
     const favicon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
@@ -203,8 +225,13 @@ export function MetierRuntimeBranding() {
       });
       document.title = originalTitle;
       if (favicon && originalFavicon) favicon.href = originalFavicon;
-      if (previousTenantAccent) root.style.setProperty('--tenant-brand-color', previousTenantAccent);
-      else root.style.removeProperty('--tenant-brand-color');
+      themedVariables.forEach((variable) => {
+        const previous = previousVariables.get(variable) ?? '';
+        if (previous) root.style.setProperty(variable, previous);
+        else root.style.removeProperty(variable);
+      });
+      if (previousMetierWhiteLabel) root.dataset.metierWhiteLabel = previousMetierWhiteLabel;
+      else delete root.dataset.metierWhiteLabel;
     };
   }, [branding?.brand_id, branding?.brand_name, branding?.logo_url, branding?.compact_logo_url, branding?.primary_color, branding?.white_label_enabled]);
 
