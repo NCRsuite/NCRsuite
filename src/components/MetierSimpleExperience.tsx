@@ -27,40 +27,60 @@ export function MetierSimpleExperience() {
   const params = new URLSearchParams(route.search);
   const view = params.get('view') || 'simple';
   const onMetierPage = route.pathname === '/offre-metier';
+  const reception = route.pathname === '/' && params.get('metier') === 'reception';
   const advanced = onMetierPage && view === 'advanced';
-  const reception = onMetierPage && view === 'reception';
+  const experienceVisible = onMetierPage || reception;
 
   useEffect(() => {
     let alive = true;
     async function loadAuthorization() {
       if (!active || !organization || !supabase) {
-        if (alive) { setAuthorization(null); setReceptionCompanyCount(0); }
+        if (alive) {
+          setAuthorization(null);
+          setReceptionCompanyCount(0);
+        }
         return;
       }
-      const { data, error } = await supabase.rpc('metier_reception_authorization', { p_organization_id: organization.id });
+
+      const { data, error } = await supabase.rpc('metier_reception_authorization', {
+        p_organization_id: organization.id
+      });
       if (!alive) return;
       if (error) {
         setAuthorization(null);
         setReceptionCompanyCount(0);
         return;
       }
-      const auth = (data ?? { authorized: false, shared_reception_enabled: false, role: null }) as ReceptionAuthorization;
+
+      const auth = (data ?? {
+        authorized: false,
+        shared_reception_enabled: false,
+        role: null
+      }) as ReceptionAuthorization;
       setAuthorization(auth);
-      if (!auth.authorized) { setReceptionCompanyCount(0); return; }
-      const { data: contextData, error: contextError } = await supabase.rpc('metier_reception_context', { p_organization_id: organization.id });
-      if (!alive) return;
-      if (contextError) setReceptionCompanyCount(0);
-      else {
-        const companies = (contextData as { companies?: unknown[] } | null)?.companies;
-        setReceptionCompanyCount(Array.isArray(companies) ? companies.length : 0);
+      if (!auth.authorized) {
+        setReceptionCompanyCount(0);
+        return;
       }
+
+      const { data: contextData, error: contextError } = await supabase.rpc('metier_reception_context', {
+        p_organization_id: organization.id
+      });
+      if (!alive) return;
+      if (contextError) {
+        setReceptionCompanyCount(0);
+        return;
+      }
+      const companies = (contextData as { companies?: unknown[] } | null)?.companies;
+      setReceptionCompanyCount(Array.isArray(companies) ? companies.length : 0);
     }
+
     void loadAuthorization();
     return () => { alive = false; };
   }, [active, organization?.id]);
 
   useEffect(() => {
-    if (!active || !onMetierPage) {
+    if (!active || !experienceVisible) {
       document.documentElement.removeAttribute('data-metier-simple-ui');
       setPageHost(null);
       return;
@@ -75,17 +95,22 @@ export function MetierSimpleExperience() {
       stage.insertBefore(node, stage.firstChild);
       setPageHost(node);
     }
+
     ensureHost();
     const observer = new MutationObserver(ensureHost);
     observer.observe(document.body, { childList: true, subtree: true });
-    document.documentElement.setAttribute('data-metier-simple-ui', advanced ? 'advanced' : 'true');
+    document.documentElement.setAttribute(
+      'data-metier-simple-ui',
+      reception ? 'reception' : advanced ? 'advanced' : 'true'
+    );
+
     return () => {
       observer.disconnect();
       node?.remove();
       setPageHost(null);
       document.documentElement.removeAttribute('data-metier-simple-ui');
     };
-  }, [active, onMetierPage, advanced, organization?.id]);
+  }, [active, experienceVisible, reception, advanced, organization?.id]);
 
   useEffect(() => {
     if (!active || !authorization?.authorized || receptionCompanyCount < 1) {
@@ -93,6 +118,7 @@ export function MetierSimpleExperience() {
       setMobileShortcutHost(null);
       return;
     }
+
     let desktopNode: HTMLElement | null = null;
     let mobileNode: HTMLElement | null = null;
 
@@ -106,6 +132,7 @@ export function MetierSimpleExperience() {
         sidebar.insertBefore(desktopNode, subscription ?? footer ?? null);
         setDesktopShortcutHost(desktopNode);
       }
+
       const drawer = document.querySelector<HTMLElement>('.mobile-navigation-drawer');
       if (drawer && !mobileNode) {
         mobileNode = document.createElement('div');
@@ -119,6 +146,7 @@ export function MetierSimpleExperience() {
     ensureShortcuts();
     const observer = new MutationObserver(ensureShortcuts);
     observer.observe(document.body, { childList: true, subtree: true });
+
     return () => {
       observer.disconnect();
       desktopNode?.remove();
@@ -130,25 +158,40 @@ export function MetierSimpleExperience() {
 
   if (!active) return null;
 
-  const openReception = () => navigate('/offre-metier?view=reception');
+  const openReception = () => navigate('/?metier=reception');
+  const closeReception = () => navigate('/');
   const openSimple = () => navigate('/offre-metier');
   const openAdvanced = () => navigate('/offre-metier?view=advanced');
 
-  const shortcut = <button type="button" className="metier-reception-shortcut" onClick={openReception}>
-    <span><Icon name="calendar" size={19} /></span>
-    <span><strong>Accueil partagé</strong><small>{receptionCompanyCount} entreprise{receptionCompanyCount > 1 ? 's' : ''} disponible{receptionCompanyCount > 1 ? 's' : ''}</small></span>
-    <Icon name="chevronRight" size={16} />
-  </button>;
+  const shortcut = (
+    <button type="button" className="metier-reception-shortcut" onClick={openReception}>
+      <span><Icon name="calendar" size={19} /></span>
+      <span>
+        <strong>Accueil partagé</strong>
+        <small>{receptionCompanyCount} entreprise{receptionCompanyCount > 1 ? 's' : ''} disponible{receptionCompanyCount > 1 ? 's' : ''}</small>
+      </span>
+      <Icon name="chevronRight" size={16} />
+    </button>
+  );
 
-  const page = advanced
-    ? <div className="metier-advanced-toolbar"><button type="button" className="secondary-button" onClick={openSimple}><Icon name="chevronRight" size={16} /> Retour à la configuration simple</button><span>Réglages avancés · à utiliser uniquement si nécessaire</span></div>
-    : reception
-      ? <MetierSharedReception onBack={openSimple} />
+  const page = reception
+    ? <MetierSharedReception onBack={closeReception} />
+    : advanced
+      ? (
+        <div className="metier-advanced-toolbar">
+          <button type="button" className="secondary-button" onClick={openSimple}>
+            <Icon name="chevronRight" size={16} /> Retour à la configuration simple
+          </button>
+          <span>Réglages avancés · à utiliser uniquement si nécessaire</span>
+        </div>
+      )
       : <MetierSimpleSetup onOpenReception={openReception} onOpenAdvanced={openAdvanced} />;
 
-  return <>
-    {pageHost && createPortal(page, pageHost)}
-    {desktopShortcutHost && createPortal(shortcut, desktopShortcutHost)}
-    {mobileShortcutHost && createPortal(shortcut, mobileShortcutHost)}
-  </>;
+  return (
+    <>
+      {pageHost && createPortal(page, pageHost)}
+      {desktopShortcutHost && createPortal(shortcut, desktopShortcutHost)}
+      {mobileShortcutHost && createPortal(shortcut, mobileShortcutHost)}
+    </>
+  );
 }
