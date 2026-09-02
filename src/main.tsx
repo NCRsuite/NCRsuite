@@ -50,6 +50,10 @@ import './metierSimpleExperience.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
+window.addEventListener('ncr:metier-structure-changed', () => {
+  window.dispatchEvent(new CustomEvent('ncr:metier-brands-changed'));
+});
+
 function announceServiceWorkerUpdate(registration: ServiceWorkerRegistration) {
   window.dispatchEvent(new CustomEvent('ncr:sw-update', { detail: { registration } }));
 }
