@@ -1,0 +1,37 @@
+/*
+ * NCR Suite — Marque blanche Métier
+ * Cette couche ne s'active que lorsque MetierRuntimeBranding a résolu
+ * une offre Métier avec marque blanche active et une couleur d'enseigne.
+ * Les offres standards conservent donc intégralement leur thème métier.
+ */
+
+html[data-metier-white-label="true"][data-business-theme] {
+  /* Pont vers le moteur historique de thème métier. */
+  --accent: var(--tenant-brand-color);
+  --primary-action: var(--tenant-brand-color);
+  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color) 76%, #000);
+
+  /* Surfaces dérivées : menu, cartes, navigation, champs et états actifs. */
+  --business-page-bg: color-mix(in srgb, var(--tenant-brand-color) 2.4%, #f7f8fa);
+  --business-soft: color-mix(in srgb, var(--tenant-brand-color) 9%, #fff);
+  --business-border: color-mix(in srgb, var(--tenant-brand-color) 18%, #e2e6eb);
+  --business-shadow: 0 11px 26px color-mix(in srgb, var(--tenant-brand-color) 14%, transparent);
+  --business-soft-strong: color-mix(in srgb, var(--tenant-brand-color) 13%, #fff);
+  --business-soft-subtle: color-mix(in srgb, var(--tenant-brand-color) 6%, #fff);
+  --business-border-strong: color-mix(in srgb, var(--tenant-brand-color) 30%, #dfe4ea);
+}
+
+/*
+ * Les couleurs sémantiques restent volontairement indépendantes de la marque :
+ * erreur/danger, succès et avertissement continuent d'utiliser leurs couleurs
+ * fonctionnelles afin de préserver la compréhension et l'accessibilité.
+ */
+html[data-metier-white-label="true"][data-business-theme] :is(
+  .error-message,
+  .danger-button,
+  .danger-text-button,
+  .text-button.danger,
+  .icon-button.danger
+) {
+  --primary-action: #b42318;
+}
