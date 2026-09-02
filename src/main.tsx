@@ -42,6 +42,7 @@ import './ncrUi2026WorkspaceSwitcherPolish.css';
 import './ncrUi2026WorkspaceContextPolish.css';
 import './ncrUi2026WorkspaceContextMicroPolish.css';
 import './ncrUi2026ClientPortalBranding.css';
+import './ncrUi2026MetierWhiteLabel.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
