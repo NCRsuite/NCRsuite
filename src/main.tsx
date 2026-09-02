@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { ClientPortalInstallGuide } from './components/ClientPortalInstallGuide';
 import { ConnectivityStatus } from './components/ConnectivityStatus';
 import { RuntimeMonitor } from './components/RuntimeMonitor';
 import { NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED } from './config/ui2026';
@@ -37,6 +38,7 @@ import './ncrUi2026BusinessAssistanceContrast.css';
 import './ncrUi2026WorkspaceSwitcherPolish.css';
 import './ncrUi2026WorkspaceContextPolish.css';
 import './ncrUi2026WorkspaceContextMicroPolish.css';
+import './ncrUi2026ClientPortalBranding.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
@@ -73,6 +75,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
+        <ClientPortalInstallGuide />
         <PlatformAdminProvider>
           <OrganizationProvider>
             <RuntimeMonitor />
