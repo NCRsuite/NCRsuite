@@ -6,6 +6,7 @@ interface RuntimeBranding {
   brand_id?: string;
   brand_name: string;
   logo_url: string | null;
+  compact_logo_url: string | null;
   primary_color: string | null;
   platform_domain?: string | null;
   custom_domain?: string | null;
@@ -17,6 +18,7 @@ interface ListedBrand {
   id: string;
   name: string;
   logo_url: string | null;
+  compact_logo_url: string | null;
   primary_color: string | null;
   is_primary: boolean;
   status: string;
@@ -29,10 +31,15 @@ function normalizeRuntimePayload(value: unknown): RuntimeBranding | null {
   const row = value as Record<string, unknown>;
   const brandName = typeof row.brand_name === 'string' ? row.brand_name.trim() : '';
   if (!brandName) return null;
+  const logoUrl = typeof row.logo_url === 'string' && row.logo_url.trim() ? row.logo_url : null;
+  const compactLogoUrl = typeof row.compact_logo_url === 'string' && row.compact_logo_url.trim()
+    ? row.compact_logo_url
+    : logoUrl;
   return {
     brand_id: typeof row.brand_id === 'string' ? row.brand_id : undefined,
     brand_name: brandName,
-    logo_url: typeof row.logo_url === 'string' && row.logo_url.trim() ? row.logo_url : null,
+    logo_url: logoUrl,
+    compact_logo_url: compactLogoUrl,
     primary_color: typeof row.primary_color === 'string' ? row.primary_color : null,
     platform_domain: typeof row.platform_domain === 'string' ? row.platform_domain : null,
     custom_domain: typeof row.custom_domain === 'string' ? row.custom_domain : null,
@@ -90,10 +97,12 @@ export function MetierRuntimeBranding() {
         return;
       }
 
+      const mainLogo = primary.logo_url || organization.logo_url || null;
       setBranding({
         brand_id: primary.id,
         brand_name: primary.name,
-        logo_url: primary.logo_url || organization.logo_url || null,
+        logo_url: mainLogo,
+        compact_logo_url: primary.compact_logo_url || mainLogo,
         primary_color: primary.primary_color || organization.primary_color || null,
         platform_domain: primary.platform_domain ?? null,
         custom_domain: primary.custom_domain ?? null,
@@ -118,25 +127,58 @@ export function MetierRuntimeBranding() {
 
     const favicon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
     const originalFavicon = favicon?.href ?? null;
-    if (activeBranding.logo_url && favicon) favicon.href = activeBranding.logo_url;
+    const faviconLogo = activeBranding.compact_logo_url || activeBranding.logo_url;
+    if (faviconLogo && favicon) favicon.href = faviconLogo;
 
-    const restore = new Map<HTMLImageElement, { src: string; alt: string }>();
+    const restore = new Map<HTMLImageElement, { src: string; alt: string; style: string | null }>();
+
+    function remember(image: HTMLImageElement) {
+      if (!restore.has(image)) {
+        restore.set(image, { src: image.src, alt: image.alt, style: image.getAttribute('style') });
+      }
+    }
+
+    function applyLogo(image: HTMLImageElement, logoUrl: string, mode: 'compact' | 'main' | 'loading') {
+      remember(image);
+      image.src = logoUrl;
+      image.alt = activeBranding.brand_name;
+      image.style.setProperty('object-fit', 'contain', 'important');
+      image.style.setProperty('object-position', 'center', 'important');
+      image.style.setProperty('display', 'block', 'important');
+      image.style.setProperty('width', 'auto', 'important');
+      image.style.setProperty('height', 'auto', 'important');
+
+      if (mode === 'compact') {
+        const mobile = image.matches('.mobile-drawer-header img');
+        image.style.setProperty('max-width', mobile ? '112px' : '132px', 'important');
+        image.style.setProperty('max-height', mobile ? '40px' : '52px', 'important');
+        image.style.setProperty('margin', '0 auto', 'important');
+        image.style.setProperty('flex', '0 0 auto', 'important');
+      } else if (mode === 'loading') {
+        image.style.setProperty('max-width', '72px', 'important');
+        image.style.setProperty('max-height', '72px', 'important');
+        image.style.setProperty('margin', '0 auto', 'important');
+      } else {
+        image.style.setProperty('max-width', '240px', 'important');
+        image.style.setProperty('max-height', '88px', 'important');
+      }
+    }
 
     function applyBranding() {
-      const logoUrl = activeBranding.logo_url;
-      if (!logoUrl) return;
-      const selectors = [
-        '.sidebar .brand.brand-horizontal img',
-        '.mobile-drawer-header img',
-        '.showcase-brand img',
-        '.auth-wordmark',
-        '.loading-screen img'
-      ];
-      document.querySelectorAll<HTMLImageElement>(selectors.join(',')).forEach((image) => {
-        if (!restore.has(image)) restore.set(image, { src: image.src, alt: image.alt });
-        image.src = logoUrl;
-        image.alt = activeBranding.brand_name;
-      });
+      const compactLogoUrl = activeBranding.compact_logo_url || activeBranding.logo_url;
+      const mainLogoUrl = activeBranding.logo_url || compactLogoUrl;
+
+      if (compactLogoUrl) {
+        document.querySelectorAll<HTMLImageElement>('.sidebar .brand.brand-horizontal img, .mobile-drawer-header img')
+          .forEach((image) => applyLogo(image, compactLogoUrl, 'compact'));
+      }
+
+      if (mainLogoUrl) {
+        document.querySelectorAll<HTMLImageElement>('.showcase-brand img, .auth-wordmark')
+          .forEach((image) => applyLogo(image, mainLogoUrl, 'main'));
+        document.querySelectorAll<HTMLImageElement>('.loading-screen img')
+          .forEach((image) => applyLogo(image, compactLogoUrl || mainLogoUrl, 'loading'));
+      }
     }
 
     applyBranding();
@@ -146,17 +188,18 @@ export function MetierRuntimeBranding() {
     return () => {
       observer.disconnect();
       restore.forEach((original, image) => {
-        if (image.isConnected) {
-          image.src = original.src;
-          image.alt = original.alt;
-        }
+        if (!image.isConnected) return;
+        image.src = original.src;
+        image.alt = original.alt;
+        if (original.style === null) image.removeAttribute('style');
+        else image.setAttribute('style', original.style);
       });
       document.title = originalTitle;
       if (favicon && originalFavicon) favicon.href = originalFavicon;
       if (previousTenantAccent) root.style.setProperty('--tenant-brand-color', previousTenantAccent);
       else root.style.removeProperty('--tenant-brand-color');
     };
-  }, [branding?.brand_id, branding?.brand_name, branding?.logo_url, branding?.primary_color, branding?.white_label_enabled]);
+  }, [branding?.brand_id, branding?.brand_name, branding?.logo_url, branding?.compact_logo_url, branding?.primary_color, branding?.white_label_enabled]);
 
   return null;
 }
