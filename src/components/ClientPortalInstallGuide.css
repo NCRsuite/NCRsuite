@@ -1,0 +1,143 @@
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  z-index: 1200;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 18px 18px 14px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, .22);
+  backdrop-filter: blur(22px);
+  color: #172033;
+  animation: ncr-client-install-enter 220ms ease-out both;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide__handle {
+  width: 44px;
+  height: 5px;
+  margin: -7px auto 14px;
+  border-radius: 999px;
+  background: #d2d8e2;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide__close {
+  position: absolute;
+  top: 13px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: #f2f5f9;
+  color: #596579;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-right: 44px;
+  color: #3678ef;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide__brand img {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide h2 {
+  margin: 14px 0 7px;
+  font-size: clamp(21px, 6vw, 28px);
+  line-height: 1.08;
+  letter-spacing: -.025em;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide > p {
+  margin: 0;
+  color: #687386;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide__steps {
+  display: grid;
+  gap: 8px;
+  margin: 15px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide__steps li {
+  display: grid;
+  grid-template-columns: 31px 1fr;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid #e5eaf1;
+  border-radius: 14px;
+  background: #f8faff;
+  color: #455166;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide__steps li > b {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  border-radius: 10px;
+  background: #eaf1ff;
+  color: #3678ef;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide__install {
+  width: 100%;
+  min-height: 50px;
+  margin-top: 15px;
+  border: 0;
+  border-radius: 14px;
+  background: #3678ef;
+  color: white;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+html[data-ncr-ui-2026="true"] .ncr-client-install-guide__later {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 5px;
+  border: 0;
+  background: transparent;
+  color: #69758a;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+@keyframes ncr-client-install-enter {
+  from { opacity: 0; transform: translateY(18px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (min-width: 901px) {
+  html[data-ncr-ui-2026="true"] .ncr-client-install-guide { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .ncr-client-install-guide { animation: none; }
+}
