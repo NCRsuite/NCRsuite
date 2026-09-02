@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Icon } from './Icon';
+import { MetierBrandsAdminPanel } from './MetierBrandsAdminPanel';
 
 interface MetierAdminOrganization {
   id: string;
@@ -12,6 +13,7 @@ interface MetierAdminOrganization {
   member_limit: number;
   site_limit: number;
   active_sites: number;
+  active_brands: number;
   enabled_modules: number;
   white_label_enabled: boolean;
   custom_domain: string | null;
@@ -221,7 +223,7 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
   return (
     <section className="metier-admin-panel">
       <div className="billing-admin-heading">
-        <div><p className="eyebrow">OFFRES MÉTIER</p><h2>Contrats et environnements sur mesure</h2><p>Configure les limites, établissements, modules, marque blanche et domaine propre de chaque client Métier.</p></div>
+        <div><p className="eyebrow">OFFRES MÉTIER</p><h2>Contrats et environnements sur mesure</h2><p>Configure les limites, enseignes, établissements, modules, marque blanche et domaines propres de chaque client Métier.</p></div>
         <button className="secondary-button" type="button" onClick={() => void loadAll()}>Actualiser</button>
       </div>
 
@@ -240,7 +242,7 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
               {organizations.map((organization) => (
                 <button type="button" key={organization.id} className={selectedId === organization.id ? 'active' : ''} onClick={() => void changeOrganization(organization.id)}>
                   <span className="admin-company-avatar">{organization.name.slice(0, 1).toUpperCase()}</span>
-                  <span><strong>{organization.name}</strong><small>{organization.owner_email || organization.business_type}</small><em>{organization.active_sites}/{organization.site_limit} sites · {organization.enabled_modules} modules</em></span>
+                  <span><strong>{organization.name}</strong><small>{organization.owner_email || organization.business_type}</small><em>{organization.active_brands ?? 0} enseigne(s) · {organization.active_sites}/{organization.site_limit} sites · {organization.enabled_modules} modules</em></span>
                   <Icon name="chevronRight" size={17} />
                 </button>
               ))}
@@ -251,7 +253,7 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
             <form className="panel metier-admin-editor" onSubmit={save}>
               <div className="admin-editor-company">
                 <span className="admin-company-avatar large">{selected.name.slice(0, 1).toUpperCase()}</span>
-                <div><p className="eyebrow">CONFIGURATION CONTRACTUELLE</p><h2>{selected.name}</h2><small>{selected.owner_email || 'Propriétaire non identifié'} · {money(selected.monthly_price_cents)} HT/mois</small></div>
+                <div><p className="eyebrow">CONFIGURATION CONTRACTUELLE</p><h2>{selected.name}</h2><small>{selected.owner_email || 'Propriétaire non identifié'} · à partir de {money(configuration.organization.minimum_monthly_price_cents ?? selected.monthly_price_cents)} HT/mois · contrat actuel {money(selected.monthly_price_cents)} HT/mois</small></div>
               </div>
 
               {!canManage && <div className="info-message">Le rôle Support permet la consultation, mais pas la modification.</div>}
@@ -268,7 +270,7 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
 
               <div className="metier-admin-form-grid">
                 <label>Référence du contrat<input maxLength={120} value={contractReference} onChange={(event) => setContractReference(event.target.value)} disabled={!canManage} placeholder="Ex. NCR-MET-2026-001" /></label>
-                <label>Tarif mensuel HT<div className="admin-price-input"><input inputMode="decimal" value={monthlyPrice} onChange={(event) => setMonthlyPrice(event.target.value)} disabled={!canManage} /><span>€</span></div>{configuration.organization.minimum_monthly_price_cents !== null ? <small>Minimum {money(configuration.organization.minimum_monthly_price_cents)} HT/mois pour ce domaine</small> : <small>Tarif défini selon le devis et la configuration</small>}</label>
+                <label>Tarif mensuel HT<div className="admin-price-input"><input inputMode="decimal" value={monthlyPrice} onChange={(event) => setMonthlyPrice(event.target.value)} disabled={!canManage} /><span>€</span></div>{configuration.organization.minimum_monthly_price_cents !== null ? <small>Tarif contractuel libre à partir de {money(configuration.organization.minimum_monthly_price_cents)} HT/mois pour ce domaine</small> : <small>Tarif défini selon le devis et la configuration</small>}</label>
                 <label>Frais de configuration HT<div className="admin-price-input"><input inputMode="decimal" value={setupFee} onChange={(event) => setSetupFee(event.target.value)} disabled={!canManage} /><span>€</span></div></label>
                 <label>Limite d’utilisateurs<input type="number" min={1} max={100} value={memberLimit} onChange={(event) => setMemberLimit(Number(event.target.value))} disabled={!canManage} /></label>
                 <label>Limite d’établissements<input type="number" min={1} max={50} value={siteLimit} onChange={(event) => setSiteLimit(Number(event.target.value))} disabled={!canManage} /></label>
@@ -276,10 +278,12 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
                 <label className="admin-checkbox-field"><input type="checkbox" checked={whiteLabel} onChange={(event) => setWhiteLabel(event.target.checked)} disabled={!canManage} /><span><strong>Autoriser la marque blanche</strong><small>Le client pourra masquer la signature NCR Suite.</small></span></label>
               </div>
 
+              <MetierBrandsAdminPanel organizationId={selectedId} siteLimit={siteLimit} canManage={canManage} />
+
               <section className="metier-admin-domain-section">
-                <div><p className="eyebrow">DOMAINE CLIENT</p><h3>Domaine personnalisé</h3><p className="muted">Le statut doit correspondre à la configuration réellement effectuée dans Cloudflare.</p></div>
+                <div><p className="eyebrow">DOMAINE GLOBAL DE L’ESPACE</p><h3>Domaine personnalisé principal</h3><p className="muted">Ce domaine reste celui de l’espace global. Chaque enseigne peut désormais disposer de son propre domaine dans la section multi-enseigne ci-dessus.</p></div>
                 <div className="metier-admin-domain-grid">
-                  <label>Domaine<input value={customDomain} onChange={(event) => setCustomDomain(event.target.value.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, ''))} disabled={!canManage} placeholder="rdv.entreprise.fr" /></label>
+                  <label>Domaine<input value={customDomain} onChange={(event) => setCustomDomain(event.target.value.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, ''))} disabled={!canManage} placeholder="app.entreprise.fr" /></label>
                   <label>Statut<select value={domainStatus} onChange={(event) => setDomainStatus(event.target.value as typeof domainStatus)} disabled={!canManage || !customDomain}><option value="not_configured">Non configuré</option><option value="pending">DNS en attente</option><option value="verified">Vérifié</option><option value="active">Actif</option><option value="error">Erreur DNS</option></select></label>
                 </div>
                 {customDomain && <div className="metier-domain-preview"><span className={`admin-status-pill ${domainStatus === 'active' ? 'positive' : domainStatus === 'error' ? 'negative' : 'warning'}`}>{statusLabels[domainStatus]}</span><code>https://{customDomain}</code></div>}
@@ -295,7 +299,7 @@ export function MetierAdminPanel({ canManage }: { canManage: boolean }) {
                 ))}
               </section>
 
-              <div className="info-message">Le domaine n’est pas ajouté automatiquement dans Cloudflare. Après enregistrement, configure manuellement le domaine personnalisé dans Cloudflare Pages, puis passe son statut à Actif.</div>
+              <div className="info-message">Les domaines ne sont pas ajoutés automatiquement dans Cloudflare. Configure réellement chaque domaine dans Cloudflare Pages avant de passer son statut à Actif.</div>
               {canManage && <button className="primary-button full" type="submit" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer la configuration Métier'}</button>}
             </form>
           )}
