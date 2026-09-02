@@ -47,6 +47,7 @@ import './ncrUi2026ClientPortalBranding.css';
 import './ncrUi2026MetierWhiteLabel.css';
 import './metierStructure.css';
 import './metierSimpleExperience.css';
+import './metierReceptionOverlay.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
