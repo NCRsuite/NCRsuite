@@ -36,6 +36,13 @@ export function MetierBrandSwitcher() {
   const [desktopOpen, setDesktopOpen] = useState(false);
   const [desktopHost, setDesktopHost] = useState<HTMLElement | null>(null);
   const [mobileHost, setMobileHost] = useState<HTMLElement | null>(null);
+  const [reloadVersion, setReloadVersion] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setReloadVersion((current) => current + 1);
+    window.addEventListener('ncr:metier-brands-changed', refresh);
+    return () => window.removeEventListener('ncr:metier-brands-changed', refresh);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -79,7 +86,7 @@ export function MetierBrandSwitcher() {
 
     void load();
     return () => { active = false; };
-  }, [organization?.id, organization?.plan]);
+  }, [organization?.id, organization?.plan, reloadVersion]);
 
   const selectedBrand = useMemo(
     () => brands.find((brand) => brand.id === selectedBrandId) ?? brands.find((brand) => brand.is_primary) ?? brands[0] ?? null,
@@ -151,33 +158,41 @@ export function MetierBrandSwitcher() {
 
     root.dataset.metierWhiteLabel = 'true';
     root.style.setProperty('--tenant-brand-color', selectedBrand.primary_color);
-    document.title = selectedBrand.name;
+    if (document.title !== selectedBrand.name) document.title = selectedBrand.name;
 
     function apply() {
       if (logoUrl) {
         document.querySelectorAll<HTMLImageElement>('.sidebar .brand.brand-horizontal img, .mobile-drawer-header img, .mobile-header-company img, .loading-screen img').forEach((image) => {
           if (!previousImages.has(image)) previousImages.set(image, { src: image.src, alt: image.alt });
-          image.src = logoUrl;
-          image.alt = selectedBrand.name;
+          if (image.src !== logoUrl) image.src = logoUrl;
+          if (image.alt !== selectedBrand.name) image.alt = selectedBrand.name;
         });
       }
       if (mainLogoUrl) {
         document.querySelectorAll<HTMLImageElement>('.showcase-brand img, .auth-wordmark').forEach((image) => {
           if (!previousImages.has(image)) previousImages.set(image, { src: image.src, alt: image.alt });
-          image.src = mainLogoUrl;
-          image.alt = selectedBrand.name;
+          if (image.src !== mainLogoUrl) image.src = mainLogoUrl;
+          if (image.alt !== selectedBrand.name) image.alt = selectedBrand.name;
         });
       }
       document.querySelectorAll<HTMLElement>('.mobile-header-company strong').forEach((node) => {
         if (!previousTexts.has(node)) previousTexts.set(node, node.textContent ?? '');
-        node.textContent = selectedBrand.name;
+        if (node.textContent !== selectedBrand.name) node.textContent = selectedBrand.name;
       });
       const favicon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
-      if (favicon && logoUrl) favicon.href = logoUrl;
+      if (favicon && logoUrl && favicon.href !== logoUrl) favicon.href = logoUrl;
     }
 
     apply();
-    const observer = new MutationObserver(() => queueMicrotask(apply));
+    let scheduled = false;
+    const observer = new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      window.requestAnimationFrame(() => {
+        scheduled = false;
+        apply();
+      });
+    });
     observer.observe(document.body, { childList: true, subtree: true });
     return () => {
       observer.disconnect();
@@ -187,8 +202,8 @@ export function MetierBrandSwitcher() {
           image.alt = previous.alt;
         }
       });
-      previousTexts.forEach((text, node) => { if (node.isConnected) node.textContent = text; });
-      document.title = previousTitle;
+      previousTexts.forEach((text, node) => { if (node.isConnected && node.textContent !== text) node.textContent = text; });
+      if (document.title !== previousTitle) document.title = previousTitle;
       if (previousColor) root.style.setProperty('--tenant-brand-color', previousColor);
       else root.style.removeProperty('--tenant-brand-color');
     };
@@ -199,8 +214,10 @@ export function MetierBrandSwitcher() {
     setSelectedBrandId(brand.id);
     localStorage.setItem(`ncr-suite-brand-id-${organization.id}`, brand.id);
     const brandSites = sites.filter((site) => site.brand_id === brand.id);
-    if (!activeSiteId || !brandSites.some((site) => site.id === activeSiteId)) {
-      selectSite(brandSites[0]?.id ?? null);
+    if (brandSites.length > 0) {
+      if (!activeSiteId || !brandSites.some((site) => site.id === activeSiteId)) selectSite(brandSites[0].id);
+    } else {
+      selectSite(null);
     }
     setDesktopOpen(false);
   }
@@ -208,6 +225,7 @@ export function MetierBrandSwitcher() {
   if (!organization || organization.plan !== 'metier' || brands.length < 2 || !selectedBrand) return null;
 
   const logo = brandLogo(selectedBrand);
+  const selectedHasSites = selectedBrand.active_sites > 0;
   const desktop = (
     <div className={`context-switcher metier-brand-switcher${desktopOpen ? ' open' : ''}`}>
       <div className="context-switcher-label"><span>Enseigne</span><small>{brands.length} accessibles</small></div>
@@ -215,10 +233,10 @@ export function MetierBrandSwitcher() {
         <span className={`context-switcher-icon${logo ? ' has-image' : ''}`} style={{ background: logo ? '#fff' : selectedBrand.primary_color }}>
           {logo ? <img src={logo} alt="" /> : <Icon name="sparkles" size={18} />}
         </span>
-        <span className="context-switcher-copy"><strong>{selectedBrand.name}</strong><small>{selectedBrand.code || 'Enseigne active'}</small></span>
+        <span className="context-switcher-copy"><strong>{selectedBrand.name}</strong><small>{selectedHasSites ? selectedBrand.code || 'Enseigne active' : 'À configurer · aucun établissement'}</small></span>
         <span className="context-switcher-chevron"><Icon name="chevronDown" size={17} /></span>
       </button>
-      <div className="context-switcher-foot site"><span><i />{selectedBrand.active_sites} établissement(s)</span></div>
+      <div className="context-switcher-foot site"><span><i />{selectedHasSites ? `${selectedBrand.active_sites} établissement(s)` : 'Aucun établissement'}</span></div>
       {desktopOpen && (
         <div className="context-switcher-menu" role="listbox" aria-label="Choisir une enseigne">
           <header><span>Vos enseignes</span><small>{brands.length}</small></header>
@@ -228,7 +246,7 @@ export function MetierBrandSwitcher() {
               const itemLogo = brandLogo(brand);
               return <button type="button" role="option" aria-selected={active} key={brand.id} className={active ? 'active' : ''} onClick={() => chooseBrand(brand)}>
                 <span className={`context-option-icon${itemLogo ? ' has-image' : ''}`} style={{ background: itemLogo ? '#fff' : brand.primary_color }}>{itemLogo ? <img src={itemLogo} alt="" /> : <Icon name="sparkles" size={17} />}</span>
-                <span className="context-option-copy"><strong>{brand.name}</strong><small>{brand.active_sites} établissement(s)</small></span>
+                <span className="context-option-copy"><strong>{brand.name}</strong><small>{brand.active_sites > 0 ? `${brand.active_sites} établissement(s)` : 'À configurer · aucun établissement'}</small></span>
                 {active ? <span className="context-option-check"><Icon name="check" size={15} /></span> : <Icon name="chevronRight" size={15} />}
               </button>;
             })}
@@ -247,7 +265,7 @@ export function MetierBrandSwitcher() {
           const itemLogo = brandLogo(brand);
           return <button type="button" key={brand.id} className={`mobile-organization-option${active ? ' active' : ''}`} onClick={() => chooseBrand(brand)}>
             <span className={`mobile-organization-logo${itemLogo ? ' has-image' : ''}`} style={{ background: itemLogo ? '#fff' : brand.primary_color }}>{itemLogo ? <img src={itemLogo} alt="" /> : <Icon name="sparkles" size={19} />}</span>
-            <span className="mobile-organization-copy"><strong>{brand.name}</strong><small>{brand.active_sites} établissement(s){brand.code ? ` · ${brand.code}` : ''}</small></span>
+            <span className="mobile-organization-copy"><strong>{brand.name}</strong><small>{brand.active_sites > 0 ? `${brand.active_sites} établissement(s)${brand.code ? ` · ${brand.code}` : ''}` : 'À configurer · aucun établissement'}</small></span>
             {active && <Icon name="check" size={20} />}
           </button>;
         })}
