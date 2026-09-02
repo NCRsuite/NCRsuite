@@ -138,7 +138,7 @@ export function MetierRuntimeBranding() {
       }
     }
 
-    function applyLogo(image: HTMLImageElement, logoUrl: string, mode: 'compact' | 'main' | 'loading') {
+    function applyLogo(image: HTMLImageElement, logoUrl: string, mode: 'compact' | 'mobileHeader' | 'main' | 'loading') {
       remember(image);
       image.src = logoUrl;
       image.alt = activeBranding.brand_name;
@@ -148,10 +148,15 @@ export function MetierRuntimeBranding() {
       image.style.setProperty('width', 'auto', 'important');
       image.style.setProperty('height', 'auto', 'important');
 
-      if (mode === 'compact') {
-        const mobile = image.matches('.mobile-drawer-header img');
-        image.style.setProperty('max-width', mobile ? '112px' : '132px', 'important');
-        image.style.setProperty('max-height', mobile ? '40px' : '52px', 'important');
+      if (mode === 'mobileHeader') {
+        image.style.setProperty('max-width', '46px', 'important');
+        image.style.setProperty('max-height', '46px', 'important');
+        image.style.setProperty('margin', '0', 'important');
+        image.style.setProperty('flex', '0 0 auto', 'important');
+      } else if (mode === 'compact') {
+        const mobileDrawer = image.matches('.mobile-drawer-header img');
+        image.style.setProperty('max-width', mobileDrawer ? '112px' : '132px', 'important');
+        image.style.setProperty('max-height', mobileDrawer ? '40px' : '52px', 'important');
         image.style.setProperty('margin', '0 auto', 'important');
         image.style.setProperty('flex', '0 0 auto', 'important');
       } else if (mode === 'loading') {
@@ -171,6 +176,8 @@ export function MetierRuntimeBranding() {
       if (compactLogoUrl) {
         document.querySelectorAll<HTMLImageElement>('.sidebar .brand.brand-horizontal img, .mobile-drawer-header img')
           .forEach((image) => applyLogo(image, compactLogoUrl, 'compact'));
+        document.querySelectorAll<HTMLImageElement>('.mobile-header-company img')
+          .forEach((image) => applyLogo(image, compactLogoUrl, 'mobileHeader'));
       }
 
       if (mainLogoUrl) {
