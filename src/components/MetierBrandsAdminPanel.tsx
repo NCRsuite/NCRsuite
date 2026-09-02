@@ -60,6 +60,7 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
   const [logoUrl, setLogoUrl] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#2997ff');
   const [customDomain, setCustomDomain] = useState('');
+  const [originalDomain, setOriginalDomain] = useState('');
   const [isPrimary, setIsPrimary] = useState(false);
   const [domainStatus, setDomainStatus] = useState<BrandDomainStatus>('not_configured');
   const [loading, setLoading] = useState(true);
@@ -98,6 +99,7 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
     setLogoUrl('');
     setPrimaryColor('#2997ff');
     setCustomDomain('');
+    setOriginalDomain('');
     setIsPrimary(brands.length === 0);
     setDomainStatus('not_configured');
     setShowEditor(true);
@@ -106,12 +108,14 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
   }
 
   function editBrand(brand: MetierBrand) {
+    const currentDomain = brand.custom_domain ?? '';
     setEditingId(brand.id);
     setName(brand.name);
     setCode(brand.code ?? '');
     setLogoUrl(brand.logo_url ?? '');
     setPrimaryColor(brand.primary_color || '#2997ff');
-    setCustomDomain(brand.custom_domain ?? '');
+    setCustomDomain(currentDomain);
+    setOriginalDomain(currentDomain);
     setIsPrimary(brand.is_primary);
     setDomainStatus(brand.custom_domain_status ?? 'not_configured');
     setShowEditor(true);
@@ -130,6 +134,8 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
       return;
     }
 
+    const normalizedDomain = customDomain.trim();
+    const domainChanged = normalizedDomain !== originalDomain;
     setBusy('brand');
     setError('');
     setMessage('');
@@ -141,13 +147,13 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
         p_code: code.trim() || null,
         p_logo_url: logoUrl.trim() || null,
         p_primary_color: primaryColor,
-        p_custom_domain: customDomain.trim() || null,
+        p_custom_domain: normalizedDomain || null,
         p_is_primary: isPrimary
       });
       if (requestError) throw requestError;
 
       const savedId = String(data ?? editingId ?? '');
-      if (savedId && customDomain.trim() && editingId && domainStatus !== 'pending') {
+      if (savedId && normalizedDomain && editingId && !domainChanged && domainStatus !== 'pending') {
         const { error: statusError } = await supabase.rpc('metier_set_brand_domain_status', {
           p_organization_id: organizationId,
           p_brand_id: savedId,
@@ -158,7 +164,8 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
 
       setShowEditor(false);
       setEditingId(null);
-      setMessage('L’enseigne a été enregistrée.');
+      setOriginalDomain('');
+      setMessage(domainChanged && normalizedDomain ? 'L’enseigne a été enregistrée. Le nouveau domaine est repassé en attente DNS.' : 'L’enseigne a été enregistrée.');
       await load();
     } catch (cause) {
       setError(errorMessage(cause));
@@ -187,14 +194,14 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
   }
 
   async function assignSite(site: MetierBrandSite, brandId: string) {
-    if (!supabase || !canManage || busy) return;
+    if (!supabase || !canManage || busy || !brandId) return;
     setBusy(`site-${site.id}`);
     setError('');
     setMessage('');
     const { error: requestError } = await supabase.rpc('metier_assign_site_brand', {
       p_organization_id: organizationId,
       p_site_id: site.id,
-      p_brand_id: brandId || null
+      p_brand_id: brandId
     });
     setBusy('');
     if (requestError) setError(requestError.message);
@@ -246,8 +253,8 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
           <label>Code interne<input value={code} onChange={(event) => setCode(event.target.value.toUpperCase())} maxLength={40} placeholder="Ex. CUT" /></label>
           <label>Logo de l’enseigne<input value={logoUrl} onChange={(event) => setLogoUrl(event.target.value)} placeholder="https://…" /></label>
           <label>Couleur principale<input type="color" value={primaryColor} onChange={(event) => setPrimaryColor(event.target.value)} /></label>
-          <label>Domaine personnalisé<input value={customDomain} onChange={(event) => setCustomDomain(event.target.value.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, ''))} placeholder="rdv.enseigne.fr" /><small>Une nouvelle adresse passe automatiquement en attente DNS.</small></label>
-          {editingId && customDomain && <label>Statut DNS<select value={domainStatus} onChange={(event) => setDomainStatus(event.target.value as BrandDomainStatus)}><option value="pending">DNS en attente</option><option value="verified">Vérifié</option><option value="active">Actif</option><option value="error">À corriger</option></select></label>}
+          <label>Domaine personnalisé<input value={customDomain} onChange={(event) => setCustomDomain(event.target.value.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, ''))} placeholder="rdv.enseigne.fr" /><small>{customDomain.trim() !== originalDomain ? 'Une nouvelle adresse repassera automatiquement en attente DNS.' : 'Le statut DNS est piloté séparément.'}</small></label>
+          {editingId && customDomain && <label>Statut DNS<select value={customDomain.trim() !== originalDomain ? 'pending' : domainStatus} onChange={(event) => setDomainStatus(event.target.value as BrandDomainStatus)} disabled={customDomain.trim() !== originalDomain}><option value="not_configured">Non configuré</option><option value="pending">DNS en attente</option><option value="verified">Vérifié</option><option value="active">Actif</option><option value="error">À corriger</option></select></label>}
           <label className="admin-checkbox-field"><input type="checkbox" checked={isPrimary} onChange={(event) => setIsPrimary(event.target.checked)} /><span><strong>Enseigne principale</strong><small>Elle devient l’identité par défaut des nouveaux établissements.</small></span></label>
           <div style={{ display: 'flex', alignItems: 'end', gap: 10 }}>
             <button type="button" className="secondary-button" onClick={() => setShowEditor(false)} disabled={busy === 'brand'}>Annuler</button>
@@ -263,8 +270,7 @@ export function MetierBrandsAdminPanel({ organizationId, siteLimit, canManage }:
             <label key={site.id} className="active" style={{ cursor: 'default' }}>
               <span style={{ width: '100%', display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(180px, 260px)', gap: 12, alignItems: 'center' }}>
                 <span><b>{site.name}{site.is_primary ? ' · principal' : ''}</b><small>{[site.code, site.city].filter(Boolean).join(' · ') || 'Établissement actif'}</small></span>
-                <select value={site.brand_id ?? ''} onChange={(event) => void assignSite(site, event.target.value)} disabled={!canManage || busy === `site-${site.id}`}>
-                  <option value="">Sans enseigne</option>
+                <select value={site.brand_id ?? activeBrands[0]?.id ?? ''} onChange={(event) => void assignSite(site, event.target.value)} disabled={!canManage || busy === `site-${site.id}` || activeBrands.length === 0}>
                   {activeBrands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}{brand.is_primary ? ' · principale' : ''}</option>)}
                 </select>
               </span>
