@@ -87,6 +87,16 @@ export function MetierBrandSwitcher() {
   );
 
   useEffect(() => {
+    if (!organization || organization.plan !== 'metier' || !activeSiteId || sites.length === 0 || brands.length === 0) return;
+    const site = sites.find((item) => item.id === activeSiteId);
+    if (!site?.brand_id || site.brand_id === selectedBrandId) return;
+    const nextBrand = brands.find((brand) => brand.id === site.brand_id);
+    if (!nextBrand) return;
+    setSelectedBrandId(nextBrand.id);
+    localStorage.setItem(`ncr-suite-brand-id-${organization.id}`, nextBrand.id);
+  }, [organization?.id, organization?.plan, activeSiteId, sites, brands, selectedBrandId]);
+
+  useEffect(() => {
     if (!organization || organization.plan !== 'metier' || brands.length < 2) {
       setDesktopHost(null);
       setMobileHost(null);
