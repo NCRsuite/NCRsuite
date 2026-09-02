@@ -9,7 +9,7 @@ import { ConnectivityStatus } from './components/ConnectivityStatus';
 import { EnterpriseOnboardingGuard } from './components/EnterpriseOnboardingGuard';
 import { MetierBrandSwitcher } from './components/MetierBrandSwitcher';
 import { MetierRuntimeBranding } from './components/MetierRuntimeBranding';
-import { MetierWorkspaceEnhancements } from './components/MetierWorkspaceEnhancements';
+import { MetierSimpleExperience } from './components/MetierSimpleExperience';
 import { RuntimeMonitor } from './components/RuntimeMonitor';
 import { NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED } from './config/ui2026';
 import { AuthProvider } from './contexts/AuthContext';
@@ -46,6 +46,7 @@ import './ncrUi2026WorkspaceContextMicroPolish.css';
 import './ncrUi2026ClientPortalBranding.css';
 import './ncrUi2026MetierWhiteLabel.css';
 import './metierStructure.css';
+import './metierSimpleExperience.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
@@ -87,7 +88,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <OrganizationProvider>
             <MetierRuntimeBranding />
             <MetierBrandSwitcher />
-            <MetierWorkspaceEnhancements />
+            <MetierSimpleExperience />
             <RuntimeMonitor />
             <ConnectivityStatus />
             <ClientPortalConfigurationGuard>
