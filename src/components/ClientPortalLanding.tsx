@@ -48,7 +48,9 @@ export function ClientPortalConfigurationGuard({ children }: { children: ReactNo
   const { organization, loading: organizationLoading } = useOrganization();
   const { isAdmin, loading: adminLoading } = usePlatformAdmin();
   const location = useLocation();
+  const explicitEnterpriseOnboarding = new URLSearchParams(location.search).get('nouvelle-entreprise') === '1';
   const shouldResolve = location.pathname === '/configuration'
+    && !explicitEnterpriseOnboarding
     && Boolean(user)
     && !authLoading
     && !organizationLoading
