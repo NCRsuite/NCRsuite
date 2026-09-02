@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { businessPacks } from '../config/businessPacks';
 import { businessUiAccent, businessUiTheme } from '../config/businessTheme';
 import { getDomainPlans } from '../config/domainPlans';
@@ -20,6 +20,13 @@ interface CreatedSpaceResult {
   plan: Plan;
   monthly_price_cents: number;
   status: 'trial' | 'active';
+}
+
+interface TrialPolicy {
+  enabled: boolean;
+  trial_days: number;
+  payment_required_before_access: boolean;
+  manual_review: boolean;
 }
 
 const businessTypes = (Object.keys(businessPacks) as BusinessType[]).map((value) => ({
@@ -65,6 +72,8 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
   const [plan, setPlan] = useState<Plan>('professionnelle');
   const [monthlyPrice, setMonthlyPrice] = useState(moneyInput(getDomainPlans('formation').professionnelle.monthlyPriceCents));
   const [trialDays, setTrialDays] = useState(7);
+  const [platformTrialDays, setPlatformTrialDays] = useState(7);
+  const [trialEnabled, setTrialEnabled] = useState(true);
   const [internalNotes, setInternalNotes] = useState('');
   const [setupFee, setSetupFee] = useState('0.00');
   const [memberLimit, setMemberLimit] = useState(10);
@@ -84,9 +93,23 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
       value,
       label: definitions[value].label,
       priceCents: definitions[value].monthlyPriceCents,
-      detail: definitions[value].detail
+      detail: definitions[value].detail,
+      startingAt: definitions[value].startingAt
     }));
   }, [businessType]);
+
+  useEffect(() => {
+    if (!supabase) return;
+    void (async () => {
+      const { data, error: requestError } = await supabase.rpc('admin_get_trial_policy');
+      if (requestError || !data) return;
+      const policy = data as TrialPolicy;
+      const days = Math.max(0, Math.min(30, Math.round(policy.trial_days ?? 7)));
+      setPlatformTrialDays(days);
+      setTrialEnabled(Boolean(policy.enabled));
+      setTrialDays(policy.enabled ? days : 0);
+    })();
+  }, []);
 
   function changeName(value: string) {
     setName(value);
@@ -126,6 +149,10 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
     }
     if (!Number.isFinite(monthlyPriceCents) || monthlyPriceCents < 0) {
       setError('Le tarif mensuel est invalide.');
+      return;
+    }
+    if (!Number.isInteger(trialDays) || trialDays < 0 || trialDays > 30) {
+      setError('La durée d’essai doit être comprise entre 0 et 30 jours.');
       return;
     }
     if (plan === 'metier' && (!Number.isFinite(setupFeeCents) || setupFeeCents < 0)) {
@@ -232,17 +259,17 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
               </label>
               <label>Formule
                 <select value={plan} onChange={(event) => changePlan(event.target.value as Plan)}>
-                  {plans.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                  {plans.map((item) => <option key={item.value} value={item.value}>{item.label}{item.startingAt ? ' — sur mesure' : ''}</option>)}
                 </select>
                 <small>{plans.find((item) => item.value === plan)?.detail}</small>
               </label>
-              <label>Tarif mensuel HT
+              <label>{plan === 'metier' ? 'Tarif contractuel HT / mois' : 'Tarif mensuel HT'}
                 <div className="admin-price-input"><input inputMode="decimal" value={monthlyPrice} onChange={(event) => setMonthlyPrice(event.target.value)} /><span>€</span></div>
-                <small>Ce tarif appartient uniquement à ce nouvel espace.</small>
+                <small>{plan === 'metier' ? `À partir de ${moneyInput(getDomainPlans(businessType).metier.monthlyPriceCents).replace('.', ',')} € HT/mois. Le montant final appartient uniquement à ce contrat.` : 'Ce tarif appartient uniquement à ce nouvel espace.'}</small>
               </label>
               <label>Durée d’essai
-                <div className="admin-space-unit-field"><input type="number" min={0} max={365} value={trialDays} onChange={(event) => setTrialDays(Number(event.target.value))} /><span>jours</span></div>
-                <small>7 jours par défaut. Mets 0 uniquement pour un espace payé/activé immédiatement.</small>
+                <div className="admin-space-unit-field"><input type="number" min={0} max={30} value={trialDays} onChange={(event) => setTrialDays(Math.max(0, Math.min(30, Number(event.target.value))))} /><span>jours</span></div>
+                <small>{trialEnabled ? `Politique plateforme : ${platformTrialDays} jour(s) par défaut. Maximum 30 jours. Mets 0 pour une activation immédiate.` : 'L’essai public est désactivé. Mets 0 pour une activation immédiate ou définis exceptionnellement une durée jusqu’à 30 jours.'}</small>
               </label>
               <label className="full-field">Note interne NCR
                 <textarea rows={3} maxLength={2000} value={internalNotes} onChange={(event) => setInternalNotes(event.target.value)} placeholder="Accord commercial, paiement groupé, particularité du client…" />
@@ -265,6 +292,7 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
                 </label>
                 <label>Établissements maximum
                   <input type="number" min={1} max={50} value={siteLimit} onChange={(event) => setSiteLimit(Number(event.target.value))} />
+                  <small>Cette capacité borne aussi le nombre d’enseignes configurables dans cet espace.</small>
                 </label>
                 <label>Stockage inclus
                   <div className="admin-space-unit-field"><input type="number" min={100} max={100000} step={100} value={storageLimitMb} onChange={(event) => setStorageLimitMb(Number(event.target.value))} /><span>Mo</span></div>
@@ -273,13 +301,13 @@ export function AdminCreateSpaceModal({ onClose, onCreated }: AdminCreateSpaceMo
                   <input maxLength={120} value={contractReference} onChange={(event) => setContractReference(event.target.value)} placeholder="Ex. NCR-FORM-2026-001" />
                 </label>
               </div>
-              <div className="info-message">Un établissement principal sera créé automatiquement. Les modules activés seront uniquement ceux compatibles avec {selectedBusiness?.label}.</div>
+              <div className="info-message">Une enseigne principale et un établissement principal seront créés automatiquement. Les modules activés seront uniquement ceux compatibles avec {selectedBusiness?.label}. Les enseignes supplémentaires et leurs domaines pourront ensuite être configurés depuis Offres Métier.</div>
             </section>
           )}
 
           <div className="admin-space-summary">
             <span><Icon name="check" size={18} /></span>
-            <div><strong>{name.trim() || 'Nouvel espace'} — {selectedBusiness?.label}</strong><small>{plans.find((item) => item.value === plan)?.label} · {monthlyPrice.replace('.', ',')} € HT/mois · abonnement indépendant</small></div>
+            <div><strong>{name.trim() || 'Nouvel espace'} — {selectedBusiness?.label}</strong><small>{plans.find((item) => item.value === plan)?.label} · {plan === 'metier' ? 'contrat sur mesure · ' : ''}{monthlyPrice.replace('.', ',')} € HT/mois · abonnement indépendant</small></div>
           </div>
 
           <footer className="admin-space-modal-actions">
