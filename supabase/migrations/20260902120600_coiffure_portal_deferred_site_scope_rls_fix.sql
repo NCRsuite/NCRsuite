@@ -1,7 +1,7 @@
 -- Coiffure client portal — deferred site-scope validation must read organization plan reliably.
--- The constraint trigger can fire after the SECURITY DEFINER booking RPC returns,
--- under the authenticated portal user's RLS context. Make the invariant check itself
--- SECURITY DEFINER so it can always resolve the real organization plan and active site.
+-- The constraint trigger can fire after the booking RPC returns under the authenticated
+-- portal user's RLS context. Keep this invariant check privileged so it can always
+-- resolve the real organization plan and active site.
 
 create or replace function public.validate_operational_site_scope()
 returns trigger
