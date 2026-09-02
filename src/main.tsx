@@ -92,7 +92,7 @@ function RoutedApplication() {
   const location = useLocation();
 
   if (location.pathname.startsWith('/salon/')) {
-    return <PublicMetierCoiffureCompanyPage />;
+    return <PublicMetierCoiffureCompanyPage key={location.key} />;
   }
 
   return (
