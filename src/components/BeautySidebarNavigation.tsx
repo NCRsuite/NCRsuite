@@ -37,7 +37,7 @@ const BASE_GROUPS: BeautyNavigationGroup[] = [
       { label: 'Accès équipe', path: '/acces-equipe', icon: 'users' },
       { label: 'Fidélité', path: '/fidelite', icon: 'chart' },
       { label: 'Secrétariat partagé', path: '/?metier=reception', icon: 'calendar', reception: true },
-      { label: 'Mon espace', path: '/offre-metier', icon: 'building', ownerOnly: true }
+      { label: 'Centre & enseignes', path: '/offre-metier', icon: 'building', ownerOnly: true }
     ]
   },
   {
