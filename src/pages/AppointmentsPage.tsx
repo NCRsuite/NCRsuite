@@ -479,6 +479,12 @@ export function AppointmentsPage() {
 
   function openEditForm(appointment: AppointmentRecord) {
     if (!canEditAppointments || appointment.status === 'cancelled') return;
+    if ((appointmentItemsById.get(appointment.id)?.length ?? 0) > 1) {
+      setError('Ce rendez-vous contient plusieurs prestations. Sa composition est protégée depuis l’Agenda ; vous pouvez modifier son statut ou le déplacer depuis le lien client.');
+      setSelectedDate(startOfDay(new Date(appointment.starts_at)));
+      setViewMode('day');
+      return;
+    }
     const start = new Date(appointment.starts_at);
     setForm({
       siteId: appointment.site_id ?? activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? '',
@@ -1071,7 +1077,7 @@ export function AppointmentsPage() {
                       {cellRows.map((appointment) => {
                         const client = clientById.get(appointment.client_id);
                         const items = appointmentItemsById.get(appointment.id) ?? [];
-                        return <button type="button" key={appointment.id} className={`appointment-grid-event ${appointment.status}`} style={{ '--appointment-color': member.color || '#8b5cf6' } as CSSProperties} onClick={(event) => { event.stopPropagation(); openEditForm(appointment); }}>
+                        return <button type="button" key={appointment.id} className={`appointment-grid-event ${appointment.status}`} style={{ '--appointment-color': member.color || '#8b5cf6' } as CSSProperties} onClick={(event) => { event.stopPropagation(); if (items.length > 1) { setSelectedDate(startOfDay(new Date(appointment.starts_at))); setViewMode('day'); } else { openEditForm(appointment); } }}>
                           <strong>{timeFormatter.format(new Date(appointment.starts_at))} · {fullClientName(client)}</strong>
                           <span>{appointmentServiceLabel(appointment)}</span>
                           <small>{appointmentDurationMinutes(appointment)} min · {statusLabels[appointment.status]}{items.length > 1 ? ` · ${items.length} prestations` : ''}</small>
