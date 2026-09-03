@@ -22,6 +22,11 @@ interface BeautyCompany {
 
 interface BeautyLocation {
   id: string;
+  name: string | null;
+  address: string | null;
+  postal_code: string | null;
+  city: string | null;
+  is_primary: boolean;
   status: string;
 }
 
@@ -79,8 +84,13 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
   }, [organization?.id, organization?.plan, canManage]);
 
   const companies = config?.companies ?? [];
+  const locations = config?.locations ?? [];
   const centerMode = companies.length > 1;
   const primaryCompany = companies.find((company) => company.is_primary) ?? companies[0] ?? null;
+  const primaryLocation = locations.find((location) => location.is_primary) ?? locations[0] ?? null;
+  const placeLabel = primaryLocation?.city
+    ? `Centre de ${primaryLocation.city}`
+    : primaryLocation?.name || 'Bâtiment partagé';
   const readyCompanies = useMemo(
     () => companies.filter((company) => company.booking_enabled && company.site_count > 0 && company.service_count > 0 && company.staff_count > 0),
     [companies]
@@ -91,14 +101,14 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
   );
 
   const singleSteps = primaryCompany ? [
-    { label: 'Votre activité', detail: 'Nom, identité et informations principales', done: true, icon: 'building' as const, action: 'detail' as const },
-    { label: 'Votre établissement', detail: 'Adresse et lieu de rendez-vous', done: primaryCompany.site_count > 0, icon: 'building' as const, action: 'detail' as const },
+    { label: 'Votre enseigne', detail: 'Nom, identité et informations principales', done: true, icon: 'building' as const, action: 'detail' as const },
+    { label: 'Votre adresse', detail: 'Lieu où vos clients sont reçus', done: primaryCompany.site_count > 0, icon: 'map' as const, action: 'detail' as const },
     { label: 'Vos prestations', detail: 'Services, durées et tarifs', done: primaryCompany.service_count > 0, icon: 'sparkles' as const, path: '/prestations' },
     { label: 'Votre équipe', detail: 'Collaborateurs et disponibilités', done: primaryCompany.staff_count > 0, icon: 'users' as const, path: '/equipe' },
-    { label: 'Réservation en ligne', detail: 'Page publique et rendez-vous', done: primaryCompany.booking_enabled, icon: 'calendar' as const, action: 'detail' as const }
+    { label: 'Réservation en ligne', detail: 'Votre page publique et vos rendez-vous', done: primaryCompany.booking_enabled, icon: 'calendar' as const, action: 'detail' as const }
   ] : [
-    { label: 'Votre activité', detail: 'Créez votre salon ou votre première activité', done: false, icon: 'building' as const, action: 'detail' as const },
-    { label: 'Votre établissement', detail: 'Ajoutez votre adresse', done: false, icon: 'building' as const, action: 'detail' as const },
+    { label: 'Votre enseigne', detail: 'Créez votre salon ou votre première enseigne', done: false, icon: 'building' as const, action: 'detail' as const },
+    { label: 'Votre adresse', detail: 'Ajoutez le lieu où vous recevez vos clients', done: false, icon: 'map' as const, action: 'detail' as const },
     { label: 'Vos prestations', detail: 'Ajoutez ce que vous proposez', done: false, icon: 'sparkles' as const, path: '/prestations' },
     { label: 'Votre équipe', detail: 'Ajoutez vos collaborateurs', done: false, icon: 'users' as const, path: '/equipe' },
     { label: 'Réservation en ligne', detail: 'Publiez votre page', done: false, icon: 'calendar' as const, action: 'detail' as const }
@@ -117,13 +127,13 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
         <div className="beauty-setup-hero-top">
           <div className="beauty-setup-hero-copy">
             <p className="eyebrow">COIFFURE & BEAUTÉ</p>
-            <h1>{centerMode ? 'Configurer votre centre' : 'Configurer votre activité'}</h1>
+            <h1>{centerMode ? 'Configurer votre centre' : 'Configurer votre salon'}</h1>
             <p>{centerMode
-              ? 'Chaque entreprise garde son identité, son équipe, ses prestations et sa page publique. Le centre réunit seulement ce qui doit l’être : l’adresse, l’accueil et les accès.'
-              : 'Suivez quelques étapes simples. NCR Suite s’occupe des liens techniques en arrière-plan.'}</p>
+              ? 'Votre maison mère représente le centre. Chaque enseigne à l’intérieur garde son identité, son gestionnaire, son équipe, ses prestations et sa propre page publique. Le bâtiment, lui, peut être partagé.'
+              : 'Suivez quelques étapes simples. NCR Suite garde la structure technique en arrière-plan pour que vous restiez concentré sur votre activité.'}</p>
             <div className="beauty-setup-mode">
               <span><Icon name={centerMode ? 'building' : 'scissors'} size={19} /></span>
-              <div><strong>{centerMode ? 'Centre multi-entreprises' : 'Salon / activité indépendante'}</strong><small>{centerMode ? `${companies.length} entreprises détectées dans ce centre` : 'Parcours simplifié Coiffure & Beauté'}</small></div>
+              <div><strong>{centerMode ? 'Centre multi-enseignes' : 'Salon indépendant'}</strong><small>{centerMode ? `${companies.length} enseignes indépendantes · ${placeLabel}` : 'Parcours simplifié Coiffure & Beauté'}</small></div>
             </div>
           </div>
           <button type="button" className="secondary-button" onClick={onOpenAdvanced}><Icon name="tool" size={16} /> Réglages avancés</button>
@@ -134,8 +144,8 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
       {loading ? <section className="beauty-hub-section beauty-hub-loading" /> : (
         <>
           <section className="beauty-setup-summary" aria-label="Résumé de la configuration">
-            <article><small>{centerMode ? 'Entreprises' : 'Activité'}</small><strong>{centerMode ? companies.length : primaryCompany ? 1 : 0}</strong></article>
-            <article><small>Adresse{(config?.locations.length ?? 0) > 1 ? 's' : ''}</small><strong>{config?.locations.length ?? 0}</strong></article>
+            <article><small>{centerMode ? 'Enseignes' : 'Enseigne'}</small><strong>{centerMode ? companies.length : primaryCompany ? 1 : 0}</strong></article>
+            <article><small>Lieu{locations.length > 1 ? 'x' : ''} partagé{locations.length > 1 ? 's' : ''}</small><strong>{locations.length}</strong></article>
             <article><small>Prêtes à réserver</small><strong>{centerMode ? readyCompanies.length : primaryCompany?.booking_enabled ? 1 : 0}</strong></article>
             <article><small>Accès secrétariat</small><strong>{receptionUsers}</strong></article>
           </section>
@@ -159,27 +169,27 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
           ) : (
             <>
               <section className="beauty-hub-section">
-                <div className="beauty-hub-heading"><div><p>GESTION DU CENTRE</p><h2>Un centre commun, des entreprises indépendantes</h2></div><span>Pas besoin de changer de compte pour gérer le centre.</span></div>
+                <div className="beauty-hub-heading"><div><p>VOTRE CENTRE</p><h2>Une maison mère, plusieurs enseignes dans le même bâtiment</h2></div><span>{placeLabel}</span></div>
                 <div className="beauty-center-hub-grid">
-                  <button type="button" className="beauty-center-hub-card" onClick={openDetails}><span><Icon name="building" size={20} /></span><div><strong>Mes entreprises</strong><small>Ajouter une activité, gérer son identité et son rattachement au centre.</small></div><Icon name="chevronRight" size={17} /></button>
-                  <button type="button" className="beauty-center-hub-card" onClick={openDetails}><span><Icon name="map" size={20} /></span><div><strong>Adresse du centre</strong><small>Réutiliser la même adresse pour plusieurs entreprises sans les fusionner.</small></div><Icon name="chevronRight" size={17} /></button>
-                  <button type="button" className="beauty-center-hub-card" onClick={onOpenReception}><span><Icon name="calendar" size={20} /></span><div><strong>Accueil partagé</strong><small>Prendre les rendez-vous de toutes les entreprises autorisées.</small></div><Icon name="chevronRight" size={17} /></button>
-                  <button type="button" className="beauty-center-hub-card" onClick={openDetails}><span><Icon name="shield" size={20} /></span><div><strong>Accès & secrétariat</strong><small>Choisir quelles entreprises chaque personne peut voir ou gérer.</small></div><Icon name="chevronRight" size={17} /></button>
+                  <button type="button" className="beauty-center-hub-card" onClick={openDetails}><span><Icon name="building" size={20} /></span><div><strong>Mes enseignes</strong><small>Ajouter une enseigne, gérer son identité et choisir qui la pilote.</small></div><Icon name="chevronRight" size={17} /></button>
+                  <button type="button" className="beauty-center-hub-card" onClick={openDetails}><span><Icon name="map" size={20} /></span><div><strong>Bâtiment partagé</strong><small>Une même adresse peut être utilisée par plusieurs enseignes sans mélanger leurs données.</small></div><Icon name="chevronRight" size={17} /></button>
+                  <button type="button" className="beauty-center-hub-card" onClick={onOpenReception}><span><Icon name="calendar" size={20} /></span><div><strong>Secrétariat partagé</strong><small>Prendre les rendez-vous des enseignes autorisées depuis un agenda commun.</small></div><Icon name="chevronRight" size={17} /></button>
+                  <button type="button" className="beauty-center-hub-card" onClick={openDetails}><span><Icon name="shield" size={20} /></span><div><strong>Équipe & accès</strong><small>Chaque gérant ne voit que son enseigne ; le secrétariat peut en voir plusieurs.</small></div><Icon name="chevronRight" size={17} /></button>
                 </div>
               </section>
 
               <section className="beauty-hub-section">
-                <div className="beauty-hub-heading"><div><p>ENTREPRISES DU CENTRE</p><h2>État de vos activités</h2></div><span>{readyCompanies.length}/{companies.length} prêtes à recevoir des rendez-vous</span></div>
+                <div className="beauty-hub-heading"><div><p>ENSEIGNES DU CENTRE</p><h2>Chaque enseigne garde son univers</h2></div><span>{readyCompanies.length}/{companies.length} prêtes à recevoir des rendez-vous</span></div>
                 <div className="beauty-company-config-list">
                   {companies.map((company) => {
                     const ready = company.booking_enabled && company.site_count > 0 && company.service_count > 0 && company.staff_count > 0;
                     return <article className="beauty-company-config-card" key={company.id}>
                       <div className="beauty-company-config-head">
                         <span className="beauty-company-config-logo" style={{ background: company.logo_url ? '#fff' : company.primary_color }}>{company.logo_url ? <img src={company.logo_url} alt="" /> : company.name.slice(0, 1).toUpperCase()}</span>
-                        <div><strong>{company.name}</strong><small>{company.is_primary ? 'Entreprise principale' : 'Entreprise du centre'}</small></div>
+                        <div><strong>{company.name}</strong><small>{company.is_primary ? 'Enseigne principale' : 'Enseigne indépendante du centre'}</small></div>
                       </div>
-                      <div className="beauty-company-readiness"><span><strong>{company.service_count}</strong><small>prestations</small></span><span><strong>{company.staff_count}</strong><small>équipe</small></span><span><strong>{company.site_count}</strong><small>lieux</small></span></div>
-                      <div className="beauty-company-config-foot"><span className={ready ? '' : 'todo'}><Icon name={ready ? 'check' : 'activity'} size={11} /> {ready ? 'Prête' : 'À terminer'}</span><button type="button" onClick={openDetails}>Gérer</button></div>
+                      <div className="beauty-company-readiness"><span><strong>{company.service_count}</strong><small>prestations</small></span><span><strong>{company.staff_count}</strong><small>équipe</small></span><span><strong>{company.site_count}</strong><small>lieu{company.site_count > 1 ? 'x' : ''}</small></span></div>
+                      <div className="beauty-company-config-foot"><span className={ready ? '' : 'todo'}><Icon name={ready ? 'check' : 'activity'} size={11} /> {ready ? 'Prête' : 'À terminer'}</span><button type="button" onClick={openDetails}>Gérer l’enseigne</button></div>
                     </article>;
                   })}
                 </div>
@@ -194,7 +204,7 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
 
           {showDetailed && (
             <section className="beauty-detailed-wrap">
-              <div className="beauty-detailed-bar"><div><strong>Réglages détaillés</strong><small>Entreprises, enseignes, adresses, ressources et accès.</small></div><button type="button" className="secondary-button compact-button" onClick={() => setShowDetailed(false)}>Fermer</button></div>
+              <div className="beauty-detailed-bar"><div><strong>Réglages détaillés</strong><small>Enseignes, bâtiment partagé, ressources et accès.</small></div><button type="button" className="secondary-button compact-button" onClick={() => setShowDetailed(false)}>Fermer</button></div>
               <MetierSimpleSetup onOpenReception={onOpenReception} onOpenAdvanced={onOpenAdvanced} />
             </section>
           )}
