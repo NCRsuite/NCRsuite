@@ -1287,7 +1287,9 @@ const allowedAnonFunctions = new Set([
   'get_public_restaurant_menu','get_public_restaurant_booking_config','get_public_restaurant_booking_availability',
   'create_public_restaurant_reservation','get_public_training_satisfaction','submit_public_training_satisfaction','submit_public_training_evaluation',
   'get_team_invitation','get_security_client_portal_invitation','get_cleaning_client_portal_invitation','get_coiffure_client_portal_invitation',
-  'get_training_portal_invitation'
+  'get_training_portal_invitation',
+  'get_public_metier_coiffure_company_page','get_public_metier_coiffure_company_slots_v2','get_public_metier_coiffure_next_slots',
+  'create_public_metier_coiffure_company_booking','get_public_metier_coiffure_company_reviews'
 ]);
 for (const match of allSql.matchAll(/grant\s+execute\s+on\s+function\s+public\.(\w+)[^;]*?\s+to\s+([^;]+);/ig)) {
   const roles = match[2].toLowerCase().split(',').map((role) => role.trim());
