@@ -3,7 +3,7 @@ returns table(account_id uuid, organization_id uuid, client_id uuid, organizatio
 language sql
 stable
 security definer
-set search_path to 'public','pg_catalog'
+set search_path = public, pg_catalog
 as $$
   select
     a.id,
@@ -38,7 +38,7 @@ create or replace function public.coiffure_client_portal_dashboard(p_account_id 
 returns jsonb
 language plpgsql
 security definer
-set search_path to 'public','pg_catalog'
+set search_path = public, pg_catalog
 as $$
 declare
   v_account public.coiffure_client_portal_accounts%rowtype;
