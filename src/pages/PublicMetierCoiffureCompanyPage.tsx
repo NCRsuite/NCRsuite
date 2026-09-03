@@ -54,6 +54,7 @@ interface PublicService {
   id: string;
   name: string;
   description: string | null;
+  category_name: string | null;
   duration_minutes: number;
   price_cents: number;
   image_url: string | null;
@@ -195,6 +196,20 @@ export function PublicMetierCoiffureCompanyPage() {
   }, [data?.company.id, location.search]);
 
   const selectedService = useMemo(() => data?.services.find((service) => service.id === serviceId) ?? null, [data?.services, serviceId]);
+  const serviceGroups = useMemo(() => {
+    const groups = new Map<string, PublicService[]>();
+    (data?.services ?? []).forEach((service) => {
+      const category = service.category_name?.trim() || 'Autres';
+      const rows = groups.get(category) ?? [];
+      rows.push(service);
+      groups.set(category, rows);
+    });
+    return [...groups.entries()].sort(([a], [b]) => {
+      if (a === 'Autres') return 1;
+      if (b === 'Autres') return -1;
+      return a.localeCompare(b, 'fr');
+    });
+  }, [data?.services]);
   const compatibleStaff = useMemo(() => {
     if (!data || !serviceId) return [];
     return data.staff.filter((member) => member.service_ids.includes(serviceId) && (!member.site_id || member.site_id === siteId));
@@ -357,7 +372,7 @@ export function PublicMetierCoiffureCompanyPage() {
 
           <section className="company-public-book-step open">
             <div className="company-public-step-title"><span>1</span><div><strong>Choisissez une prestation</strong><small>{selectedService ? `${selectedService.name} · ${durationLabel(selectedService.duration_minutes)} · ${currency.format(selectedService.price_cents / 100)}` : 'Sélectionnez ce que vous souhaitez réserver'}</small></div></div>
-            <div className="company-public-booking-services">{data.services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => chooseService(service.id)}><span className="company-public-service-thumb">{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="sparkles" size={20} />}</span><span className="company-public-service-copy"><strong>{service.name}</strong>{service.description && <small>{service.description}</small>}</span><b>{durationLabel(service.duration_minutes)} · {currency.format(service.price_cents / 100)}</b><em>{service.id === serviceId ? '✓' : '+'}</em></button>)}{data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}</div>
+            <div className="company-public-booking-category-groups">{serviceGroups.map(([category, services]) => <section className="company-public-booking-category" key={category}><div className="company-public-booking-category-head"><strong>{category}</strong><small>{services.length} prestation{services.length > 1 ? 's' : ''}</small></div><div className="company-public-booking-services">{services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => chooseService(service.id)}><span className="company-public-service-thumb">{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="sparkles" size={20} />}</span><span className="company-public-service-copy"><strong>{service.name}</strong>{service.description && <small>{service.description}</small>}</span><b>{durationLabel(service.duration_minutes)} · {currency.format(service.price_cents / 100)}</b><em>{service.id === serviceId ? '✓' : '+'}</em></button>)}</div></section>)}{data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}</div>
           </section>
 
           {serviceId && <section className="company-public-book-step open">
@@ -403,8 +418,8 @@ export function PublicMetierCoiffureCompanyPage() {
 
       <section className="company-public-section" id="prestations">
         <div className="company-public-section-heading"><p className="eyebrow">PRESTATIONS</p><h2>Tout ce que propose {data.company.name}</h2><p>Durée et tarif sont affichés clairement avant toute réservation.</p></div>
-        <div className="company-public-service-grid">
-          {data.services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => { chooseService(service.id); document.getElementById('reserver')?.scrollIntoView({ behavior: 'smooth' }); }}><span className={`company-public-service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="camera" size={28} />}</span><div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}</div><span><small>{durationLabel(service.duration_minutes)}</small><b>{currency.format(service.price_cents / 100)}</b></span></button>)}
+        <div className="company-public-service-category-groups">
+          {serviceGroups.map(([category, services]) => <section className="company-public-service-category" key={category}><div className="company-public-service-category-head"><div><span>CATÉGORIE</span><h3>{category}</h3></div><small>{services.length} prestation{services.length > 1 ? 's' : ''}</small></div><div className="company-public-service-grid">{services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => { chooseService(service.id); document.getElementById('reserver')?.scrollIntoView({ behavior: 'smooth' }); }}><span className={`company-public-service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="camera" size={28} />}</span><div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}</div><span><small>{durationLabel(service.duration_minutes)}</small><b>{currency.format(service.price_cents / 100)}</b></span></button>)}</div></section>)}
           {data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}
         </div>
       </section>
