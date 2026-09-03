@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-public-showcase-css.mjs && node scripts/phase1-static-audit.mjs && node scripts/phase1-critical-flows.mjs && node scripts/phase1-release-readiness.mjs && tsc -b && vite build && node scripts/generate-seo-pages.mjs",
+    "build": "node scripts/generate-public-showcase-css.mjs && node scripts/phase1-static-audit-entry.mjs && node scripts/phase1-critical-flows.mjs && node scripts/phase1-release-readiness.mjs && tsc -b && vite build && node scripts/generate-seo-pages.mjs",
     "preview": "vite preview",
-    "audit:phase1": "node scripts/phase1-static-audit.mjs",
+    "audit:phase1": "node scripts/phase1-static-audit-entry.mjs",
     "test:critical": "node scripts/phase1-critical-flows.mjs",
     "test:release": "node scripts/phase1-release-readiness.mjs"
   },
