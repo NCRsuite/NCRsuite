@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import { BeautySidebarNavigation } from './components/BeautySidebarNavigation';
 import { ClientPortalConfigurationGuard } from './components/ClientPortalLanding';
 import { ClientPortalInstallGuide } from './components/ClientPortalInstallGuide';
 import { ConnectivityStatus } from './components/ConnectivityStatus';
@@ -55,6 +56,7 @@ import './metierCoiffurePublicPages.css';
 import './publicMetierCoiffureCompany.css';
 import './metierWorkspaceShortcut.css';
 import './beautyMetierShell.css';
+import './beautySidebarNavigation.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
@@ -106,6 +108,7 @@ function RoutedApplication() {
           <MetierRuntimeBranding />
           <MetierBrandSwitcher />
           <MetierSimpleExperience />
+          <BeautySidebarNavigation />
           <MetierCoiffurePublicPagesPanel />
           <MetierWorkspaceShortcut />
           <RuntimeMonitor />
