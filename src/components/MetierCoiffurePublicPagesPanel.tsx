@@ -40,6 +40,7 @@ type Draft = {
 
 type MediaKind = 'logo' | 'banner';
 
+const PUBLIC_BOOKING_ORIGIN = 'https://ncr-suite.fr';
 const acceptedImageTypes = [
   'image/png',
   'image/jpeg',
@@ -47,6 +48,10 @@ const acceptedImageTypes = [
   'image/heic',
   'image/heif'
 ];
+
+function publicCompanyUrl(slug: string) {
+  return `${PUBLIC_BOOKING_ORIGIN}/salon/${encodeURIComponent(slug.trim())}`;
+}
 
 function toDraft(company: PublicCompanyConfig): Draft {
   return {
@@ -182,6 +187,20 @@ export function MetierCoiffurePublicPagesPanel() {
   useEffect(() => { void load(); }, [active, organization?.id]);
 
   useEffect(() => {
+    if (!active) return;
+    const openEditor = (event: Event) => {
+      const companyId = (event as CustomEvent<{ companyId?: string }>).detail?.companyId;
+      if (!companyId) return;
+      setOpenId(companyId);
+      window.setTimeout(() => {
+        document.querySelector<HTMLElement>(`[data-public-company-id="${companyId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    };
+    window.addEventListener('ncr:beauty-open-public-page', openEditor);
+    return () => window.removeEventListener('ncr:beauty-open-public-page', openEditor);
+  }, [active]);
+
+  useEffect(() => {
     if (!active) {
       setHost(null);
       return;
@@ -304,6 +323,7 @@ export function MetierCoiffurePublicPagesPanel() {
         }));
       }
       await load();
+      window.dispatchEvent(new CustomEvent('ncr:metier-structure-changed'));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Impossible d’enregistrer cette page publique.');
     } finally {
@@ -314,7 +334,7 @@ export function MetierCoiffurePublicPagesPanel() {
   async function copyLink(company: PublicCompanyConfig) {
     const slug = drafts[company.id]?.slug || company.public_slug;
     if (!slug) return;
-    const url = `${window.location.origin}/salon/${slug}`;
+    const url = publicCompanyUrl(slug);
     try {
       await navigator.clipboard.writeText(url);
       setMessage('Lien public copié.');
@@ -343,8 +363,9 @@ export function MetierCoiffurePublicPagesPanel() {
         {companies.map((company) => {
           const draft = drafts[company.id] ?? toDraft(company);
           const ready = company.site_count > 0 && company.staff_count > 0 && company.service_count > 0;
-          const publicPath = `/salon/${draft.slug || company.public_slug || ''}`;
-          return <article key={company.id} className="metier-public-company-card">
+          const slug = draft.slug || company.public_slug || '';
+          const publicUrl = slug ? publicCompanyUrl(slug) : '';
+          return <article key={company.id} className="metier-public-company-card" data-public-company-id={company.id}>
             <div className="metier-public-company-top">
               <span className="metier-public-company-logo" style={{ background: draft.logoUrl || logoFiles[company.id] ? '#fff' : company.primary_color }}>
                 {draft.logoUrl ? <img src={draft.logoUrl} alt="" /> : company.name.slice(0, 1).toUpperCase()}
@@ -357,9 +378,9 @@ export function MetierCoiffurePublicPagesPanel() {
             </div>
 
             <div className="metier-public-company-link">
-              <span>{window.location.origin}{publicPath}</span>
-              <button type="button" onClick={() => void copyLink(company)}><Icon name="clipboard" size={15} /> Copier</button>
-              {draft.enabled && draft.slug && <a href={publicPath} target="_blank" rel="noreferrer"><Icon name="eye" size={15} /> Ouvrir</a>}
+              <span>{publicUrl || `${PUBLIC_BOOKING_ORIGIN}/salon/…`}</span>
+              <button type="button" onClick={() => void copyLink(company)} disabled={!slug}><Icon name="clipboard" size={15} /> Copier</button>
+              {draft.enabled && slug && <a href={publicUrl} target="_blank" rel="noreferrer"><Icon name="eye" size={15} /> Ouvrir</a>}
             </div>
 
             <button type="button" className="metier-public-edit-toggle" onClick={() => setOpenId(openId === company.id ? null : company.id)}>
