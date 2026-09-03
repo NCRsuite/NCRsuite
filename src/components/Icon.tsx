@@ -34,6 +34,7 @@ const paths: Record<IconName, React.ReactNode> = {
   menu: <><path d="M4 7h16M4 12h16M4 17h16"/></>,
   plus: <><path d="M12 5v14M5 12h14"/></>,
   eye: <><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></>,
+  globe: <><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></>,
   sun: <><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/></>,
   clock: <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>,
   refresh: <><path d="M20 11a8 8 0 1 0 1.5 4.6"/><path d="M20 4v7h-7"/></>,
