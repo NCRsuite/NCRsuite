@@ -12,7 +12,6 @@ import { MetierBrandSwitcher } from './components/MetierBrandSwitcher';
 import { MetierCoiffurePublicPagesPanel } from './components/MetierCoiffurePublicPagesPanel';
 import { MetierRuntimeBranding } from './components/MetierRuntimeBranding';
 import { MetierSimpleExperience } from './components/MetierSimpleExperience';
-import { MetierWorkspaceShortcut } from './components/MetierWorkspaceShortcut';
 import { RuntimeMonitor } from './components/RuntimeMonitor';
 import { NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED } from './config/ui2026';
 import { AuthProvider } from './contexts/AuthContext';
@@ -54,7 +53,6 @@ import './metierSimpleExperience.css';
 import './metierReceptionOverlay.css';
 import './metierCoiffurePublicPages.css';
 import './publicMetierCoiffureCompany.css';
-import './metierWorkspaceShortcut.css';
 import './beautyMetierShell.css';
 import './beautySidebarNavigation.css';
 
@@ -110,7 +108,6 @@ function RoutedApplication() {
           <MetierSimpleExperience />
           <BeautySidebarNavigation />
           <MetierCoiffurePublicPagesPanel />
-          <MetierWorkspaceShortcut />
           <RuntimeMonitor />
           <ConnectivityStatus />
           <ClientPortalConfigurationGuard>
