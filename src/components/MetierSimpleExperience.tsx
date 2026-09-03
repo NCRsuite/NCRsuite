@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
 import { BeautyTeamAccessPage } from '../pages/BeautyTeamAccessPage';
+import '../beautyTeamAccessRoute.css';
 import { BeautySetupHub } from './BeautySetupHub';
 import { Icon } from './Icon';
 import { MetierSharedReception } from './MetierSharedReception';
