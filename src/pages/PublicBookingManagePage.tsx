@@ -14,6 +14,7 @@ interface ManagedBooking {
   amount_cents: number;
   organization_name: string;
   organization_slug: string;
+  company_slug: string | null;
   primary_color: string;
   logo_url: string | null;
   banner_url: string | null;
@@ -29,12 +30,23 @@ interface ManagedBooking {
   service_id: string;
   service_name: string;
   service_duration_minutes: number;
+  service_count: number;
+  service_items: Array<{
+    service_id: string;
+    service_name: string;
+    position: number;
+    duration_minutes: number;
+    price_cents: number;
+    starts_at: string;
+    ends_at: string;
+  }>;
   staff_id: string;
   staff_name: string;
   client_name: string;
   client_email: string | null;
   client_phone: string | null;
   can_cancel: boolean;
+  can_reschedule: boolean;
   online_management_enabled: boolean;
   calendar_links_enabled: boolean;
   contact_email: string | null;
@@ -112,13 +124,22 @@ export function PublicBookingManagePage() {
       setSelectedSlot(null);
       if (!rescheduling || !booking || !supabase) return;
       setLoadingSlots(true);
-      const { data, error: slotsError } = await supabase.rpc('get_public_available_slots_v2', {
-        p_slug: booking.organization_slug,
-        p_site_id: booking.site_id,
-        p_service_id: booking.service_id,
-        p_date: date,
-        p_staff_id: null
-      });
+      const multiService = booking.service_count > 1 && Boolean(booking.company_slug);
+      const { data, error: slotsError } = multiService
+        ? await supabase.rpc('get_public_metier_coiffure_company_multi_slots', {
+            p_slug: booking.company_slug,
+            p_site_id: booking.site_id,
+            p_service_ids: booking.service_items.map((item) => item.service_id),
+            p_date: date,
+            p_staff_id: null
+          })
+        : await supabase.rpc('get_public_available_slots_v2', {
+            p_slug: booking.organization_slug,
+            p_site_id: booking.site_id,
+            p_service_id: booking.service_id,
+            p_date: date,
+            p_staff_id: null
+          });
       if (!active) return;
       if (slotsError) setError(slotsError.message);
       else setSlots((data ?? []) as AvailableSlot[]);
@@ -159,7 +180,7 @@ export function PublicBookingManagePage() {
     setBusy(true);
     setError('');
     setSuccess('');
-    const { error: rescheduleError } = await supabase.rpc('reschedule_public_booking_v2', {
+    const { error: rescheduleError } = await supabase.rpc(booking.company_slug ? 'reschedule_public_booking_v3' : 'reschedule_public_booking_v2', {
       p_token: token,
       p_site_id: booking.site_id,
       p_staff_id: selectedSlot.staff_id,
@@ -193,6 +214,7 @@ export function PublicBookingManagePage() {
 
   const style = { '--accent': booking.primary_color } as CSSProperties;
   const canManage = booking.online_management_enabled && booking.can_cancel && ['pending', 'confirmed'].includes(booking.status);
+  const canReschedule = canManage && booking.can_reschedule;
   const canAddToCalendar = booking.calendar_links_enabled && booking.status === 'confirmed';
   const calendarEvent = {
     title: `${booking.service_name} — ${booking.organization_name}`,
@@ -226,9 +248,10 @@ export function PublicBookingManagePage() {
           </div>
           <div className="public-manage-main">
             <div className="public-manage-date"><strong>{timeFormatter.format(new Date(booking.starts_at))}</strong><span>{dateFormatter.format(new Date(booking.starts_at))}</span></div>
-            <div className="public-manage-service"><span>Prestation</span><strong>{booking.service_name}</strong><small>Avec {booking.staff_name}{booking.site_name ? ` · ${booking.site_name}` : ''}</small></div>
+            <div className="public-manage-service"><span>{booking.service_count > 1 ? 'Prestations' : 'Prestation'}</span><strong>{booking.service_name}</strong><small>{booking.service_count > 1 ? `${booking.service_count} prestations · ` : ''}Avec {booking.staff_name}{booking.site_name ? ` · ${booking.site_name}` : ''}</small></div>
             <div className="public-manage-price"><span>Tarif</span><strong>{currencyFormatter.format((booking.amount_cents ?? 0) / 100)}</strong></div>
           </div>
+          {booking.service_count > 1 && <div className="public-manage-service-items">{booking.service_items.map((item) => <div key={item.service_id}><span>{item.position}</span><div><strong>{item.service_name}</strong><small>{item.duration_minutes} min</small></div><b>{currencyFormatter.format(item.price_cents / 100)}</b></div>)}</div>}
           <div className="public-manage-contact">
             <div><span>Coordonnées de réservation</span><strong>{booking.client_email || booking.client_phone || 'Non renseigné'}</strong></div>
             <div><span>Modification en ligne</span><strong>{booking.online_management_enabled ? (canManage ? `Jusqu’à ${booking.cancel_notice_hours} h avant` : 'Indisponible') : 'Non incluse dans la formule'}</strong></div>
@@ -250,8 +273,8 @@ export function PublicBookingManagePage() {
 
           {canManage && !rescheduling && (
             <div className="public-success-actions">
-              <button className="primary-button" type="button" onClick={() => setRescheduling(true)}><Icon name="calendar" size={18} />Déplacer le rendez-vous</button>
-              <button className="secondary-button danger-button" type="button" onClick={cancelBooking} disabled={busy}>Annuler le rendez-vous</button>
+              {canReschedule && <button className="primary-button" type="button" onClick={() => setRescheduling(true)}><Icon name="calendar" size={18} />Déplacer le rendez-vous</button>}
+              <button className={canReschedule ? 'secondary-button danger-button' : 'primary-button danger-button'} type="button" onClick={cancelBooking} disabled={busy}>Annuler le rendez-vous</button>
             </div>
           )}
 
