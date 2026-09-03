@@ -54,6 +54,7 @@ import './metierReceptionOverlay.css';
 import './metierCoiffurePublicPages.css';
 import './publicMetierCoiffureCompany.css';
 import './metierWorkspaceShortcut.css';
+import './beautyMetierShell.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
