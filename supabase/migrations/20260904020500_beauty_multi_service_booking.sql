@@ -30,6 +30,14 @@ create index if not exists appointment_service_items_appointment_idx
 create index if not exists appointment_service_items_org_company_idx
   on public.appointment_service_items (organization_id, company_id, appointment_id);
 
+create index if not exists appointment_service_items_company_idx
+  on public.appointment_service_items (company_id);
+create index if not exists appointment_service_items_service_idx
+  on public.appointment_service_items (service_id);
+create index if not exists appointment_service_items_staff_idx
+  on public.appointment_service_items (staff_id)
+  where staff_id is not null;
+
 alter table public.appointment_service_items enable row level security;
 
 drop policy if exists appointment_service_items_select on public.appointment_service_items;
