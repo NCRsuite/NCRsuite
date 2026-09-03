@@ -2,3 +2,5 @@ NCR Suite Beauty release — 2026-09-03
 Client portal scoped by enseigne.
 Public booking compatibility for enseigne slugs.
 Premium public Beauty presentation refresh.
+Public booking rebuilt as a guided 4-step journey.
+Client portal redesigned around the client’s own enseigne and appointments.
