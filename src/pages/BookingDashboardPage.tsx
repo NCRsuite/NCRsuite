@@ -100,6 +100,7 @@ export function BookingDashboardPage() {
   useEffect(() => {
     if (!organization) return;
     const organizationId = organization.id;
+    const organizationPlan = organization.plan;
     let active = true;
 
     async function loadActivity() {
@@ -126,7 +127,7 @@ export function BookingDashboardPage() {
         .lt('starts_at', weekEnd.toISOString())
         .order('starts_at', { ascending: true });
 
-      if (organization.plan === 'metier' && activeSiteId) {
+      if (organizationPlan === 'metier' && activeSiteId) {
         appointmentsQuery = appointmentsQuery.eq('site_id', activeSiteId);
       }
 
@@ -139,7 +140,7 @@ export function BookingDashboardPage() {
       if (!appointmentsResult.error) {
         const rows = (appointmentsResult.data ?? []) as AppointmentSummary[];
         setAppointments(rows);
-        if (organization.plan === 'metier' && activeSiteId) {
+        if (organizationPlan === 'metier' && activeSiteId) {
           setClientCount(new Set(rows.map((row) => row.client_id)).size);
         } else if (!clientsResult.error) {
           setClientCount(clientsResult.count ?? 0);
