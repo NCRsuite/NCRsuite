@@ -12,7 +12,7 @@ create or replace function public.save_staff_configuration_v2(
 ) returns uuid
 language plpgsql
 security definer
-set search_path to 'public','pg_catalog'
+set search_path = public, pg_catalog
 as $$
 declare
   v_staff_id uuid;
