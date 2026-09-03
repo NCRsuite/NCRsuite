@@ -2,6 +2,7 @@ import { CSSProperties, FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { BeautyPublicReviews } from '../components/BeautyPublicReviews';
 import { Icon } from '../components/Icon';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import '../beautyVerifiedReviews.css';
 import '../beautyServiceImages.css';
@@ -18,6 +19,8 @@ interface PublicCompany {
   tagline: string | null;
   description: string | null;
   banner_url: string | null;
+  banner_position_x: number;
+  banner_position_y: number;
   hours_text: string | null;
   practical_info: string | null;
   email: string | null;
@@ -92,6 +95,17 @@ interface Slot {
   staff_name: string;
 }
 
+interface PortalBookingIdentity {
+  account_id: string;
+  client_id: string;
+  company_id: string;
+  company_name: string;
+  first_name: string;
+  last_name: string | null;
+  email: string | null;
+  phone: string | null;
+}
+
 interface BookingResult {
   appointment_id: string;
   token: string;
@@ -153,6 +167,7 @@ function durationLabel(minutes: number) {
 export function PublicMetierCoiffureCompanyPage() {
   const { slug = '' } = useParams();
   const location = useLocation();
+  const { user } = useAuth();
   const [data, setData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState('');
@@ -174,6 +189,7 @@ export function PublicMetierCoiffureCompanyPage() {
   const [notes, setNotes] = useState('');
   const [website, setWebsite] = useState('');
   const [consent, setConsent] = useState(false);
+  const [portalIdentity, setPortalIdentity] = useState<PortalBookingIdentity | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<BookingResult | null>(null);
@@ -214,6 +230,25 @@ export function PublicMetierCoiffureCompanyPage() {
     void loadPage();
     return () => { active = false; };
   }, [slug]);
+
+  useEffect(() => {
+    let active = true;
+    async function loadPortalIdentity() {
+      if (!supabase || !user || !slug) {
+        setPortalIdentity(null);
+        return;
+      }
+      const { data: identity, error: identityError } = await supabase.rpc('get_current_coiffure_client_booking_identity', { p_slug: slug });
+      if (!active) return;
+      if (identityError) {
+        setPortalIdentity(null);
+        return;
+      }
+      setPortalIdentity(identity ? identity as PortalBookingIdentity : null);
+    }
+    void loadPortalIdentity();
+    return () => { active = false; };
+  }, [user?.id, slug]);
 
   useEffect(() => {
     if (!data) return;
@@ -364,20 +399,30 @@ export function PublicMetierCoiffureCompanyPage() {
     if (!supabase || !data || selectedServices.length === 0 || !selectedSlot || !siteId) return;
     setSaving(true);
     setError('');
-    const { data: bookingData, error: requestError } = await supabase.rpc('create_public_metier_coiffure_company_booking_v2', {
-      p_slug: data.company.public_slug,
-      p_site_id: siteId,
-      p_service_ids: serviceIds,
-      p_staff_id: selectedSlot.staff_id,
-      p_starts_at: selectedSlot.slot_start,
-      p_first_name: firstName,
-      p_last_name: lastName,
-      p_email: email,
-      p_phone: phone,
-      p_notes: notes || null,
-      p_website: website || null,
-      p_privacy_consent: consent
-    });
+    const { data: bookingData, error: requestError } = portalIdentity
+      ? await supabase.rpc('create_coiffure_client_portal_booking_v2', {
+          p_account_id: portalIdentity.account_id,
+          p_site_id: siteId,
+          p_service_ids: serviceIds,
+          p_staff_id: selectedSlot.staff_id,
+          p_starts_at: selectedSlot.slot_start,
+          p_notes: notes || null,
+          p_privacy_consent: consent
+        })
+      : await supabase.rpc('create_public_metier_coiffure_company_booking_v2', {
+          p_slug: data.company.public_slug,
+          p_site_id: siteId,
+          p_service_ids: serviceIds,
+          p_staff_id: selectedSlot.staff_id,
+          p_starts_at: selectedSlot.slot_start,
+          p_first_name: firstName,
+          p_last_name: lastName,
+          p_email: email,
+          p_phone: phone,
+          p_notes: notes || null,
+          p_website: website || null,
+          p_privacy_consent: consent
+        });
     setSaving(false);
     if (requestError) {
       setError(requestError.message);
@@ -424,7 +469,7 @@ export function PublicMetierCoiffureCompanyPage() {
   }
 
   return <div className="company-public-page" style={style}>
-    <header className={`company-public-hero${data.company.banner_url ? ' has-banner' : ''}`} style={data.company.banner_url ? { backgroundImage: `linear-gradient(180deg,rgba(12,14,20,.10),rgba(12,14,20,.72)),url(${data.company.banner_url})` } : undefined}>
+    <header className={`company-public-hero${data.company.banner_url ? ' has-banner' : ''}`} style={data.company.banner_url ? { backgroundImage: `linear-gradient(180deg,rgba(12,14,20,.10),rgba(12,14,20,.72)),url(${data.company.banner_url})`, backgroundPosition: `${data.company.banner_position_x ?? 50}% ${data.company.banner_position_y ?? 50}%` } : undefined}>
       <div className="company-public-nav">
         <div className="company-public-brand">
           <span>{data.company.logo_url ? <img src={data.company.logo_url} alt="" /> : data.company.name.slice(0, 1).toUpperCase()}</span>
@@ -505,16 +550,17 @@ export function PublicMetierCoiffureCompanyPage() {
           </section>}
 
           {selectedSlot && selectedServices.length > 0 && <section className="company-public-book-step open final-step">
-            <div className="company-public-step-title"><span>4</span><div><strong>Vos coordonnées</strong><small>Dernière étape avant confirmation</small></div></div>
+            <div className="company-public-step-title"><span>4</span><div><strong>{portalIdentity ? 'Confirmez votre rendez-vous' : 'Vos coordonnées'}</strong><small>{portalIdentity ? 'Votre identité est déjà liée à votre espace client' : 'Dernière étape avant confirmation'}</small></div></div>
             <form className="company-public-customer-form" onSubmit={submit}>
               <div className={`company-public-booking-summary${selectedService?.image_url ? ' has-image' : ''}`}>{selectedService?.image_url && <span className="company-public-summary-image"><img src={selectedService.image_url} alt="" /></span>}<div><small>{selectedServices.length > 1 ? 'Vos prestations' : 'Votre sélection'}</small><strong>{selectedServices.map((service) => service.name).join(' + ')}</strong></div><span>{fullDate.format(new Date(selectedSlot.slot_start))} · {shortTime.format(new Date(selectedSlot.slot_start))} · {selectedSlot.staff_name} · {durationLabel(selectedDuration)}</span><b>{currency.format(selectedAmount / 100)}</b></div>
+              {portalIdentity && <div className="company-public-portal-identity"><span><Icon name="check" size={18} /></span><div><small>Réservation pour</small><strong>{[portalIdentity.first_name, portalIdentity.last_name].filter(Boolean).join(' ')}</strong><p>Vos coordonnées sont reprises automatiquement depuis votre dossier client chez {data.company.name}.</p></div><Link to="/espace-client-coiffure">Mon profil</Link></div>}
               <div className="company-public-fields">
-                <label>Prénom<input value={firstName} onChange={(event) => setFirstName(event.target.value)} required autoComplete="given-name" /></label>
+                {!portalIdentity && <><label>Prénom<input value={firstName} onChange={(event) => setFirstName(event.target.value)} required autoComplete="given-name" /></label>
                 <label>Nom<input value={lastName} onChange={(event) => setLastName(event.target.value)} autoComplete="family-name" /></label>
                 <label>E-mail<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" /></label>
-                <label>Téléphone<input value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" /></label>
+                <label>Téléphone<input value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" /></label></>}
                 <label className="full">Message<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} placeholder="Une précision pour l’enseigne ? (optionnel)" /></label>
-                <label className="company-public-honeypot" aria-hidden="true">Site web<input value={website} onChange={(event) => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" /></label>
+                {!portalIdentity && <label className="company-public-honeypot" aria-hidden="true">Site web<input value={website} onChange={(event) => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" /></label>}
                 <label className="company-public-consent full"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required /><span>{data.settings.privacy_notice || 'J’accepte que mes coordonnées soient utilisées pour organiser et suivre mon rendez-vous.'}</span></label>
               </div>
               {error && <div className="error-message" role="alert">{error}</div>}
