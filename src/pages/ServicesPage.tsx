@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
 import { supabase } from '../lib/supabase';
+import '../beautyServiceImages.css';
 
 interface ServiceRecord {
   id: string;
@@ -13,6 +14,7 @@ interface ServiceRecord {
   description: string | null;
   duration_minutes: number;
   price_cents: number;
+  image_url: string | null;
   active: boolean;
   created_at: string;
 }
@@ -28,6 +30,7 @@ type StatusFilter = 'all' | 'active' | 'inactive';
 
 const emptyForm: ServiceFormState = { name: '', description: '', durationMinutes: '30', price: '' };
 const currencyFormatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+const acceptedImageTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'];
 
 function normalizeNullable(value: string) {
   const normalized = value.trim();
@@ -57,6 +60,36 @@ function serviceToForm(service: ServiceRecord): ServiceFormState {
   };
 }
 
+function imageExtension(file: File) {
+  if (file.type === 'image/png') return 'png';
+  if (file.type === 'image/webp') return 'webp';
+  return 'jpg';
+}
+
+async function convertAppleImageIfNeeded(file: File) {
+  if (!['image/heic', 'image/heif'].includes(file.type)) return file;
+  const sourceUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error('Cette photo HEIC ne peut pas être convertie sur cet appareil. Utilisez une image JPG, PNG ou WebP.'));
+      element.src = sourceUrl;
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Conversion de l’image impossible.');
+    context.drawImage(image, 0, 0);
+    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+    if (!blob) throw new Error('Conversion de l’image impossible.');
+    return new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' });
+  } finally {
+    URL.revokeObjectURL(sourceUrl);
+  }
+}
+
 export function ServicesPage() {
   const { organization } = useOrganization();
   const { demoMode } = useAuth();
@@ -65,6 +98,9 @@ export function ServicesPage() {
   const [services, setServices] = useState<ServiceRecord[]>([]);
   const [form, setForm] = useState<ServiceFormState>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [removeImage, setRemoveImage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -107,7 +143,7 @@ export function ServicesPage() {
 
       let request = supabase
         .from('services')
-        .select('id,company_id,name,description,duration_minutes,price_cents,active,created_at')
+        .select('id,company_id,name,description,duration_minutes,price_cents,image_url,active,created_at')
         .eq('organization_id', organizationId);
       if (beautyMode && selectedEnseigneId) request = request.eq('company_id', selectedEnseigneId);
       const { data, error: loadError } = await request
@@ -127,10 +163,17 @@ export function ServicesPage() {
   useEffect(() => {
     setEditingId(null);
     setForm(emptyForm);
+    setImageFile(null);
+    setImagePreview('');
+    setRemoveImage(false);
     setSearchParams({});
     setQuery('');
     setSuccess('');
   }, [selectedEnseigneId]);
+
+  useEffect(() => () => {
+    if (imagePreview.startsWith('blob:')) URL.revokeObjectURL(imagePreview);
+  }, [imagePreview]);
 
   const filteredServices = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase('fr');
@@ -146,10 +189,17 @@ export function ServicesPage() {
 
   const activeCount = services.filter((service) => service.active).length;
 
+  function resetImageEditor(nextPreview = '') {
+    setImageFile(null);
+    setImagePreview(nextPreview);
+    setRemoveImage(false);
+  }
+
   function openCreateForm() {
     if (!canManage || (beautyMode && !selectedEnseigneId)) return;
     setEditingId(null);
     setForm(emptyForm);
+    resetImageEditor();
     setError('');
     setSuccess('');
     setSearchParams({ new: '1' });
@@ -160,6 +210,7 @@ export function ServicesPage() {
     setSearchParams({});
     setEditingId(service.id);
     setForm(serviceToForm(service));
+    resetImageEditor(service.image_url ?? '');
     setError('');
     setSuccess('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -168,8 +219,42 @@ export function ServicesPage() {
   function closeForm() {
     setEditingId(null);
     setForm(emptyForm);
+    resetImageEditor();
     setError('');
     setSearchParams({});
+  }
+
+  function selectImage(file: File | null) {
+    if (!file) return;
+    setError('');
+    if (!acceptedImageTypes.includes(file.type) && !file.type.startsWith('image/')) {
+      setError('Choisissez une image PNG, JPG, WebP ou une photo compatible.');
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError('La photo de la prestation ne doit pas dépasser 8 Mo.');
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setRemoveImage(false);
+  }
+
+  function removeServiceImage() {
+    setImageFile(null);
+    setImagePreview('');
+    setRemoveImage(true);
+  }
+
+  async function uploadServiceImage(serviceId: string, file: File) {
+    if (!organization || !selectedEnseigneId || !supabase) throw new Error('Le service de fichiers est indisponible.');
+    const normalized = await convertAppleImageIfNeeded(file);
+    const path = `${organization.id}/beauty-service-${selectedEnseigneId}-${serviceId}-${Date.now()}.${imageExtension(normalized)}`;
+    const { error: uploadError } = await supabase.storage
+      .from('organization-branding')
+      .upload(path, normalized, { contentType: normalized.type, cacheControl: '3600', upsert: false });
+    if (uploadError) throw uploadError;
+    return supabase.storage.from('organization-branding').getPublicUrl(path).data.publicUrl;
   }
 
   async function handleSaveService(event: FormEvent<HTMLFormElement>) {
@@ -200,6 +285,8 @@ export function ServicesPage() {
       price_cents: priceCents
     };
 
+    const wasEditing = Boolean(editingId);
+
     try {
       let saved: ServiceRecord;
       if (demoMode || !supabase) {
@@ -213,6 +300,7 @@ export function ServicesPage() {
           description: payload.description,
           duration_minutes: payload.duration_minutes,
           price_cents: payload.price_cents,
+          image_url: removeImage ? null : existing?.image_url ?? null,
           active: existing?.active ?? true,
           created_at: existing?.created_at ?? new Date().toISOString()
         };
@@ -227,14 +315,32 @@ export function ServicesPage() {
         }).eq('organization_id', organization.id).eq('id', editingId);
         if (beautyMode && selectedEnseigneId) request = request.eq('company_id', selectedEnseigneId);
         const { data, error: updateError } = await request
-          .select('id,company_id,name,description,duration_minutes,price_cents,active,created_at').single();
+          .select('id,company_id,name,description,duration_minutes,price_cents,image_url,active,created_at').single();
         if (updateError) throw updateError;
         saved = data as ServiceRecord;
       } else {
         const { data, error: insertError } = await supabase.from('services').insert(payload)
-          .select('id,company_id,name,description,duration_minutes,price_cents,active,created_at').single();
+          .select('id,company_id,name,description,duration_minutes,price_cents,image_url,active,created_at').single();
         if (insertError) throw insertError;
         saved = data as ServiceRecord;
+      }
+
+      let mediaWarning = '';
+      if (!demoMode && supabase && beautyMode && selectedEnseigneId && (imageFile || removeImage)) {
+        try {
+          const nextImageUrl = imageFile ? await uploadServiceImage(saved.id, imageFile) : null;
+          const { data: mediaSaved, error: mediaError } = await supabase.from('services')
+            .update({ image_url: nextImageUrl })
+            .eq('organization_id', organization.id)
+            .eq('company_id', selectedEnseigneId)
+            .eq('id', saved.id)
+            .select('id,company_id,name,description,duration_minutes,price_cents,image_url,active,created_at')
+            .single();
+          if (mediaError) throw mediaError;
+          saved = mediaSaved as ServiceRecord;
+        } catch (caught) {
+          mediaWarning = caught instanceof Error ? caught.message : 'Photo non enregistrée.';
+        }
       }
 
       setServices((current) => {
@@ -242,14 +348,16 @@ export function ServicesPage() {
         return exists ? current.map((service) => service.id === saved.id ? saved : service) : [saved, ...current];
       });
       setSuccess(beautyMode && selectedEnseigne
-        ? `${editingId ? 'Prestation mise à jour' : 'Prestation créée'} pour ${selectedEnseigne.name}.`
-        : editingId ? 'La prestation a bien été mise à jour.' : 'La prestation a bien été créée.');
+        ? `${wasEditing ? 'Prestation mise à jour' : 'Prestation créée'} pour ${selectedEnseigne.name}.`
+        : wasEditing ? 'La prestation a bien été mise à jour.' : 'La prestation a bien été créée.');
+      if (mediaWarning) setError(`La prestation est enregistrée, mais la photo n’a pas pu être enregistrée : ${mediaWarning}`);
       setEditingId(null);
       setForm(emptyForm);
+      resetImageEditor();
       setSearchParams({});
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : 'Une erreur inconnue est survenue.';
-      setError(`${editingId ? 'Modification' : 'Création'} impossible : ${message}`);
+      setError(`${wasEditing ? 'Modification' : 'Création'} impossible : ${message}`);
     } finally {
       setSaving(false);
     }
@@ -316,6 +424,10 @@ export function ServicesPage() {
             <label>Durée <span aria-hidden="true">*</span><select required value={form.durationMinutes} onChange={(event) => setForm((current) => ({ ...current, durationMinutes: event.target.value }))}>{[15,20,30,45,60,75,90,105,120,150,180].map((minutes) => <option key={minutes} value={minutes}>{formatDuration(minutes)}</option>)}</select></label>
             <label>Tarif TTC en euros <span aria-hidden="true">*</span><div className="price-input"><input required inputMode="decimal" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} placeholder="Ex. 35,00" /><span>€</span></div></label>
             <label className="full-field">Description<textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Décrivez brièvement la prestation et ce qu’elle comprend…" rows={4} /></label>
+            {beautyMode && <div className="beauty-service-media full-field">
+              <div className="beauty-service-media-preview">{imagePreview ? <img src={imagePreview} alt="Aperçu de la prestation" /> : <span className="beauty-service-media-placeholder"><Icon name="camera" size={26} />Aucune photo</span>}</div>
+              <div className="beauty-service-media-copy"><strong>Photo de la prestation</strong><small>Facultative. Elle sera affichée sur la page publique de l’enseigne et pendant le choix de la prestation.</small><div className="beauty-service-media-actions"><label className="secondary-button compact-button"><Icon name="camera" size={15} />{imagePreview ? 'Remplacer' : 'Ajouter une photo'}<input hidden type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif,image/*" onChange={(event) => { selectImage(event.target.files?.[0] ?? null); event.currentTarget.value = ''; }} /></label>{imagePreview && <button type="button" className="danger-text-button" onClick={removeServiceImage}>Retirer</button>}{imageFile && <span className="beauty-service-media-file">{imageFile.name}</span>}</div></div>
+            </div>}
             <div className="form-actions full-field"><button className="secondary-button" type="button" onClick={closeForm}>Annuler</button><button className="primary-button" type="submit" disabled={saving}>{saving ? 'Enregistrement…' : editingId ? 'Enregistrer les modifications' : 'Enregistrer la prestation'}</button></div>
           </form>
         </section>
@@ -339,7 +451,7 @@ export function ServicesPage() {
         {loading || enseigneLoading ? <div className="list-state">Chargement des prestations…</div> : filteredServices.length === 0 ? (
           <div className="list-state empty-service-state"><div className="empty-icon"><Icon name="sparkles" size={30} /></div><h3>{services.length === 0 ? 'Aucune prestation pour le moment' : 'Aucun résultat'}</h3><p>{services.length === 0 ? (beautyMode && selectedEnseigne ? `Aucune prestation n’est encore rattachée à ${selectedEnseigne.name}.` : 'Créez votre catalogue avant d’ajouter les collaborateurs et les rendez-vous.') : 'Modifiez votre recherche ou le filtre sélectionné.'}</p>{services.length === 0 && canManage && (!beautyMode || selectedEnseigneId) && <button className="primary-button" type="button" onClick={openCreateForm}>Créer la première prestation</button>}</div>
         ) : (
-          <div className="services-grid">{filteredServices.map((service) => <article className={`service-card${service.active ? '' : ' inactive'}`} key={service.id}><div className="service-card-topline"><div className="service-card-icon"><Icon name="sparkles" size={22} /></div><span className={`status-chip ${service.active ? 'active' : 'inactive'}`}>{service.active ? 'Active' : 'Inactive'}</span></div><div className="service-card-content"><h3>{service.name}</h3><p>{service.description || 'Aucune description renseignée.'}</p></div><div className="service-card-details"><span><Icon name="calendar" size={16} />{formatDuration(service.duration_minutes)}</span><strong>{currencyFormatter.format(service.price_cents / 100)}</strong></div>{canManage && <div className="service-card-actions"><button className="secondary-button compact-button" type="button" onClick={() => openEditForm(service)}>Modifier</button><button className={`icon-text-button ${service.active ? 'danger' : ''}`} type="button" disabled={busyId === service.id} onClick={() => toggleServiceStatus(service)}>{busyId === service.id ? 'Mise à jour…' : service.active ? 'Désactiver' : 'Réactiver'}</button></div>}</article>)}</div>
+          <div className="services-grid">{filteredServices.map((service) => <article className={`service-card${service.active ? '' : ' inactive'}`} key={service.id}>{beautyMode && <div className={`service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="camera" size={28} />}</div>}<div className="service-card-topline"><div className="service-card-icon"><Icon name="sparkles" size={22} /></div><span className={`status-chip ${service.active ? 'active' : 'inactive'}`}>{service.active ? 'Active' : 'Inactive'}</span></div><div className="service-card-content"><h3>{service.name}</h3><p>{service.description || 'Aucune description renseignée.'}</p></div><div className="service-card-details"><span><Icon name="calendar" size={16} />{formatDuration(service.duration_minutes)}</span><strong>{currencyFormatter.format(service.price_cents / 100)}</strong></div>{canManage && <div className="service-card-actions"><button className="secondary-button compact-button" type="button" onClick={() => openEditForm(service)}>Modifier</button><button className={`icon-text-button ${service.active ? 'danger' : ''}`} type="button" disabled={busyId === service.id} onClick={() => toggleServiceStatus(service)}>{busyId === service.id ? 'Mise à jour…' : service.active ? 'Désactiver' : 'Réactiver'}</button></div>}</article>)}</div>
         )}
       </section>
     </div>
