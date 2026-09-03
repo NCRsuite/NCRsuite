@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { supabase } from '../lib/supabase';
 import { downloadCalendarFile, googleCalendarUrl, outlookCalendarUrl } from '../lib/calendar';
+import '../beautyMultiServiceBooking.css';
 
 interface ManagedBooking {
   appointment_id: string;
