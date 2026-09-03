@@ -92,5 +92,3 @@ begin
   );
 end;
 $function$;
-
-grant execute on function public.get_public_metier_coiffure_company_page(text) to anon, authenticated;
