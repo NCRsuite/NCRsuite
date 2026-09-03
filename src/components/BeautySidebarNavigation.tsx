@@ -58,6 +58,7 @@ export function BeautySidebarNavigation() {
   const [receptionAuthorized, setReceptionAuthorized] = useState(false);
   const [desktopHost, setDesktopHost] = useState<HTMLElement | null>(null);
   const [mobileHost, setMobileHost] = useState<HTMLElement | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => new Set(['Au quotidien']));
 
   const active = organization?.plan === 'metier' && organization.business_type === 'coiffure';
   const owner = ['owner', 'admin'].includes(organization?.role ?? 'viewer');
@@ -154,8 +155,6 @@ export function BeautySidebarNavigation() {
     })).filter((group) => group.items.length > 0);
   }, [active, organization, owner, receptionAuthorized]);
 
-  if (!active) return null;
-
   function itemIsActive(item: BeautyNavigationItem) {
     if (item.reception) {
       return location.pathname === '/' && new URLSearchParams(location.search).get('metier') === 'reception';
@@ -166,26 +165,67 @@ export function BeautySidebarNavigation() {
     return location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
   }
 
+  useEffect(() => {
+    if (!active) return;
+    const activeGroup = groups.find((group) => group.items.some(itemIsActive));
+    if (!activeGroup) return;
+    setExpandedGroups((current) => {
+      if (current.has(activeGroup.label)) return current;
+      const next = new Set(current);
+      next.add(activeGroup.label);
+      return next;
+    });
+  }, [active, groups, location.pathname, location.search]);
+
+  useEffect(() => {
+    if (!organization?.id) return;
+    setExpandedGroups(new Set(['Au quotidien']));
+  }, [organization?.id]);
+
+  if (!active) return null;
+
+  function toggleGroup(label: string) {
+    setExpandedGroups((current) => {
+      const next = new Set(current);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  }
+
   const navigation = (mobile = false) => (
     <nav className={`beauty-sidebar-navigation${mobile ? ' mobile' : ''}`} aria-label="Navigation Coiffure & Beauté">
-      {groups.map((group) => (
-        <section className="beauty-sidebar-navigation-group" key={group.label}>
-          <div className="beauty-sidebar-navigation-title">{group.label}</div>
-          <div className="beauty-sidebar-navigation-items">
-            {group.items.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={itemIsActive(item) ? 'active' : ''}
-              >
-                <span className="beauty-sidebar-navigation-icon"><Icon name={item.icon} size={18} /></span>
-                <span>{item.label}</span>
-                <Icon name="chevronRight" size={14} />
-              </NavLink>
-            ))}
-          </div>
-        </section>
-      ))}
+      {groups.map((group) => {
+        const open = expandedGroups.has(group.label);
+        return (
+          <section className={`beauty-sidebar-navigation-group${open ? ' open' : ''}`} key={group.label}>
+            <button
+              type="button"
+              className="beauty-sidebar-navigation-trigger"
+              onClick={() => toggleGroup(group.label)}
+              aria-expanded={open}
+            >
+              <span>{group.label}</span>
+              <Icon name="chevronDown" size={15} />
+            </button>
+            {open && (
+              <div className="beauty-sidebar-navigation-items">
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.path}
+                    to={item.path}
+                    className={itemIsActive(item) ? 'active' : ''}
+                  >
+                    <span className="beauty-sidebar-navigation-icon"><Icon name={item.icon} size={18} /></span>
+                    <span>{item.label}</span>
+                    <Icon name="chevronRight" size={14} />
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
     </nav>
   );
 
