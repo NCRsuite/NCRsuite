@@ -13,6 +13,8 @@ interface BeautyNavigationItem {
   icon: IconName;
   reception?: boolean;
   ownerOnly?: boolean;
+  managerOnly?: boolean;
+  publicPage?: boolean;
 }
 
 interface BeautyNavigationGroup {
@@ -35,6 +37,7 @@ const BASE_GROUPS: BeautyNavigationGroup[] = [
     label: 'Gestion',
     items: [
       { label: 'Accès équipe', path: '/acces-equipe', icon: 'users' },
+      { label: 'Page réservation', path: '/?beauty=page-reservation', icon: 'eye', managerOnly: true, publicPage: true },
       { label: 'Fidélité', path: '/fidelite', icon: 'chart' },
       { label: 'Secrétariat partagé', path: '/?metier=reception', icon: 'calendar', reception: true },
       { label: 'Centre & enseignes', path: '/offre-metier', icon: 'building', ownerOnly: true }
@@ -62,6 +65,7 @@ export function BeautySidebarNavigation() {
 
   const active = organization?.plan === 'metier' && organization.business_type === 'coiffure';
   const owner = ['owner', 'admin'].includes(organization?.role ?? 'viewer');
+  const canManagePublicPage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
 
   useEffect(() => {
     let alive = true;
@@ -149,18 +153,23 @@ export function BeautySidebarNavigation() {
       ...group,
       items: group.items.filter((item) => {
         if (item.ownerOnly && !owner) return false;
+        if (item.managerOnly && !canManagePublicPage) return false;
         if (item.reception) return receptionAuthorized;
         return organizationCanAccessPath(organization, item.path);
       })
     })).filter((group) => group.items.length > 0);
-  }, [active, organization, owner, receptionAuthorized]);
+  }, [active, organization, owner, canManagePublicPage, receptionAuthorized]);
 
   function itemIsActive(item: BeautyNavigationItem) {
+    const params = new URLSearchParams(location.search);
+    if (item.publicPage) {
+      return location.pathname === '/' && params.get('beauty') === 'page-reservation';
+    }
     if (item.reception) {
-      return location.pathname === '/' && new URLSearchParams(location.search).get('metier') === 'reception';
+      return location.pathname === '/' && params.get('metier') === 'reception';
     }
     if (item.path === '/') {
-      return location.pathname === '/' && !new URLSearchParams(location.search).get('metier');
+      return location.pathname === '/' && !params.get('metier') && !params.get('beauty');
     }
     return location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
   }
