@@ -79,6 +79,41 @@ html[data-beauty-center-context='true'] .mobile-account-sheet .metier-brand-mobi
   font: inherit;
 }
 
+/*
+ * Beauty public/client contrast guard.
+ * Both Beauty surfaces define a broad `a { color: inherit }` rule. That rule
+ * is intentionally useful for ordinary links but has a higher specificity
+ * than the button utility classes, which could make dark CTA labels dark too.
+ * Keep dark CTAs explicitly readable on desktop and mobile.
+ */
+.beauty-client-shell a.beauty-client-page-link,
+.beauty-client-shell a.beauty-client-primary,
+.beauty-client-shell .beauty-client-appointment-actions a.primary {
+  color: #fff !important;
+}
+
+.beauty-client-shell a.beauty-client-secondary {
+  color: #30343b !important;
+}
+
+.company-public-page a.company-public-book-button,
+.company-public-page a.primary-button {
+  color: #fff !important;
+}
+
+.company-public-page a.company-public-client-link,
+.company-public-page a.secondary-button {
+  color: #202329 !important;
+}
+
+.company-public-page .company-public-hero.has-banner a.company-public-client-link {
+  color: #fff !important;
+}
+
+.company-public-page .company-public-hero.has-banner a.company-public-book-button {
+  color: #18191d !important;
+}
+
 @media (max-width: 900px) {
   html[data-beauty-center-context='true'] .mobile-drawer-organization > span:nth-child(2) small {
     max-width: 210px;
