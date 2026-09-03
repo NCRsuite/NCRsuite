@@ -179,6 +179,7 @@ export type IconName =
   | 'menu'
   | 'plus'
   | 'eye'
+  | 'globe'
   | 'sun'
   | 'clock'
   | 'refresh'
