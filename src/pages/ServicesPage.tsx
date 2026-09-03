@@ -12,6 +12,7 @@ interface ServiceRecord {
   company_id?: string | null;
   name: string;
   description: string | null;
+  category_name: string | null;
   duration_minutes: number;
   price_cents: number;
   image_url: string | null;
@@ -21,6 +22,7 @@ interface ServiceRecord {
 
 interface ServiceFormState {
   name: string;
+  categoryName: string;
   description: string;
   durationMinutes: string;
   price: string;
@@ -28,7 +30,7 @@ interface ServiceFormState {
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 
-const emptyForm: ServiceFormState = { name: '', description: '', durationMinutes: '30', price: '' };
+const emptyForm: ServiceFormState = { name: '', categoryName: '', description: '', durationMinutes: '30', price: '' };
 const currencyFormatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
 const acceptedImageTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/heic', 'image/heif'];
 
@@ -54,6 +56,7 @@ function parsePriceToCents(value: string) {
 function serviceToForm(service: ServiceRecord): ServiceFormState {
   return {
     name: service.name,
+    categoryName: service.category_name ?? '',
     description: service.description ?? '',
     durationMinutes: String(service.duration_minutes),
     price: (service.price_cents / 100).toFixed(2).replace('.', ',')
@@ -143,7 +146,7 @@ export function ServicesPage() {
 
       let request = supabase
         .from('services')
-        .select('id,company_id,name,description,duration_minutes,price_cents,image_url,active,created_at')
+        .select('id,company_id,name,category_name,description,duration_minutes,price_cents,image_url,active,created_at')
         .eq('organization_id', organizationId);
       if (beautyMode && selectedEnseigneId) request = request.eq('company_id', selectedEnseigneId);
       const { data, error: loadError } = await request
@@ -181,13 +184,31 @@ export function ServicesPage() {
       const matchesStatus = statusFilter === 'all'
         || (statusFilter === 'active' && service.active)
         || (statusFilter === 'inactive' && !service.active);
-      const matchesQuery = !needle || [service.name, service.description]
+      const matchesQuery = !needle || [service.name, service.category_name, service.description]
         .filter(Boolean).join(' ').toLocaleLowerCase('fr').includes(needle);
       return matchesStatus && matchesQuery;
     });
   }, [services, query, statusFilter]);
 
   const activeCount = services.filter((service) => service.active).length;
+  const categoryOptions = useMemo(() => [...new Set(services
+    .map((service) => service.category_name?.trim())
+    .filter((value): value is string => Boolean(value)))]
+    .sort((a, b) => a.localeCompare(b, 'fr')), [services]);
+  const groupedFilteredServices = useMemo(() => {
+    const groups = new Map<string, ServiceRecord[]>();
+    filteredServices.forEach((service) => {
+      const category = service.category_name?.trim() || 'Autres';
+      const rows = groups.get(category) ?? [];
+      rows.push(service);
+      groups.set(category, rows);
+    });
+    return [...groups.entries()].sort(([a], [b]) => {
+      if (a === 'Autres') return 1;
+      if (b === 'Autres') return -1;
+      return a.localeCompare(b, 'fr');
+    });
+  }, [filteredServices]);
 
   function resetImageEditor(nextPreview = '') {
     setImageFile(null);
@@ -266,9 +287,12 @@ export function ServicesPage() {
     }
 
     const name = form.name.trim();
+    const categoryName = form.categoryName.trim();
     const durationMinutes = Number(form.durationMinutes);
     const priceCents = parsePriceToCents(form.price);
     if (name.length < 2) { setError('Le nom de la prestation doit contenir au moins 2 caractères.'); return; }
+    if (beautyMode && categoryName.length < 2) { setError('Indiquez une catégorie pour ranger cette prestation.'); return; }
+    if (beautyMode && categoryName.length > 80) { setError('La catégorie ne doit pas dépasser 80 caractères.'); return; }
     if (!Number.isInteger(durationMinutes) || durationMinutes < 5 || durationMinutes > 720) { setError('La durée doit être comprise entre 5 minutes et 12 heures.'); return; }
     if (priceCents === null || priceCents < 0) { setError('Indiquez un tarif valide, avec au maximum deux décimales.'); return; }
 
@@ -280,6 +304,7 @@ export function ServicesPage() {
       organization_id: organization.id,
       ...(beautyMode ? { company_id: selectedEnseigneId } : {}),
       name,
+      ...(beautyMode ? { category_name: categoryName } : {}),
       description: normalizeNullable(form.description),
       duration_minutes: durationMinutes,
       price_cents: priceCents
@@ -297,6 +322,7 @@ export function ServicesPage() {
           id: existing?.id ?? crypto.randomUUID(),
           company_id: beautyMode ? selectedEnseigneId : existing?.company_id ?? null,
           name: payload.name,
+          category_name: beautyMode ? categoryName : existing?.category_name ?? null,
           description: payload.description,
           duration_minutes: payload.duration_minutes,
           price_cents: payload.price_cents,
@@ -309,18 +335,19 @@ export function ServicesPage() {
       } else if (editingId) {
         let request = supabase.from('services').update({
           name: payload.name,
+          ...(beautyMode ? { category_name: categoryName } : {}),
           description: payload.description,
           duration_minutes: payload.duration_minutes,
           price_cents: payload.price_cents
         }).eq('organization_id', organization.id).eq('id', editingId);
         if (beautyMode && selectedEnseigneId) request = request.eq('company_id', selectedEnseigneId);
         const { data, error: updateError } = await request
-          .select('id,company_id,name,description,duration_minutes,price_cents,image_url,active,created_at').single();
+          .select('id,company_id,name,category_name,description,duration_minutes,price_cents,image_url,active,created_at').single();
         if (updateError) throw updateError;
         saved = data as ServiceRecord;
       } else {
         const { data, error: insertError } = await supabase.from('services').insert(payload)
-          .select('id,company_id,name,description,duration_minutes,price_cents,image_url,active,created_at').single();
+          .select('id,company_id,name,category_name,description,duration_minutes,price_cents,image_url,active,created_at').single();
         if (insertError) throw insertError;
         saved = data as ServiceRecord;
       }
@@ -334,7 +361,7 @@ export function ServicesPage() {
             .eq('organization_id', organization.id)
             .eq('company_id', selectedEnseigneId)
             .eq('id', saved.id)
-            .select('id,company_id,name,description,duration_minutes,price_cents,image_url,active,created_at')
+            .select('id,company_id,name,category_name,description,duration_minutes,price_cents,image_url,active,created_at')
             .single();
           if (mediaError) throw mediaError;
           saved = mediaSaved as ServiceRecord;
@@ -421,6 +448,7 @@ export function ServicesPage() {
           </div>
           <form className="service-form" onSubmit={handleSaveService}>
             <label className="service-name-field">Nom de la prestation <span aria-hidden="true">*</span><input autoFocus required minLength={2} value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} placeholder="Ex. Coupe femme" /></label>
+            {beautyMode && <label>Catégorie <span aria-hidden="true">*</span><input required minLength={2} maxLength={80} list="beauty-service-category-options" value={form.categoryName} onChange={(event) => setForm((current) => ({ ...current, categoryName: event.target.value }))} placeholder="Ex. Ongles, Cils, Coiffure…" /><datalist id="beauty-service-category-options">{categoryOptions.map((category) => <option key={category} value={category} />)}</datalist><small>Choisissez une catégorie existante ou saisissez-en une nouvelle.</small></label>}
             <label>Durée <span aria-hidden="true">*</span><select required value={form.durationMinutes} onChange={(event) => setForm((current) => ({ ...current, durationMinutes: event.target.value }))}>{[15,20,30,45,60,75,90,105,120,150,180].map((minutes) => <option key={minutes} value={minutes}>{formatDuration(minutes)}</option>)}</select></label>
             <label>Tarif TTC en euros <span aria-hidden="true">*</span><div className="price-input"><input required inputMode="decimal" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} placeholder="Ex. 35,00" /><span>€</span></div></label>
             <label className="full-field">Description<textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Décrivez brièvement la prestation et ce qu’elle comprend…" rows={4} /></label>
@@ -440,6 +468,7 @@ export function ServicesPage() {
         <article className="panel service-summary-card"><span>Prestations actives</span><strong>{activeCount}</strong><small>disponible{activeCount > 1 ? 's' : ''} pour la planification</small></article>
         <article className="panel service-summary-card"><span>Durée moyenne</span><strong>{activeCount > 0 ? formatDuration(Math.round(services.filter((service) => service.active).reduce((total, service) => total + service.duration_minutes, 0) / activeCount)) : '—'}</strong><small>sur les prestations actives</small></article>
         <article className="panel service-summary-card"><span>Tarif moyen</span><strong>{activeCount > 0 ? currencyFormatter.format(services.filter((service) => service.active).reduce((total, service) => total + service.price_cents, 0) / activeCount / 100) : '—'}</strong><small>sur les prestations actives</small></article>
+        {beautyMode && <article className="panel service-summary-card"><span>Catégories</span><strong>{categoryOptions.length}</strong><small>propres à cette enseigne</small></article>}
       </section>
 
       <section className="panel services-list-panel">
@@ -451,7 +480,7 @@ export function ServicesPage() {
         {loading || enseigneLoading ? <div className="list-state">Chargement des prestations…</div> : filteredServices.length === 0 ? (
           <div className="list-state empty-service-state"><div className="empty-icon"><Icon name="sparkles" size={30} /></div><h3>{services.length === 0 ? 'Aucune prestation pour le moment' : 'Aucun résultat'}</h3><p>{services.length === 0 ? (beautyMode && selectedEnseigne ? `Aucune prestation n’est encore rattachée à ${selectedEnseigne.name}.` : 'Créez votre catalogue avant d’ajouter les collaborateurs et les rendez-vous.') : 'Modifiez votre recherche ou le filtre sélectionné.'}</p>{services.length === 0 && canManage && (!beautyMode || selectedEnseigneId) && <button className="primary-button" type="button" onClick={openCreateForm}>Créer la première prestation</button>}</div>
         ) : (
-          <div className="services-grid">{filteredServices.map((service) => <article className={`service-card${service.active ? '' : ' inactive'}`} key={service.id}>{beautyMode && <div className={`service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="camera" size={28} />}</div>}<div className="service-card-topline"><div className="service-card-icon"><Icon name="sparkles" size={22} /></div><span className={`status-chip ${service.active ? 'active' : 'inactive'}`}>{service.active ? 'Active' : 'Inactive'}</span></div><div className="service-card-content"><h3>{service.name}</h3><p>{service.description || 'Aucune description renseignée.'}</p></div><div className="service-card-details"><span><Icon name="calendar" size={16} />{formatDuration(service.duration_minutes)}</span><strong>{currencyFormatter.format(service.price_cents / 100)}</strong></div>{canManage && <div className="service-card-actions"><button className="secondary-button compact-button" type="button" onClick={() => openEditForm(service)}>Modifier</button><button className={`icon-text-button ${service.active ? 'danger' : ''}`} type="button" disabled={busyId === service.id} onClick={() => toggleServiceStatus(service)}>{busyId === service.id ? 'Mise à jour…' : service.active ? 'Désactiver' : 'Réactiver'}</button></div>}</article>)}</div>
+          <div className="beauty-service-category-groups">{groupedFilteredServices.map(([category, categoryServices]) => <section className="beauty-service-category-group" key={category}><div className="beauty-service-category-heading"><div><span>CATÉGORIE</span><h3>{category}</h3></div><small>{categoryServices.length} prestation{categoryServices.length > 1 ? 's' : ''}</small></div><div className="services-grid">{categoryServices.map((service) => <article className={`service-card${service.active ? '' : ' inactive'}`} key={service.id}>{beautyMode && <div className={`service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="camera" size={28} />}</div>}<div className="service-card-topline"><div className="service-card-icon"><Icon name="sparkles" size={22} /></div><div className="beauty-service-card-chips">{beautyMode && <span className="beauty-service-category-chip">{service.category_name || 'Autres'}</span>}<span className={`status-chip ${service.active ? 'active' : 'inactive'}`}>{service.active ? 'Active' : 'Inactive'}</span></div></div><div className="service-card-content"><h3>{service.name}</h3><p>{service.description || 'Aucune description renseignée.'}</p></div><div className="service-card-details"><span><Icon name="calendar" size={16} />{formatDuration(service.duration_minutes)}</span><strong>{currencyFormatter.format(service.price_cents / 100)}</strong></div>{canManage && <div className="service-card-actions"><button className="secondary-button compact-button" type="button" onClick={() => openEditForm(service)}>Modifier</button><button className={`icon-text-button ${service.active ? 'danger' : ''}`} type="button" disabled={busyId === service.id} onClick={() => toggleServiceStatus(service)}>{busyId === service.id ? 'Mise à jour…' : service.active ? 'Désactiver' : 'Réactiver'}</button></div>}</article>)}</div></section>)}</div>
         )}
       </section>
     </div>
