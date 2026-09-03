@@ -1,4 +1,4 @@
-/* Raccourci flottant "Mon espace" retiré de toutes les offres Métier. */
+/* Raccourci flottant "Mon espace" retiré globalement de toutes les offres Métier. */
 .metier-workspace-floating-shortcut {
   display: none !important;
   visibility: hidden !important;
