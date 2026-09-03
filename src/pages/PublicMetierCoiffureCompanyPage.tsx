@@ -1,7 +1,9 @@
 import { CSSProperties, FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
+import { BeautyPublicReviews } from '../components/BeautyPublicReviews';
 import { Icon } from '../components/Icon';
 import { supabase } from '../lib/supabase';
+import '../beautyVerifiedReviews.css';
 
 interface PublicCompany {
   id: string;
@@ -331,6 +333,7 @@ export function PublicMetierCoiffureCompanyPage() {
         <a href="#reserver" className="active">Réserver</a>
         <a href="#prestations">Prestations</a>
         {data.staff.length > 0 && <a href="#equipe">Équipe</a>}
+        <a href="#avis">Avis</a>
         <a href="#infos">Infos</a>
       </div>
     </nav>
@@ -408,6 +411,8 @@ export function PublicMetierCoiffureCompanyPage() {
         <div className="company-public-section-heading"><p className="eyebrow">ÉQUIPE</p><h2>Les professionnels de l’enseigne</h2><p>Chaque collaborateur est présenté uniquement avec les prestations qu’il réalise dans cette enseigne.</p></div>
         <div className="company-public-team-grid">{data.staff.map((member) => <article key={member.id}><span style={{ background: member.color || data.company.primary_color }}>{member.display_name.slice(0, 1).toUpperCase()}</span><strong>{member.display_name}</strong><small>{member.service_ids.length} prestation{member.service_ids.length > 1 ? 's' : ''}</small>{member.service_ids.some((id) => id === serviceId) && <em>Compatible avec votre sélection</em>}</article>)}</div>
       </section>}
+
+      <BeautyPublicReviews slug={data.company.public_slug}/>
 
       <section className="company-public-about" id="a-propos">
         <div><p className="eyebrow">À PROPOS</p><h2>{data.company.name}</h2><p>{data.company.description || data.company.tagline || 'Découvrez une expérience beauté pensée autour de vos besoins et de votre confort.'}</p></div>
