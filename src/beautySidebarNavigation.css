@@ -1,0 +1,142 @@
+/* Coiffure & Beauté · navigation métier dédiée */
+
+html[data-beauty-metier="true"] .sidebar > .main-nav.grouped-navigation,
+html[data-beauty-metier="true"] .sidebar > .navigation-search,
+html[data-beauty-metier="true"] .sidebar > .sidebar-subscription-link,
+html[data-beauty-metier="true"] .sidebar > .metier-reception-shortcut-host.desktop,
+html[data-beauty-metier="true"] .metier-workspace-floating-shortcut {
+  display: none !important;
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-host.desktop {
+  min-height: 0;
+  margin-top: 12px;
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation {
+  display: grid;
+  gap: 13px;
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-group {
+  display: grid;
+  gap: 5px;
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-title {
+  padding: 0 9px;
+  color: #8b95a7;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: .105em;
+  text-transform: uppercase;
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-items {
+  display: grid;
+  gap: 3px;
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-items > a {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 15px;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 6px 8px;
+  color: #475569;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  transition: background .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-items > a:hover {
+  background: rgba(255, 255, 255, .74);
+  color: #1f2937;
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-items > a.active {
+  color: color-mix(in srgb, var(--tenant-brand-color, var(--ncr26-brand, #2997ff)) 78%, #1f2937);
+  border-color: color-mix(in srgb, var(--tenant-brand-color, var(--ncr26-brand, #2997ff)) 18%, transparent);
+  background: color-mix(in srgb, var(--tenant-brand-color, var(--ncr26-brand, #2997ff)) 8%, #fff);
+  box-shadow: 0 7px 22px rgba(15, 23, 42, .045);
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  color: #64748b;
+  background: rgba(148, 163, 184, .09);
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-items > a.active .beauty-sidebar-navigation-icon {
+  color: var(--tenant-brand-color, var(--ncr26-brand, #2997ff));
+  background: color-mix(in srgb, var(--tenant-brand-color, var(--ncr26-brand, #2997ff)) 12%, #fff);
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-items > a > span:nth-child(2) {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 680;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+html[data-beauty-metier="true"] .beauty-sidebar-navigation-items > a > svg:last-child {
+  opacity: .42;
+}
+
+html[data-beauty-metier="true"] .sidebar-footer {
+  margin-top: auto;
+}
+
+@media (max-width: 900px) {
+  html[data-beauty-metier="true"] .mobile-navigation-drawer > .mobile-drawer-nav.grouped-navigation,
+  html[data-beauty-metier="true"] .mobile-navigation-drawer > .navigation-search.mobile,
+  html[data-beauty-metier="true"] .mobile-navigation-drawer > .mobile-drawer-subscription-card,
+  html[data-beauty-metier="true"] .mobile-navigation-drawer > .metier-reception-shortcut-host.mobile {
+    display: none !important;
+  }
+
+  html[data-beauty-metier="true"] .beauty-sidebar-navigation-host.mobile {
+    padding: 4px 14px 18px;
+    overflow-y: auto;
+  }
+
+  html[data-beauty-metier="true"] .beauty-sidebar-navigation.mobile {
+    gap: 18px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-sidebar-navigation.mobile .beauty-sidebar-navigation-title {
+    padding-left: 5px;
+    font-size: 10px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-sidebar-navigation.mobile .beauty-sidebar-navigation-items {
+    gap: 5px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-sidebar-navigation.mobile .beauty-sidebar-navigation-items > a {
+    grid-template-columns: 38px minmax(0, 1fr) 18px;
+    min-height: 52px;
+    padding: 7px 9px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .54);
+  }
+
+  html[data-beauty-metier="true"] .beauty-sidebar-navigation.mobile .beauty-sidebar-navigation-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-sidebar-navigation.mobile .beauty-sidebar-navigation-items > a > span:nth-child(2) {
+    font-size: 15px;
+  }
+}
