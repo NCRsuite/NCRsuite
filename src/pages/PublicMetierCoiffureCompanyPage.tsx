@@ -364,7 +364,7 @@ export function PublicMetierCoiffureCompanyPage() {
   const style = { '--company-accent': data.company.primary_color } as CSSProperties;
   const selectedSite = data.sites.find((site) => site.id === siteId) ?? data.sites[0] ?? null;
   const minDate = dateInput();
-  const effectiveMaxDays = Math.min(data.settings.max_days_ahead || 90, selectedService?.booking_max_days_ahead ?? data.settings.max_days_ahead || 90);
+  const effectiveMaxDays = Math.min(data.settings.max_days_ahead || 90, selectedService?.booking_max_days_ahead ?? (data.settings.max_days_ahead || 90));
   const maxDate = dateInput(addDays(new Date(), effectiveMaxDays));
   const bookingStep = !serviceId ? 1 : !date ? 2 : !selectedSlot ? 3 : 4;
 
