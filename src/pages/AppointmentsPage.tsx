@@ -53,6 +53,15 @@ interface BreakRecord {
   end_time: string;
 }
 
+interface AppointmentServiceItemRecord {
+  appointment_id: string;
+  service_id: string;
+  position: number;
+  service_name: string;
+  duration_minutes: number;
+  price_cents: number;
+}
+
 interface AppointmentRecord {
   id: string;
   client_id: string;
@@ -237,6 +246,7 @@ export function AppointmentsPage() {
   const [workingHours, setWorkingHours] = useState<WorkingHourRecord[]>([]);
   const [breaks, setBreaks] = useState<BreakRecord[]>([]);
   const [appointments, setAppointments] = useState<AppointmentRecord[]>([]);
+  const [appointmentItems, setAppointmentItems] = useState<AppointmentServiceItemRecord[]>([]);
   const [availabilityBlocks, setAvailabilityBlocks] = useState<AvailabilityBlockRecord[]>([]);
   const [form, setForm] = useState<AppointmentFormState>(emptyForm);
   const [availabilityForm, setAvailabilityForm] = useState<AvailabilityBlockFormState>(emptyAvailabilityForm);
@@ -286,6 +296,7 @@ export function AppointmentsPage() {
       setWorkingHours(read<WorkingHourRecord>('ncr-suite-demo-staff-hours'));
       setBreaks(read<BreakRecord>('ncr-suite-demo-staff-breaks'));
       setAppointments(read<AppointmentRecord>('ncr-suite-demo-appointments'));
+      setAppointmentItems([]);
       const demoBlocks = read<AvailabilityBlockRecord>('ncr-suite-demo-beauty-blocks');
       setAvailabilityBlocks(beautyMode && selectedEnseigneId ? demoBlocks.filter((row) => row.company_id === selectedEnseigneId && row.active) : []);
       setLoading(false);
@@ -319,6 +330,16 @@ export function AppointmentsPage() {
       appointmentsQuery
     ]);
 
+    const appointmentIds = ((appointmentsResult.data ?? []) as AppointmentRecord[]).map((row) => row.id);
+    const itemsResult = beautyMode && selectedEnseigneId && appointmentIds.length > 0
+      ? await supabase.from('appointment_service_items')
+        .select('appointment_id,service_id,position,service_name,duration_minutes,price_cents')
+        .eq('organization_id', organizationId)
+        .eq('company_id', selectedEnseigneId)
+        .in('appointment_id', appointmentIds)
+        .order('position', { ascending: true })
+      : { data: [], error: null };
+
     const blocksResult = beautyMode && selectedEnseigneId
       ? await supabase.from('beauty_availability_blocks')
         .select('id,company_id,site_id,staff_id,kind,label,starts_at,ends_at,all_day,active,created_at')
@@ -330,7 +351,7 @@ export function AppointmentsPage() {
         .order('starts_at', { ascending: true })
       : { data: [], error: null };
 
-    const firstError = [clientsResult, servicesResult, staffResult, assignmentsResult, hoursResult, breaksResult, appointmentsResult, blocksResult]
+    const firstError = [clientsResult, servicesResult, staffResult, assignmentsResult, hoursResult, breaksResult, appointmentsResult, itemsResult, blocksResult]
       .find((result) => result.error)?.error;
 
     if (firstError) {
@@ -343,6 +364,7 @@ export function AppointmentsPage() {
       setWorkingHours((hoursResult.data ?? []) as WorkingHourRecord[]);
       setBreaks((breaksResult.data ?? []) as BreakRecord[]);
       setAppointments((appointmentsResult.data ?? []) as AppointmentRecord[]);
+      setAppointmentItems((itemsResult.data ?? []) as AppointmentServiceItemRecord[]);
       setAvailabilityBlocks((blocksResult.data ?? []) as AvailabilityBlockRecord[]);
     }
     setLoading(false);
@@ -370,6 +392,26 @@ export function AppointmentsPage() {
   const clientById = useMemo(() => new Map(clients.map((row) => [row.id, row])), [clients]);
   const serviceById = useMemo(() => new Map(services.map((row) => [row.id, row])), [services]);
   const staffById = useMemo(() => new Map(staff.map((row) => [row.id, row])), [staff]);
+  const appointmentItemsById = useMemo(() => {
+    const map = new Map<string, AppointmentServiceItemRecord[]>();
+    appointmentItems.forEach((item) => {
+      const rows = map.get(item.appointment_id) ?? [];
+      rows.push(item);
+      map.set(item.appointment_id, rows);
+    });
+    map.forEach((rows) => rows.sort((a, b) => a.position - b.position));
+    return map;
+  }, [appointmentItems]);
+
+  function appointmentServiceLabel(appointment: AppointmentRecord) {
+    const items = appointmentItemsById.get(appointment.id) ?? [];
+    if (items.length > 0) return items.map((item) => item.service_name).join(' + ');
+    return serviceById.get(appointment.service_id)?.name ?? 'Prestation inconnue';
+  }
+
+  function appointmentDurationMinutes(appointment: AppointmentRecord) {
+    return Math.max(1, Math.round((new Date(appointment.ends_at).getTime() - new Date(appointment.starts_at).getTime()) / 60000));
+  }
 
   const compatibleStaff = useMemo(() => {
     if (!form.serviceId) return staff;
@@ -810,6 +852,7 @@ export function AppointmentsPage() {
   function appointmentCard(appointment: AppointmentRecord) {
     const client = clientById.get(appointment.client_id);
     const service = serviceById.get(appointment.service_id);
+    const items = appointmentItemsById.get(appointment.id) ?? [];
     const member = staffById.get(appointment.staff_id);
     return (
       <article key={appointment.id} className={`appointment-card status-${appointment.status}`} style={{ '--staff-color': member?.color ?? '#0a84ff' } as CSSProperties}>
@@ -822,15 +865,16 @@ export function AppointmentsPage() {
             <h3>{fullClientName(client)}</h3>
             <span className={`status-chip appointment-status ${appointment.status}`}>{statusLabels[appointment.status]}</span>
           </div>
-          <p>{service?.name ?? 'Prestation inconnue'} · {member?.display_name ?? 'Collaborateur inconnu'}{organization?.plan === 'metier' ? ` · ${sites.find((site) => site.id === appointment.site_id)?.name ?? 'Site non attribué'}` : ''}</p>
-          <small>{service ? `${service.duration_minutes} min · ${currencyFormatter.format((appointment.amount_cents ?? service.price_cents) / 100)}` : ''}</small>
+          <p>{appointmentServiceLabel(appointment)} · {member?.display_name ?? 'Collaborateur inconnu'}{organization?.plan === 'metier' ? ` · ${sites.find((site) => site.id === appointment.site_id)?.name ?? 'Site non attribué'}` : ''}</p>
+          <small>{appointmentDurationMinutes(appointment)} min · {currencyFormatter.format((appointment.amount_cents ?? service?.price_cents ?? 0) / 100)}{items.length > 1 ? ` · ${items.length} prestations` : ''}</small>
           {appointment.notes && <em>{appointment.notes}</em>}
         </div>
         {canChangeStatus && (
           <div className="appointment-actions">
-            {canEditAppointments && appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
+            {canEditAppointments && appointment.status !== 'cancelled' && appointment.status !== 'completed' && items.length <= 1 && (
               <button type="button" className="secondary-button compact-button" onClick={() => openEditForm(appointment)}>Modifier</button>
             )}
+            {items.length > 1 && <span className="appointment-multi-badge">Multi-prestations</span>}
             <select
               aria-label={`Changer le statut du rendez-vous de ${fullClientName(client)}`}
               value={appointment.status}
@@ -1025,11 +1069,12 @@ export function AppointmentsPage() {
                     return <div key={`${member.id}-${day.toISOString()}`} className="planning-grid-cell appointment-team-cell" onClick={() => openCreateForm(day, '09:00')}>
                       {cellBlocks.map((block) => <button type="button" key={`block-${block.id}`} className={`availability-grid-event kind-${block.kind}`} onClick={(event) => { event.stopPropagation(); openEditAvailability(block); }}><span><Icon name={block.kind === 'leave' ? 'users' : block.kind === 'closure' ? 'building' : 'lock'} size={13} /></span><strong>{block.label || availabilityKindLabels[block.kind]}</strong><small>{block.all_day ? 'Toute la journée' : `${timeFormatter.format(new Date(block.starts_at))} — ${timeFormatter.format(new Date(block.ends_at))}`}</small></button>)}
                       {cellRows.map((appointment) => {
-                        const client = clientById.get(appointment.client_id); const service = serviceById.get(appointment.service_id);
+                        const client = clientById.get(appointment.client_id);
+                        const items = appointmentItemsById.get(appointment.id) ?? [];
                         return <button type="button" key={appointment.id} className={`appointment-grid-event ${appointment.status}`} style={{ '--appointment-color': member.color || '#8b5cf6' } as CSSProperties} onClick={(event) => { event.stopPropagation(); openEditForm(appointment); }}>
                           <strong>{timeFormatter.format(new Date(appointment.starts_at))} · {fullClientName(client)}</strong>
-                          <span>{service?.name || 'Prestation'}</span>
-                          <small>{service?.duration_minutes || Math.round((new Date(appointment.ends_at).getTime() - new Date(appointment.starts_at).getTime()) / 60000)} min · {statusLabels[appointment.status]}</small>
+                          <span>{appointmentServiceLabel(appointment)}</span>
+                          <small>{appointmentDurationMinutes(appointment)} min · {statusLabels[appointment.status]}{items.length > 1 ? ` · ${items.length} prestations` : ''}</small>
                         </button>;
                       })}
                       {canEditAppointments && <button type="button" className="planning-cell-add" onClick={(event) => { event.stopPropagation(); openCreateForm(day, '09:00'); }}>+</button>}
