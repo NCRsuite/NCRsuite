@@ -329,7 +329,7 @@ export function BeautyTeamAccessPage() {
           <div className="beauty-member-list">
             {(overview?.members ?? []).map((member) => {
               const isOwner = member.profile === 'owner';
-              const displayProfile = isOwner ? 'Propriétaire' : profileCopy[member.profile]?.label ?? 'Accès';
+              const displayProfile = isOwner ? 'Propriétaire' : profileCopy[member.profile as BeautyProfile]?.label ?? 'Accès';
               const selectedCompanyNames = member.company_scope_mode === 'all'
                 ? 'Toutes les entreprises'
                 : companies.filter((company) => member.company_ids?.includes(company.id)).map((company) => company.name).join(' · ') || 'Périmètre spécifique';
