@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, useLocation } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { BeautyCenterSwitcher } from './components/BeautyCenterSwitcher';
@@ -97,7 +97,11 @@ function RoutedApplication() {
   const location = useLocation();
 
   if (location.pathname.startsWith('/salon/')) {
-    return <PublicMetierCoiffureCompanyPage key={location.key} />;
+    return (
+      <Routes>
+        <Route path="/salon/:slug" element={<PublicMetierCoiffureCompanyPage />} />
+      </Routes>
+    );
   }
 
   return (
