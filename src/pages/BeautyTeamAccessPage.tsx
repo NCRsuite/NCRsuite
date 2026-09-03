@@ -64,9 +64,9 @@ type Overview = {
 };
 
 const profileCopy: Record<BeautyProfile, { label: string; short: string; detail: string; icon: 'shield' | 'settings' | 'calendar' | 'users' | 'eye' }> = {
-  admin: { label: 'Gérant', short: 'Tout gérer', detail: 'Accès complet à la configuration, aux équipes et aux activités.', icon: 'shield' },
-  manager: { label: 'Responsable', short: 'Piloter une activité', detail: 'Gère les opérations des entreprises que vous lui autorisez.', icon: 'settings' },
-  secretary: { label: 'Secrétaire', short: 'Rendez-vous & clients', detail: 'Prend et gère les rendez-vous des entreprises choisies, sans accès à l’administration.', icon: 'calendar' },
+  admin: { label: 'Gérant', short: 'Tout gérer', detail: 'Accès complet à la configuration, aux équipes et aux enseignes du centre.', icon: 'shield' },
+  manager: { label: 'Responsable', short: 'Piloter une enseigne', detail: 'Gère les opérations des enseignes que vous lui autorisez.', icon: 'settings' },
+  secretary: { label: 'Secrétaire', short: 'Rendez-vous & clients', detail: 'Prend et gère les rendez-vous des enseignes choisies, sans accès à l’administration.', icon: 'calendar' },
   collaborator: { label: 'Collaborateur', short: 'Son activité quotidienne', detail: 'Accède à son planning, ses rendez-vous et les informations utiles à son travail.', icon: 'users' },
   viewer: { label: 'Lecture seule', short: 'Consulter uniquement', detail: 'Peut consulter les informations autorisées sans les modifier.', icon: 'eye' }
 };
@@ -143,7 +143,7 @@ export function BeautyTeamAccessPage() {
       return;
     }
     if (centerMode && ['manager', 'secretary', 'viewer'].includes(profile) && scopeMode === 'selected' && companyIds.length === 0) {
-      setError('Sélectionnez au moins une entreprise.');
+      setError('Sélectionnez au moins une enseigne.');
       return;
     }
     setSaving(true);
@@ -198,7 +198,7 @@ export function BeautyTeamAccessPage() {
   async function saveMember(member: TeamMember) {
     if (!organization || !supabase || !canAdminister || member.profile === 'owner') return;
     if (centerMode && ['manager', 'secretary', 'viewer'].includes(editProfile) && editScopeMode === 'selected' && editCompanyIds.length === 0) {
-      setError('Sélectionnez au moins une entreprise.');
+      setError('Sélectionnez au moins une enseigne.');
       return;
     }
     setBusyId(member.user_id);
@@ -249,7 +249,7 @@ export function BeautyTeamAccessPage() {
           <span className="beauty-team-badge"><Icon name="users" size={15} /> Coiffure & Beauté</span>
           <h1>Équipe & accès</h1>
           <p>{centerMode
-            ? 'Invitez chaque personne avec le bon niveau d’accès et choisissez simplement les entreprises du centre qu’elle peut gérer.'
+            ? 'Invitez chaque personne avec le bon niveau d’accès et choisissez simplement les enseignes du centre qu’elle peut gérer.'
             : 'Invitez votre équipe sans vous soucier des permissions techniques : choisissez simplement ce que chacun doit pouvoir faire.'}</p>
         </div>
         <div className="beauty-team-summary">
@@ -289,23 +289,23 @@ export function BeautyTeamAccessPage() {
                     <option value="">Sélectionner un collaborateur</option>
                     {availableStaff.map((item) => <option key={item.id} value={item.id}>{item.display_name}{item.email ? ` · ${item.email}` : ''}</option>)}
                   </select>
-                  <small>Le collaborateur est automatiquement limité à l’entreprise à laquelle sa fiche est rattachée.</small>
+                  <small>Le collaborateur est automatiquement limité à l’enseigne à laquelle sa fiche est rattachée.</small>
                 </label>
               )}
 
               <label>
                 Adresse e-mail
-                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="prenom@entreprise.fr" required />
+                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="prenom@enseigne.fr" required />
                 <small>L’invitation reste valable pendant 7 jours.</small>
               </label>
             </div>
 
             {centerMode && ['manager', 'secretary', 'viewer'].includes(profile) && (
               <div className="beauty-company-scope">
-                <div className="beauty-scope-head"><div><strong>Quelles entreprises peut-elle gérer ?</strong><small>{profile === 'secretary' ? 'Elle prendra les rendez-vous uniquement pour ce périmètre.' : 'Son accès restera limité à ce périmètre.'}</small></div></div>
+                <div className="beauty-scope-head"><div><strong>Quelles enseignes peut-elle gérer ?</strong><small>{profile === 'secretary' ? 'Elle prendra les rendez-vous uniquement pour ces enseignes.' : 'Son accès restera limité à ces enseignes.'}</small></div></div>
                 <div className="beauty-scope-toggle">
-                  <button type="button" className={scopeMode === 'all' ? 'active' : ''} onClick={() => { setScopeMode('all'); setCompanyIds([]); }}>Toutes les entreprises</button>
-                  <button type="button" className={scopeMode === 'selected' ? 'active' : ''} onClick={() => setScopeMode('selected')}>Certaines entreprises</button>
+                  <button type="button" className={scopeMode === 'all' ? 'active' : ''} onClick={() => { setScopeMode('all'); setCompanyIds([]); }}>Toutes les enseignes</button>
+                  <button type="button" className={scopeMode === 'selected' ? 'active' : ''} onClick={() => setScopeMode('selected')}>Certaines enseignes</button>
                 </div>
                 {scopeMode === 'selected' && <div className="beauty-company-chips">
                   {companies.map((company) => <button type="button" key={company.id} className={companyIds.includes(company.id) ? 'selected' : ''} onClick={() => toggleCompany(company.id)}>
@@ -316,7 +316,7 @@ export function BeautyTeamAccessPage() {
               </div>
             )}
 
-            {profile === 'secretary' && <div className="beauty-secretary-note"><span><Icon name="calendar" size={18} /></span><div><strong>Accueil partagé activé automatiquement</strong><small>Après acceptation, cette personne verra directement l’accueil partagé et pourra gérer les rendez-vous des entreprises autorisées, sans accéder aux réglages du centre.</small></div></div>}
+            {profile === 'secretary' && <div className="beauty-secretary-note"><span><Icon name="calendar" size={18} /></span><div><strong>Secrétariat partagé activé automatiquement</strong><small>Après acceptation, cette personne pourra gérer les rendez-vous des enseignes autorisées depuis un seul écran, sans accéder aux réglages du centre.</small></div></div>}
 
             <div className="beauty-invite-submit"><button className="primary-button" type="submit" disabled={saving}>{saving ? 'Envoi…' : 'Envoyer l’invitation'}</button></div>
           </form>
@@ -324,20 +324,20 @@ export function BeautyTeamAccessPage() {
       )}
 
       <section className="beauty-access-panel">
-        <div className="beauty-access-heading"><div><p>VOTRE ÉQUIPE</p><h2>Qui peut accéder à votre espace ?</h2><span>{overview?.active_members ?? 0} accès actif(s) sur {overview?.member_limit ?? '—'} disponibles.</span></div></div>
+        <div className="beauty-access-heading"><div><p>VOTRE ÉQUIPE</p><h2>Qui peut accéder à votre centre ?</h2><span>{overview?.active_members ?? 0} accès actif(s) sur {overview?.member_limit ?? '—'} disponibles.</span></div></div>
         {loading ? <div className="beauty-access-loading" /> : (
           <div className="beauty-member-list">
             {(overview?.members ?? []).map((member) => {
               const isOwner = member.profile === 'owner';
               const displayProfile = isOwner ? 'Propriétaire' : profileCopy[member.profile as BeautyProfile]?.label ?? 'Accès';
               const selectedCompanyNames = member.company_scope_mode === 'all'
-                ? 'Toutes les entreprises'
+                ? 'Toutes les enseignes'
                 : companies.filter((company) => member.company_ids?.includes(company.id)).map((company) => company.name).join(' · ') || 'Périmètre spécifique';
               const editing = editingUserId === member.user_id;
               return <article className={`beauty-member-card${member.status === 'disabled' ? ' disabled' : ''}`} key={member.user_id}>
                 <div className="beauty-member-main">
                   <span className="beauty-member-avatar">{member.full_name.slice(0, 1).toUpperCase()}</span>
-                  <div><strong>{member.full_name}</strong><small>{member.email}</small><div className="beauty-member-tags"><span>{displayProfile}</span>{centerMode && !isOwner && <span>{selectedCompanyNames}</span>}{member.profile === 'secretary' && <span className="reception">Accueil partagé</span>}{member.status === 'disabled' && <span className="suspended">Suspendu</span>}</div></div>
+                  <div><strong>{member.full_name}</strong><small>{member.email}</small><div className="beauty-member-tags"><span>{displayProfile}</span>{centerMode && !isOwner && <span>{selectedCompanyNames}</span>}{member.profile === 'secretary' && <span className="reception">Secrétariat partagé</span>}{member.status === 'disabled' && <span className="suspended">Suspendu</span>}</div></div>
                 </div>
                 {!isOwner && canAdminister && <div className="beauty-member-actions"><button type="button" className="secondary-button compact-button" onClick={() => editing ? setEditingUserId('') : startEdit(member)}>{editing ? 'Fermer' : 'Gérer l’accès'}</button><button type="button" className="secondary-button compact-button" disabled={busyId === member.user_id} onClick={() => void toggleMember(member)}>{member.status === 'active' ? 'Suspendre' : 'Réactiver'}</button></div>}
                 {editing && <div className="beauty-member-editor">
@@ -356,7 +356,7 @@ export function BeautyTeamAccessPage() {
         <div className="beauty-invitation-list">
           {(overview?.invitations ?? []).map((invitation) => {
             const copy = profileCopy[invitation.profile] ?? profileCopy.viewer;
-            const names = invitation.company_scope_mode === 'all' ? 'Toutes les entreprises' : companies.filter((company) => invitation.company_ids?.includes(company.id)).map((company) => company.name).join(' · ');
+            const names = invitation.company_scope_mode === 'all' ? 'Toutes les enseignes' : companies.filter((company) => invitation.company_ids?.includes(company.id)).map((company) => company.name).join(' · ');
             return <article key={invitation.invitation_id}><span className="beauty-invite-avatar"><Icon name={copy.icon} size={17} /></span><div><strong>{invitation.email}</strong><small>{copy.label}{centerMode ? ` · ${names || 'Périmètre spécifique'}` : ''} · expire le {formatDate(invitation.expires_at)}</small></div><span className={`beauty-invite-status ${invitation.status}`}>{invitation.status === 'pending' ? 'En attente' : 'Expirée'}</span>{canAdminister && <div className="beauty-invite-actions"><button type="button" onClick={() => void invitationAction('resend', invitation.invitation_id)} disabled={busyId === invitation.invitation_id}>Renvoyer</button><button type="button" onClick={() => void invitationAction('revoke', invitation.invitation_id)} disabled={busyId === invitation.invitation_id}>Annuler</button></div>}</article>;
           })}
         </div>
