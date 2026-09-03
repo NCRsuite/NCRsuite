@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
+import { BeautySetupHub } from './BeautySetupHub';
 import { Icon } from './Icon';
 import { MetierSharedReception } from './MetierSharedReception';
 import { MetierSimpleSetup } from './MetierSimpleSetup';
@@ -174,6 +175,10 @@ export function MetierSimpleExperience() {
     </button>
   );
 
+  const simplePage = organization?.business_type === 'coiffure'
+    ? <BeautySetupHub onOpenReception={openReception} onOpenAdvanced={openAdvanced} />
+    : <MetierSimpleSetup onOpenReception={openReception} onOpenAdvanced={openAdvanced} />;
+
   const page = reception
     ? <MetierSharedReception onBack={closeReception} />
     : advanced
@@ -185,7 +190,7 @@ export function MetierSimpleExperience() {
           <span>Réglages avancés · à utiliser uniquement si nécessaire</span>
         </div>
       )
-      : <MetierSimpleSetup onOpenReception={openReception} onOpenAdvanced={openAdvanced} />;
+      : simplePage;
 
   return (
     <>
