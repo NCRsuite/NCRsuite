@@ -1,3 +1,6 @@
-.metier-workspace-floating-shortcut{position:fixed;z-index:82;display:flex;align-items:center;gap:10px;border:1px solid color-mix(in srgb,var(--business-accent,#2997ff) 22%,#dfe6ef);background:#fff;color:#203047;border-radius:16px;padding:11px 12px;box-shadow:0 12px 30px rgba(25,40,70,.14);cursor:pointer;text-align:left}.metier-workspace-floating-shortcut>span:first-child{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:color-mix(in srgb,var(--business-accent,#2997ff) 12%,#fff);color:var(--business-accent,#2997ff);flex:0 0 auto}.metier-workspace-floating-shortcut>span:nth-child(2){display:flex;flex-direction:column;min-width:0;flex:1}.metier-workspace-floating-shortcut strong{font-size:13px;line-height:1.1}.metier-workspace-floating-shortcut small{font-size:10px;color:#7a8798;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metier-workspace-floating-shortcut:hover{transform:translateY(-1px)}
-@media(min-width:901px){.metier-workspace-floating-shortcut{left:14px;bottom:92px;width:250px}}
-@media(max-width:900px){.metier-workspace-floating-shortcut{right:12px;bottom:82px;max-width:calc(100vw - 24px);width:290px}.metier-workspace-floating-shortcut small{font-size:9.5px}}
+/* Raccourci flottant "Mon espace" retiré de toutes les offres Métier. */
+.metier-workspace-floating-shortcut {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
