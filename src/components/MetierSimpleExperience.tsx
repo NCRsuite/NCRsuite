@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useOrganization } from '../contexts/OrganizationContext';
-import { supabase } from '../lib/supabase';
 import { BeautyTeamAccessPage } from '../pages/BeautyTeamAccessPage';
 import '../beautyTeamAccessRoute.css';
 import { BeautySetupHub } from './BeautySetupHub';
@@ -10,21 +9,11 @@ import { Icon } from './Icon';
 import { MetierSharedReception } from './MetierSharedReception';
 import { MetierSimpleSetup } from './MetierSimpleSetup';
 
-interface ReceptionAuthorization {
-  authorized: boolean;
-  shared_reception_enabled: boolean;
-  role: string | null;
-}
-
 export function MetierSimpleExperience() {
   const route = useLocation();
   const navigate = useNavigate();
   const { organization } = useOrganization();
   const [pageHost, setPageHost] = useState<HTMLElement | null>(null);
-  const [desktopShortcutHost, setDesktopShortcutHost] = useState<HTMLElement | null>(null);
-  const [mobileShortcutHost, setMobileShortcutHost] = useState<HTMLElement | null>(null);
-  const [authorization, setAuthorization] = useState<ReceptionAuthorization | null>(null);
-  const [receptionCompanyCount, setReceptionCompanyCount] = useState(0);
 
   const active = organization?.plan === 'metier';
   const params = new URLSearchParams(route.search);
@@ -46,54 +35,6 @@ export function MetierSimpleExperience() {
       if (root.dataset.beautyMetier === 'true') delete root.dataset.beautyMetier;
     };
   }, [active, organization?.business_type, organization?.id]);
-
-  useEffect(() => {
-    let alive = true;
-    async function loadAuthorization() {
-      if (!active || !organization || !supabase) {
-        if (alive) {
-          setAuthorization(null);
-          setReceptionCompanyCount(0);
-        }
-        return;
-      }
-
-      const { data, error } = await supabase.rpc('metier_reception_authorization', {
-        p_organization_id: organization.id
-      });
-      if (!alive) return;
-      if (error) {
-        setAuthorization(null);
-        setReceptionCompanyCount(0);
-        return;
-      }
-
-      const auth = (data ?? {
-        authorized: false,
-        shared_reception_enabled: false,
-        role: null
-      }) as ReceptionAuthorization;
-      setAuthorization(auth);
-      if (!auth.authorized) {
-        setReceptionCompanyCount(0);
-        return;
-      }
-
-      const { data: contextData, error: contextError } = await supabase.rpc('metier_reception_context', {
-        p_organization_id: organization.id
-      });
-      if (!alive) return;
-      if (contextError) {
-        setReceptionCompanyCount(0);
-        return;
-      }
-      const companies = (contextData as { companies?: unknown[] } | null)?.companies;
-      setReceptionCompanyCount(Array.isArray(companies) ? companies.length : 0);
-    }
-
-    void loadAuthorization();
-    return () => { alive = false; };
-  }, [active, organization?.id]);
 
   useEffect(() => {
     if (!active || !experienceVisible) {
@@ -139,77 +80,12 @@ export function MetierSimpleExperience() {
     };
   }, [active, experienceVisible, reception, advanced, onBeautyTeamPage, organization?.id, route.key]);
 
-  useEffect(() => {
-    if (!active || !authorization?.authorized || receptionCompanyCount < 1) {
-      setDesktopShortcutHost(null);
-      setMobileShortcutHost(null);
-      return;
-    }
-
-    let desktopNode: HTMLElement | null = null;
-    let mobileNode: HTMLElement | null = null;
-
-    function ensureShortcuts() {
-      const sidebar = document.querySelector<HTMLElement>('.sidebar');
-      if (desktopNode && (!desktopNode.isConnected || desktopNode.parentElement !== sidebar)) {
-        desktopNode.remove();
-        desktopNode = null;
-        setDesktopShortcutHost(null);
-      }
-      if (sidebar && !desktopNode) {
-        desktopNode = document.createElement('div');
-        desktopNode.className = 'metier-reception-shortcut-host desktop';
-        const subscription = sidebar.querySelector('.sidebar-subscription-link');
-        const footer = sidebar.querySelector('.sidebar-footer');
-        sidebar.insertBefore(desktopNode, subscription ?? footer ?? null);
-        setDesktopShortcutHost(desktopNode);
-      }
-
-      const drawer = document.querySelector<HTMLElement>('.mobile-navigation-drawer');
-      if (mobileNode && (!mobileNode.isConnected || mobileNode.parentElement !== drawer)) {
-        mobileNode.remove();
-        mobileNode = null;
-        setMobileShortcutHost(null);
-      }
-      if (drawer && !mobileNode) {
-        mobileNode = document.createElement('div');
-        mobileNode.className = 'metier-reception-shortcut-host mobile';
-        const account = drawer.querySelector('.mobile-drawer-account');
-        drawer.insertBefore(mobileNode, account ?? null);
-        setMobileShortcutHost(mobileNode);
-      }
-    }
-
-    ensureShortcuts();
-    const observer = new MutationObserver(ensureShortcuts);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      observer.disconnect();
-      desktopNode?.remove();
-      mobileNode?.remove();
-      setDesktopShortcutHost(null);
-      setMobileShortcutHost(null);
-    };
-  }, [active, authorization?.authorized, receptionCompanyCount, organization?.id]);
-
   if (!active) return null;
 
   const openReception = () => navigate('/?metier=reception');
   const closeReception = () => navigate('/');
   const openSimple = () => navigate('/offre-metier');
   const openAdvanced = () => navigate('/offre-metier?view=advanced');
-
-  const shortcut = (
-    <button type="button" className="metier-reception-shortcut" onClick={openReception}>
-      <span><Icon name="calendar" size={19} /></span>
-      <span>
-        <strong>Accueil partagé</strong>
-        <small>{receptionCompanyCount} entreprise{receptionCompanyCount > 1 ? 's' : ''} disponible{receptionCompanyCount > 1 ? 's' : ''}</small>
-      </span>
-      <Icon name="chevronRight" size={16} />
-    </button>
-  );
 
   const simplePage = organization?.business_type === 'coiffure'
     ? <BeautySetupHub onOpenReception={openReception} onOpenAdvanced={openAdvanced} />
@@ -230,11 +106,5 @@ export function MetierSimpleExperience() {
         )
         : simplePage;
 
-  return (
-    <>
-      {pageHost && createPortal(page, pageHost)}
-      {desktopShortcutHost && createPortal(shortcut, desktopShortcutHost)}
-      {mobileShortcutHost && createPortal(shortcut, mobileShortcutHost)}
-    </>
-  );
+  return pageHost ? createPortal(page, pageHost) : null;
 }
