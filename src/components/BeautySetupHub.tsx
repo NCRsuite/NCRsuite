@@ -12,6 +12,8 @@ interface BeautyCompany {
   logo_url: string | null;
   primary_color: string;
   booking_enabled: boolean;
+  public_slug: string | null;
+  public_page_enabled: boolean;
   is_primary: boolean;
   status: string;
   brand_count: number;
@@ -42,6 +44,12 @@ interface BeautyConfig {
   members: BeautyMember[];
 }
 
+const PUBLIC_BOOKING_ORIGIN = 'https://ncr-suite.fr';
+
+function publicCompanyUrl(slug: string) {
+  return `${PUBLIC_BOOKING_ORIGIN}/salon/${encodeURIComponent(slug.trim())}`;
+}
+
 export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
   onOpenReception: () => void;
   onOpenAdvanced: () => void;
@@ -51,8 +59,15 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showDetailed, setShowDetailed] = useState(false);
+  const [reloadVersion, setReloadVersion] = useState(0);
 
   const canManage = ['owner', 'admin'].includes(organization?.role ?? 'viewer');
+
+  useEffect(() => {
+    const refresh = () => setReloadVersion((current) => current + 1);
+    window.addEventListener('ncr:metier-structure-changed', refresh);
+    return () => window.removeEventListener('ncr:metier-structure-changed', refresh);
+  }, []);
 
   useEffect(() => {
     if (!organization || organization.plan !== 'metier' || !canManage || !supabase) {
@@ -81,7 +96,7 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
     });
 
     return () => { active = false; };
-  }, [organization?.id, organization?.plan, canManage]);
+  }, [organization?.id, organization?.plan, canManage, reloadVersion]);
 
   const companies = config?.companies ?? [];
   const locations = config?.locations ?? [];
@@ -105,7 +120,7 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
     { label: 'Votre adresse', detail: 'Lieu où vos clients sont reçus', done: primaryCompany.site_count > 0, icon: 'map' as const, action: 'detail' as const },
     { label: 'Vos prestations', detail: 'Services, durées et tarifs', done: primaryCompany.service_count > 0, icon: 'sparkles' as const, path: '/prestations' },
     { label: 'Votre équipe', detail: 'Collaborateurs et disponibilités', done: primaryCompany.staff_count > 0, icon: 'users' as const, path: '/equipe' },
-    { label: 'Réservation en ligne', detail: 'Votre page publique et vos rendez-vous', done: primaryCompany.booking_enabled, icon: 'calendar' as const, action: 'detail' as const }
+    { label: 'Réservation en ligne', detail: 'Votre page publique et vos rendez-vous', done: primaryCompany.public_page_enabled, icon: 'calendar' as const, action: 'public' as const }
   ] : [
     { label: 'Votre enseigne', detail: 'Créez votre salon ou votre première enseigne', done: false, icon: 'building' as const, action: 'detail' as const },
     { label: 'Votre adresse', detail: 'Ajoutez le lieu où vous recevez vos clients', done: false, icon: 'map' as const, action: 'detail' as const },
@@ -119,6 +134,10 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
   function openDetails() {
     setShowDetailed(true);
     window.setTimeout(() => document.querySelector('.beauty-detailed-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  }
+
+  function openPublicPageEditor(companyId: string) {
+    window.dispatchEvent(new CustomEvent('ncr:beauty-open-public-page', { detail: { companyId } }));
   }
 
   return (
@@ -161,7 +180,9 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
                     <p>{step.detail}</p>
                     {'path' in step && step.path
                       ? <Link to={step.path}>{step.done ? 'Modifier' : 'Configurer'} →</Link>
-                      : <button type="button" onClick={openDetails}>{step.done ? 'Modifier' : 'Configurer'} →</button>}
+                      : step.action === 'public' && primaryCompany
+                        ? <button type="button" onClick={() => openPublicPageEditor(primaryCompany.id)}>{step.done ? 'Modifier la page' : 'Configurer la page'} →</button>
+                        : <button type="button" onClick={openDetails}>{step.done ? 'Modifier' : 'Configurer'} →</button>}
                   </article>
                 ))}
               </div>
@@ -183,13 +204,20 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
                 <div className="beauty-company-config-list">
                   {companies.map((company) => {
                     const ready = company.booking_enabled && company.site_count > 0 && company.service_count > 0 && company.staff_count > 0;
+                    const publicUrl = company.public_slug ? publicCompanyUrl(company.public_slug) : null;
                     return <article className="beauty-company-config-card" key={company.id}>
                       <div className="beauty-company-config-head">
                         <span className="beauty-company-config-logo" style={{ background: company.logo_url ? '#fff' : company.primary_color }}>{company.logo_url ? <img src={company.logo_url} alt="" /> : company.name.slice(0, 1).toUpperCase()}</span>
                         <div><strong>{company.name}</strong><small>{company.is_primary ? 'Enseigne principale' : 'Enseigne indépendante du centre'}</small></div>
+                        <span className={`beauty-public-state${company.public_page_enabled ? ' published' : ''}`}>{company.public_page_enabled ? 'Publiée' : 'Non publiée'}</span>
                       </div>
                       <div className="beauty-company-readiness"><span><strong>{company.service_count}</strong><small>prestations</small></span><span><strong>{company.staff_count}</strong><small>équipe</small></span><span><strong>{company.site_count}</strong><small>lieu{company.site_count > 1 ? 'x' : ''}</small></span></div>
-                      <div className="beauty-company-config-foot"><span className={ready ? '' : 'todo'}><Icon name={ready ? 'check' : 'activity'} size={11} /> {ready ? 'Prête' : 'À terminer'}</span><button type="button" onClick={openDetails}>Gérer l’enseigne</button></div>
+                      <div className="beauty-company-config-foot"><span className={ready ? '' : 'todo'}><Icon name={ready ? 'check' : 'activity'} size={11} /> {ready ? 'Prête' : 'À terminer'}</span></div>
+                      <div className="beauty-company-config-actions">
+                        <button type="button" onClick={openDetails}><Icon name="settings" size={13} /> Gérer</button>
+                        <button type="button" className="primary" onClick={() => openPublicPageEditor(company.id)}><Icon name="globe" size={13} /> Page publique</button>
+                        {company.public_page_enabled && publicUrl && <a href={publicUrl} target="_blank" rel="noreferrer"><Icon name="eye" size={13} /> Voir</a>}
+                      </div>
                     </article>;
                   })}
                 </div>
