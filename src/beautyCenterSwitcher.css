@@ -1,0 +1,89 @@
+html[data-beauty-center-context='true'] .desktop-context-switchers > .site-switcher,
+html[data-beauty-center-context='true'] .desktop-context-switchers > .metier-brand-switcher-host,
+html[data-beauty-center-context='true'] .mobile-account-sheet .mobile-site-section,
+html[data-beauty-center-context='true'] .mobile-account-sheet .metier-brand-mobile-host {
+  display: none !important;
+}
+
+.beauty-center-switcher-host {
+  min-width: 0;
+}
+
+.beauty-enseigne-switcher .context-switcher-trigger {
+  margin-bottom: 6px;
+}
+
+.beauty-enseigne-location-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 10px 9px;
+  color: var(--text-muted, #667085);
+  font-size: 11px;
+}
+
+.beauty-enseigne-location-row > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.beauty-enseigne-location-row select {
+  margin-left: auto;
+  max-width: 118px;
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 8px;
+  background: rgba(255,255,255,.82);
+  color: inherit;
+  font: inherit;
+  padding: 4px 22px 4px 7px;
+}
+
+.beauty-enseigne-menu .context-option-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.beauty-center-mobile-host {
+  border-top: 1px solid rgba(148, 163, 184, .18);
+  padding-top: 14px;
+}
+
+.beauty-enseigne-mobile-list .mobile-organization-option {
+  min-height: 62px;
+}
+
+.beauty-mobile-location-picker {
+  display: grid;
+  gap: 6px;
+  margin: 10px 2px 2px;
+  color: var(--text-muted, #667085);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.beauty-mobile-location-picker select {
+  width: 100%;
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 12px;
+  background: rgba(255,255,255,.9);
+  color: var(--text-primary, #172033);
+  padding: 11px 12px;
+  font: inherit;
+}
+
+@media (max-width: 900px) {
+  html[data-beauty-center-context='true'] .mobile-drawer-organization > span:nth-child(2) small {
+    max-width: 210px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
