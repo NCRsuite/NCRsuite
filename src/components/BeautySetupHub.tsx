@@ -180,7 +180,7 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
                     <p>{step.detail}</p>
                     {'path' in step && step.path
                       ? <Link to={step.path}>{step.done ? 'Modifier' : 'Configurer'} →</Link>
-                      : step.action === 'public' && primaryCompany
+                      : 'action' in step && step.action === 'public' && primaryCompany
                         ? <button type="button" onClick={() => openPublicPageEditor(primaryCompany.id)}>{step.done ? 'Modifier la page' : 'Configurer la page'} →</button>
                         : <button type="button" onClick={openDetails}>{step.done ? 'Modifier' : 'Configurer'} →</button>}
                   </article>
