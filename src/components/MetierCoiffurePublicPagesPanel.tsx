@@ -291,7 +291,7 @@ export function MetierCoiffurePublicPagesPanel() {
 
       setLogoFiles((current) => ({ ...current, [company.id]: null }));
       setBannerFiles((current) => ({ ...current, [company.id]: null }));
-      setMessage(`Page publique de ${company.name} enregistrée.`);
+      setMessage(`Page publique de l’enseigne ${company.name} enregistrée.`);
       if (typeof savedSlug === 'string') {
         setDrafts((current) => ({
           ...current,
@@ -330,8 +330,8 @@ export function MetierCoiffurePublicPagesPanel() {
       <div className="metier-simple-heading">
         <div>
           <p className="eyebrow">COIFFURE · PAGES PUBLIQUES</p>
-          <h2>Une vitrine pour chaque entreprise</h2>
-          <p>Chaque salon possède sa propre page publique avec identité, prestations, équipe, adresse et réservation.</p>
+          <h2>Une vitrine pour chaque enseigne</h2>
+          <p>Chaque enseigne possède sa propre identité, son logo, sa couverture, ses prestations, son équipe, son adresse et son lien de réservation.</p>
         </div>
         <span className="metier-public-count">{publishedCount} publiée{publishedCount > 1 ? 's' : ''}</span>
       </div>
@@ -351,7 +351,7 @@ export function MetierCoiffurePublicPagesPanel() {
               </span>
               <div className="metier-public-company-title">
                 <strong>{company.name}</strong>
-                <small>{ready ? 'Prête pour la réservation' : 'Complétez adresse, prestations et équipe'}</small>
+                <small>{ready ? 'Enseigne prête pour la réservation' : 'Complétez adresse, prestations et équipe'}</small>
               </div>
               <span className={draft.enabled ? 'metier-public-status published' : 'metier-public-status'}>{draft.enabled ? 'Publiée' : 'Masquée'}</span>
             </div>
@@ -363,15 +363,15 @@ export function MetierCoiffurePublicPagesPanel() {
             </div>
 
             <button type="button" className="metier-public-edit-toggle" onClick={() => setOpenId(openId === company.id ? null : company.id)}>
-              <span><Icon name="settings" size={16} /> Personnaliser la page</span><Icon name={openId === company.id ? 'chevronDown' : 'chevronRight'} size={17} />
+              <span><Icon name="settings" size={16} /> Personnaliser la page de l’enseigne</span><Icon name={openId === company.id ? 'chevronDown' : 'chevronRight'} size={17} />
             </button>
 
             {openId === company.id && <form className="metier-public-editor" onSubmit={(event) => void save(event, company)}>
-              <label className="metier-check-row full"><input type="checkbox" checked={draft.enabled} onChange={(event) => updateDraft(company.id, { enabled: event.target.checked })} /><span><strong>Publier la page</strong><small>Le salon reste visible même si la réservation en ligne est désactivée.</small></span></label>
+              <label className="metier-check-row full"><input type="checkbox" checked={draft.enabled} onChange={(event) => updateDraft(company.id, { enabled: event.target.checked })} /><span><strong>Publier la page</strong><small>L’enseigne reste visible même si la prise de rendez-vous en ligne est désactivée.</small></span></label>
 
               <MediaPicker
-                label="Logo du salon"
-                help="Affiché en haut de la page publique. PNG, JPG ou WebP · 2 Mo maximum."
+                label="Logo de l’enseigne"
+                help="Affiché en haut de sa page publique. PNG, JPG ou WebP · 2 Mo maximum."
                 value={draft.logoUrl}
                 file={logoFiles[company.id] ?? null}
                 acceptLabel="PNG, JPG, WebP · 2 Mo max"
@@ -381,7 +381,7 @@ export function MetierCoiffurePublicPagesPanel() {
 
               <MediaPicker
                 label="Image de couverture"
-                help="Grande image affichée en haut de la vitrine. Les photos iPhone HEIC sont converties si possible."
+                help="Grande image propre à cette enseigne. Les photos iPhone HEIC sont converties si possible."
                 value={draft.bannerUrl}
                 file={bannerFiles[company.id] ?? null}
                 acceptLabel="Photo · 8 Mo max"
@@ -391,7 +391,7 @@ export function MetierCoiffurePublicPagesPanel() {
 
               <label>Adresse publique<div className="metier-public-slug-row"><span>/salon/</span><input value={draft.slug} onChange={(event) => updateDraft(company.id, { slug: event.target.value })} /></div></label>
               <label>Slogan<input value={draft.tagline} onChange={(event) => updateDraft(company.id, { tagline: event.target.value })} placeholder="Votre moment beauté, simplement." /></label>
-              <label className="full">Présentation<textarea rows={4} value={draft.description} onChange={(event) => updateDraft(company.id, { description: event.target.value })} placeholder="Présentez le salon, son univers et ses spécialités." /></label>
+              <label className="full">Présentation<textarea rows={4} value={draft.description} onChange={(event) => updateDraft(company.id, { description: event.target.value })} placeholder="Présentez l’enseigne, son univers et ses spécialités." /></label>
               <label>Horaires<input value={draft.hours} onChange={(event) => updateDraft(company.id, { hours: event.target.value })} placeholder="Lun–Sam · 9h–19h" /></label>
               <label>Infos pratiques<input value={draft.practicalInfo} onChange={(event) => updateDraft(company.id, { practicalInfo: event.target.value })} placeholder="Parking, accès, étage…" /></label>
               <div className="metier-public-editor-actions full"><button className="primary-button" type="submit" disabled={busy === company.id}>{busy === company.id ? 'Import et enregistrement…' : 'Enregistrer la page'}</button></div>
