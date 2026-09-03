@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
+import { BeautyTeamAccessPage } from '../pages/BeautyTeamAccessPage';
 import { BeautySetupHub } from './BeautySetupHub';
 import { Icon } from './Icon';
 import { MetierSharedReception } from './MetierSharedReception';
@@ -28,9 +29,10 @@ export function MetierSimpleExperience() {
   const params = new URLSearchParams(route.search);
   const view = params.get('view') || 'simple';
   const onMetierPage = route.pathname === '/offre-metier';
+  const onBeautyTeamPage = route.pathname === '/acces-equipe' && organization?.business_type === 'coiffure';
   const reception = route.pathname === '/' && params.get('metier') === 'reception';
   const advanced = onMetierPage && view === 'advanced';
-  const experienceVisible = onMetierPage || reception;
+  const experienceVisible = onMetierPage || reception || onBeautyTeamPage;
 
   useEffect(() => {
     let alive = true;
@@ -102,7 +104,7 @@ export function MetierSimpleExperience() {
     observer.observe(document.body, { childList: true, subtree: true });
     document.documentElement.setAttribute(
       'data-metier-simple-ui',
-      reception ? 'reception' : advanced ? 'advanced' : 'true'
+      reception ? 'reception' : onBeautyTeamPage ? 'team' : advanced ? 'advanced' : 'true'
     );
 
     return () => {
@@ -111,7 +113,7 @@ export function MetierSimpleExperience() {
       setPageHost(null);
       document.documentElement.removeAttribute('data-metier-simple-ui');
     };
-  }, [active, experienceVisible, reception, advanced, organization?.id]);
+  }, [active, experienceVisible, reception, advanced, onBeautyTeamPage, organization?.id]);
 
   useEffect(() => {
     if (!active || !authorization?.authorized || receptionCompanyCount < 1) {
@@ -179,18 +181,20 @@ export function MetierSimpleExperience() {
     ? <BeautySetupHub onOpenReception={openReception} onOpenAdvanced={openAdvanced} />
     : <MetierSimpleSetup onOpenReception={openReception} onOpenAdvanced={openAdvanced} />;
 
-  const page = reception
-    ? <MetierSharedReception onBack={closeReception} />
-    : advanced
-      ? (
-        <div className="metier-advanced-toolbar">
-          <button type="button" className="secondary-button" onClick={openSimple}>
-            <Icon name="chevronRight" size={16} /> Retour à la configuration simple
-          </button>
-          <span>Réglages avancés · à utiliser uniquement si nécessaire</span>
-        </div>
-      )
-      : simplePage;
+  const page = onBeautyTeamPage
+    ? <BeautyTeamAccessPage />
+    : reception
+      ? <MetierSharedReception onBack={closeReception} />
+      : advanced
+        ? (
+          <div className="metier-advanced-toolbar">
+            <button type="button" className="secondary-button" onClick={openSimple}>
+              <Icon name="chevronRight" size={16} /> Retour à la configuration simple
+            </button>
+            <span>Réglages avancés · à utiliser uniquement si nécessaire</span>
+          </div>
+        )
+        : simplePage;
 
   return (
     <>
