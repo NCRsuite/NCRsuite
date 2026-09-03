@@ -36,6 +36,18 @@ export function MetierSimpleExperience() {
   const experienceVisible = onMetierPage || reception || onBeautyTeamPage;
 
   useEffect(() => {
+    const root = document.documentElement;
+    if (!active || organization?.business_type !== 'coiffure') {
+      delete root.dataset.beautyMetier;
+      return;
+    }
+    root.dataset.beautyMetier = 'true';
+    return () => {
+      if (root.dataset.beautyMetier === 'true') delete root.dataset.beautyMetier;
+    };
+  }, [active, organization?.business_type, organization?.id]);
+
+  useEffect(() => {
     let alive = true;
     async function loadAuthorization() {
       if (!active || !organization || !supabase) {
@@ -93,11 +105,22 @@ export function MetierSimpleExperience() {
     let node: HTMLElement | null = null;
     function ensureHost() {
       const stage = document.querySelector<HTMLElement>('.premium-route-stage');
-      if (!stage || node) return;
-      node = document.createElement('div');
-      node.className = 'metier-simple-experience-host';
-      stage.insertBefore(node, stage.firstChild);
-      setPageHost(node);
+      if (!stage) {
+        if (node && !node.isConnected) {
+          node = null;
+          setPageHost(null);
+        }
+        return;
+      }
+
+      if (node?.isConnected && node.parentElement === stage) return;
+      node?.remove();
+
+      const nextNode = document.createElement('div');
+      nextNode.className = 'metier-simple-experience-host';
+      stage.insertBefore(nextNode, stage.firstChild);
+      node = nextNode;
+      setPageHost(nextNode);
     }
 
     ensureHost();
@@ -114,7 +137,7 @@ export function MetierSimpleExperience() {
       setPageHost(null);
       document.documentElement.removeAttribute('data-metier-simple-ui');
     };
-  }, [active, experienceVisible, reception, advanced, onBeautyTeamPage, organization?.id]);
+  }, [active, experienceVisible, reception, advanced, onBeautyTeamPage, organization?.id, route.key]);
 
   useEffect(() => {
     if (!active || !authorization?.authorized || receptionCompanyCount < 1) {
@@ -128,6 +151,11 @@ export function MetierSimpleExperience() {
 
     function ensureShortcuts() {
       const sidebar = document.querySelector<HTMLElement>('.sidebar');
+      if (desktopNode && (!desktopNode.isConnected || desktopNode.parentElement !== sidebar)) {
+        desktopNode.remove();
+        desktopNode = null;
+        setDesktopShortcutHost(null);
+      }
       if (sidebar && !desktopNode) {
         desktopNode = document.createElement('div');
         desktopNode.className = 'metier-reception-shortcut-host desktop';
@@ -138,6 +166,11 @@ export function MetierSimpleExperience() {
       }
 
       const drawer = document.querySelector<HTMLElement>('.mobile-navigation-drawer');
+      if (mobileNode && (!mobileNode.isConnected || mobileNode.parentElement !== drawer)) {
+        mobileNode.remove();
+        mobileNode = null;
+        setMobileShortcutHost(null);
+      }
       if (drawer && !mobileNode) {
         mobileNode = document.createElement('div');
         mobileNode.className = 'metier-reception-shortcut-host mobile';
