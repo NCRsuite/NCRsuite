@@ -1,9 +1,11 @@
 import { FormEvent, type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { BeautyClientReviewModal } from '../components/BeautyClientReviewModal';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import '../beautyClientPortal.css';
+import '../beautyVerifiedReviews.css';
 
 type RewardKind = 'discount_percent' | 'discount_fixed' | 'free_service' | 'gift' | 'custom';
 type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
@@ -20,6 +22,16 @@ type PortalAccount = {
   display_name: string | null;
   unread_rewards: number;
   last_seen_at: string | null;
+};
+
+type ReviewState = {
+  appointment_id: string;
+  service_id: string | null;
+  staff_id: string | null;
+  review_id: string | null;
+  can_review: boolean;
+  rating: number | null;
+  comment: string | null;
 };
 
 type PortalDashboard = {
@@ -90,6 +102,8 @@ type PortalDashboard = {
   }>;
 };
 
+type PortalAppointment = PortalDashboard['appointments'][number];
+
 const appointmentLabels: Record<AppointmentStatus, string> = {
   pending: 'En attente',
   confirmed: 'Confirmé',
@@ -135,6 +149,8 @@ export function CoiffureClientPortalPage() {
   const [accounts, setAccounts] = useState<PortalAccount[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [dashboard, setDashboard] = useState<PortalDashboard | null>(null);
+  const [reviewStates, setReviewStates] = useState<ReviewState[]>([]);
+  const [reviewingAppointment, setReviewingAppointment] = useState<PortalAppointment | null>(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
@@ -148,6 +164,7 @@ export function CoiffureClientPortalPage() {
     if (!user || !supabase) {
       setAccounts([]);
       setDashboard(null);
+      setReviewStates([]);
       setLoading(false);
       return;
     }
@@ -184,8 +201,21 @@ export function CoiffureClientPortalPage() {
     setLoading(false);
   }, [selectedAccountId]);
 
+  const loadReviewState = useCallback(async () => {
+    if (!selectedAccountId || !supabase) {
+      setReviewStates([]);
+      return;
+    }
+    const { data, error: rpcError } = await supabase.rpc('coiffure_client_review_state', { p_account_id: selectedAccountId });
+    if (rpcError) {
+      setError(rpcError.message);
+      return;
+    }
+    setReviewStates((Array.isArray(data) ? data : []) as ReviewState[]);
+  }, [selectedAccountId]);
+
   useEffect(() => { void loadAccounts(); }, [loadAccounts]);
-  useEffect(() => { void loadDashboard(); }, [loadDashboard]);
+  useEffect(() => { void loadDashboard(); void loadReviewState(); }, [loadDashboard, loadReviewState]);
 
   const upcoming = useMemo(() => dashboard?.appointments
     .filter((appointment) => ['pending', 'confirmed'].includes(appointment.status) && new Date(appointment.starts_at).getTime() >= Date.now())
@@ -195,6 +225,7 @@ export function CoiffureClientPortalPage() {
     .filter((appointment) => !upcoming.some((item) => item.id === appointment.id))
     .sort((a, b) => b.starts_at.localeCompare(a.starts_at)) ?? [], [dashboard, upcoming]);
 
+  const reviewByAppointment = useMemo(() => new Map(reviewStates.map((state) => [state.appointment_id, state])), [reviewStates]);
   const latestCompleted = useMemo(() => history.find((appointment) => appointment.status === 'completed') ?? null, [history]);
   const availableRewards = useMemo(() => dashboard?.rewards.filter((reward) => reward.status === 'available') ?? [], [dashboard]);
   const selectedAccount = accounts.find((account) => account.account_id === selectedAccountId);
@@ -206,6 +237,16 @@ export function CoiffureClientPortalPage() {
     ? Math.min(100, Math.max(0, Math.round((dashboard.balance.points / Math.max(1, dashboard.settings.points_reward_threshold)) * 100))) : 0;
   const visitsProgress = dashboard?.settings.visits_enabled
     ? Math.min(100, Math.max(0, Math.round((dashboard.balance.visits / Math.max(1, dashboard.settings.visits_required)) * 100))) : 0;
+
+  function rebookPath(appointment: PortalAppointment) {
+    if (!dashboard?.organization.slug) return '/reserver/';
+    const reviewState = reviewByAppointment.get(appointment.id);
+    const params = new URLSearchParams();
+    if (reviewState?.service_id) params.set('service', reviewState.service_id);
+    if (reviewState?.staff_id) params.set('staff', reviewState.staff_id);
+    const query = params.toString();
+    return `/salon/${dashboard.organization.slug}${query ? `?${query}` : ''}#reserver`;
+  }
 
   async function login(event: FormEvent) {
     event.preventDefault();
@@ -264,6 +305,7 @@ export function CoiffureClientPortalPage() {
   if (!dashboard) return <div className="beauty-client-state"><Icon name="alert" size={28}/><p>{error || 'Impossible de charger cet espace.'}</p><button className="beauty-client-secondary" onClick={() => void loadDashboard()}>Réessayer</button></div>;
 
   const nextAppointment = upcoming[0] ?? null;
+  const latestReviewState = latestCompleted ? reviewByAppointment.get(latestCompleted.id) : null;
 
   return <div className="beauty-client-shell" style={style}>
     <header className="beauty-client-topbar">
@@ -309,7 +351,7 @@ export function CoiffureClientPortalPage() {
           <article className="beauty-client-card">
             <div className="beauty-client-card-head"><div><p className="beauty-client-eyebrow">MES RDV</p><h2>{nextAppointment ? 'Prochain rendez-vous' : 'Aucun rendez-vous à venir'}</h2></div><button onClick={() => setTab('appointments')}>Tout voir</button></div>
             {nextAppointment ? <div className="beauty-client-next"><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(nextAppointment.starts_at))}</strong><small>{monthShort.format(new Date(nextAppointment.starts_at)).replace('.', '')}</small></span><div><h3>{nextAppointment.service_name}</h3><p>{dateTime(nextAppointment.starts_at)}<br/>avec {nextAppointment.staff_name}{nextAppointment.site_name ? ` · ${nextAppointment.site_name}` : ''}</p></div>{nextAppointment.public_token && <Link to={`/reservation/${nextAppointment.public_token}`}>Gérer</Link>}</div> : <div className="beauty-client-empty"><Icon name="calendar" size={25}/><p>Réservez votre prochain créneau directement auprès de votre enseigne.</p><Link to={bookingPath}>Réserver maintenant</Link></div>}
-            {latestCompleted && <div className="beauty-client-rebook"><div><strong>Envie de reprendre rendez-vous ?</strong><small>Dernière prestation : {latestCompleted.service_name} avec {latestCompleted.staff_name}</small></div><Link to={bookingPath}>Reprendre RDV →</Link></div>}
+            {latestCompleted && <div className="beauty-client-rebook"><div><strong>Envie de reprendre rendez-vous ?</strong><small>Dernière prestation : {latestCompleted.service_name} avec {latestCompleted.staff_name}</small></div><div className="beauty-client-appointment-actions"><Link to={rebookPath(latestCompleted)}>Reprendre RDV →</Link>{latestReviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(latestCompleted)}>Donner mon avis</button>}{latestReviewState?.review_id && <span className="beauty-client-review-published"><b>★ {latestReviewState.rating}</b> Avis publié</span>}</div></div>}
           </article>
 
           <article className="beauty-client-card">
@@ -326,7 +368,7 @@ export function CoiffureClientPortalPage() {
       {tab === 'appointments' && <section>
         <div className="beauty-client-section-head"><div><p className="beauty-client-eyebrow">RENDEZ-VOUS</p><h1>Mes rendez-vous</h1></div><Link className="beauty-client-primary" to={bookingPath}><Icon name="plus" size={16}/>Nouveau rendez-vous</Link></div>
         <div className="beauty-client-appointment-group"><h2>À venir</h2><div className="beauty-client-appointment-list">{upcoming.map((appointment) => <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}{appointment.site_name ? ` · ${appointment.site_name}` : ''}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}</div></div><div className="beauty-client-appointment-actions">{appointment.public_token && <Link className="primary" to={`/reservation/${appointment.public_token}`}>Gérer</Link>}</div></article>)}{upcoming.length === 0 && <div className="beauty-client-empty"><Icon name="calendar" size={26}/><p>Aucun rendez-vous à venir.</p><Link to={bookingPath}>Prendre rendez-vous</Link></div>}</div></div>
-        <div className="beauty-client-appointment-group"><h2>Historique</h2><div className="beauty-client-appointment-list">{history.map((appointment) => <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}</div></div><div className="beauty-client-appointment-actions">{appointment.status === 'completed' && <Link to={bookingPath}>Reprendre RDV</Link>}</div></article>)}{history.length === 0 && <div className="beauty-client-empty"><p>Aucun historique pour le moment.</p></div>}</div></div>
+        <div className="beauty-client-appointment-group"><h2>Historique</h2><div className="beauty-client-appointment-list">{history.map((appointment) => { const reviewState = reviewByAppointment.get(appointment.id); return <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}{reviewState?.review_id && <span className="beauty-client-review-published"><b>★ {reviewState.rating}</b> Avis vérifié</span>}</div></div><div className="beauty-client-appointment-actions">{appointment.status === 'completed' && <Link to={rebookPath(appointment)}>Reprendre RDV</Link>}{appointment.status === 'completed' && reviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(appointment)}>Donner mon avis</button>}</div></article>; })}{history.length === 0 && <div className="beauty-client-empty"><p>Aucun historique pour le moment.</p></div>}</div></div>
       </section>}
 
       {tab === 'rewards' && <section>
@@ -350,5 +392,15 @@ export function CoiffureClientPortalPage() {
       <button className={tab === 'rewards' ? 'active' : ''} onClick={() => setTab('rewards')}><Icon name="sparkles" size={17}/>Avantages</button>
       <button className={tab === 'profile' ? 'active' : ''} onClick={() => setTab('profile')}><Icon name="users" size={17}/>Profil</button>
     </nav>
+
+    {reviewingAppointment && <BeautyClientReviewModal
+      open
+      accountId={selectedAccountId}
+      appointmentId={reviewingAppointment.id}
+      serviceName={reviewingAppointment.service_name}
+      staffName={reviewingAppointment.staff_name}
+      onClose={() => setReviewingAppointment(null)}
+      onSubmitted={async () => { setSuccess('Merci, votre avis vérifié est maintenant publié.'); await loadReviewState(); }}
+    />}
   </div>;
 }
