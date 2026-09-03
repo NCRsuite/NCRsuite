@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import App from './App';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import { BeautyCenterSwitcher } from './components/BeautyCenterSwitcher';
+import { BeautyPublicPageManagementPortal } from './components/BeautyPublicPageManagementPortal';
 import { BeautySidebarNavigation } from './components/BeautySidebarNavigation';
 import { ClientPortalConfigurationGuard } from './components/ClientPortalLanding';
 import { ClientPortalInstallGuide } from './components/ClientPortalInstallGuide';
@@ -112,6 +113,7 @@ function RoutedApplication() {
           <MetierRuntimeBranding />
           <MetierBrandSwitcher />
           <BeautyCenterSwitcher />
+          <BeautyPublicPageManagementPortal />
           <MetierSimpleExperience />
           <BeautySidebarNavigation />
           <MetierCoiffurePublicPagesPanel />
