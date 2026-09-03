@@ -200,7 +200,7 @@ export function CoiffureClientPortalPage() {
   const selectedAccount = accounts.find((account) => account.account_id === selectedAccountId);
   const accent = dashboard?.organization.primary_color || selectedAccount?.organization_primary_color || '#2997ff';
   const style = { '--beauty-client-accent': accent } as CSSProperties;
-  const bookingPath = dashboard?.organization.slug ? `/salon/${dashboard.organization.slug}#reserver` : '/';
+  const bookingPath = dashboard?.organization.slug ? `/salon/${dashboard.organization.slug}#reserver` : '/reserver/';
   const publicPagePath = dashboard?.organization.slug ? `/salon/${dashboard.organization.slug}` : '/';
   const pointsProgress = dashboard?.settings.points_enabled
     ? Math.min(100, Math.max(0, Math.round((dashboard.balance.points / Math.max(1, dashboard.settings.points_reward_threshold)) * 100))) : 0;
