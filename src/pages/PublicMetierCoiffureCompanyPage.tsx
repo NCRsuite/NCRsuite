@@ -58,6 +58,14 @@ interface PublicService {
   duration_minutes: number;
   price_cents: number;
   image_url: string | null;
+  online_booking_enabled?: boolean;
+  booking_min_notice_hours?: number | null;
+  booking_max_days_ahead?: number | null;
+  booking_buffer_before_minutes?: number;
+  booking_buffer_after_minutes?: number;
+  booking_weekdays?: number[] | null;
+  booking_start_time?: string | null;
+  booking_end_time?: string | null;
 }
 
 interface PublicStaff {
@@ -118,6 +126,19 @@ function addDays(date: Date, days: number) {
   return copy;
 }
 
+function dateInputForTimeZone(date: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat('fr-FR', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(date);
+  const year = parts.find((part) => part.type === 'year')?.value ?? '';
+  const month = parts.find((part) => part.type === 'month')?.value ?? '';
+  const day = parts.find((part) => part.type === 'day')?.value ?? '';
+  return `${year}-${month}-${day}`;
+}
+
 function durationLabel(minutes: number) {
   if (minutes < 60) return `${minutes} min`;
   const hours = Math.floor(minutes / 60);
@@ -137,6 +158,9 @@ export function PublicMetierCoiffureCompanyPage() {
   const [date, setDate] = useState(dateInput());
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [nextSlots, setNextSlots] = useState<Slot[]>([]);
+  const [loadingNextSlots, setLoadingNextSlots] = useState(false);
+  const [pendingQuickSlot, setPendingQuickSlot] = useState<Slot | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -227,7 +251,7 @@ export function PublicMetierCoiffureCompanyPage() {
       setError('');
       if (!supabase || !data?.company.booking_enabled || !siteId || !serviceId || !date) return;
       setLoadingSlots(true);
-      const { data: slotData, error: requestError } = await supabase.rpc('get_public_metier_coiffure_company_slots', {
+      const { data: slotData, error: requestError } = await supabase.rpc('get_public_metier_coiffure_company_slots_v2', {
         p_slug: data.company.public_slug,
         p_site_id: siteId,
         p_service_id: serviceId,
@@ -236,7 +260,15 @@ export function PublicMetierCoiffureCompanyPage() {
       });
       if (!active) return;
       if (requestError) setError(requestError.message);
-      else setSlots((Array.isArray(slotData) ? slotData : []) as Slot[]);
+      else {
+        const loadedSlots = (Array.isArray(slotData) ? slotData : []) as Slot[];
+        setSlots(loadedSlots);
+        if (pendingQuickSlot) {
+          const quickMatch = loadedSlots.find((slot) => slot.slot_start === pendingQuickSlot.slot_start && slot.staff_id === pendingQuickSlot.staff_id);
+          if (quickMatch) setSelectedSlot(quickMatch);
+          setPendingQuickSlot(null);
+        }
+      }
       setLoadingSlots(false);
     }
     void loadSlots();
@@ -250,15 +282,51 @@ export function PublicMetierCoiffureCompanyPage() {
     return [...unique.values()];
   }, [slots, staffId]);
 
+  useEffect(() => {
+    let active = true;
+    async function loadNextSlots() {
+      setNextSlots([]);
+      if (!supabase || !data?.company.booking_enabled || !siteId || !serviceId) return;
+      setLoadingNextSlots(true);
+      const { data: nextData } = await supabase.rpc('get_public_metier_coiffure_next_slots', {
+        p_slug: data.company.public_slug,
+        p_site_id: siteId,
+        p_service_id: serviceId,
+        p_staff_id: staffId === 'any' ? null : staffId,
+        p_limit: 3
+      });
+      if (!active) return;
+      setNextSlots((Array.isArray(nextData) ? nextData : []) as Slot[]);
+      setLoadingNextSlots(false);
+    }
+    void loadNextSlots();
+    return () => { active = false; };
+  }, [data?.company.public_slug, data?.company.booking_enabled, siteId, serviceId, staffId]);
+
   const quickDates = useMemo(() => {
-    const limit = Math.max(1, Math.min(7, data?.settings.max_days_ahead ?? 60));
+    const globalLimit = data?.settings.max_days_ahead ?? 60;
+    const serviceLimit = selectedService?.booking_max_days_ahead ?? globalLimit;
+    const limit = Math.max(1, Math.min(7, globalLimit, serviceLimit));
     return Array.from({ length: Math.min(6, limit) }, (_, index) => addDays(new Date(), index));
-  }, [data?.settings.max_days_ahead]);
+  }, [data?.settings.max_days_ahead, selectedService?.booking_max_days_ahead]);
 
   function chooseService(nextServiceId: string) {
     setServiceId(nextServiceId);
     setStaffId('any');
+    setPendingQuickSlot(null);
     setSelectedSlot(null);
+  }
+
+  function chooseNextSlot(slot: Slot) {
+    const timezone = data?.sites.find((site) => site.id === siteId)?.timezone || 'Europe/Paris';
+    const targetDate = dateInputForTimeZone(new Date(slot.slot_start), timezone);
+    const existing = slots.find((candidate) => candidate.slot_start === slot.slot_start && candidate.staff_id === slot.staff_id);
+    if (targetDate === date && existing) {
+      setSelectedSlot(existing);
+      return;
+    }
+    setPendingQuickSlot(slot);
+    setDate(targetDate);
   }
 
   async function submit(event: FormEvent) {
@@ -296,7 +364,8 @@ export function PublicMetierCoiffureCompanyPage() {
   const style = { '--company-accent': data.company.primary_color } as CSSProperties;
   const selectedSite = data.sites.find((site) => site.id === siteId) ?? data.sites[0] ?? null;
   const minDate = dateInput();
-  const maxDate = dateInput(addDays(new Date(), data.settings.max_days_ahead || 90));
+  const effectiveMaxDays = Math.min(data.settings.max_days_ahead || 90, selectedService?.booking_max_days_ahead ?? data.settings.max_days_ahead || 90);
+  const maxDate = dateInput(addDays(new Date(), effectiveMaxDays));
   const bookingStep = !serviceId ? 1 : !date ? 2 : !selectedSlot ? 3 : 4;
 
   if (result) {
@@ -378,16 +447,21 @@ export function PublicMetierCoiffureCompanyPage() {
           {serviceId && <section className="company-public-book-step open">
             <div className="company-public-step-title"><span>2</span><div><strong>Avec qui ?</strong><small>Choisissez un professionnel ou laissez l’enseigne vous proposer le premier disponible</small></div></div>
             <div className="company-public-staff-choice">
-              <button type="button" className={staffId === 'any' ? 'active' : ''} onClick={() => setStaffId('any')}><span className="any"><Icon name="sparkles" size={19} /></span><strong>Peu importe</strong><small>Premier disponible</small></button>
-              {compatibleStaff.map((member) => <button type="button" key={member.id} className={staffId === member.id ? 'active' : ''} onClick={() => setStaffId(member.id)}><span style={{ background: member.color || data.company.primary_color }}>{member.display_name.slice(0, 1).toUpperCase()}</span><strong>{member.display_name}</strong><small>{member.service_ids.length} prestation{member.service_ids.length > 1 ? 's' : ''}</small></button>)}
+              <button type="button" className={staffId === 'any' ? 'active' : ''} onClick={() => { setPendingQuickSlot(null); setSelectedSlot(null); setStaffId('any'); }}><span className="any"><Icon name="sparkles" size={19} /></span><strong>Peu importe</strong><small>Premier disponible</small></button>
+              {compatibleStaff.map((member) => <button type="button" key={member.id} className={staffId === member.id ? 'active' : ''} onClick={() => { setPendingQuickSlot(null); setSelectedSlot(null); setStaffId(member.id); }}><span style={{ background: member.color || data.company.primary_color }}>{member.display_name.slice(0, 1).toUpperCase()}</span><strong>{member.display_name}</strong><small>{member.service_ids.length} prestation{member.service_ids.length > 1 ? 's' : ''}</small></button>)}
             </div>
           </section>}
 
+          {serviceId && <div className="company-public-next-availability">
+            <div className="company-public-next-head"><span>⚡</span><div><strong>Premiers créneaux disponibles</strong><small>{staffId === 'any' ? 'NCR cherche le premier professionnel disponible pour vous.' : 'Les prochains créneaux avec le professionnel choisi.'}</small></div></div>
+            {loadingNextSlots ? <p className="company-public-hint">Recherche des meilleurs créneaux…</p> : nextSlots.length === 0 ? <p className="company-public-hint">Aucun créneau proche trouvé. Utilisez le calendrier pour explorer les prochaines dates.</p> : <div className="company-public-next-grid">{nextSlots.map((slot) => <button type="button" key={`quick-${slot.slot_start}-${slot.staff_id}`} onClick={() => chooseNextSlot(slot)}><span><small>{shortDay.format(new Date(slot.slot_start)).replace('.', '')} {shortDayNumber.format(new Date(slot.slot_start)).replace('.', '')}</small><strong>{shortTime.format(new Date(slot.slot_start))}</strong></span><em>{slot.staff_name}</em><b>Choisir</b></button>)}</div>}
+          </div>}
+
           {serviceId && <section className="company-public-book-step open">
-            <div className="company-public-step-title"><span>3</span><div><strong>Date & heure</strong><small>Choisissez le créneau qui vous convient</small></div></div>
+            <div className="company-public-step-title"><span>3</span><div><strong>Date & heure</strong><small>Choisissez un créneau ci-dessus ou explorez le calendrier</small></div></div>
             <div className="company-public-date-row">
               <div className="company-public-quick-dates">{quickDates.map((item) => { const value = dateInput(item); return <button type="button" key={value} className={date === value ? 'active' : ''} onClick={() => setDate(value)}><small>{shortDay.format(item).replace('.', '')}</small><strong>{shortDayNumber.format(item).replace('.', '')}</strong></button>; })}</div>
-              <label className="company-public-date-picker"><span>Autre date</span><input type="date" value={date} min={minDate} max={maxDate} onChange={(event) => setDate(event.target.value)} /></label>
+              <label className="company-public-date-picker"><span>Autre date</span><input type="date" value={date} min={minDate} max={maxDate} onChange={(event) => { setPendingQuickSlot(null); setSelectedSlot(null); setDate(event.target.value); }} /></label>
             </div>
             <div className="company-public-slots">
               <div className="company-public-slots-head"><h3>{fullDate.format(new Date(`${date}T12:00:00`))}</h3>{selectedService && <span>{selectedService.name}</span>}</div>
