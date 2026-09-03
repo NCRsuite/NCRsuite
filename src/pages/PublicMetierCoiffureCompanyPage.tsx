@@ -1,5 +1,5 @@
 import { CSSProperties, FormEvent, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { supabase } from '../lib/supabase';
 
@@ -97,6 +97,8 @@ interface BookingResult {
 const currency = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
 const fullDate = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const shortTime = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
+const shortDay = new Intl.DateTimeFormat('fr-FR', { weekday: 'short' });
+const shortDayNumber = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short' });
 
 function dateInput(date = new Date()) {
   const year = date.getFullYear();
@@ -120,6 +122,7 @@ function durationLabel(minutes: number) {
 
 export function PublicMetierCoiffureCompanyPage() {
   const { slug = '' } = useParams();
+  const location = useLocation();
   const [data, setData] = useState<PageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState('');
@@ -154,7 +157,7 @@ export function PublicMetierCoiffureCompanyPage() {
       const { data: pageData, error: requestError } = await supabase.rpc('get_public_metier_coiffure_company_page', { p_slug: slug });
       if (!active) return;
       if (requestError) setPageError(requestError.message);
-      else if (!pageData) setPageError('Ce salon est introuvable ou sa page publique est désactivée.');
+      else if (!pageData) setPageError('Cette enseigne est introuvable ou sa page publique est désactivée.');
       else {
         const typed = pageData as PageData;
         typed.sites = Array.isArray(typed.sites) ? typed.sites : [];
@@ -178,10 +181,19 @@ export function PublicMetierCoiffureCompanyPage() {
     return () => { active = false; };
   }, [slug]);
 
+  useEffect(() => {
+    if (!data) return;
+    const params = new URLSearchParams(location.search);
+    const requestedService = params.get('service');
+    const requestedStaff = params.get('staff');
+    if (requestedService && data.services.some((service) => service.id === requestedService)) setServiceId(requestedService);
+    if (requestedStaff && data.staff.some((member) => member.id === requestedStaff)) setStaffId(requestedStaff);
+  }, [data?.company.id, location.search]);
+
   const selectedService = useMemo(() => data?.services.find((service) => service.id === serviceId) ?? null, [data?.services, serviceId]);
   const compatibleStaff = useMemo(() => {
     if (!data || !serviceId) return [];
-    return data.staff.filter((member) => member.service_ids.includes(serviceId) && member.site_id === siteId);
+    return data.staff.filter((member) => member.service_ids.includes(serviceId) && (!member.site_id || member.site_id === siteId));
   }, [data, serviceId, siteId]);
 
   useEffect(() => {
@@ -219,6 +231,17 @@ export function PublicMetierCoiffureCompanyPage() {
     return [...unique.values()];
   }, [slots, staffId]);
 
+  const quickDates = useMemo(() => {
+    const limit = Math.max(1, Math.min(7, data?.settings.max_days_ahead ?? 60));
+    return Array.from({ length: Math.min(6, limit) }, (_, index) => addDays(new Date(), index));
+  }, [data?.settings.max_days_ahead]);
+
+  function chooseService(nextServiceId: string) {
+    setServiceId(nextServiceId);
+    setStaffId('any');
+    setSelectedSlot(null);
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!supabase || !data || !selectedService || !selectedSlot || !siteId) return;
@@ -248,13 +271,14 @@ export function PublicMetierCoiffureCompanyPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  if (loading) return <div className="company-public-state"><img src="/brand/ncr-suite-icon.png" alt="" /><p>Chargement du salon…</p></div>;
+  if (loading) return <div className="company-public-state"><img src="/brand/ncr-suite-icon.png" alt="" /><p>Chargement de l’enseigne…</p></div>;
   if (pageError || !data) return <div className="company-public-state company-public-error"><h1>Page indisponible</h1><p>{pageError}</p><Link to="/" className="secondary-button">Retour à NCR Suite</Link></div>;
 
   const style = { '--company-accent': data.company.primary_color } as CSSProperties;
-  const selectedSite = data.sites.find((site) => site.id === siteId) ?? null;
+  const selectedSite = data.sites.find((site) => site.id === siteId) ?? data.sites[0] ?? null;
   const minDate = dateInput();
   const maxDate = dateInput(addDays(new Date(), data.settings.max_days_ahead || 90));
+  const bookingStep = !serviceId ? 1 : !date ? 2 : !selectedSlot ? 3 : 4;
 
   if (result) {
     return <div className="company-public-page" style={style}>
@@ -271,90 +295,126 @@ export function PublicMetierCoiffureCompanyPage() {
         </div>
         <div className="company-public-success-actions">
           <Link className="primary-button" to={`/reservation/${result.token}`}>Gérer mon rendez-vous</Link>
-          <Link className="secondary-button" to={`/salon/${result.company_slug}`}>Retour au salon</Link>
+          <Link className="secondary-button" to="/espace-client-coiffure">Mon espace client</Link>
+          <Link className="secondary-button" to={`/salon/${result.company_slug}`}>Retour à l’enseigne</Link>
         </div>
       </main>
     </div>;
   }
 
   return <div className="company-public-page" style={style}>
-    <header className={`company-public-hero${data.company.banner_url ? ' has-banner' : ''}`} style={data.company.banner_url ? { backgroundImage: `linear-gradient(180deg,rgba(10,16,28,.18),rgba(10,16,28,.72)),url(${data.company.banner_url})` } : undefined}>
+    <header className={`company-public-hero${data.company.banner_url ? ' has-banner' : ''}`} style={data.company.banner_url ? { backgroundImage: `linear-gradient(180deg,rgba(12,14,20,.10),rgba(12,14,20,.72)),url(${data.company.banner_url})` } : undefined}>
       <div className="company-public-nav">
         <div className="company-public-brand">
           <span>{data.company.logo_url ? <img src={data.company.logo_url} alt="" /> : data.company.name.slice(0, 1).toUpperCase()}</span>
           <div><strong>{data.company.name}</strong><small>Coiffure & beauté</small></div>
         </div>
-        {data.company.booking_enabled && <a className="company-public-book-button" href="#reserver">Prendre rendez-vous</a>}
+        <div className="company-public-nav-actions">
+          <Link className="company-public-client-link" to="/espace-client-coiffure"><Icon name="users" size={16} /> Mon espace</Link>
+          {data.company.booking_enabled && <a className="company-public-book-button" href="#reserver"><Icon name="calendar" size={16} /> Prendre rendez-vous</a>}
+        </div>
       </div>
       <div className="company-public-hero-content">
-        <p className="eyebrow">VOTRE SALON</p>
+        <div className="company-public-hero-badges"><span>Coiffure & beauté</span>{data.company.booking_enabled && <span className="available"><i /> Réservation en ligne</span>}</div>
         <h1>{data.company.name}</h1>
         <p className="company-public-tagline">{data.company.tagline || 'Votre moment beauté, simplement.'}</p>
         {data.company.description && <p className="company-public-description">{data.company.description}</p>}
         <div className="company-public-contact-row">
+          {selectedSite && <a href="#infos"><Icon name="map" size={16} /> {[selectedSite.address, selectedSite.postal_code, selectedSite.city].filter(Boolean).join(' ') || selectedSite.name}</a>}
           {data.company.phone && <a href={`tel:${data.company.phone}`}><Icon name="phone" size={16} /> {data.company.phone}</a>}
-          {data.company.email && <a href={`mailto:${data.company.email}`}><Icon name="message" size={16} /> {data.company.email}</a>}
         </div>
       </div>
     </header>
 
+    <nav className="company-public-tabs" aria-label="Navigation de l’enseigne">
+      <div>
+        <a href="#reserver" className="active">Réserver</a>
+        <a href="#prestations">Prestations</a>
+        {data.staff.length > 0 && <a href="#equipe">Équipe</a>}
+        <a href="#infos">Infos</a>
+      </div>
+    </nav>
+
     <main className="company-public-content">
-      {data.sites.length > 0 && <section className="company-public-info-grid">
-        <article><Icon name="map" size={20} /><div><small>Où nous trouver</small><strong>{selectedSite?.name || data.sites[0].name}</strong><p>{[selectedSite?.address, selectedSite?.postal_code, selectedSite?.city].filter(Boolean).join(' ')}</p></div></article>
-        <article><Icon name="clock" size={20} /><div><small>Horaires</small><strong>{data.company.hours_text || 'Sur rendez-vous'}</strong>{data.company.practical_info && <p>{data.company.practical_info}</p>}</div></article>
+      {data.sites.length > 0 && <section className="company-public-info-grid" id="infos">
+        <article><span className="company-public-info-icon"><Icon name="map" size={20} /></span><div><small>Adresse</small><strong>{selectedSite?.name || data.sites[0].name}</strong><p>{[selectedSite?.address, selectedSite?.postal_code, selectedSite?.city].filter(Boolean).join(' ')}</p></div></article>
+        <article><span className="company-public-info-icon"><Icon name="clock" size={20} /></span><div><small>Horaires</small><strong>{data.company.hours_text || 'Sur rendez-vous'}</strong>{data.company.practical_info && <p>{data.company.practical_info}</p>}</div></article>
       </section>}
 
-      <section className="company-public-section">
-        <div className="company-public-section-heading"><p className="eyebrow">NOS PRESTATIONS</p><h2>Choisissez votre moment</h2></div>
+      <section className="company-public-booking" id="reserver">
+        <div className="company-public-booking-head">
+          <div><p className="eyebrow">RÉSERVATION</p><h2>{data.company.booking_enabled ? 'Choisissez votre rendez-vous' : 'Réservation temporairement fermée'}</h2><p>{data.settings.welcome_text || (data.company.booking_enabled ? 'Un parcours simple, étape par étape.' : 'Contactez directement l’enseigne pour toute demande.')}</p></div>
+          {data.company.booking_enabled && <div className="company-public-step-meter" aria-label={`Étape ${bookingStep} sur 4`}><span className={bookingStep >= 1 ? 'done' : ''}>1</span><i className={bookingStep >= 2 ? 'done' : ''}/><span className={bookingStep >= 2 ? 'done' : ''}>2</span><i className={bookingStep >= 3 ? 'done' : ''}/><span className={bookingStep >= 3 ? 'done' : ''}>3</span><i className={bookingStep >= 4 ? 'done' : ''}/><span className={bookingStep >= 4 ? 'done' : ''}>4</span></div>}
+        </div>
+
+        {data.company.booking_enabled ? <div className="company-public-booking-flow">
+          {data.sites.length > 1 && <div className="company-public-site-choice"><label>Lieu<select value={siteId} onChange={(event) => { setSiteId(event.target.value); setStaffId('any'); setSelectedSlot(null); }}>{data.sites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.city ? ` · ${site.city}` : ''}</option>)}</select></label></div>}
+
+          <section className="company-public-book-step open">
+            <div className="company-public-step-title"><span>1</span><div><strong>Choisissez une prestation</strong><small>{selectedService ? `${selectedService.name} · ${durationLabel(selectedService.duration_minutes)} · ${currency.format(selectedService.price_cents / 100)}` : 'Sélectionnez ce que vous souhaitez réserver'}</small></div></div>
+            <div className="company-public-booking-services">{data.services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => chooseService(service.id)}><span><strong>{service.name}</strong>{service.description && <small>{service.description}</small>}</span><b>{durationLabel(service.duration_minutes)} · {currency.format(service.price_cents / 100)}</b><em>{service.id === serviceId ? '✓' : '+'}</em></button>)}{data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}</div>
+          </section>
+
+          {serviceId && <section className="company-public-book-step open">
+            <div className="company-public-step-title"><span>2</span><div><strong>Avec qui ?</strong><small>Choisissez un professionnel ou laissez l’enseigne vous proposer le premier disponible</small></div></div>
+            <div className="company-public-staff-choice">
+              <button type="button" className={staffId === 'any' ? 'active' : ''} onClick={() => setStaffId('any')}><span className="any"><Icon name="sparkles" size={19} /></span><strong>Peu importe</strong><small>Premier disponible</small></button>
+              {compatibleStaff.map((member) => <button type="button" key={member.id} className={staffId === member.id ? 'active' : ''} onClick={() => setStaffId(member.id)}><span style={{ background: member.color || data.company.primary_color }}>{member.display_name.slice(0, 1).toUpperCase()}</span><strong>{member.display_name}</strong><small>{member.service_ids.length} prestation{member.service_ids.length > 1 ? 's' : ''}</small></button>)}
+            </div>
+          </section>}
+
+          {serviceId && <section className="company-public-book-step open">
+            <div className="company-public-step-title"><span>3</span><div><strong>Date & heure</strong><small>Choisissez le créneau qui vous convient</small></div></div>
+            <div className="company-public-date-row">
+              <div className="company-public-quick-dates">{quickDates.map((item) => { const value = dateInput(item); return <button type="button" key={value} className={date === value ? 'active' : ''} onClick={() => setDate(value)}><small>{shortDay.format(item).replace('.', '')}</small><strong>{shortDayNumber.format(item).replace('.', '')}</strong></button>; })}</div>
+              <label className="company-public-date-picker"><span>Autre date</span><input type="date" value={date} min={minDate} max={maxDate} onChange={(event) => setDate(event.target.value)} /></label>
+            </div>
+            <div className="company-public-slots">
+              <div className="company-public-slots-head"><h3>{fullDate.format(new Date(`${date}T12:00:00`))}</h3>{selectedService && <span>{selectedService.name}</span>}</div>
+              {loadingSlots ? <p className="company-public-hint">Recherche des disponibilités…</p> : displayedSlots.length === 0 ? <p className="company-public-hint">Aucun créneau disponible ce jour-là. Essayez une autre date.</p> : <div>{displayedSlots.map((slot) => <button type="button" key={`${slot.slot_start}-${slot.staff_id}`} className={selectedSlot?.slot_start === slot.slot_start && selectedSlot.staff_id === slot.staff_id ? 'active' : ''} onClick={() => setSelectedSlot(slot)}><strong>{shortTime.format(new Date(slot.slot_start))}</strong><small>{slot.staff_name}</small></button>)}</div>}
+            </div>
+          </section>}
+
+          {selectedSlot && selectedService && <section className="company-public-book-step open final-step">
+            <div className="company-public-step-title"><span>4</span><div><strong>Vos coordonnées</strong><small>Dernière étape avant confirmation</small></div></div>
+            <form className="company-public-customer-form" onSubmit={submit}>
+              <div className="company-public-booking-summary"><div><small>Votre sélection</small><strong>{selectedService.name}</strong></div><span>{fullDate.format(new Date(selectedSlot.slot_start))} · {shortTime.format(new Date(selectedSlot.slot_start))} · {selectedSlot.staff_name}</span><b>{currency.format(selectedService.price_cents / 100)}</b></div>
+              <div className="company-public-fields">
+                <label>Prénom<input value={firstName} onChange={(event) => setFirstName(event.target.value)} required autoComplete="given-name" /></label>
+                <label>Nom<input value={lastName} onChange={(event) => setLastName(event.target.value)} autoComplete="family-name" /></label>
+                <label>E-mail<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" /></label>
+                <label>Téléphone<input value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="tel" /></label>
+                <label className="full">Message<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} placeholder="Une précision pour l’enseigne ? (optionnel)" /></label>
+                <label className="company-public-honeypot" aria-hidden="true">Site web<input value={website} onChange={(event) => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" /></label>
+                <label className="company-public-consent full"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required /><span>{data.settings.privacy_notice || 'J’accepte que mes coordonnées soient utilisées pour organiser et suivre mon rendez-vous.'}</span></label>
+              </div>
+              {error && <div className="error-message" role="alert">{error}</div>}
+              <button className="company-public-confirm" type="submit" disabled={saving}>{saving ? 'Réservation…' : data.settings.confirmation_mode === 'manual' ? 'Envoyer ma demande' : 'Confirmer mon rendez-vous'}</button>
+              {data.settings.cancellation_policy && <p className="company-public-policy">{data.settings.cancellation_policy}</p>}
+            </form>
+          </section>}
+        </div> : <div className="company-public-contact-card"><strong>Besoin d’un rendez-vous ?</strong><p>La réservation en ligne est temporairement désactivée.</p>{data.company.phone && <a href={`tel:${data.company.phone}`} className="primary-button">Appeler l’enseigne</a>}</div>}
+      </section>
+
+      <section className="company-public-section" id="prestations">
+        <div className="company-public-section-heading"><p className="eyebrow">PRESTATIONS</p><h2>Tout ce que propose {data.company.name}</h2><p>Durée et tarif sont affichés clairement avant toute réservation.</p></div>
         <div className="company-public-service-grid">
-          {data.services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => { setServiceId(service.id); document.getElementById('reserver')?.scrollIntoView({ behavior: 'smooth' }); }}>
-            <div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}</div>
-            <span><small>{durationLabel(service.duration_minutes)}</small><b>{currency.format(service.price_cents / 100)}</b></span>
-          </button>)}
+          {data.services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => { chooseService(service.id); document.getElementById('reserver')?.scrollIntoView({ behavior: 'smooth' }); }}><div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}</div><span><small>{durationLabel(service.duration_minutes)}</small><b>{currency.format(service.price_cents / 100)}</b></span></button>)}
           {data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}
         </div>
       </section>
 
-      {data.staff.length > 0 && <section className="company-public-section">
-        <div className="company-public-section-heading"><p className="eyebrow">L'ÉQUIPE</p><h2>Les professionnels du salon</h2></div>
-        <div className="company-public-team-grid">{data.staff.map((member) => <article key={member.id}><span style={{ background: member.color || data.company.primary_color }}>{member.display_name.slice(0, 1).toUpperCase()}</span><strong>{member.display_name}</strong><small>{member.service_ids.length} prestation{member.service_ids.length > 1 ? 's' : ''}</small></article>)}</div>
+      {data.staff.length > 0 && <section className="company-public-section" id="equipe">
+        <div className="company-public-section-heading"><p className="eyebrow">ÉQUIPE</p><h2>Les professionnels de l’enseigne</h2><p>Chaque collaborateur est présenté uniquement avec les prestations qu’il réalise dans cette enseigne.</p></div>
+        <div className="company-public-team-grid">{data.staff.map((member) => <article key={member.id}><span style={{ background: member.color || data.company.primary_color }}>{member.display_name.slice(0, 1).toUpperCase()}</span><strong>{member.display_name}</strong><small>{member.service_ids.length} prestation{member.service_ids.length > 1 ? 's' : ''}</small>{member.service_ids.some((id) => id === serviceId) && <em>Compatible avec votre sélection</em>}</article>)}</div>
       </section>}
 
-      <section className="company-public-booking" id="reserver">
-        <div className="company-public-section-heading"><p className="eyebrow">RÉSERVATION</p><h2>{data.company.booking_enabled ? 'Votre prochain rendez-vous' : 'Réservation temporairement fermée'}</h2><p>{data.settings.welcome_text || (data.company.booking_enabled ? 'Choisissez votre prestation, votre professionnel et le créneau qui vous convient.' : 'Contactez directement le salon pour toute demande.')}</p></div>
-
-        {data.company.booking_enabled ? <div className="company-public-booking-layout">
-          <div className="company-public-booking-selector">
-            {data.sites.length > 1 && <label>Établissement<select value={siteId} onChange={(event) => setSiteId(event.target.value)}>{data.sites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.city ? ` · ${site.city}` : ''}</option>)}</select></label>}
-            <label>Prestation<select value={serviceId} onChange={(event) => setServiceId(event.target.value)}><option value="">Choisir une prestation</option>{data.services.map((service) => <option key={service.id} value={service.id}>{service.name} · {currency.format(service.price_cents / 100)}</option>)}</select></label>
-            <label>Avec<select value={staffId} onChange={(event) => setStaffId(event.target.value)} disabled={!serviceId}><option value="any">Peu importe</option>{compatibleStaff.map((member) => <option key={member.id} value={member.id}>{member.display_name}</option>)}</select></label>
-            <label>Date<input type="date" value={date} min={minDate} max={maxDate} onChange={(event) => setDate(event.target.value)} /></label>
-          </div>
-
-          <div className="company-public-slots">
-            <h3>Créneaux disponibles</h3>
-            {!serviceId ? <p className="company-public-hint">Choisissez d'abord une prestation.</p> : loadingSlots ? <p className="company-public-hint">Recherche des disponibilités…</p> : displayedSlots.length === 0 ? <p className="company-public-hint">Aucun créneau disponible ce jour-là.</p> : <div>{displayedSlots.map((slot) => <button type="button" key={`${slot.slot_start}-${slot.staff_id}`} className={selectedSlot?.slot_start === slot.slot_start && selectedSlot.staff_id === slot.staff_id ? 'active' : ''} onClick={() => setSelectedSlot(slot)}><strong>{shortTime.format(new Date(slot.slot_start))}</strong><small>{slot.staff_name}</small></button>)}</div>}
-          </div>
-
-          {selectedSlot && selectedService && <form className="company-public-customer-form" onSubmit={submit}>
-            <div className="company-public-booking-summary"><strong>{selectedService.name}</strong><span>{fullDate.format(new Date(selectedSlot.slot_start))} · {shortTime.format(new Date(selectedSlot.slot_start))} · {selectedSlot.staff_name}</span><b>{currency.format(selectedService.price_cents / 100)}</b></div>
-            <div className="company-public-fields">
-              <label>Prénom<input value={firstName} onChange={(event) => setFirstName(event.target.value)} required /></label>
-              <label>Nom<input value={lastName} onChange={(event) => setLastName(event.target.value)} /></label>
-              <label>E-mail<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label>
-              <label>Téléphone<input value={phone} onChange={(event) => setPhone(event.target.value)} /></label>
-              <label className="full">Message<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={3} placeholder="Optionnel" /></label>
-              <label className="company-public-honeypot" aria-hidden="true">Site web<input value={website} onChange={(event) => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" /></label>
-              <label className="company-public-consent full"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required /><span>{data.settings.privacy_notice || 'J’accepte que mes coordonnées soient utilisées pour organiser et suivre mon rendez-vous.'}</span></label>
-            </div>
-            {error && <div className="error-message" role="alert">{error}</div>}
-            <button className="company-public-confirm" type="submit" disabled={saving}>{saving ? 'Réservation…' : data.settings.confirmation_mode === 'manual' ? 'Envoyer ma demande' : 'Confirmer mon rendez-vous'}</button>
-            {data.settings.cancellation_policy && <p className="company-public-policy">{data.settings.cancellation_policy}</p>}
-          </form>}
-        </div> : <div className="company-public-contact-card"><strong>Besoin d'un rendez-vous ?</strong><p>La réservation en ligne est temporairement désactivée.</p>{data.company.phone && <a href={`tel:${data.company.phone}`} className="primary-button">Appeler le salon</a>}</div>}
+      <section className="company-public-about" id="a-propos">
+        <div><p className="eyebrow">À PROPOS</p><h2>{data.company.name}</h2><p>{data.company.description || data.company.tagline || 'Découvrez une expérience beauté pensée autour de vos besoins et de votre confort.'}</p></div>
+        <aside><span><Icon name="clock" size={18}/><strong>{data.company.hours_text || 'Sur rendez-vous'}</strong></span>{data.company.practical_info && <p>{data.company.practical_info}</p>}{data.company.email && <a href={`mailto:${data.company.email}`}><Icon name="message" size={16}/> {data.company.email}</a>}{data.company.phone && <a href={`tel:${data.company.phone}`}><Icon name="phone" size={16}/> {data.company.phone}</a>}</aside>
       </section>
     </main>
 
-    <footer className="company-public-footer"><strong>{data.company.name}</strong>{data.company.show_ncr_branding && <span>Propulsé par NCR Suite</span>}</footer>
+    <footer className="company-public-footer"><strong>{data.company.name}</strong><div><Link to="/espace-client-coiffure">Espace client</Link>{data.company.show_ncr_branding && <span>Propulsé par NCR Suite</span>}</div></footer>
   </div>;
 }
