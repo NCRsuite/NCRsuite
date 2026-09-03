@@ -4,6 +4,7 @@ import { BeautyPublicReviews } from '../components/BeautyPublicReviews';
 import { Icon } from '../components/Icon';
 import { supabase } from '../lib/supabase';
 import '../beautyVerifiedReviews.css';
+import '../beautyServiceImages.css';
 
 interface PublicCompany {
   id: string;
@@ -55,6 +56,7 @@ interface PublicService {
   description: string | null;
   duration_minutes: number;
   price_cents: number;
+  image_url: string | null;
 }
 
 interface PublicStaff {
@@ -355,7 +357,7 @@ export function PublicMetierCoiffureCompanyPage() {
 
           <section className="company-public-book-step open">
             <div className="company-public-step-title"><span>1</span><div><strong>Choisissez une prestation</strong><small>{selectedService ? `${selectedService.name} · ${durationLabel(selectedService.duration_minutes)} · ${currency.format(selectedService.price_cents / 100)}` : 'Sélectionnez ce que vous souhaitez réserver'}</small></div></div>
-            <div className="company-public-booking-services">{data.services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => chooseService(service.id)}><span><strong>{service.name}</strong>{service.description && <small>{service.description}</small>}</span><b>{durationLabel(service.duration_minutes)} · {currency.format(service.price_cents / 100)}</b><em>{service.id === serviceId ? '✓' : '+'}</em></button>)}{data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}</div>
+            <div className="company-public-booking-services">{data.services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => chooseService(service.id)}><span className="company-public-service-thumb">{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="sparkles" size={20} />}</span><span className="company-public-service-copy"><strong>{service.name}</strong>{service.description && <small>{service.description}</small>}</span><b>{durationLabel(service.duration_minutes)} · {currency.format(service.price_cents / 100)}</b><em>{service.id === serviceId ? '✓' : '+'}</em></button>)}{data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}</div>
           </section>
 
           {serviceId && <section className="company-public-book-step open">
@@ -381,7 +383,7 @@ export function PublicMetierCoiffureCompanyPage() {
           {selectedSlot && selectedService && <section className="company-public-book-step open final-step">
             <div className="company-public-step-title"><span>4</span><div><strong>Vos coordonnées</strong><small>Dernière étape avant confirmation</small></div></div>
             <form className="company-public-customer-form" onSubmit={submit}>
-              <div className="company-public-booking-summary"><div><small>Votre sélection</small><strong>{selectedService.name}</strong></div><span>{fullDate.format(new Date(selectedSlot.slot_start))} · {shortTime.format(new Date(selectedSlot.slot_start))} · {selectedSlot.staff_name}</span><b>{currency.format(selectedService.price_cents / 100)}</b></div>
+              <div className={`company-public-booking-summary${selectedService.image_url ? ' has-image' : ''}`}>{selectedService.image_url && <span className="company-public-summary-image"><img src={selectedService.image_url} alt="" /></span>}<div><small>Votre sélection</small><strong>{selectedService.name}</strong></div><span>{fullDate.format(new Date(selectedSlot.slot_start))} · {shortTime.format(new Date(selectedSlot.slot_start))} · {selectedSlot.staff_name}</span><b>{currency.format(selectedService.price_cents / 100)}</b></div>
               <div className="company-public-fields">
                 <label>Prénom<input value={firstName} onChange={(event) => setFirstName(event.target.value)} required autoComplete="given-name" /></label>
                 <label>Nom<input value={lastName} onChange={(event) => setLastName(event.target.value)} autoComplete="family-name" /></label>
@@ -402,7 +404,7 @@ export function PublicMetierCoiffureCompanyPage() {
       <section className="company-public-section" id="prestations">
         <div className="company-public-section-heading"><p className="eyebrow">PRESTATIONS</p><h2>Tout ce que propose {data.company.name}</h2><p>Durée et tarif sont affichés clairement avant toute réservation.</p></div>
         <div className="company-public-service-grid">
-          {data.services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => { chooseService(service.id); document.getElementById('reserver')?.scrollIntoView({ behavior: 'smooth' }); }}><div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}</div><span><small>{durationLabel(service.duration_minutes)}</small><b>{currency.format(service.price_cents / 100)}</b></span></button>)}
+          {data.services.map((service) => <button type="button" key={service.id} className={service.id === serviceId ? 'active' : ''} onClick={() => { chooseService(service.id); document.getElementById('reserver')?.scrollIntoView({ behavior: 'smooth' }); }}><span className={`company-public-service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="camera" size={28} />}</span><div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}</div><span><small>{durationLabel(service.duration_minutes)}</small><b>{currency.format(service.price_cents / 100)}</b></span></button>)}
           {data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}
         </div>
       </section>
