@@ -14,6 +14,8 @@ interface PublicCompanyConfig {
   public_tagline: string | null;
   public_description: string | null;
   public_banner_url: string | null;
+  public_banner_position_x: number;
+  public_banner_position_y: number;
   public_hours_text: string | null;
   public_practical_info: string | null;
   site_count: number;
@@ -28,6 +30,8 @@ type Draft = {
   description: string;
   logoUrl: string;
   bannerUrl: string;
+  bannerPositionX: number;
+  bannerPositionY: number;
   hours: string;
   practicalInfo: string;
 };
@@ -48,6 +52,8 @@ function toDraft(company: PublicCompanyConfig): Draft {
     description: company.public_description ?? '',
     logoUrl: company.logo_url ?? '',
     bannerUrl: company.public_banner_url ?? '',
+    bannerPositionX: company.public_banner_position_x ?? 50,
+    bannerPositionY: company.public_banner_position_y ?? 50,
     hours: company.public_hours_text ?? '',
     practicalInfo: company.public_practical_info ?? ''
   };
@@ -89,6 +95,7 @@ export function BeautyPublicPageManagementPage() {
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
   const [logoFiles, setLogoFiles] = useState<Record<string, File | null>>({});
   const [bannerFiles, setBannerFiles] = useState<Record<string, File | null>>({});
+  const [bannerPreviewUrls, setBannerPreviewUrls] = useState<Record<string, string>>({});
   const [openId, setOpenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
@@ -136,8 +143,16 @@ export function BeautyPublicPageManagementPage() {
       setError(kind === 'logo' ? 'Le logo ne doit pas dépasser 2 Mo.' : 'La couverture ne doit pas dépasser 8 Mo.');
       return;
     }
-    if (kind === 'logo') setLogoFiles((current) => ({ ...current, [companyId]: file }));
-    else setBannerFiles((current) => ({ ...current, [companyId]: file }));
+    if (kind === 'logo') {
+      setLogoFiles((current) => ({ ...current, [companyId]: file }));
+    } else {
+      setBannerFiles((current) => ({ ...current, [companyId]: file }));
+      setBannerPreviewUrls((current) => {
+        const existing = current[companyId];
+        if (existing) URL.revokeObjectURL(existing);
+        return { ...current, [companyId]: URL.createObjectURL(file) };
+      });
+    }
   }
 
   async function uploadMedia(company: PublicCompanyConfig, file: File, kind: MediaKind) {
@@ -185,6 +200,21 @@ export function BeautyPublicPageManagementPage() {
       });
       if (logoError) throw logoError;
 
+      const { error: positionError } = await supabase.rpc('metier_update_company_public_banner_position', {
+        p_organization_id: organization.id,
+        p_company_id: company.id,
+        p_position_x: draft.bannerPositionX,
+        p_position_y: draft.bannerPositionY
+      });
+      if (positionError) throw positionError;
+
+      const previewUrl = bannerPreviewUrls[company.id];
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setBannerPreviewUrls((current) => {
+        const next = { ...current };
+        delete next[company.id];
+        return next;
+      });
       setLogoFiles((current) => ({ ...current, [company.id]: null }));
       setBannerFiles((current) => ({ ...current, [company.id]: null }));
       setMessage(`La page de réservation de ${company.name} est enregistrée.`);
@@ -263,7 +293,21 @@ export function BeautyPublicPageManagementPage() {
 
               <div className="metier-public-media-field full"><div className="metier-public-media-copy"><strong>Logo de l’enseigne</strong><small>PNG, JPG ou WebP · 2 Mo maximum.</small></div>{draft.logoUrl && <div className="metier-public-media-preview"><img src={draft.logoUrl} alt=""/></div>}<div className="metier-public-media-actions"><label className="secondary-button compact-button"><Icon name="camera" size={15}/> {draft.logoUrl ? 'Remplacer' : 'Importer'}<input hidden type="file" accept="image/*" onChange={(event) => selectMedia(company.id, event.target.files?.[0] ?? null, 'logo')}/></label>{draft.logoUrl && <button type="button" className="danger-text-button" onClick={() => updateDraft(company.id, { logoUrl: '' })}>Retirer</button>}</div></div>
 
-              <div className="metier-public-media-field full"><div className="metier-public-media-copy"><strong>Image de couverture</strong><small>Grande photo de l’enseigne · 8 Mo maximum.</small></div>{draft.bannerUrl && <div className="metier-public-media-preview banner"><img src={draft.bannerUrl} alt=""/></div>}<div className="metier-public-media-actions"><label className="secondary-button compact-button"><Icon name="camera" size={15}/> {draft.bannerUrl ? 'Remplacer' : 'Importer'}<input hidden type="file" accept="image/*" onChange={(event) => selectMedia(company.id, event.target.files?.[0] ?? null, 'banner')}/></label>{draft.bannerUrl && <button type="button" className="danger-text-button" onClick={() => updateDraft(company.id, { bannerUrl: '' })}>Retirer</button>}</div></div>
+              <div className="metier-public-media-field metier-public-cover-field full">
+                <div className="metier-public-media-copy"><strong>Image de couverture</strong><small>Une seule photo pour ordinateur et mobile. Ajustez le point important pour conserver le bon cadrage sur les deux formats.</small></div>
+                {(bannerPreviewUrls[company.id] || draft.bannerUrl) && <div className="metier-public-cover-editor">
+                  <div className="metier-public-cover-previews">
+                    <figure className="desktop"><span>Paysage</span><img src={bannerPreviewUrls[company.id] || draft.bannerUrl} alt="" style={{ objectPosition: `${draft.bannerPositionX}% ${draft.bannerPositionY}%` }}/></figure>
+                    <figure className="mobile"><span>Portrait</span><img src={bannerPreviewUrls[company.id] || draft.bannerUrl} alt="" style={{ objectPosition: `${draft.bannerPositionX}% ${draft.bannerPositionY}%` }}/></figure>
+                  </div>
+                  <div className="metier-public-cover-controls">
+                    <label>Horizontal <b>{draft.bannerPositionX}%</b><input type="range" min="0" max="100" step="1" value={draft.bannerPositionX} onChange={(event) => updateDraft(company.id, { bannerPositionX: Number(event.target.value) })}/></label>
+                    <label>Vertical <b>{draft.bannerPositionY}%</b><input type="range" min="0" max="100" step="1" value={draft.bannerPositionY} onChange={(event) => updateDraft(company.id, { bannerPositionY: Number(event.target.value) })}/></label>
+                    <button type="button" onClick={() => updateDraft(company.id, { bannerPositionX: 50, bannerPositionY: 50 })}>Recentrer</button>
+                  </div>
+                </div>}
+                <div className="metier-public-media-actions"><label className="secondary-button compact-button"><Icon name="camera" size={15}/> {(bannerPreviewUrls[company.id] || draft.bannerUrl) ? 'Remplacer' : 'Importer'}<input hidden type="file" accept="image/*" onChange={(event) => selectMedia(company.id, event.target.files?.[0] ?? null, 'banner')}/></label>{(bannerPreviewUrls[company.id] || draft.bannerUrl) && <button type="button" className="danger-text-button" onClick={() => { const previewUrl = bannerPreviewUrls[company.id]; if (previewUrl) URL.revokeObjectURL(previewUrl); setBannerPreviewUrls((current) => { const next = { ...current }; delete next[company.id]; return next; }); setBannerFiles((current) => ({ ...current, [company.id]: null })); updateDraft(company.id, { bannerUrl: '', bannerPositionX: 50, bannerPositionY: 50 }); }}>Retirer</button>}</div>
+              </div>
 
               <label>Adresse publique<div className="metier-public-slug-row"><span>/salon/</span><input value={draft.slug} onChange={(event) => updateDraft(company.id, { slug: event.target.value })}/></div></label>
               <label>Slogan<input value={draft.tagline} onChange={(event) => updateDraft(company.id, { tagline: event.target.value })} placeholder="Votre moment beauté, simplement."/></label>
