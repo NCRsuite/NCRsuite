@@ -3,7 +3,7 @@ returns jsonb
 language plpgsql
 stable
 security definer
-set search_path to 'public','pg_catalog'
+set search_path = public, pg_catalog
 as $$
 declare
   v_company_page jsonb;
@@ -111,7 +111,7 @@ returns table(slot_start timestamptz,slot_end timestamptz,staff_id uuid,staff_na
 language plpgsql
 stable
 security definer
-set search_path to 'public','pg_catalog'
+set search_path = public, pg_catalog
 as $$
 declare
   v_company_page jsonb;
@@ -170,7 +170,7 @@ create or replace function public.create_public_booking_v3(p_slug text,p_site_id
 returns jsonb
 language plpgsql
 security definer
-set search_path to 'public','pg_catalog'
+set search_path = public, pg_catalog
 as $$
 declare
   v_company_page jsonb;
