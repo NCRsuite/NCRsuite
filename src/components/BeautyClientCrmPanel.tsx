@@ -372,11 +372,11 @@ export function BeautyClientCrmPanel({
     : 'Pas encore assez de visites';
 
   return <div className="beauty-crm-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <aside className="beauty-crm-panel" role="dialog" aria-modal="true" aria-label={`Fiche cliente ${fullName}`}>
+    <aside className="beauty-crm-panel" role="dialog" aria-modal="true" aria-label={`Fiche client pro ${fullName}`}>
       <header className="beauty-crm-header">
         <div className="beauty-crm-identity">
           <span>{client.first_name.slice(0, 1).toUpperCase()}</span>
-          <div><small>FICHE CLIENTE BEAUTY</small><h2>{fullName}</h2><p>{client.phone || 'Téléphone non renseigné'}{client.email ? ` · ${client.email}` : ''}</p></div>
+          <div><small>FICHE CLIENT PRO</small><h2>{fullName}</h2><p>{client.phone || 'Téléphone non renseigné'}{client.email ? ` · ${client.email}` : ''}</p></div>
         </div>
         <div className="beauty-crm-header-actions">
           {publicSlug && <Link to={`/salon/${publicSlug}#reserver`} target="_blank"><Icon name="calendar" size={15}/> Nouveau RDV</Link>}
@@ -387,12 +387,12 @@ export function BeautyClientCrmPanel({
       {error && <div className="error-message beauty-crm-message" role="alert">{error}</div>}
       {success && <div className="success-message beauty-crm-message" role="status">{success}</div>}
 
-      {loading || !data ? <div className="beauty-crm-loading"><span className="spinner"/><p>Chargement du dossier cliente…</p></div> : <div className="beauty-crm-body">
+      {loading || !data ? <div className="beauty-crm-loading"><span className="spinner"/><p>Chargement du dossier client…</p></div> : <div className="beauty-crm-body">
         <section className="beauty-crm-stats">
           <article><small>Visites terminées</small><strong>{data.summary.visit_count}</strong><span>{averageFrequency}</span></article>
           <article><small>Dernière visite</small><strong>{data.summary.last_visit ? dateOnly.format(new Date(data.summary.last_visit)) : '—'}</strong><span>Historique réel</span></article>
           <article><small>Prochain RDV</small><strong>{data.summary.next_appointment ? dateOnly.format(new Date(data.summary.next_appointment)) : 'Aucun'}</strong><span>{data.summary.next_appointment ? new Intl.DateTimeFormat('fr-FR', { timeStyle: 'short' }).format(new Date(data.summary.next_appointment)) : 'À reprogrammer'}</span></article>
-          <article><small>CA cliente</small><strong>{currency.format(data.summary.total_spent_cents / 100)}</strong><span>RDV terminés</span></article>
+          <article><small>CA client</small><strong>{currency.format(data.summary.total_spent_cents / 100)}</strong><span>RDV terminés</span></article>
         </section>
 
         <section className="beauty-crm-section beauty-crm-profile">
