@@ -9,6 +9,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/equipe': 'staff',
   '/acces-equipe': 'team_access',
   '/prestations': 'services',
+  '/ressources': 'services',
   '/fidelite': 'loyalty',
   '/personnalisation': 'commercial_branding',
   '/planning': 'planning',
