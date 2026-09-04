@@ -57,6 +57,21 @@ interface WaitlistEntry {
   created_at: string;
 }
 
+type GrowthRewardKind = 'discount_percent' | 'discount_fixed' | 'free_service' | 'gift' | 'custom';
+
+interface GrowthSettings {
+  google_review_url: string | null;
+  referral_enabled: boolean;
+  referrer_reward_label: string;
+  referrer_reward_kind: GrowthRewardKind;
+  referrer_reward_value: number;
+  referrer_reward_valid_days: number;
+  referred_reward_label: string;
+  referred_reward_kind: GrowthRewardKind;
+  referred_reward_value: number;
+  referred_reward_valid_days: number;
+}
+
 interface GrowthDashboard {
   company: { id: string; name: string; public_slug: string | null };
   summary: {
@@ -67,7 +82,10 @@ interface GrowthDashboard {
     verified_reviews: number;
     average_rating: number | null;
     review_opportunities: number;
+    qualified_referrals: number;
+    pending_referrals: number;
   };
+  growth_settings: GrowthSettings;
   opportunities: GrowthOpportunity[];
   waitlist: WaitlistEntry[];
   clients: GrowthClient[];
@@ -89,6 +107,14 @@ const reasonLabels = {
   inactive: 'Client inactif',
   rebook_due: 'À reprogrammer'
 } as const;
+const rewardKindLabels: Record<GrowthRewardKind,string> = {
+  discount_percent: 'Remise %',
+  discount_fixed: 'Remise €',
+  free_service: 'Prestation offerte',
+  gift: 'Cadeau',
+  custom: 'Avantage libre'
+};
+
 const timeLabels = {
   any: 'Toute la journée',
   morning: 'Matin',
@@ -112,6 +138,8 @@ export function BeautyGrowthPanel({ organizationId, companyId, companyName, publ
   const [preferredTo, setPreferredTo] = useState('');
   const [timePreference, setTimePreference] = useState<WaitlistEntry['time_preference']>('any');
   const [notes, setNotes] = useState('');
+  const [growthSettings, setGrowthSettings] = useState<GrowthSettings | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
@@ -129,6 +157,7 @@ export function BeautyGrowthPanel({ organizationId, companyId, companyName, publ
     else {
       const next = payload as GrowthDashboard;
       setData(next);
+      setGrowthSettings(next.growth_settings);
       setClientId((current) => current && next.clients.some((client) => client.id === current) ? current : next.clients[0]?.id ?? '');
       setServiceId((current) => current && next.services.some((service) => service.id === current) ? current : '');
       setStaffId((current) => current && next.staff.some((member) => member.id === current) ? current : '');
@@ -200,6 +229,42 @@ export function BeautyGrowthPanel({ organizationId, companyId, companyName, publ
     setBusy('');
   }
 
+  function displayRewardValue(kind: GrowthRewardKind, value: number) {
+    return kind === 'discount_fixed' || kind === 'gift' || kind === 'custom' ? value / 100 : value;
+  }
+
+  function storedRewardValue(kind: GrowthRewardKind, value: number) {
+    return kind === 'discount_fixed' || kind === 'gift' || kind === 'custom' ? Math.round(value * 100) : Math.round(value);
+  }
+
+  async function saveGrowthSettings(event: FormEvent) {
+    event.preventDefault();
+    if (!supabase || !growthSettings || !canManage) return;
+    setBusy('growth-settings');
+    setError('');
+    setMessage('');
+    const { error: settingsError } = await supabase.rpc('metier_update_company_growth_settings', {
+      p_organization_id: organizationId,
+      p_company_id: companyId,
+      p_google_review_url: growthSettings.google_review_url?.trim() || null,
+      p_referral_enabled: growthSettings.referral_enabled,
+      p_referrer_label: growthSettings.referrer_reward_label,
+      p_referrer_kind: growthSettings.referrer_reward_kind,
+      p_referrer_value: growthSettings.referrer_reward_value,
+      p_referrer_valid_days: growthSettings.referrer_reward_valid_days,
+      p_referred_label: growthSettings.referred_reward_label,
+      p_referred_kind: growthSettings.referred_reward_kind,
+      p_referred_value: growthSettings.referred_reward_value,
+      p_referred_valid_days: growthSettings.referred_reward_valid_days
+    });
+    if (settingsError) setError(settingsError.message);
+    else {
+      setMessage('Réglages croissance enregistrés.');
+      await load();
+    }
+    setBusy('');
+  }
+
   async function setWaitlistStatus(item: WaitlistEntry, status: 'waiting' | 'contacted' | 'booked' | 'cancelled') {
     if (!supabase || !canManage) return;
     setBusy(item.id);
@@ -239,7 +304,34 @@ export function BeautyGrowthPanel({ organizationId, companyId, companyName, publ
       <article><span><Icon name="sparkles" size={17}/></span><div><strong>{data.summary.birthday}</strong><small>anniversaires</small></div></article>
       <article><span><Icon name="sparkles" size={17}/></span><div><strong>{data.summary.average_rating ?? '—'}</strong><small>{data.summary.verified_reviews} avis vérifiés</small></div></article>
       <article><span><Icon name="message" size={17}/></span><div><strong>{data.summary.review_opportunities}</strong><small>avis à solliciter</small></div></article>
+      <article><span><Icon name="users" size={17}/></span><div><strong>{data.summary.qualified_referrals}</strong><small>parrainages validés</small></div></article>
     </div>
+
+    {canManage && growthSettings && <section className="beauty-growth-settings">
+      <button className="beauty-growth-settings-toggle" type="button" onClick={() => setSettingsOpen((current) => !current)}>
+        <span><Icon name="settings" size={16}/><strong>Parrainage & Google Reviews</strong><small>{growthSettings.referral_enabled ? 'Parrainage actif' : 'Parrainage inactif'} · {growthSettings.google_review_url ? 'Google configuré' : 'Google à configurer'}</small></span>
+        <Icon name={settingsOpen ? 'chevronDown' : 'chevronRight'} size={16}/>
+      </button>
+      {settingsOpen && <form className="beauty-growth-settings-form" onSubmit={saveGrowthSettings}>
+        <label className="full">Lien pour laisser un avis Google<input type="url" value={growthSettings.google_review_url ?? ''} onChange={(event) => setGrowthSettings((current) => current ? { ...current, google_review_url: event.target.value || null } : current)} placeholder="https://g.page/r/.../review"/></label>
+        <label className="beauty-growth-referral-toggle full"><input type="checkbox" checked={growthSettings.referral_enabled} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referral_enabled: event.target.checked } : current)}/><span><strong>Activer le parrainage de cette enseigne</strong><small>Le lien personnel du client apparaît dans son espace. Les avantages sont créés après le premier RDV terminé du filleul.</small></span></label>
+        {growthSettings.referral_enabled && <>
+          <fieldset><legend>Avantage du parrain</legend>
+            <label>Nom<input value={growthSettings.referrer_reward_label} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referrer_reward_label: event.target.value } : current)}/></label>
+            <label>Type<select value={growthSettings.referrer_reward_kind} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referrer_reward_kind: event.target.value as GrowthRewardKind } : current)}>{Object.entries(rewardKindLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <label>{growthSettings.referrer_reward_kind === 'discount_percent' ? 'Pourcentage' : growthSettings.referrer_reward_kind === 'free_service' ? 'Valeur indicative' : 'Valeur en €'}<input type="number" min="0" step={growthSettings.referrer_reward_kind === 'discount_percent' ? '1' : '0.01'} value={displayRewardValue(growthSettings.referrer_reward_kind,growthSettings.referrer_reward_value)} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referrer_reward_value: storedRewardValue(current.referrer_reward_kind,Number(event.target.value)) } : current)}/></label>
+            <label>Validité (jours)<input type="number" min="1" max="730" value={growthSettings.referrer_reward_valid_days} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referrer_reward_valid_days: Number(event.target.value) } : current)}/></label>
+          </fieldset>
+          <fieldset><legend>Avantage du filleul</legend>
+            <label>Nom<input value={growthSettings.referred_reward_label} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referred_reward_label: event.target.value } : current)}/></label>
+            <label>Type<select value={growthSettings.referred_reward_kind} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referred_reward_kind: event.target.value as GrowthRewardKind } : current)}>{Object.entries(rewardKindLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <label>{growthSettings.referred_reward_kind === 'discount_percent' ? 'Pourcentage' : growthSettings.referred_reward_kind === 'free_service' ? 'Valeur indicative' : 'Valeur en €'}<input type="number" min="0" step={growthSettings.referred_reward_kind === 'discount_percent' ? '1' : '0.01'} value={displayRewardValue(growthSettings.referred_reward_kind,growthSettings.referred_reward_value)} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referred_reward_value: storedRewardValue(current.referred_reward_kind,Number(event.target.value)) } : current)}/></label>
+            <label>Validité (jours)<input type="number" min="1" max="730" value={growthSettings.referred_reward_valid_days} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referred_reward_valid_days: Number(event.target.value) } : current)}/></label>
+          </fieldset>
+        </>}
+        <div className="full beauty-growth-settings-actions"><span>{data.summary.pending_referrals} parrainage{data.summary.pending_referrals > 1 ? 's' : ''} en attente de qualification</span><button className="primary-button compact-button" type="submit" disabled={busy==='growth-settings'}>{busy==='growth-settings' ? 'Enregistrement…' : 'Enregistrer'}</button></div>
+      </form>}
+    </section>}
 
     {waitlistOpen && <form className="beauty-growth-waitlist-form" onSubmit={addWaitlist}>
       <div className="beauty-growth-form-head"><div><p className="eyebrow">NOUVELLE ATTENTE</p><h3>Ajouter un client</h3></div><button type="button" onClick={() => setWaitlistOpen(false)}>×</button></div>
