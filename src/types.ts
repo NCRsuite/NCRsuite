@@ -179,6 +179,7 @@ export type IconName =
   | 'menu'
   | 'plus'
   | 'minus'
+  | 'minus'
   | 'eye'
   | 'globe'
   | 'sun'
