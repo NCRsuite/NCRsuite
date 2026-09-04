@@ -170,10 +170,11 @@ export function BeautyClientCrmPanel({
   const [success, setSuccess] = useState('');
 
   async function load() {
-    if (!supabase) return;
+    const db = supabase;
+    if (!db) return;
     setLoading(true);
     setError('');
-    const { data: payload, error: requestError } = await supabase.rpc('get_beauty_client_crm', {
+    const { data: payload, error: requestError } = await db.rpc('get_beauty_client_crm', {
       p_organization_id: organizationId,
       p_company_id: companyId,
       p_client_id: client.id
@@ -194,7 +195,7 @@ export function BeautyClientCrmPanel({
     const paths = next.media.map((item) => item.storage_path);
     if (paths.length > 0) {
       const entries = await Promise.all(paths.map(async (path) => {
-        const { data: signed } = await supabase.storage.from('beauty-client-media').createSignedUrl(path, 3600);
+        const { data: signed } = await db.storage.from('beauty-client-media').createSignedUrl(path, 3600);
         return [path, signed?.signedUrl ?? ''] as const;
       }));
       setMediaUrls(Object.fromEntries(entries));
