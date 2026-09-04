@@ -81,7 +81,7 @@ interface LoyaltyClient {
 interface LoyaltyReward {
   id: string;
   client_id: string;
-  source_type: 'points' | 'visits' | 'birthday' | 'welcome' | 'manual';
+  source_type: 'points' | 'visits' | 'birthday' | 'welcome' | 'manual' | 'referral';
   title: string;
   description: string | null;
   reward_kind: RewardKind;
@@ -117,7 +117,8 @@ const sourceLabels: Record<LoyaltyReward['source_type'], string> = {
   visits: 'Passages',
   birthday: 'Anniversaire',
   welcome: 'Bienvenue',
-  manual: 'Offert manuellement'
+  manual: 'Offert manuellement',
+  referral: 'Parrainage'
 };
 
 const defaultSettings: LoyaltySettings = {
