@@ -122,6 +122,7 @@ export function BeautyPublicPageManagementPage() {
   const [bannerFiles, setBannerFiles] = useState<Record<string, File | null>>({});
   const [bannerPreviewUrls, setBannerPreviewUrls] = useState<Record<string, string>>({});
   const [qrCodes, setQrCodes] = useState<Record<string, string>>({});
+  const [widgetPreviewId, setWidgetPreviewId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
@@ -282,6 +283,61 @@ export function BeautyPublicPageManagementPage() {
     }
   }
 
+  function qrBlob(dataUrl: string) {
+    const [header, payload] = dataUrl.split(',');
+    if (!header || !payload) throw new Error('QR invalide.');
+    const mime = header.match(/data:([^;]+)/)?.[1] || 'image/png';
+    const binary = atob(payload);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+    return new Blob([bytes], { type: mime });
+  }
+
+  async function exportQr(company: PublicCompanyConfig) {
+    const dataUrl = qrCodes[company.id];
+    if (!dataUrl) return;
+    setError('');
+    setMessage('');
+    const filename = `qr-reservation-${company.public_slug || company.id}.png`;
+    try {
+      const blob = qrBlob(dataUrl);
+      const file = new File([blob], filename, { type: 'image/png' });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `QR de réservation — ${company.name}`,
+            text: `QR pour réserver chez ${company.name}`
+          });
+          setMessage('QR prêt à être enregistré ou partagé.');
+          return;
+        } catch (shareError) {
+          if (shareError instanceof DOMException && shareError.name === 'AbortError') return;
+        }
+      }
+
+      const objectUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl;
+      anchor.download = filename;
+      anchor.rel = 'noopener';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+      setMessage('Téléchargement du QR lancé.');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Impossible d’exporter le QR.');
+    }
+  }
+
+  function openQr(company: PublicCompanyConfig) {
+    const dataUrl = qrCodes[company.id];
+    if (!dataUrl) return;
+    const opened = window.open(dataUrl, '_blank', 'noopener,noreferrer');
+    if (!opened) setError('Votre navigateur a bloqué l’ouverture du QR. Autorisez les fenêtres contextuelles puis réessayez.');
+  }
+
   async function copyText(value: string, confirmation: string) {
     try {
       await navigator.clipboard.writeText(value);
@@ -384,12 +440,18 @@ export function BeautyPublicPageManagementPage() {
                   <div className="metier-public-qr-card">
                     <div className="metier-public-qr-preview">{qrCodes[company.id] ? <img src={qrCodes[company.id]} alt={`QR de réservation ${company.name}`}/> : <span className="spinner"/>}</div>
                     <div><strong>QR de réservation</strong><small>À imprimer, afficher en vitrine ou partager sur vos supports.</small></div>
-                    {qrCodes[company.id] && <a className="secondary-button compact-button" href={qrCodes[company.id]} download={`qr-reservation-${company.public_slug}.png`}><Icon name="file" size={14}/> Télécharger le QR</a>}
+                    {qrCodes[company.id] && <div className="metier-public-qr-actions"><button className="secondary-button compact-button" type="button" onClick={() => void exportQr(company)}><Icon name="file" size={14}/> Enregistrer / partager</button><button className="secondary-button compact-button" type="button" onClick={() => openQr(company)}><Icon name="eye" size={14}/> Ouvrir le QR</button></div>}
                   </div>
                   <div className="metier-public-share-tools">
                     <label>Lien direct de réservation<div className="metier-public-copy-field"><input readOnly value={bookingUrl(company.public_slug)}/><button type="button" onClick={() => void copyText(bookingUrl(company.public_slug!), 'Lien de réservation copié.')}><Icon name="clipboard" size={14}/> Copier</button></div></label>
                     <label>Widget à intégrer sur un site<textarea readOnly rows={4} value={widgetCode(company.public_slug)}/><button className="secondary-button compact-button" type="button" onClick={() => void copyText(widgetCode(company.public_slug!), 'Code du widget copié.')}><Icon name="clipboard" size={14}/> Copier le widget</button></label>
-                    <details className="metier-public-widget-preview"><summary>Aperçu du widget</summary><div><iframe title={`Aperçu réservation ${company.name}`} src={widgetUrl(company.public_slug)} loading="lazy"/></div></details>
+                    <div className="metier-public-widget-preview">
+                      <div className="metier-public-widget-preview-head">
+                        <button type="button" onClick={() => setWidgetPreviewId((current) => current === company.id ? null : company.id)}>{widgetPreviewId === company.id ? 'Masquer l’aperçu' : 'Afficher l’aperçu'}</button>
+                        <a href={`${widgetUrl(company.public_slug)}#reserver`} target="_blank" rel="noreferrer">Ouvrir en grand</a>
+                      </div>
+                      {widgetPreviewId === company.id && <div className="metier-public-widget-frame"><iframe key={company.public_slug} title={`Aperçu réservation ${company.name}`} src={`${widgetUrl(company.public_slug)}#reserver`}/></div>}
+                    </div>
                   </div>
                 </div>
               </section>}
