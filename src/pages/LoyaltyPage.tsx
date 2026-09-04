@@ -1,6 +1,8 @@
 import { FormEvent, type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
+import { BeautyGrowthPanel } from '../components/BeautyGrowthPanel';
 import { Icon } from '../components/Icon';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
 import { supabase } from '../lib/supabase';
 
 type RewardKind = 'discount_percent' | 'discount_fixed' | 'free_service' | 'gift' | 'custom';
@@ -193,6 +195,7 @@ function RewardFields({ prefix, settings, setSettings }: {
 
 export function LoyaltyPage() {
   const { organization } = useOrganization();
+  const { beautyMode, selectedEnseigne, selectedEnseigneId } = useBeautyEnseigneContext();
   const [overview, setOverview] = useState<LoyaltyOverview | null>(null);
   const [settings, setSettings] = useState<LoyaltySettings>(defaultSettings);
   const [tab, setTab] = useState<Tab>('programme');
@@ -374,6 +377,16 @@ export function LoyaltyPage() {
 
     {error && <div className="error-message page-message" role="alert">{error}</div>}
     {success && <div className="success-message page-message" role="status">{success}</div>}
+
+    {beautyMode && selectedEnseigne && selectedEnseigneId && (
+      <BeautyGrowthPanel
+        organizationId={organization.id}
+        companyId={selectedEnseigneId}
+        companyName={selectedEnseigne.name}
+        publicSlug={selectedEnseigne.public_slug}
+        canManage={canManage}
+      />
+    )}
 
     <section className="loyalty-summary-grid">
       <article><span><Icon name="users" size={20}/></span><div><strong>{overview?.summary.clients ?? 0}</strong><small>clients actifs</small></div></article>
