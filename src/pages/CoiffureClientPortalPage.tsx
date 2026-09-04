@@ -24,6 +24,23 @@ type PortalAccount = {
   last_seen_at: string | null;
 };
 
+type ClientGrowthState = {
+  google_review_url: string | null;
+  referral_enabled: boolean;
+  company_name: string | null;
+};
+
+type ReferralLinkState = {
+  enabled: boolean;
+  code?: string;
+  public_slug?: string;
+  path?: string;
+  referrer_reward_label?: string;
+  referred_reward_label?: string;
+  pending_count?: number;
+  qualified_count?: number;
+};
+
 type ReviewState = {
   appointment_id: string;
   service_id: string | null;
@@ -154,6 +171,8 @@ export function CoiffureClientPortalPage() {
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [dashboard, setDashboard] = useState<PortalDashboard | null>(null);
   const [reviewStates, setReviewStates] = useState<ReviewState[]>([]);
+  const [growthState, setGrowthState] = useState<ClientGrowthState | null>(null);
+  const [referralLink, setReferralLink] = useState<ReferralLinkState | null>(null);
   const [reviewingAppointment, setReviewingAppointment] = useState<PortalAppointment | null>(null);
   const [busyAppointmentId, setBusyAppointmentId] = useState('');
   const [loading, setLoading] = useState(true);
@@ -219,8 +238,26 @@ export function CoiffureClientPortalPage() {
     setReviewStates((Array.isArray(data) ? data : []) as ReviewState[]);
   }, [selectedAccountId]);
 
+  const loadGrowthState = useCallback(async () => {
+    if (!selectedAccountId || !supabase) {
+      setGrowthState(null);
+      setReferralLink(null);
+      return;
+    }
+    const [{ data: growthData, error: growthError }, { data: referralData, error: referralError }] = await Promise.all([
+      supabase.rpc('coiffure_client_growth_state', { p_account_id: selectedAccountId }),
+      supabase.rpc('get_or_create_beauty_referral_link', { p_account_id: selectedAccountId })
+    ]);
+    if (growthError) {
+      setError(growthError.message);
+      return;
+    }
+    setGrowthState((growthData ?? null) as ClientGrowthState | null);
+    if (!referralError) setReferralLink((referralData ?? null) as ReferralLinkState | null);
+  }, [selectedAccountId]);
+
   useEffect(() => { void loadAccounts(); }, [loadAccounts]);
-  useEffect(() => { void loadDashboard(); void loadReviewState(); }, [loadDashboard, loadReviewState]);
+  useEffect(() => { void loadDashboard(); void loadReviewState(); void loadGrowthState(); }, [loadDashboard, loadReviewState, loadGrowthState]);
 
   const upcoming = useMemo(() => dashboard?.appointments
     .filter((appointment) => ['pending', 'confirmed'].includes(appointment.status) && new Date(appointment.starts_at).getTime() >= Date.now())
@@ -242,6 +279,27 @@ export function CoiffureClientPortalPage() {
     ? Math.min(100, Math.max(0, Math.round((dashboard.balance.points / Math.max(1, dashboard.settings.points_reward_threshold)) * 100))) : 0;
   const visitsProgress = dashboard?.settings.visits_enabled
     ? Math.min(100, Math.max(0, Math.round((dashboard.balance.visits / Math.max(1, dashboard.settings.visits_required)) * 100))) : 0;
+
+  const referralUrl = referralLink?.enabled && referralLink.path ? `${window.location.origin}${referralLink.path}` : '';
+
+  async function shareReferral() {
+    if (!referralUrl) return;
+    const shareText = `Je vous recommande ${dashboard?.organization.name || 'mon enseigne beauté'} ✨ Réservez avec mon lien de parrainage.`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Mon lien de parrainage', text: shareText, url: referralUrl });
+        return;
+      } catch (shareError) {
+        if (shareError instanceof DOMException && shareError.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(referralUrl);
+      setSuccess('Lien de parrainage copié.');
+    } catch {
+      window.prompt('Copiez votre lien de parrainage :', referralUrl);
+    }
+  }
 
   function rebookPath(appointment: PortalAppointment) {
     if (!dashboard?.organization.slug) return '/reserver/';
@@ -373,8 +431,16 @@ export function CoiffureClientPortalPage() {
           <article className="beauty-client-card">
             <div className="beauty-client-card-head"><div><p className="beauty-client-eyebrow">MES RDV</p><h2>{nextAppointment ? 'Prochain rendez-vous' : 'Aucun rendez-vous à venir'}</h2></div><button onClick={() => setTab('appointments')}>Tout voir</button></div>
             {nextAppointment ? <div className="beauty-client-next"><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(nextAppointment.starts_at))}</strong><small>{monthShort.format(new Date(nextAppointment.starts_at)).replace('.', '')}</small></span><div><h3>{nextAppointment.service_name}</h3><p>{dateTime(nextAppointment.starts_at)}<br/>avec {nextAppointment.staff_name}{nextAppointment.site_name ? ` · ${nextAppointment.site_name}` : ''}</p></div>{nextAppointment.public_token && <div className="beauty-client-next-actions">{nextAppointment.can_reschedule && <Link to={`/reservation/${nextAppointment.public_token}?action=reschedule`}>Modifier</Link>}{nextAppointment.can_cancel && <button type="button" disabled={busyAppointmentId === nextAppointment.id} onClick={() => void cancelAppointment(nextAppointment)}>{busyAppointmentId === nextAppointment.id ? 'Annulation…' : 'Annuler'}</button>}{!nextAppointment.can_reschedule && !nextAppointment.can_cancel && <Link to={`/reservation/${nextAppointment.public_token}`}>Voir</Link>}</div>}</div> : <div className="beauty-client-empty"><Icon name="calendar" size={25}/><p>Réservez votre prochain créneau directement auprès de votre enseigne.</p><Link to={bookingPath}>Réserver maintenant</Link></div>}
-            {latestCompleted && <div className="beauty-client-rebook"><div><strong>Envie de reprendre rendez-vous ?</strong><small>Dernière prestation : {latestCompleted.service_name} avec {latestCompleted.staff_name}</small></div><div className="beauty-client-appointment-actions"><Link to={rebookPath(latestCompleted)}>Reprendre RDV →</Link>{latestReviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(latestCompleted)}>Donner mon avis</button>}{latestReviewState?.review_id && <span className="beauty-client-review-published"><b>★ {latestReviewState.rating}</b> Avis publié</span>}</div></div>}
+            {latestCompleted && <div className="beauty-client-rebook"><div><strong>Envie de reprendre rendez-vous ?</strong><small>Dernière prestation : {latestCompleted.service_name} avec {latestCompleted.staff_name}</small></div><div className="beauty-client-appointment-actions"><Link to={rebookPath(latestCompleted)}>Reprendre RDV →</Link>{latestReviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(latestCompleted)}>Donner mon avis</button>}{growthState?.google_review_url && <a className="beauty-client-google-review" href={growthState.google_review_url} target="_blank" rel="noreferrer"><Icon name="sparkles" size={14}/> Avis Google</a>}{latestReviewState?.review_id && <span className="beauty-client-review-published"><b>★ {latestReviewState.rating}</b> Avis publié</span>}</div></div>}
           </article>
+
+          {referralLink?.enabled && referralUrl && <article className="beauty-client-card beauty-client-referral-card">
+            <div className="beauty-client-card-head"><div><p className="beauty-client-eyebrow">PARRAINAGE</p><h2>Faites découvrir {dashboard.organization.name}</h2></div><span className="beauty-client-referral-code">{referralLink.code}</span></div>
+            <p>Partagez votre lien personnel. Les avantages sont validés seulement après le premier rendez-vous terminé de votre filleul.</p>
+            <div className="beauty-client-referral-benefits"><span><small>Pour vous</small><strong>{referralLink.referrer_reward_label || 'Avantage parrainage'}</strong></span><span><small>Pour votre filleul</small><strong>{referralLink.referred_reward_label || 'Avantage de bienvenue'}</strong></span></div>
+            <div className="beauty-client-referral-stats"><span><strong>{referralLink.pending_count ?? 0}</strong><small>en attente</small></span><span><strong>{referralLink.qualified_count ?? 0}</strong><small>validé{(referralLink.qualified_count ?? 0) > 1 ? 's' : ''}</small></span></div>
+            <button className="beauty-client-primary beauty-client-referral-share" type="button" onClick={() => void shareReferral()}><Icon name="users" size={15}/>Partager mon lien</button>
+          </article>}
 
           <article className="beauty-client-card">
             <div className="beauty-client-card-head"><div><p className="beauty-client-eyebrow">FIDÉLITÉ</p><h2>{availableRewards.length > 0 ? `${availableRewards.length} avantage${availableRewards.length > 1 ? 's' : ''} disponible${availableRewards.length > 1 ? 's' : ''}` : 'Votre fidélité'}</h2></div><button onClick={() => setTab('rewards')}>Détails</button></div>
@@ -390,7 +456,7 @@ export function CoiffureClientPortalPage() {
       {tab === 'appointments' && <section>
         <div className="beauty-client-section-head"><div><p className="beauty-client-eyebrow">RENDEZ-VOUS</p><h1>Mes rendez-vous</h1></div><Link className="beauty-client-primary" to={bookingPath}><Icon name="plus" size={16}/>Nouveau rendez-vous</Link></div>
         <div className="beauty-client-appointment-group"><h2>À venir</h2><div className="beauty-client-appointment-list">{upcoming.map((appointment) => <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}{appointment.site_name ? ` · ${appointment.site_name}` : ''}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}</div></div><div className="beauty-client-appointment-actions">{appointment.public_token && appointment.can_reschedule && <Link className="primary" to={`/reservation/${appointment.public_token}?action=reschedule`}>Modifier</Link>}{appointment.public_token && appointment.can_cancel && <button type="button" className="beauty-client-cancel-action" disabled={busyAppointmentId === appointment.id} onClick={() => void cancelAppointment(appointment)}>{busyAppointmentId === appointment.id ? 'Annulation…' : 'Annuler'}</button>}{appointment.public_token && !appointment.can_reschedule && !appointment.can_cancel && <Link to={`/reservation/${appointment.public_token}`}>Voir</Link>}</div></article>)}{upcoming.length === 0 && <div className="beauty-client-empty"><Icon name="calendar" size={26}/><p>Aucun rendez-vous à venir.</p><Link to={bookingPath}>Prendre rendez-vous</Link></div>}</div></div>
-        <div className="beauty-client-appointment-group"><h2>Historique</h2><div className="beauty-client-appointment-list">{history.map((appointment) => { const reviewState = reviewByAppointment.get(appointment.id); return <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}{reviewState?.review_id && <span className="beauty-client-review-published"><b>★ {reviewState.rating}</b> Avis vérifié</span>}</div></div><div className="beauty-client-appointment-actions">{appointment.status === 'completed' && <Link to={rebookPath(appointment)}>Reprendre RDV</Link>}{appointment.status === 'completed' && reviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(appointment)}>Donner mon avis</button>}</div></article>; })}{history.length === 0 && <div className="beauty-client-empty"><p>Aucun historique pour le moment.</p></div>}</div></div>
+        <div className="beauty-client-appointment-group"><h2>Historique</h2><div className="beauty-client-appointment-list">{history.map((appointment) => { const reviewState = reviewByAppointment.get(appointment.id); return <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}{reviewState?.review_id && <span className="beauty-client-review-published"><b>★ {reviewState.rating}</b> Avis vérifié</span>}</div></div><div className="beauty-client-appointment-actions">{appointment.status === 'completed' && <Link to={rebookPath(appointment)}>Reprendre RDV</Link>}{appointment.status === 'completed' && reviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(appointment)}>Donner mon avis</button>}{appointment.status === 'completed' && growthState?.google_review_url && <a className="beauty-client-google-review" href={growthState.google_review_url} target="_blank" rel="noreferrer"><Icon name="sparkles" size={14}/> Avis Google</a>}</div></article>; })}{history.length === 0 && <div className="beauty-client-empty"><p>Aucun historique pour le moment.</p></div>}</div></div>
       </section>}
 
       {tab === 'rewards' && <section>
@@ -422,7 +488,7 @@ export function CoiffureClientPortalPage() {
       serviceName={reviewingAppointment.service_name}
       staffName={reviewingAppointment.staff_name}
       onClose={() => setReviewingAppointment(null)}
-      onSubmitted={async () => { setSuccess('Merci, votre avis vérifié est maintenant publié.'); await loadReviewState(); }}
+      onSubmitted={async () => { setSuccess(growthState?.google_review_url ? 'Merci, votre avis vérifié est publié. Vous pouvez aussi laisser un avis Google depuis votre historique.' : 'Merci, votre avis vérifié est maintenant publié.'); await loadReviewState(); }}
     />}
   </div>;
 }
