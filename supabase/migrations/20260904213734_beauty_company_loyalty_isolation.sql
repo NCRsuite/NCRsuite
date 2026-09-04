@@ -138,7 +138,7 @@ create index if not exists coiffure_loyalty_rewards_redeemed_by_idx
 CREATE OR REPLACE FUNCTION public.beauty_enforce_company_loyalty_settings_scope()
  RETURNS trigger
  LANGUAGE plpgsql
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 begin
   if not exists(
@@ -163,7 +163,7 @@ for each row execute function public.beauty_enforce_company_loyalty_settings_sco
 CREATE OR REPLACE FUNCTION public.beauty_enforce_loyalty_company_scope()
  RETURNS trigger
  LANGUAGE plpgsql
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_client_company uuid;
@@ -240,7 +240,7 @@ CREATE OR REPLACE FUNCTION private.ensure_beauty_company_loyalty_settings(p_orga
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 begin
   if not exists(
@@ -266,7 +266,7 @@ CREATE OR REPLACE FUNCTION private.expire_beauty_company_loyalty_rewards(p_organ
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 begin
   update public.coiffure_loyalty_rewards
@@ -285,7 +285,7 @@ CREATE OR REPLACE FUNCTION private.issue_beauty_company_threshold_rewards(p_orga
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_settings public.beauty_company_loyalty_settings%rowtype;
@@ -381,7 +381,7 @@ CREATE OR REPLACE FUNCTION private.ensure_beauty_company_birthday_reward(p_organ
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_settings public.beauty_company_loyalty_settings%rowtype;
@@ -456,7 +456,7 @@ CREATE OR REPLACE FUNCTION private.apply_beauty_company_welcome_benefit(p_organi
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_settings public.beauty_company_loyalty_settings%rowtype;
@@ -507,7 +507,7 @@ CREATE OR REPLACE FUNCTION private.beauty_company_loyalty_admin_overview(p_organ
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 declare
   v_result jsonb;
@@ -677,7 +677,7 @@ CREATE OR REPLACE FUNCTION private.update_beauty_company_loyalty_settings(p_orga
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 begin
   if auth.uid() is null
@@ -738,7 +738,7 @@ CREATE OR REPLACE FUNCTION private.process_beauty_company_appointment_loyalty(p_
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 declare
   v_settings public.beauty_company_loyalty_settings%rowtype;
@@ -878,7 +878,7 @@ CREATE OR REPLACE FUNCTION private.process_beauty_referral_qualification()
  RETURNS trigger
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_ref public.beauty_referrals%rowtype;
@@ -950,7 +950,7 @@ $function$;
 CREATE OR REPLACE FUNCTION public.coiffure_company_loyalty_admin_overview(p_organization_id uuid, p_company_id uuid)
  RETURNS jsonb
  LANGUAGE sql
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
   select private.beauty_company_loyalty_admin_overview(p_organization_id,p_company_id);
 $function$;
@@ -959,7 +959,7 @@ $function$;
 CREATE OR REPLACE FUNCTION public.update_coiffure_company_loyalty_settings(p_organization_id uuid, p_company_id uuid, p_settings jsonb)
  RETURNS void
  LANGUAGE sql
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
   select private.update_beauty_company_loyalty_settings(p_organization_id,p_company_id,p_settings);
 $function$;
@@ -969,7 +969,7 @@ CREATE OR REPLACE FUNCTION public.issue_coiffure_threshold_rewards(p_organizatio
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 declare
   v_company_id uuid;
@@ -1056,7 +1056,7 @@ CREATE OR REPLACE FUNCTION public.ensure_coiffure_birthday_reward(p_organization
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 declare
   v_company_id uuid;
@@ -1115,7 +1115,7 @@ CREATE OR REPLACE FUNCTION public.expire_coiffure_loyalty_rewards(p_organization
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 declare
   v_company_id uuid;
@@ -1147,7 +1147,7 @@ CREATE OR REPLACE FUNCTION public.apply_coiffure_welcome_benefit(p_organization_
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 declare
   v_company_id uuid;
@@ -1194,7 +1194,7 @@ CREATE OR REPLACE FUNCTION public.adjust_coiffure_loyalty_balance(p_organization
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 declare
   v_company_id uuid;
@@ -1235,7 +1235,7 @@ CREATE OR REPLACE FUNCTION public.issue_coiffure_manual_reward(p_organization_id
  RETURNS uuid
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_id uuid;
@@ -1277,7 +1277,7 @@ CREATE OR REPLACE FUNCTION public.set_coiffure_loyalty_reward_status(p_organizat
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_company_id uuid;
@@ -1315,7 +1315,7 @@ CREATE OR REPLACE FUNCTION public.update_coiffure_client_loyalty_profile(p_organ
  RETURNS void
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 declare
   v_company_id uuid;
@@ -1355,7 +1355,7 @@ CREATE OR REPLACE FUNCTION public.process_coiffure_appointment_loyalty()
  RETURNS trigger
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 declare
   v_settings public.coiffure_loyalty_settings%rowtype;
@@ -1488,7 +1488,7 @@ CREATE OR REPLACE FUNCTION public.coiffure_client_portal_dashboard(p_account_id 
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public, private, pg_catalog
 AS $function$
 declare
   v_account public.coiffure_client_portal_accounts%rowtype;
