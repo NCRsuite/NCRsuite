@@ -39,6 +39,7 @@ const BASE_GROUPS: BeautyNavigationGroup[] = [
       { label: 'Accès équipe', path: '/acces-equipe', icon: 'users' },
       { label: 'Page réservation', path: '/?beauty=page-reservation', icon: 'eye', managerOnly: true, publicPage: true },
       { label: 'Fidélité', path: '/fidelite', icon: 'chart' },
+      { label: 'Ressources', path: '/ressources', icon: 'tool' },
       { label: 'Secrétariat partagé', path: '/?metier=reception', icon: 'calendar', reception: true },
       { label: 'Centre & enseignes', path: '/offre-metier', icon: 'building', ownerOnly: true }
     ]
