@@ -110,6 +110,14 @@ interface PortalBookingIdentity {
   phone: string | null;
 }
 
+interface PortalActivationStatus {
+  available: boolean;
+  already_active: boolean;
+  invitation_pending: boolean;
+  masked_email: string | null;
+  company_name: string;
+}
+
 interface BookingResult {
   appointment_id: string;
   token: string;
@@ -194,9 +202,13 @@ export function PublicMetierCoiffureCompanyPage() {
   const [website, setWebsite] = useState('');
   const [consent, setConsent] = useState(false);
   const [portalIdentity, setPortalIdentity] = useState<PortalBookingIdentity | null>(null);
+  const [activationStatus, setActivationStatus] = useState<PortalActivationStatus | null>(null);
+  const [activationBusy, setActivationBusy] = useState(false);
+  const [activationMessage, setActivationMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<BookingResult | null>(null);
+  const embedMode = new URLSearchParams(location.search).get('embed') === '1';
 
   useEffect(() => {
     let active = true;
@@ -258,8 +270,11 @@ export function PublicMetierCoiffureCompanyPage() {
     if (!data) return;
     const params = new URLSearchParams(location.search);
     const requestedService = params.get('service');
+    const requestedServices = (params.get('services') || '').split(',').map((id) => id.trim()).filter(Boolean);
     const requestedStaff = params.get('staff');
-    if (requestedService && data.services.some((service) => service.id === requestedService)) setServiceIds([requestedService]);
+    const validRequestedServices = requestedServices.filter((id) => data.services.some((service) => service.id === id)).slice(0, 6);
+    if (validRequestedServices.length > 0) setServiceIds(validRequestedServices);
+    else if (requestedService && data.services.some((service) => service.id === requestedService)) setServiceIds([requestedService]);
     if (requestedStaff && data.staff.some((member) => member.id === requestedStaff)) setStaffId(requestedStaff);
   }, [data?.company.id, location.search]);
 
@@ -352,6 +367,43 @@ export function PublicMetierCoiffureCompanyPage() {
     void loadNextSlots();
     return () => { active = false; };
   }, [data?.company.public_slug, data?.company.booking_enabled, siteId, serviceIds, staffId]);
+
+  useEffect(() => {
+    let active = true;
+    async function loadActivationStatus() {
+      if (!supabase || !result?.token) {
+        setActivationStatus(null);
+        return;
+      }
+      const { data: statusData } = await supabase.rpc('public_booking_client_portal_activation_status', { p_token: result.token });
+      if (!active) return;
+      setActivationStatus(statusData ? statusData as PortalActivationStatus : null);
+    }
+    void loadActivationStatus();
+    return () => { active = false; };
+  }, [result?.token]);
+
+  async function activateClientSpace() {
+    if (!supabase || !result?.token) return;
+    setActivationBusy(true);
+    setActivationMessage('');
+    const { data: activationData, error: activationError } = await supabase.rpc('request_public_booking_client_portal_activation', {
+      p_token: result.token
+    });
+    if (activationError) {
+      setActivationMessage(activationError.message);
+    } else {
+      const payload = activationData as { status?: 'active' | 'sent'; masked_email?: string | null };
+      if (payload?.status === 'active') {
+        setActivationMessage('Votre espace client est actif. Vous pouvez l’ouvrir maintenant.');
+        setActivationStatus((current) => current ? { ...current, already_active: true, invitation_pending: false } : current);
+      } else {
+        setActivationMessage(`E-mail d’activation envoyé${payload?.masked_email ? ` à ${payload.masked_email}` : ''}.`);
+        setActivationStatus((current) => current ? { ...current, invitation_pending: true } : current);
+      }
+    }
+    setActivationBusy(false);
+  }
 
   const quickDates = useMemo(() => {
     const globalLimit = data?.settings.max_days_ahead ?? 60;
@@ -459,7 +511,7 @@ export function PublicMetierCoiffureCompanyPage() {
   const bookingStep = serviceIds.length === 0 ? 1 : !date ? 2 : !selectedSlot ? 3 : 4;
 
   if (result) {
-    return <div className="company-public-page" style={style}>
+    return <div className={`company-public-page${embedMode ? ' embedded' : ''}`} style={style}>
       <main className="company-public-success">
         <div className="company-public-success-mark">✓</div>
         <p className="eyebrow">RENDEZ-VOUS ENREGISTRÉ</p>
@@ -471,16 +523,33 @@ export function PublicMetierCoiffureCompanyPage() {
           <span><small>Lieu</small><strong>{result.site_name}</strong></span>
           <span><small>Tarif</small><strong>{currency.format(result.amount_cents / 100)}</strong></span>
         </div>
+        {activationStatus && <section className="company-public-activation-card">
+          <span className="company-public-activation-icon"><Icon name={activationStatus.already_active ? 'check' : 'users'} size={22} /></span>
+          <div>
+            <small>ESPACE CLIENT BEAUTY</small>
+            <strong>{activationStatus.already_active ? 'Votre espace client est déjà actif' : activationStatus.invitation_pending ? 'Votre activation est prête' : 'Retrouvez tous vos rendez-vous au même endroit'}</strong>
+            <p>{activationStatus.already_active
+              ? 'Gérez vos prochains rendez-vous, vos avantages et votre historique sans ressaisir vos coordonnées.'
+              : activationStatus.available
+                ? `Activez votre espace personnel gratuitement${activationStatus.masked_email ? ` avec ${activationStatus.masked_email}` : ''}. Aucun compte n’était nécessaire pour réserver.`
+                : 'Une adresse e-mail est nécessaire dans votre dossier client pour activer cet espace.'}</p>
+            {activationMessage && <em>{activationMessage}</em>}
+          </div>
+          <div className="company-public-activation-actions">
+            {activationStatus.already_active
+              ? <Link className="primary-button" to="/espace-client-coiffure">Ouvrir mon espace</Link>
+              : activationStatus.available && <button className="primary-button" type="button" disabled={activationBusy} onClick={() => void activateClientSpace()}>{activationBusy ? 'Envoi…' : activationStatus.invitation_pending ? 'Renvoyer l’e-mail' : 'Activer mon espace client'}</button>}
+          </div>
+        </section>}
         <div className="company-public-success-actions">
           <Link className="primary-button" to={`/reservation/${result.token}`}>Gérer mon rendez-vous</Link>
-          <Link className="secondary-button" to="/espace-client-coiffure">Mon espace client</Link>
           <Link className="secondary-button" to={`/salon/${result.company_slug}`}>Retour à l’enseigne</Link>
         </div>
       </main>
     </div>;
   }
 
-  return <div className="company-public-page" style={style}>
+  return <div className={`company-public-page${embedMode ? ' embedded' : ''}`} style={style}>
     <header className={`company-public-hero${data.company.banner_url ? ' has-banner' : ''}`}>
       {data.company.banner_url && <div className="company-public-hero-media" aria-hidden="true"><img src={data.company.banner_url} alt="" /></div>}
       <div className="company-public-nav">
