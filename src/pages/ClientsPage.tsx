@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { BeautyClientCrmPanel } from '../components/BeautyClientCrmPanel';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
@@ -51,6 +52,7 @@ export function ClientsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [query, setQuery] = useState('');
+  const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
   const formOpen = searchParams.get('new') === '1';
   const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
 
@@ -106,6 +108,7 @@ export function ClientsPage() {
     setForm(emptyForm);
     setQuery('');
     setSuccess('');
+    setSelectedClient(null);
   }, [selectedEnseigneId]);
 
   const filteredClients = useMemo(() => {
@@ -218,6 +221,7 @@ export function ClientsPage() {
         if (archiveError) throw archiveError;
       }
       setClients((current) => current.filter((row) => row.id !== client.id));
+      if (selectedClient?.id === client.id) setSelectedClient(null);
       setSuccess('Le client a été archivé.');
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : 'Une erreur inconnue est survenue.';
@@ -297,7 +301,7 @@ export function ClientsPage() {
                     <td><div className="client-identity"><span>{client.first_name.slice(0, 1).toUpperCase()}</span><div><strong>{client.first_name}{client.last_name ? ` ${client.last_name}` : ''}</strong>{client.notes && <small>{client.notes}</small>}</div></div></td>
                     <td><div className="client-contact"><span>{client.phone || 'Téléphone non renseigné'}</span><small>{client.email || 'E-mail non renseigné'}</small></div></td>
                     <td>{new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(client.created_at))}</td>
-                    <td className="table-actions">{canManage && <button className="icon-text-button danger" type="button" onClick={() => archiveClient(client)}>Archiver</button>}</td>
+                    <td className="table-actions"><div className="beauty-client-row-actions">{beautyMode && !demoMode && selectedEnseigneId && user && <button className="icon-text-button beauty-client-crm-open" type="button" onClick={() => setSelectedClient(client)}><Icon name="sparkles" size={14}/> Fiche Beauty</button>}{canManage && <button className="icon-text-button danger" type="button" onClick={() => archiveClient(client)}>Archiver</button>}</div></td>
                   </tr>
                 ))}
               </tbody>
@@ -305,6 +309,18 @@ export function ClientsPage() {
           </div>
         )}
       </section>
+
+      {beautyMode && selectedClient && selectedEnseigneId && user && (
+        <BeautyClientCrmPanel
+          organizationId={organization.id}
+          companyId={selectedEnseigneId}
+          client={selectedClient}
+          userId={user.id}
+          canManage={canManage}
+          publicSlug={selectedEnseigne?.public_slug}
+          onClose={() => setSelectedClient(null)}
+        />
+      )}
     </div>
   );
 }
