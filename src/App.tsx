@@ -22,6 +22,7 @@ const ModulePage = lazy(() => import('./pages/ModulePage').then((module) => ({ d
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then((module) => ({ default: module.OnboardingPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
 const ServicesPage = lazy(() => import('./pages/ServicesPage').then((module) => ({ default: module.ServicesPage })));
+const BeautyResourcesPage = lazy(() => import('./pages/BeautyResourcesPage').then((module) => ({ default: module.BeautyResourcesPage })));
 const StaffPage = lazy(() => import('./pages/StaffPage').then((module) => ({ default: module.StaffPage })));
 const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage').then((module) => ({ default: module.AppointmentsPage })));
 const PublicBookingPage = lazy(() => import('./pages/PublicBookingPage').then((module) => ({ default: module.PublicBookingPage })));
@@ -375,6 +376,7 @@ export default function App() {
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ClientsArea />} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />
+        <Route path="ressources" element={<ModuleAccessGuard moduleKey="services"><BeautyResourcesPage /></ModuleAccessGuard>} />
         <Route path="fidelite" element={<LoyaltyPage />} />
         <Route path="equipe" element={<StaffArea />} />
         <Route path="acces-equipe" element={<TeamAccessArea />} />
