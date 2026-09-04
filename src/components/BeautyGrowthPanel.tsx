@@ -237,6 +237,12 @@ export function BeautyGrowthPanel({ organizationId, companyId, companyName, publ
     return kind === 'discount_fixed' || kind === 'gift' || kind === 'custom' ? Math.round(value * 100) : Math.round(value);
   }
 
+  function defaultRewardValue(kind: GrowthRewardKind) {
+    if (kind === 'discount_percent') return 10;
+    if (kind === 'free_service') return 0;
+    return 500;
+  }
+
   async function saveGrowthSettings(event: FormEvent) {
     event.preventDefault();
     if (!supabase || !growthSettings || !canManage) return;
@@ -318,13 +324,13 @@ export function BeautyGrowthPanel({ organizationId, companyId, companyName, publ
         {growthSettings.referral_enabled && <>
           <fieldset><legend>Avantage du parrain</legend>
             <label>Nom<input value={growthSettings.referrer_reward_label} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referrer_reward_label: event.target.value } : current)}/></label>
-            <label>Type<select value={growthSettings.referrer_reward_kind} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referrer_reward_kind: event.target.value as GrowthRewardKind } : current)}>{Object.entries(rewardKindLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <label>Type<select value={growthSettings.referrer_reward_kind} onChange={(event) => { const kind = event.target.value as GrowthRewardKind; setGrowthSettings((current) => current ? { ...current, referrer_reward_kind: kind, referrer_reward_value: defaultRewardValue(kind) } : current); }}>{Object.entries(rewardKindLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <label>{growthSettings.referrer_reward_kind === 'discount_percent' ? 'Pourcentage' : growthSettings.referrer_reward_kind === 'free_service' ? 'Valeur indicative' : 'Valeur en €'}<input type="number" min="0" step={growthSettings.referrer_reward_kind === 'discount_percent' ? '1' : '0.01'} value={displayRewardValue(growthSettings.referrer_reward_kind,growthSettings.referrer_reward_value)} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referrer_reward_value: storedRewardValue(current.referrer_reward_kind,Number(event.target.value)) } : current)}/></label>
             <label>Validité (jours)<input type="number" min="1" max="730" value={growthSettings.referrer_reward_valid_days} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referrer_reward_valid_days: Number(event.target.value) } : current)}/></label>
           </fieldset>
           <fieldset><legend>Avantage du filleul</legend>
             <label>Nom<input value={growthSettings.referred_reward_label} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referred_reward_label: event.target.value } : current)}/></label>
-            <label>Type<select value={growthSettings.referred_reward_kind} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referred_reward_kind: event.target.value as GrowthRewardKind } : current)}>{Object.entries(rewardKindLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+            <label>Type<select value={growthSettings.referred_reward_kind} onChange={(event) => { const kind = event.target.value as GrowthRewardKind; setGrowthSettings((current) => current ? { ...current, referred_reward_kind: kind, referred_reward_value: defaultRewardValue(kind) } : current); }}>{Object.entries(rewardKindLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
             <label>{growthSettings.referred_reward_kind === 'discount_percent' ? 'Pourcentage' : growthSettings.referred_reward_kind === 'free_service' ? 'Valeur indicative' : 'Valeur en €'}<input type="number" min="0" step={growthSettings.referred_reward_kind === 'discount_percent' ? '1' : '0.01'} value={displayRewardValue(growthSettings.referred_reward_kind,growthSettings.referred_reward_value)} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referred_reward_value: storedRewardValue(current.referred_reward_kind,Number(event.target.value)) } : current)}/></label>
             <label>Validité (jours)<input type="number" min="1" max="730" value={growthSettings.referred_reward_valid_days} onChange={(event) => setGrowthSettings((current) => current ? { ...current, referred_reward_valid_days: Number(event.target.value) } : current)}/></label>
           </fieldset>
