@@ -73,3 +73,9 @@
   .beauty-client-loyalty-wallet-progresses,.beauty-client-loyalty-wallet-details{grid-template-columns:1fr}
   .beauty-client-loyalty-wallet-footer{align-items:flex-start;flex-direction:column;gap:4px}
 }
+
+.beauty-client-rewards-wallet{margin-bottom:28px}
+.beauty-client-rewards-list-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:24px 2px 12px}
+.beauty-client-rewards-list-head h2{font-size:20px;letter-spacing:-.025em;margin:4px 0 0}
+.beauty-client-rewards-list-head>small{font-size:10px;color:#8a919b}
+@media(max-width:760px){.beauty-client-rewards-list-head{align-items:flex-start}.beauty-client-rewards-wallet{margin-bottom:22px}}
