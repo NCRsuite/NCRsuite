@@ -1,5 +1,5 @@
 import { CSSProperties, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { supabase } from '../lib/supabase';
 import { downloadCalendarFile, googleCalendarUrl, outlookCalendarUrl } from '../lib/calendar';
@@ -90,6 +90,7 @@ function addDays(date: Date, amount: number) {
 
 export function PublicBookingManagePage() {
   const { token = '' } = useParams();
+  const [searchParams] = useSearchParams();
   const [booking, setBooking] = useState<ManagedBooking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -117,6 +118,12 @@ export function PublicBookingManagePage() {
   }
 
   useEffect(() => { loadBooking(); }, [token]);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'reschedule' && booking?.can_reschedule && booking.online_management_enabled) {
+      setRescheduling(true);
+    }
+  }, [booking?.appointment_id, booking?.can_reschedule, booking?.online_management_enabled, searchParams]);
 
   useEffect(() => {
     let active = true;
@@ -286,7 +293,7 @@ export function PublicBookingManagePage() {
 
         {rescheduling && canManage && (
           <section className="public-manage-card public-reschedule-card">
-            <div className="public-step-heading"><span>↻</span><div><h2>Choisir un nouveau créneau</h2><p>La prestation reste identique. Le professionnel peut changer selon les disponibilités.</p></div></div>
+            <div className="public-step-heading"><span>↻</span><div><h2>Choisir un nouveau créneau</h2><p>{booking.service_count > 1 ? 'Toutes vos prestations restent regroupées dans le même rendez-vous. Le professionnel peut changer selon les disponibilités.' : 'La prestation reste identique. Le professionnel peut changer selon les disponibilités.'}</p></div></div>
             <label className="public-date-field">Nouvelle date<input type="date" min={dateToInput(new Date())} max={dateToInput(addDays(new Date(), 365))} value={date} onChange={(event) => setDate(event.target.value)} /></label>
             <div className="public-slots">
               {loadingSlots && <div className="public-slots-state">Recherche des disponibilités…</div>}
