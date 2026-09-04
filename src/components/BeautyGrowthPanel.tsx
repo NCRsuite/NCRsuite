@@ -237,7 +237,7 @@ export function BeautyGrowthPanel({ organizationId, companyId, companyName, publ
       <article><span><Icon name="clock" size={17}/></span><div><strong>{data.summary.waiting}</strong><small>en attente</small></div></article>
       <article><span><Icon name="users" size={17}/></span><div><strong>{data.summary.inactive + data.summary.rebook_due}</strong><small>à relancer</small></div></article>
       <article><span><Icon name="sparkles" size={17}/></span><div><strong>{data.summary.birthday}</strong><small>anniversaires</small></div></article>
-      <article><span><Icon name="star" size={17}/></span><div><strong>{data.summary.average_rating ?? '—'}</strong><small>{data.summary.verified_reviews} avis vérifiés</small></div></article>
+      <article><span><Icon name="sparkles" size={17}/></span><div><strong>{data.summary.average_rating ?? '—'}</strong><small>{data.summary.verified_reviews} avis vérifiés</small></div></article>
       <article><span><Icon name="message" size={17}/></span><div><strong>{data.summary.review_opportunities}</strong><small>avis à solliciter</small></div></article>
     </div>
 
@@ -273,6 +273,6 @@ export function BeautyGrowthPanel({ organizationId, companyId, companyName, publ
       </div>)}
     </div>
 
-    {data.summary.review_opportunities > 0 && <footer className="beauty-growth-review-tip"><span><Icon name="star" size={17}/></span><div><strong>{data.summary.review_opportunities} rendez-vous terminé{data.summary.review_opportunities > 1 ? 's' : ''} encore éligible{data.summary.review_opportunities > 1 ? 's' : ''} à un avis vérifié</strong><small>Les avis ne peuvent être déposés qu’après un rendez-vous terminé depuis l’espace client.</small></div></footer>}
+    {data.summary.review_opportunities > 0 && <footer className="beauty-growth-review-tip"><span><Icon name="sparkles" size={17}/></span><div><strong>{data.summary.review_opportunities} rendez-vous terminé{data.summary.review_opportunities > 1 ? 's' : ''} encore éligible{data.summary.review_opportunities > 1 ? 's' : ''} à un avis vérifié</strong><small>Les avis ne peuvent être déposés qu’après un rendez-vous terminé depuis l’espace client.</small></div></footer>}
   </section>;
 }
