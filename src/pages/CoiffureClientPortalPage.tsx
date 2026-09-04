@@ -191,12 +191,14 @@ export function CoiffureClientPortalPage() {
   const [birthdayConsent, setBirthdayConsent] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [loyaltyCardOpen, setLoyaltyCardOpen] = useState(false);
+  const [completedAppointmentCount, setCompletedAppointmentCount] = useState(0);
 
   const loadAccounts = useCallback(async () => {
     if (!user || !supabase) {
       setAccounts([]);
       setDashboard(null);
       setReviewStates([]);
+      setCompletedAppointmentCount(0);
       setLoading(false);
       return;
     }
@@ -217,16 +219,21 @@ export function CoiffureClientPortalPage() {
   const loadDashboard = useCallback(async () => {
     if (!selectedAccountId || !supabase) {
       setDashboard(null);
+      setCompletedAppointmentCount(0);
       return;
     }
     setLoading(true);
     setError('');
-    const { data, error: rpcError } = await supabase.rpc('coiffure_client_portal_dashboard', { p_account_id: selectedAccountId });
+    const [{ data, error: rpcError }, { data: completedData, error: completedError }] = await Promise.all([
+      supabase.rpc('coiffure_client_portal_dashboard', { p_account_id: selectedAccountId }),
+      supabase.rpc('coiffure_client_completed_appointments', { p_account_id: selectedAccountId })
+    ]);
     if (rpcError) setError(rpcError.message);
     else {
       const next = data as PortalDashboard;
       setDashboard(next);
       setLoyaltyCardOpen(false);
+      setCompletedAppointmentCount(completedError ? 0 : Number(completedData ?? 0));
       setBirthDate(next.client.birth_date ?? '');
       setBirthdayConsent(Boolean(next.client.birthday_consent));
       setMarketingOptIn(Boolean(next.client.marketing_opt_in));
@@ -288,7 +295,7 @@ export function CoiffureClientPortalPage() {
     ? Math.min(100, Math.max(0, Math.round((dashboard.balance.points / Math.max(1, dashboard.settings.points_reward_threshold)) * 100))) : 0;
   const visitsProgress = dashboard?.settings.visits_enabled
     ? Math.min(100, Math.max(0, Math.round((dashboard.balance.visits / Math.max(1, dashboard.settings.visits_required)) * 100))) : 0;
-  const completedAppointments = dashboard?.appointments.filter((appointment) => appointment.status === 'completed').length ?? 0;
+  const completedAppointments = completedAppointmentCount;
   const loyaltyCardEnabled = Boolean(dashboard?.settings.program_active && dashboard?.settings.loyalty_card_enabled);
   const loyaltyStatusEnabled = Boolean(loyaltyCardEnabled && dashboard?.settings.loyalty_status_enabled);
   const silverThreshold = Math.max(1, dashboard?.settings.loyalty_status_silver_visits ?? 5);
