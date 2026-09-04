@@ -27,6 +27,17 @@ interface ClientFormState {
   notes: string;
 }
 
+const activityLabels = {
+  general: 'Généraliste',
+  hair: 'Coiffure',
+  barber: 'Barber',
+  nails: 'Onglerie',
+  lashes: 'Cils',
+  aesthetics: 'Esthétique'
+} as const;
+
+type ClientProfileActivity = keyof typeof activityLabels;
+
 const emptyForm: ClientFormState = {
   firstName: '',
   lastName: '',
@@ -53,6 +64,7 @@ export function ClientsPage() {
   const [success, setSuccess] = useState('');
   const [query, setQuery] = useState('');
   const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
+  const [savingActivity, setSavingActivity] = useState(false);
   const formOpen = searchParams.get('new') === '1';
   const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
 
@@ -203,6 +215,24 @@ export function ClientsPage() {
     }
   }
 
+  async function updateClientProfileActivity(activity: ClientProfileActivity) {
+    if (!organization || !selectedEnseigneId || !supabase || !canManage) return;
+    setSavingActivity(true);
+    setError('');
+    setSuccess('');
+    const { error: updateError } = await supabase.rpc('metier_update_company_client_profile_activity', {
+      p_organization_id: organization.id,
+      p_company_id: selectedEnseigneId,
+      p_activity: activity
+    });
+    if (updateError) setError(updateError.message);
+    else {
+      setSuccess(`Profil métier : ${activityLabels[activity]}.`);
+      window.dispatchEvent(new CustomEvent('ncr:metier-structure-changed'));
+    }
+    setSavingActivity(false);
+  }
+
   async function archiveClient(client: ClientRecord) {
     if (!organization || !canManage || !window.confirm(`Archiver ${client.first_name}${client.last_name ? ` ${client.last_name}` : ''} ?`)) return;
     setError('');
@@ -279,7 +309,10 @@ export function ClientsPage() {
       <section className="panel clients-list-panel">
         <div className="clients-toolbar">
           <div><p className="eyebrow">RÉPERTOIRE{scopeLabel ? ` · ${scopeLabel}` : ''}</p><h2>{clients.length} client{clients.length > 1 ? 's' : ''}</h2></div>
-          <label className="search-field"><span className="sr-only">Rechercher un client</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher un nom, un e-mail ou un téléphone" /></label>
+          <div className="beauty-clients-toolbar-actions">
+            {beautyMode && selectedEnseigne && <label className="beauty-client-activity-picker"><span>Profil métier</span><select value={selectedEnseigne.client_profile_activity ?? 'general'} disabled={!canManage || savingActivity} onChange={(event) => void updateClientProfileActivity(event.target.value as ClientProfileActivity)}>{Object.entries(activityLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>}
+            <label className="search-field"><span className="sr-only">Rechercher un client</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher un nom, un e-mail ou un téléphone" /></label>
+          </div>
         </div>
 
         {loading || enseigneLoading ? (
