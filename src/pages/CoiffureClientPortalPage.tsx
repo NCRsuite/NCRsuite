@@ -80,10 +80,17 @@ type PortalDashboard = {
     program_description: string | null;
     points_enabled: boolean;
     points_reward_threshold: number;
+    points_reward_label?: string;
     visits_enabled: boolean;
     visits_required: number;
+    visits_reward_label?: string;
     birthday_enabled: boolean;
     allow_client_birthdate_edit: boolean;
+    loyalty_card_enabled?: boolean;
+    loyalty_status_enabled?: boolean;
+    loyalty_status_silver_visits?: number;
+    loyalty_status_gold_visits?: number;
+    loyalty_status_vip_visits?: number;
   };
   balance: { points: number; visits: number };
   rewards: Array<{
@@ -183,6 +190,7 @@ export function CoiffureClientPortalPage() {
   const [birthDate, setBirthDate] = useState('');
   const [birthdayConsent, setBirthdayConsent] = useState(false);
   const [marketingOptIn, setMarketingOptIn] = useState(false);
+  const [loyaltyCardOpen, setLoyaltyCardOpen] = useState(false);
 
   const loadAccounts = useCallback(async () => {
     if (!user || !supabase) {
@@ -218,6 +226,7 @@ export function CoiffureClientPortalPage() {
     else {
       const next = data as PortalDashboard;
       setDashboard(next);
+      setLoyaltyCardOpen(false);
       setBirthDate(next.client.birth_date ?? '');
       setBirthdayConsent(Boolean(next.client.birthday_consent));
       setMarketingOptIn(Boolean(next.client.marketing_opt_in));
@@ -279,6 +288,33 @@ export function CoiffureClientPortalPage() {
     ? Math.min(100, Math.max(0, Math.round((dashboard.balance.points / Math.max(1, dashboard.settings.points_reward_threshold)) * 100))) : 0;
   const visitsProgress = dashboard?.settings.visits_enabled
     ? Math.min(100, Math.max(0, Math.round((dashboard.balance.visits / Math.max(1, dashboard.settings.visits_required)) * 100))) : 0;
+  const completedAppointments = dashboard?.appointments.filter((appointment) => appointment.status === 'completed').length ?? 0;
+  const loyaltyCardEnabled = Boolean(dashboard?.settings.program_active && dashboard?.settings.loyalty_card_enabled);
+  const loyaltyStatusEnabled = Boolean(loyaltyCardEnabled && dashboard?.settings.loyalty_status_enabled);
+  const silverThreshold = Math.max(1, dashboard?.settings.loyalty_status_silver_visits ?? 5);
+  const goldThreshold = Math.max(silverThreshold + 1, dashboard?.settings.loyalty_status_gold_visits ?? 10);
+  const vipThreshold = Math.max(goldThreshold + 1, dashboard?.settings.loyalty_status_vip_visits ?? 20);
+  const loyaltyStatus = completedAppointments >= vipThreshold ? 'VIP'
+    : completedAppointments >= goldThreshold ? 'Gold'
+      : completedAppointments >= silverThreshold ? 'Silver'
+        : 'Membre';
+  const statusSteps = [
+    { label: 'Silver', threshold: silverThreshold },
+    { label: 'Gold', threshold: goldThreshold },
+    { label: 'VIP', threshold: vipThreshold }
+  ];
+  const nextStatus = statusSteps.find((step) => completedAppointments < step.threshold) ?? null;
+  const currentStatusFloor = loyaltyStatus === 'VIP' ? vipThreshold
+    : loyaltyStatus === 'Gold' ? goldThreshold
+      : loyaltyStatus === 'Silver' ? silverThreshold
+        : 0;
+  const statusProgress = nextStatus
+    ? Math.min(100, Math.max(0, Math.round(((completedAppointments - currentStatusFloor) / Math.max(1, nextStatus.threshold - currentStatusFloor)) * 100)))
+    : 100;
+  const nextRewardLabel = availableRewards[0]?.title
+    || (dashboard?.settings.points_enabled ? dashboard.settings.points_reward_label : null)
+    || (dashboard?.settings.visits_enabled ? dashboard.settings.visits_reward_label : null)
+    || 'Avantage fidélité';
 
   const referralUrl = referralLink?.enabled && referralLink.path ? `${window.location.origin}${referralLink.path}` : '';
 
@@ -426,6 +462,47 @@ export function CoiffureClientPortalPage() {
             <div className="beauty-client-identity-address"><Icon name="map" size={17}/><span>{dashboard.organization.address || 'Adresse disponible sur la page de l’enseigne'}</span></div>
           </aside>
         </section>
+
+        {loyaltyCardEnabled && <section className="beauty-client-loyalty-wallet-section">
+          <div className="beauty-client-loyalty-wallet-heading">
+            <div><p className="beauty-client-eyebrow">MA CARTE DE FIDÉLITÉ</p><h2>{dashboard.settings.program_name}</h2></div>
+            <small>Carte personnelle · {dashboard.organization.name}</small>
+          </div>
+          <button type="button" className={`beauty-client-loyalty-wallet ${loyaltyCardOpen ? 'open' : ''}`} onClick={() => setLoyaltyCardOpen((current) => !current)} aria-expanded={loyaltyCardOpen}>
+            <span className="beauty-client-loyalty-wallet-glow"/>
+            <span className="beauty-client-loyalty-wallet-top">
+              <span className="beauty-client-loyalty-wallet-brand">
+                {dashboard.organization.logo_url ? <img src={dashboard.organization.logo_url} alt=""/> : <b>{dashboard.organization.name.slice(0, 1).toUpperCase()}</b>}
+                <span><strong>{dashboard.organization.name}</strong><small>Carte fidélité</small></span>
+              </span>
+              {loyaltyStatusEnabled && <em className={`beauty-client-loyalty-status ${loyaltyStatus.toLowerCase()}`}>{loyaltyStatus}</em>}
+            </span>
+
+            <span className="beauty-client-loyalty-wallet-main">
+              <span><small>TITULAIRE</small><strong>{[dashboard.client.first_name, dashboard.client.last_name].filter(Boolean).join(' ')}</strong></span>
+              <span className="beauty-client-loyalty-wallet-metrics">
+                {dashboard.settings.points_enabled && <span><b>{dashboard.balance.points}</b><small>points</small></span>}
+                {dashboard.settings.visits_enabled && <span><b>{dashboard.balance.visits}</b><small>passages</small></span>}
+                {!dashboard.settings.points_enabled && !dashboard.settings.visits_enabled && <span><b>{availableRewards.length}</b><small>avantage{availableRewards.length > 1 ? 's' : ''}</small></span>}
+              </span>
+            </span>
+
+            <span className="beauty-client-loyalty-wallet-progresses">
+              {dashboard.settings.points_enabled && <span><span><small>Progression points</small><b>{pointsProgress}%</b></span><i><b style={{ width: `${pointsProgress}%` }}/></i></span>}
+              {dashboard.settings.visits_enabled && <span><span><small>Carte passages</small><b>{dashboard.balance.visits}/{dashboard.settings.visits_required}</b></span><i><b style={{ width: `${visitsProgress}%` }}/></i></span>}
+            </span>
+
+            <span className="beauty-client-loyalty-wallet-footer">
+              <small>{loyaltyCardOpen ? 'Touchez pour refermer' : 'Touchez pour voir le détail'}</small>
+              <strong>{availableRewards.length > 0 ? `${availableRewards.length} avantage${availableRewards.length > 1 ? 's' : ''} disponible${availableRewards.length > 1 ? 's' : ''}` : 'Carte active'}</strong>
+            </span>
+
+            {loyaltyCardOpen && <span className="beauty-client-loyalty-wallet-details">
+              <span><small>PROCHAINE RÉCOMPENSE</small><strong>{nextRewardLabel}</strong>{availableRewards[0] ? <em>Disponible maintenant</em> : dashboard.settings.points_enabled ? <em>{Math.max(0, dashboard.settings.points_reward_threshold - dashboard.balance.points)} point(s) restant(s)</em> : dashboard.settings.visits_enabled ? <em>{Math.max(0, dashboard.settings.visits_required - dashboard.balance.visits)} passage(s) restant(s)</em> : <em>Selon les avantages de l’enseigne</em>}</span>
+              {loyaltyStatusEnabled && <span><small>STATUT {loyaltyStatus.toUpperCase()}</small><strong>{nextStatus ? `${Math.max(0, nextStatus.threshold - completedAppointments)} rendez-vous avant ${nextStatus.label}` : 'Statut maximal atteint'}</strong><i><b style={{ width: `${statusProgress}%` }}/></i><em>{completedAppointments} rendez-vous terminé{completedAppointments > 1 ? 's' : ''} dans cette enseigne</em></span>}
+            </span>}
+          </button>
+        </section>}
 
         <section className="beauty-client-dashboard-grid">
           <article className="beauty-client-card">
