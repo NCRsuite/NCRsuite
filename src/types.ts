@@ -178,6 +178,7 @@ export type IconName =
   | 'lock'
   | 'menu'
   | 'plus'
+  | 'minus'
   | 'eye'
   | 'globe'
   | 'sun'
