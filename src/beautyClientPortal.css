@@ -7,3 +7,12 @@
 .beauty-client-cancel-action{border:0;background:#f8eeee;color:#a34848;border-radius:10px;padding:8px 10px;font-size:10px;font-weight:800;cursor:pointer}
 .beauty-client-cancel-action:disabled,.beauty-client-next-actions button:disabled{opacity:.55;cursor:wait}
 @media(max-width:720px){.beauty-client-next-actions{grid-column:2;justify-content:flex-start}.beauty-client-appointment-actions{flex-wrap:wrap}}
+
+.beauty-client-referral-card{position:relative;overflow:hidden}.beauty-client-referral-card::after{content:'⚡';position:absolute;right:-8px;bottom:-20px;font-size:72px;opacity:.045;transform:rotate(-10deg)}
+.beauty-client-referral-card>p{margin:8px 0 12px;font-size:11px;line-height:1.55;color:#717b87;max-width:560px}
+.beauty-client-referral-code{padding:5px 8px;border-radius:8px;background:#f0f3f6;color:#687480;font-size:9px;font-weight:900;letter-spacing:.08em}
+.beauty-client-referral-benefits{display:grid;grid-template-columns:1fr 1fr;gap:8px}.beauty-client-referral-benefits>span{display:flex;flex-direction:column;gap:2px;padding:9px 10px;border:1px solid #e6e9ed;border-radius:11px;background:#fafbfc}.beauty-client-referral-benefits small{font-size:8px;color:#9099a3;text-transform:uppercase;font-weight:850}.beauty-client-referral-benefits strong{font-size:10px;color:#3a444f}
+.beauty-client-referral-stats{display:flex;gap:14px;margin-top:10px}.beauty-client-referral-stats span{display:flex;align-items:baseline;gap:4px}.beauty-client-referral-stats strong{font-size:14px;color:#2b343e}.beauty-client-referral-stats small{font-size:8px;color:#8b949f}
+.beauty-client-referral-share{margin-top:12px;border:0;cursor:pointer}
+.beauty-client-google-review{display:inline-flex!important;align-items:center;gap:5px!important;background:#fff8df!important;border:1px solid #f0ddb0!important;color:#74591f!important;text-decoration:none!important}
+@media(max-width:680px){.beauty-client-referral-benefits{grid-template-columns:1fr}.beauty-client-referral-share{width:100%;justify-content:center}}
