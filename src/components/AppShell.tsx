@@ -320,6 +320,10 @@ export function AppShell() {
   const baseNavigation = pack.navigation.filter((item) => item.path !== '/abonnement');
   let navigation = baseNavigation;
 
+  if (organization.business_type === 'coiffure' && organization.plan !== 'metier') {
+    navigation = navigation.filter((item) => item.path !== '/ressources');
+  }
+
   // Les propriétaires n'ont pas besoin de l'espace terrain dans leur navigation courante.
   // L'accès direct reste contrôlé par la matrice et les droits de l'offre.
   if (['securite', 'nettoyage', 'restauration'].includes(organization.business_type) && ['owner', 'admin'].includes(organization.role ?? 'viewer')) {
