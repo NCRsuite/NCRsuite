@@ -486,7 +486,7 @@ export function CoiffureClientPortalPage() {
           </article>}
 
           <article className="beauty-client-card">
-            <div className="beauty-client-card-head"><div><p className="beauty-client-eyebrow">FIDÉLITÉ</p><h2>{availableRewards.length > 0 ? `${availableRewards.length} avantage${availableRewards.length > 1 ? 's' : ''} disponible${availableRewards.length > 1 ? 's' : ''}` : 'Votre fidélité'}</h2></div><button onClick={() => setTab('rewards')}>Détails</button></div>
+            <div className="beauty-client-card-head"><div><p className="beauty-client-eyebrow">FIDÉLITÉ</p><h2>{availableRewards.length > 0 ? `${availableRewards.length} avantage${availableRewards.length > 1 ? 's' : ''} disponible${availableRewards.length > 1 ? 's' : ''}` : 'Votre fidélité'}</h2></div><button onClick={() => setTab('rewards')}>{loyaltyCardEnabled ? 'Voir ma carte' : 'Voir mes avantages'}</button></div>
             {dashboard.settings.program_active ? <div className="beauty-client-balance-list">
               {dashboard.settings.points_enabled && <div className="beauty-client-balance-item"><div className="beauty-client-balance-top"><strong>{dashboard.balance.points} pts</strong><small>Objectif {dashboard.settings.points_reward_threshold}</small></div><div className="beauty-client-progress"><span style={{ width: `${pointsProgress}%` }}/></div><small>{Math.max(0, dashboard.settings.points_reward_threshold - dashboard.balance.points)} point(s) avant le prochain avantage</small></div>}
               {dashboard.settings.visits_enabled && <div className="beauty-client-balance-item"><div className="beauty-client-balance-top"><strong>{dashboard.balance.visits}/{dashboard.settings.visits_required}</strong><small>passages</small></div><div className="beauty-client-progress"><span style={{ width: `${visitsProgress}%` }}/></div><small>{Math.max(0, dashboard.settings.visits_required - dashboard.balance.visits)} passage(s) restant(s)</small></div>}
@@ -545,6 +545,7 @@ export function CoiffureClientPortalPage() {
           </button>
         </section>}
 
+        <div className="beauty-client-rewards-list-head"><div><p className="beauty-client-eyebrow">RÉCOMPENSES</p><h2>Mes récompenses</h2></div><small>{dashboard.rewards.length} au total</small></div>
         <div className="beauty-client-reward-grid">{dashboard.rewards.map((reward) => <article className={`beauty-client-reward ${reward.status === 'redeemed' ? 'used' : reward.status}`} key={reward.id}><div className="beauty-client-reward-head"><span className="beauty-client-reward-icon"><Icon name="sparkles" size={19}/></span><em>{rewardStatus(reward.status)}</em></div><h2>{reward.title}</h2><strong>{rewardValue(reward.reward_kind, reward.reward_value)}</strong>{reward.description && <p>{reward.description}</p>}<small>{reward.status === 'redeemed' ? `Utilisé le ${shortDate(reward.redeemed_at)}` : `Valable jusqu’au ${shortDate(reward.expires_at)}`}</small></article>)}{dashboard.rewards.length === 0 && <div className="beauty-client-empty"><Icon name="sparkles" size={28}/><p>Aucun avantage pour le moment. Vos prochains avantages apparaîtront ici.</p></div>}</div>
       </section>}
 
