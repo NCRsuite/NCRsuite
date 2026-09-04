@@ -8,6 +8,13 @@ alter table public.coiffure_client_portal_invitations
   add constraint coiffure_client_portal_invitations_source_check
   check (invitation_source in ('team','public_booking'));
 
+create index if not exists coiffure_client_portal_invitations_invited_by_idx
+  on public.coiffure_client_portal_invitations(invited_by)
+  where invited_by is not null;
+create index if not exists coiffure_client_portal_invitations_accepted_by_idx
+  on public.coiffure_client_portal_invitations(accepted_by)
+  where accepted_by is not null;
+
 CREATE OR REPLACE FUNCTION public.public_booking_client_portal_activation_status(p_token uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
