@@ -16,3 +16,60 @@
 .beauty-client-referral-share{margin-top:12px;border:0;cursor:pointer}
 .beauty-client-google-review{display:inline-flex!important;align-items:center;gap:5px!important;background:#fff8df!important;border:1px solid #f0ddb0!important;color:#74591f!important;text-decoration:none!important}
 @media(max-width:680px){.beauty-client-referral-benefits{grid-template-columns:1fr}.beauty-client-referral-share{width:100%;justify-content:center}}
+
+
+/* Interactive loyalty wallet — scoped to one Beauty enseigne */
+.beauty-client-loyalty-wallet-section{margin:0 0 18px}
+.beauty-client-loyalty-wallet-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:0 2px 11px}
+.beauty-client-loyalty-wallet-heading h2{font-size:20px;letter-spacing:-.025em;margin:4px 0 0}
+.beauty-client-loyalty-wallet-heading>small{font-size:10px;color:#8a919b}
+.beauty-client-loyalty-wallet{position:relative;isolation:isolate;width:100%;overflow:hidden;border:0;border-radius:28px;padding:24px;text-align:left;color:#fff;background:linear-gradient(135deg,color-mix(in srgb,var(--beauty-client-accent) 72%,#11151b),#17191e 66%,#0e1014);box-shadow:0 22px 52px rgba(20,25,38,.18);cursor:pointer;transition:transform .22s ease,box-shadow .22s ease}
+.beauty-client-loyalty-wallet:hover{transform:translateY(-2px);box-shadow:0 28px 60px rgba(20,25,38,.22)}
+.beauty-client-loyalty-wallet:focus-visible{outline:3px solid color-mix(in srgb,var(--beauty-client-accent) 34%,#fff);outline-offset:3px}
+.beauty-client-loyalty-wallet:before{content:"";position:absolute;z-index:-2;inset:0;background:radial-gradient(circle at 80% 6%,rgba(255,255,255,.15),transparent 28%),linear-gradient(118deg,transparent 0 53%,rgba(255,255,255,.045) 53% 54%,transparent 54% 100%)}
+.beauty-client-loyalty-wallet-glow{position:absolute;z-index:-1;width:240px;height:240px;border-radius:50%;right:-78px;bottom:-128px;background:color-mix(in srgb,var(--beauty-client-accent) 58%,#fff);filter:blur(22px);opacity:.2;pointer-events:none}
+.beauty-client-loyalty-wallet-top,.beauty-client-loyalty-wallet-main,.beauty-client-loyalty-wallet-footer{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.beauty-client-loyalty-wallet-brand{display:flex;align-items:center;gap:11px;min-width:0}
+.beauty-client-loyalty-wallet-brand>img,.beauty-client-loyalty-wallet-brand>b{width:48px;height:48px;border-radius:15px;background:#fff;display:grid;place-items:center;object-fit:contain;padding:5px;color:var(--beauty-client-accent);font-size:18px;flex:0 0 auto}
+.beauty-client-loyalty-wallet-brand>span{display:flex;flex-direction:column;min-width:0}
+.beauty-client-loyalty-wallet-brand strong{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beauty-client-loyalty-wallet-brand small{font-size:9px;opacity:.66;margin-top:2px;text-transform:uppercase;letter-spacing:.08em}
+.beauty-client-loyalty-status{font-style:normal;font-size:9px;font-weight:950;letter-spacing:.12em;text-transform:uppercase;padding:7px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.12);backdrop-filter:blur(8px)}
+.beauty-client-loyalty-status.silver{background:rgba(232,236,242,.19)}
+.beauty-client-loyalty-status.gold{background:rgba(244,199,80,.2);border-color:rgba(255,224,133,.28)}
+.beauty-client-loyalty-status.vip{background:rgba(255,255,255,.22);box-shadow:0 0 24px rgba(255,255,255,.08)}
+.beauty-client-loyalty-wallet-main{margin-top:32px;align-items:flex-end}
+.beauty-client-loyalty-wallet-main>span:first-child{display:flex;flex-direction:column;min-width:0}
+.beauty-client-loyalty-wallet-main>span:first-child small,.beauty-client-loyalty-wallet-details small{font-size:8px;font-weight:900;letter-spacing:.14em;opacity:.57}
+.beauty-client-loyalty-wallet-main>span:first-child strong{font-size:24px;line-height:1.05;letter-spacing:-.035em;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:520px}
+.beauty-client-loyalty-wallet-metrics{display:flex;align-items:flex-end;gap:18px}
+.beauty-client-loyalty-wallet-metrics>span{display:flex;align-items:baseline;gap:5px}
+.beauty-client-loyalty-wallet-metrics b{font-size:25px;line-height:1}
+.beauty-client-loyalty-wallet-metrics small{font-size:9px;opacity:.64}
+.beauty-client-loyalty-wallet-progresses{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:22px}
+.beauty-client-loyalty-wallet-progresses>span{display:flex;flex-direction:column;gap:7px;padding:10px 12px;border-radius:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08)}
+.beauty-client-loyalty-wallet-progresses>span>span{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.beauty-client-loyalty-wallet-progresses small{font-size:8px;opacity:.62}
+.beauty-client-loyalty-wallet-progresses>span>span>b{font-size:9px}
+.beauty-client-loyalty-wallet-progresses i,.beauty-client-loyalty-wallet-details i{display:block;height:5px;border-radius:999px;background:rgba(255,255,255,.13);overflow:hidden}
+.beauty-client-loyalty-wallet-progresses i>b,.beauty-client-loyalty-wallet-details i>b{display:block;height:100%;border-radius:999px;background:#fff}
+.beauty-client-loyalty-wallet-footer{margin-top:17px;padding-top:14px;border-top:1px solid rgba(255,255,255,.11)}
+.beauty-client-loyalty-wallet-footer small{font-size:9px;opacity:.56}
+.beauty-client-loyalty-wallet-footer strong{font-size:10px;font-weight:850}
+.beauty-client-loyalty-wallet-details{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);animation:beauty-loyalty-card-open .2s ease both}
+.beauty-client-loyalty-wallet-details>span{display:flex;flex-direction:column;gap:5px;min-width:0;padding:13px;border-radius:14px;background:rgba(0,0,0,.13);border:1px solid rgba(255,255,255,.07)}
+.beauty-client-loyalty-wallet-details strong{font-size:13px}
+.beauty-client-loyalty-wallet-details em{font-size:9px;font-style:normal;opacity:.65;line-height:1.4}
+.beauty-client-loyalty-wallet-details i{margin-top:3px}
+@keyframes beauty-loyalty-card-open{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+@media(max-width:760px){
+  .beauty-client-loyalty-wallet-heading{align-items:flex-start;flex-direction:column;gap:3px}
+  .beauty-client-loyalty-wallet{border-radius:22px;padding:18px}
+  .beauty-client-loyalty-wallet-brand>img,.beauty-client-loyalty-wallet-brand>b{width:43px;height:43px;border-radius:13px}
+  .beauty-client-loyalty-wallet-main{margin-top:25px;align-items:flex-start;flex-direction:column}
+  .beauty-client-loyalty-wallet-main>span:first-child strong{font-size:21px;max-width:100%}
+  .beauty-client-loyalty-wallet-metrics{width:100%;justify-content:flex-start}
+  .beauty-client-loyalty-wallet-metrics b{font-size:22px}
+  .beauty-client-loyalty-wallet-progresses,.beauty-client-loyalty-wallet-details{grid-template-columns:1fr}
+  .beauty-client-loyalty-wallet-footer{align-items:flex-start;flex-direction:column;gap:4px}
+}
