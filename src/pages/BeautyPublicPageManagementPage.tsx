@@ -384,7 +384,7 @@ export function BeautyPublicPageManagementPage() {
                   <div className="metier-public-qr-card">
                     <div className="metier-public-qr-preview">{qrCodes[company.id] ? <img src={qrCodes[company.id]} alt={`QR de réservation ${company.name}`}/> : <span className="spinner"/>}</div>
                     <div><strong>QR de réservation</strong><small>À imprimer, afficher en vitrine ou partager sur vos supports.</small></div>
-                    {qrCodes[company.id] && <a className="secondary-button compact-button" href={qrCodes[company.id]} download={`qr-reservation-${company.public_slug}.png`}><Icon name="download" size={14}/> Télécharger le QR</a>}
+                    {qrCodes[company.id] && <a className="secondary-button compact-button" href={qrCodes[company.id]} download={`qr-reservation-${company.public_slug}.png`}><Icon name="file" size={14}/> Télécharger le QR</a>}
                   </div>
                   <div className="metier-public-share-tools">
                     <label>Lien direct de réservation<div className="metier-public-copy-field"><input readOnly value={bookingUrl(company.public_slug)}/><button type="button" onClick={() => void copyText(bookingUrl(company.public_slug!), 'Lien de réservation copié.')}><Icon name="clipboard" size={14}/> Copier</button></div></label>
