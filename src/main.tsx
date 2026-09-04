@@ -100,9 +100,13 @@ function RoutedApplication() {
 
   if (location.pathname.startsWith('/salon/')) {
     return (
-      <Routes>
-        <Route path="/salon/:slug" element={<PublicMetierCoiffureCompanyPage />} />
-      </Routes>
+      <AuthProvider>
+        <AppErrorBoundary>
+          <Routes>
+            <Route path="/salon/:slug" element={<PublicMetierCoiffureCompanyPage />} />
+          </Routes>
+        </AppErrorBoundary>
+      </AuthProvider>
     );
   }
 
