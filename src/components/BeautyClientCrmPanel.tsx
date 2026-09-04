@@ -595,6 +595,8 @@ export function BeautyClientCrmPanel({
   const averageFrequency = data?.summary.average_days_between
     ? `~ tous les ${Math.round(data.summary.average_days_between)} jours`
     : 'Pas encore assez de visites';
+  const activeQuestionnaireFields = questionnaireFields[data?.activity_kind ?? 'general'];
+  const latestQuestionnaire = data?.questionnaires.find((item) => item.activity_kind === data.activity_kind) ?? null;
 
   return <div className="beauty-crm-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <aside className="beauty-crm-panel" role="dialog" aria-modal="true" aria-label={`Fiche client pro ${fullName}`}>
@@ -630,6 +632,21 @@ export function BeautyClientCrmPanel({
           </form>
         </section>
 
+        <section className="beauty-crm-section beauty-crm-questionnaire">
+          <div className="beauty-crm-section-head"><div><p className="eyebrow">QUESTIONNAIRE PRO · {activityLabels[data.activity_kind]}</p><h3>Champs adaptés à l’activité</h3></div><span className="beauty-crm-activity-badge">{activityLabels[data.activity_kind]}</span></div>
+          <p className="beauty-crm-section-note">Informations déclaratives utiles au suivi professionnel. Elles ne remplacent pas un diagnostic médical.</p>
+          <form onSubmit={saveQuestionnaire} className="beauty-crm-questionnaire-form">
+            {activeQuestionnaireFields.map((field) => <label key={field.key}>{field.label}
+              {field.type === 'select'
+                ? <select value={questionnaireAnswers[field.key] ?? ''} onChange={(event) => setQuestionnaireAnswers((current) => ({ ...current, [field.key]: event.target.value }))}>{field.options?.map((option) => <option key={option || 'empty'} value={option}>{option || 'Non renseigné'}</option>)}</select>
+                : field.type === 'textarea'
+                  ? <textarea rows={3} value={questionnaireAnswers[field.key] ?? ''} onChange={(event) => setQuestionnaireAnswers((current) => ({ ...current, [field.key]: event.target.value }))} placeholder={field.placeholder}/>
+                  : <input value={questionnaireAnswers[field.key] ?? ''} onChange={(event) => setQuestionnaireAnswers((current) => ({ ...current, [field.key]: event.target.value }))} placeholder={field.placeholder}/>}
+            </label>)}
+            <div className="beauty-crm-questionnaire-footer"><small>{latestQuestionnaire ? `Dernière mise à jour : ${dateTime.format(new Date(latestQuestionnaire.created_at))} · ${data.questionnaires.length} version${data.questionnaires.length > 1 ? 's' : ''} conservée${data.questionnaires.length > 1 ? 's' : ''}` : 'Premier questionnaire pour ce client.'}</small><button className="primary-button" type="submit" disabled={savingQuestionnaire}>{savingQuestionnaire ? 'Enregistrement…' : 'Enregistrer le questionnaire'}</button></div>
+          </form>
+        </section>
+
         <section className="beauty-crm-section">
           <div className="beauty-crm-section-head"><div><p className="eyebrow">PHOTOS PRIVÉES</p><h3>Avant / après & références</h3></div><Icon name="camera" size={20}/></div>
           <div className="beauty-crm-photo-upload">
@@ -645,6 +662,18 @@ export function BeautyClientCrmPanel({
               <figcaption><strong>{item.caption || mediaLabels[item.media_kind]}</strong><small>{dateOnly.format(new Date(item.captured_at))}</small></figcaption>
               {canManage && <button type="button" onClick={() => void deleteMedia(item)}>Supprimer</button>}
             </figure>)}
+          </div>}
+        </section>
+
+        <section className="beauty-crm-section beauty-crm-documents">
+          <div className="beauty-crm-section-head"><div><p className="eyebrow">DOCUMENTS PRIVÉS</p><h3>Pièces, consentements & références</h3></div><Icon name="file" size={20}/></div>
+          <div className="beauty-crm-document-upload">
+            <select value={documentCategory} onChange={(event) => setDocumentCategory(event.target.value as CrmPayload['documents'][number]['category'])}>{Object.entries(documentCategoryLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select>
+            <input value={documentTitle} onChange={(event) => setDocumentTitle(event.target.value)} placeholder="Titre facultatif — le nom du fichier sera utilisé sinon"/>
+            <label className="primary-button"><Icon name="file" size={15}/>{uploadingDocument ? 'Import…' : 'Ajouter un document'}<input type="file" hidden disabled={uploadingDocument} accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,application/pdf,image/jpeg,image/png,image/webp,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={(event) => { const file = event.target.files?.[0] ?? null; void uploadDocument(file); event.currentTarget.value=''; }}/></label>
+          </div>
+          {data.documents.length === 0 ? <div className="beauty-crm-empty">Aucun document dans ce dossier.</div> : <div className="beauty-crm-document-list">
+            {data.documents.map((item) => <article key={item.id}><span><Icon name="file" size={17}/></span><div><strong>{item.title}</strong><small>{documentCategoryLabels[item.category]} · {formatBytes(item.size_bytes)} · {dateOnly.format(new Date(item.created_at))}</small></div>{documentUrls[item.storage_path] ? <a href={documentUrls[item.storage_path]} target="_blank" rel="noreferrer">Ouvrir</a> : <em>Chargement…</em>}{canManage && <button type="button" onClick={() => void deleteDocument(item)}>×</button>}</article>)}
           </div>}
         </section>
 
