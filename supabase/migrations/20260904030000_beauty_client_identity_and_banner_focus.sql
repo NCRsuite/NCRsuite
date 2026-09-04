@@ -18,7 +18,7 @@ CREATE OR REPLACE FUNCTION public.metier_update_company_public_banner_position(p
  RETURNS boolean
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_allowed boolean := false;
@@ -69,7 +69,7 @@ CREATE OR REPLACE FUNCTION public.get_current_coiffure_client_booking_identity(p
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_result jsonb;
@@ -122,7 +122,7 @@ CREATE OR REPLACE FUNCTION public.create_coiffure_client_portal_booking_v2(p_acc
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_account public.coiffure_client_portal_accounts%rowtype;
@@ -193,7 +193,7 @@ CREATE OR REPLACE FUNCTION public.metier_public_page_configuration(p_organizatio
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_is_full_access boolean := false;
@@ -259,7 +259,7 @@ CREATE OR REPLACE FUNCTION public.get_public_metier_coiffure_company_page(p_slug
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_company public.organization_companies%rowtype;
@@ -360,7 +360,7 @@ CREATE OR REPLACE FUNCTION public.coiffure_client_portal_dashboard(p_account_id 
  RETURNS jsonb
  LANGUAGE plpgsql
  SECURITY DEFINER
- SET search_path TO 'public', 'pg_catalog'
+ SET search_path = public, pg_catalog
 AS $function$
 declare
   v_account public.coiffure_client_portal_accounts%rowtype;
