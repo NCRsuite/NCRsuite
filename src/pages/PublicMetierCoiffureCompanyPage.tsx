@@ -614,6 +614,8 @@ export function PublicMetierCoiffureCompanyPage() {
           {data.company.booking_enabled && <div className="company-public-step-meter" aria-label={`Étape ${bookingStep} sur 4`}><span className={bookingStep >= 1 ? 'done' : ''}>1</span><i className={bookingStep >= 2 ? 'done' : ''}/><span className={bookingStep >= 2 ? 'done' : ''}>2</span><i className={bookingStep >= 3 ? 'done' : ''}/><span className={bookingStep >= 3 ? 'done' : ''}>3</span><i className={bookingStep >= 4 ? 'done' : ''}/><span className={bookingStep >= 4 ? 'done' : ''}>4</span></div>}
         </div>
 
+        {referralCode && <div className="company-public-referral-invite"><Icon name="users" size={17}/><div><strong>Parrainage actif</strong><small>Votre invitation est prise en compte. Les avantages seront validés après votre premier rendez-vous terminé.</small></div></div>}
+
         {data.company.booking_enabled ? <div className="company-public-booking-flow">
           {data.sites.length > 1 && <div className="company-public-site-choice"><label>Lieu<select value={siteId} onChange={(event) => { setSiteId(event.target.value); setStaffId('any'); setSelectedSlot(null); }}>{data.sites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.city ? ` · ${site.city}` : ''}</option>)}</select></label></div>}
 
