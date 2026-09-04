@@ -37,6 +37,7 @@ export const businessPacks: Record<BusinessType, BusinessPack> = {
       { label: 'Collaborateurs', path: '/equipe', icon: 'briefcase' },
       { label: 'Accès équipe', path: '/acces-equipe', icon: 'users' },
       { label: 'Prestations', path: '/prestations', icon: 'sparkles' },
+      { label: 'Ressources', path: '/ressources', icon: 'tool' },
       { label: 'Fidélité', path: '/fidelite', icon: 'chart' },
       { label: 'Personnalisation', path: '/personnalisation', icon: 'sparkles' },
       notifications,
