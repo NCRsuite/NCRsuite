@@ -60,7 +60,7 @@ begin
 
   return true;
 end;
-$function$
+$function$;
 
 revoke all on function public.metier_update_company_public_banner_position(uuid,uuid,integer,integer) from public;
 grant execute on function public.metier_update_company_public_banner_position(uuid,uuid,integer,integer) to authenticated,service_role;
@@ -113,7 +113,7 @@ begin
 
   return v_result;
 end;
-$function$
+$function$;
 
 revoke all on function public.get_current_coiffure_client_booking_identity(text) from public;
 grant execute on function public.get_current_coiffure_client_booking_identity(text) to authenticated,service_role;
@@ -184,7 +184,7 @@ begin
     p_privacy_consent
   );
 end;
-$function$
+$function$;
 
 revoke all on function public.create_coiffure_client_portal_booking_v2(uuid,uuid,uuid[],uuid,timestamptz,text,boolean) from public;
 grant execute on function public.create_coiffure_client_portal_booking_v2(uuid,uuid,uuid[],uuid,timestamptz,text,boolean) to authenticated,service_role;
@@ -252,7 +252,7 @@ begin
     ), '[]'::jsonb)
   );
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.get_public_metier_coiffure_company_page(p_slug text)
@@ -352,5 +352,5 @@ begin
     'sites',v_sites,'services',v_services,'staff',v_staff
   );
 end;
-$function$
+$function$;
 
