@@ -27,3 +27,6 @@
   .company-public-page.embedded .company-public-content{padding:8px}
   .company-public-page.embedded .company-public-booking{border-radius:14px;padding:14px 10px}
 }
+
+.company-public-referral-success{display:flex;align-items:flex-start;gap:8px;margin:14px auto 0;padding:10px 12px;max-width:760px;border:1px solid color-mix(in srgb,var(--company-accent) 22%,#dfe4e9);border-radius:12px;background:color-mix(in srgb,var(--company-accent) 6%,#fff);color:#4c5966;font-size:10px;line-height:1.45}
+.company-public-referral-success svg{flex:0 0 auto;color:var(--company-accent)}
