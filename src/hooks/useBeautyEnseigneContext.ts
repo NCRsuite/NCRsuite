@@ -11,6 +11,7 @@ export interface BeautyEnseigneContextItem {
   booking_enabled: boolean;
   public_slug: string | null;
   public_page_enabled: boolean;
+  client_profile_activity: 'general' | 'hair' | 'barber' | 'nails' | 'lashes' | 'aesthetics';
   sites: Array<{
     id: string;
     name: string;
