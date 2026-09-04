@@ -207,8 +207,11 @@ export function PublicMetierCoiffureCompanyPage() {
   const [activationMessage, setActivationMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [referralMessage, setReferralMessage] = useState('');
   const [result, setResult] = useState<BookingResult | null>(null);
-  const embedMode = new URLSearchParams(location.search).get('embed') === '1';
+  const searchParams = new URLSearchParams(location.search);
+  const embedMode = searchParams.get('embed') === '1';
+  const referralCode = searchParams.get('ref')?.trim().toUpperCase() || '';
 
   useEffect(() => {
     let active = true;
@@ -479,13 +482,27 @@ export function PublicMetierCoiffureCompanyPage() {
           p_website: website || null,
           p_privacy_consent: consent
         });
-    setSaving(false);
     if (requestError) {
+      setSaving(false);
       setError(requestError.message);
       setSelectedSlot(null);
       return;
     }
-    setResult(bookingData as BookingResult);
+
+    const booking = bookingData as BookingResult;
+    setResult(booking);
+    setReferralMessage('');
+    if (referralCode && booking?.token) {
+      const { data: referralData } = await supabase.rpc('register_public_booking_referral', {
+        p_token: booking.token,
+        p_code: referralCode
+      });
+      const referralStatus = (referralData as { status?: string } | null)?.status;
+      if (referralStatus === 'registered' || referralStatus === 'pending') {
+        setReferralMessage('Parrainage enregistré. Les avantages seront validés après votre premier rendez-vous terminé.');
+      }
+    }
+    setSaving(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -517,6 +534,7 @@ export function PublicMetierCoiffureCompanyPage() {
         <p className="eyebrow">RENDEZ-VOUS ENREGISTRÉ</p>
         <h1>{result.status === 'confirmed' ? 'Votre rendez-vous est confirmé' : 'Votre demande a bien été envoyée'}</h1>
         <p>{result.company_name} vous attend le <strong>{fullDate.format(new Date(result.starts_at))}</strong> à <strong>{shortTime.format(new Date(result.starts_at))}</strong>.</p>
+        {referralMessage && <div className="company-public-referral-success"><Icon name="users" size={17}/><span>{referralMessage}</span></div>}
         <div className="company-public-recap">
           <span><small>{(result.service_count ?? 1) > 1 ? 'Prestations' : 'Prestation'}</small><strong>{result.service_name}</strong></span>
           <span><small>Avec</small><strong>{result.staff_name}</strong></span>
