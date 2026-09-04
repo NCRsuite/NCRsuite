@@ -43,6 +43,11 @@ interface LoyaltySettings {
   welcome_reward_value: number;
   welcome_reward_valid_days: number;
   allow_client_birthdate_edit: boolean;
+  loyalty_card_enabled: boolean;
+  loyalty_status_enabled: boolean;
+  loyalty_status_silver_visits: number;
+  loyalty_status_gold_visits: number;
+  loyalty_status_vip_visits: number;
 }
 
 interface PortalAccess {
@@ -154,7 +159,12 @@ const defaultSettings: LoyaltySettings = {
   welcome_reward_kind: 'gift',
   welcome_reward_value: 0,
   welcome_reward_valid_days: 60,
-  allow_client_birthdate_edit: true
+  allow_client_birthdate_edit: true,
+  loyalty_card_enabled: true,
+  loyalty_status_enabled: false,
+  loyalty_status_silver_visits: 5,
+  loyalty_status_gold_visits: 10,
+  loyalty_status_vip_visits: 20
 };
 
 function clientName(client?: LoyaltyClient | null) {
@@ -280,6 +290,15 @@ export function LoyaltyPage() {
   async function saveSettings(event: FormEvent) {
     event.preventDefault();
     if (!organization || !supabase) return;
+    if (beautyMode && settings.loyalty_status_enabled && !(
+      settings.loyalty_status_silver_visits >= 1
+      && settings.loyalty_status_silver_visits < settings.loyalty_status_gold_visits
+      && settings.loyalty_status_gold_visits < settings.loyalty_status_vip_visits
+      && settings.loyalty_status_vip_visits <= 100
+    )) {
+      setError('Les seuils de statut doivent être croissants : Silver < Gold < VIP, avec VIP à 100 rendez-vous maximum.');
+      return;
+    }
     setBusy('settings'); setError(''); setSuccess('');
     const { error: rpcError } = beautyMode && selectedEnseigneId
       ? await supabase.rpc('update_coiffure_company_loyalty_settings', {
@@ -430,6 +449,37 @@ export function LoyaltyPage() {
         <div className="loyalty-basic-fields"><label>Nom du programme<input value={settings.program_name} onChange={(event) => setSettings((current) => ({ ...current, program_name: event.target.value }))}/></label><label>Description affichée au client<textarea rows={3} value={settings.program_description ?? ''} onChange={(event) => setSettings((current) => ({ ...current, program_description: event.target.value || null }))} placeholder="Ex. Chaque passage vous rapproche d’un nouvel avantage."/></label></div>
         <div className="loyalty-portal-toggle"><div><span><Icon name="monitor" size={21}/></span><p><strong>Espace client</strong><small>Rendez-vous, solde fidélité, récompenses et préférences anniversaire de cette enseigne.</small></p></div><label className="switch-field"><input type="checkbox" checked={settings.portal_enabled} onChange={(event) => setSettings((current) => ({ ...current, portal_enabled: event.target.checked }))}/><span/>{settings.portal_enabled ? 'Ouvert' : 'Fermé'}</label></div>
       </section>
+
+      {beautyMode && selectedEnseigne && <section className="panel loyalty-master-panel">
+        <div className="panel-header">
+          <div><p className="eyebrow">CARTE DE FIDÉLITÉ</p><h2>Carte interactive de {selectedEnseigne.name}</h2><p>La carte reste strictement liée au programme de cette enseigne. Aucun point, passage ou statut n’est partagé avec une autre enseigne.</p></div>
+          <label className="switch-field"><input type="checkbox" checked={settings.loyalty_card_enabled} onChange={(event) => setSettings((current) => ({ ...current, loyalty_card_enabled: event.target.checked }))}/><span/>{settings.loyalty_card_enabled ? 'Visible' : 'Masquée'}</label>
+        </div>
+        <div className="loyalty-basic-fields">
+          <div style={{ minHeight: 210, borderRadius: 22, padding: 22, background: `linear-gradient(135deg, ${selectedEnseigne.primary_color || '#18191d'}, #18191d 72%)`, color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 18px 40px rgba(20,24,34,.16)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {selectedEnseigne.logo_url ? <img src={selectedEnseigne.logo_url} alt="" style={{ width: 44, height: 44, objectFit: 'contain', borderRadius: 13, background: '#fff', padding: 5 }}/> : <span style={{ width: 44, height: 44, borderRadius: 13, background: '#fff', color: selectedEnseigne.primary_color || '#18191d', display: 'grid', placeItems: 'center', fontWeight: 900 }}>{selectedEnseigne.name.slice(0, 1).toUpperCase()}</span>}
+                <div><strong style={{ display: 'block', fontSize: 16 }}>{selectedEnseigne.name}</strong><small style={{ opacity: .72 }}>Carte de fidélité</small></div>
+              </div>
+              {settings.loyalty_status_enabled && <span style={{ padding: '6px 9px', borderRadius: 999, background: 'rgba(255,255,255,.16)', fontSize: 10, fontWeight: 900 }}>MEMBRE</span>}
+            </div>
+            <div><small style={{ opacity: .68, textTransform: 'uppercase', letterSpacing: '.12em' }}>{settings.program_name}</small><strong style={{ display: 'block', fontSize: 26, marginTop: 5 }}>Aperçu de la carte</strong></div>
+            <small style={{ opacity: .65 }}>La progression réelle du client remplacera cet aperçu dans son espace.</small>
+          </div>
+          <div>
+            <div className="loyalty-portal-toggle">
+              <div><span><Icon name="sparkles" size={21}/></span><p><strong>Statuts clients</strong><small>Membre, Silver, Gold puis VIP selon le nombre de rendez-vous terminés chez cette enseigne uniquement.</small></p></div>
+              <label className="switch-field"><input type="checkbox" disabled={!settings.loyalty_card_enabled} checked={settings.loyalty_status_enabled} onChange={(event) => setSettings((current) => ({ ...current, loyalty_status_enabled: event.target.checked }))}/><span/>{settings.loyalty_status_enabled ? 'Actifs' : 'Inactifs'}</label>
+            </div>
+            {settings.loyalty_status_enabled && <div className="loyalty-inline-fields" style={{ marginTop: 14 }}>
+              <label>Silver à partir de<input type="number" min={1} max={98} value={settings.loyalty_status_silver_visits} onChange={(event) => setSettings((current) => ({ ...current, loyalty_status_silver_visits: Number(event.target.value) }))}/></label>
+              <label>Gold à partir de<input type="number" min={2} max={99} value={settings.loyalty_status_gold_visits} onChange={(event) => setSettings((current) => ({ ...current, loyalty_status_gold_visits: Number(event.target.value) }))}/></label>
+              <label>VIP à partir de<input type="number" min={3} max={100} value={settings.loyalty_status_vip_visits} onChange={(event) => setSettings((current) => ({ ...current, loyalty_status_vip_visits: Number(event.target.value) }))}/></label>
+            </div>}
+          </div>
+        </div>
+      </section>}
 
       <section className="loyalty-rule-grid">
         <article className={`panel loyalty-rule-card ${settings.points_enabled ? 'enabled' : ''}`}>
