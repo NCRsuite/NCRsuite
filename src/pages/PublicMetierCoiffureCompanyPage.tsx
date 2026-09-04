@@ -21,6 +21,10 @@ interface PublicCompany {
   banner_url: string | null;
   banner_position_x: number;
   banner_position_y: number;
+  banner_landscape_zoom: number;
+  banner_portrait_position_x: number;
+  banner_portrait_position_y: number;
+  banner_portrait_zoom: number;
   hours_text: string | null;
   practical_info: string | null;
   email: string | null;
@@ -436,7 +440,15 @@ export function PublicMetierCoiffureCompanyPage() {
   if (loading) return <div className="company-public-state"><img src="/brand/ncr-suite-icon.png" alt="" /><p>Chargement de l’enseigne…</p></div>;
   if (pageError || !data) return <div className="company-public-state company-public-error"><h1>Page indisponible</h1><p>{pageError}</p><Link to="/" className="secondary-button">Retour à NCR Suite</Link></div>;
 
-  const style = { '--company-accent': data.company.primary_color } as CSSProperties;
+  const style = {
+    '--company-accent': data.company.primary_color,
+    '--company-banner-landscape-x': `${data.company.banner_position_x ?? 50}%`,
+    '--company-banner-landscape-y': `${data.company.banner_position_y ?? 50}%`,
+    '--company-banner-landscape-zoom': String((data.company.banner_landscape_zoom ?? 100) / 100),
+    '--company-banner-portrait-x': `${data.company.banner_portrait_position_x ?? data.company.banner_position_x ?? 50}%`,
+    '--company-banner-portrait-y': `${data.company.banner_portrait_position_y ?? data.company.banner_position_y ?? 50}%`,
+    '--company-banner-portrait-zoom': String((data.company.banner_portrait_zoom ?? 100) / 100)
+  } as CSSProperties;
   const selectedSite = data.sites.find((site) => site.id === siteId) ?? data.sites[0] ?? null;
   const minDate = dateInput();
   const effectiveMaxDays = selectedServices.reduce(
@@ -469,7 +481,8 @@ export function PublicMetierCoiffureCompanyPage() {
   }
 
   return <div className="company-public-page" style={style}>
-    <header className={`company-public-hero${data.company.banner_url ? ' has-banner' : ''}`} style={data.company.banner_url ? { backgroundImage: `linear-gradient(180deg,rgba(12,14,20,.10),rgba(12,14,20,.72)),url(${data.company.banner_url})`, backgroundPosition: `${data.company.banner_position_x ?? 50}% ${data.company.banner_position_y ?? 50}%` } : undefined}>
+    <header className={`company-public-hero${data.company.banner_url ? ' has-banner' : ''}`}>
+      {data.company.banner_url && <div className="company-public-hero-media" aria-hidden="true"><img src={data.company.banner_url} alt="" /></div>}
       <div className="company-public-nav">
         <div className="company-public-brand">
           <span>{data.company.logo_url ? <img src={data.company.logo_url} alt="" /> : data.company.name.slice(0, 1).toUpperCase()}</span>
