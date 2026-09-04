@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import QRCode from 'qrcode';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
 import { Icon } from '../components/Icon';
@@ -50,6 +51,18 @@ const PUBLIC_ORIGIN = 'https://ncr-suite.fr';
 
 function publicUrl(slug: string) {
   return `${PUBLIC_ORIGIN}/salon/${encodeURIComponent(slug.trim())}`;
+}
+
+function bookingUrl(slug: string) {
+  return `${publicUrl(slug)}#reserver`;
+}
+
+function widgetUrl(slug: string) {
+  return `${publicUrl(slug)}?embed=1`;
+}
+
+function widgetCode(slug: string) {
+  return `<iframe src="${widgetUrl(slug)}" title="Réserver en ligne" loading="lazy" style="width:100%;height:920px;border:0;border-radius:18px;overflow:hidden" allow="clipboard-write"></iframe>`;
 }
 
 function toDraft(company: PublicCompanyConfig): Draft {
@@ -108,6 +121,7 @@ export function BeautyPublicPageManagementPage() {
   const [logoFiles, setLogoFiles] = useState<Record<string, File | null>>({});
   const [bannerFiles, setBannerFiles] = useState<Record<string, File | null>>({});
   const [bannerPreviewUrls, setBannerPreviewUrls] = useState<Record<string, string>>({});
+  const [qrCodes, setQrCodes] = useState<Record<string, string>>({});
   const [openId, setOpenId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
@@ -138,6 +152,30 @@ export function BeautyPublicPageManagementPage() {
   }
 
   useEffect(() => { void load(); }, [organization?.id]);
+
+  const qrSignature = useMemo(
+    () => companies.map((company) => `${company.id}:${company.public_slug ?? ''}:${company.public_page_enabled ? '1' : '0'}`).join('|'),
+    [companies]
+  );
+
+  useEffect(() => {
+    let active = true;
+    async function generateQrs() {
+      const entries = await Promise.all(companies
+        .filter((company) => company.public_page_enabled && company.public_slug)
+        .map(async (company) => {
+          const dataUrl = await QRCode.toDataURL(bookingUrl(company.public_slug!), {
+            width: 720,
+            margin: 2,
+            errorCorrectionLevel: 'H'
+          });
+          return [company.id, dataUrl] as const;
+        }));
+      if (active) setQrCodes(Object.fromEntries(entries));
+    }
+    void generateQrs();
+    return () => { active = false; };
+  }, [qrSignature]);
 
   function updateDraft(companyId: string, patch: Partial<Draft>) {
     setDrafts((current) => ({ ...current, [companyId]: { ...current[companyId], ...patch } }));
@@ -244,15 +282,19 @@ export function BeautyPublicPageManagementPage() {
     }
   }
 
+  async function copyText(value: string, confirmation: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setMessage(confirmation);
+    } catch {
+      window.prompt('Copiez ce contenu :', value);
+    }
+  }
+
   async function copyLink(company: PublicCompanyConfig) {
     const slug = drafts[company.id]?.slug || company.public_slug;
     if (!slug) return;
-    try {
-      await navigator.clipboard.writeText(publicUrl(slug));
-      setMessage('Lien public copié.');
-    } catch {
-      window.prompt('Copiez ce lien :', publicUrl(slug));
-    }
+    await copyText(publicUrl(slug), 'Lien public copié.');
   }
 
   if (!organization || organization.business_type !== 'coiffure' || organization.plan !== 'metier') return null;
@@ -335,6 +377,22 @@ export function BeautyPublicPageManagementPage() {
                 </div>}
                 <div className="metier-public-media-actions"><label className="secondary-button compact-button"><Icon name="camera" size={15}/> {(bannerPreviewUrls[company.id] || draft.bannerUrl) ? 'Remplacer' : 'Importer'}<input hidden type="file" accept="image/*" onChange={(event) => selectMedia(company.id, event.target.files?.[0] ?? null, 'banner')}/></label>{(bannerPreviewUrls[company.id] || draft.bannerUrl) && <button type="button" className="danger-text-button" onClick={() => { const previewUrl = bannerPreviewUrls[company.id]; if (previewUrl) URL.revokeObjectURL(previewUrl); setBannerPreviewUrls((current) => { const next = { ...current }; delete next[company.id]; return next; }); setBannerFiles((current) => ({ ...current, [company.id]: null })); updateDraft(company.id, { bannerUrl: '', bannerLandscapePositionX: 50, bannerLandscapePositionY: 50, bannerLandscapeZoom: 100, bannerPortraitPositionX: 50, bannerPortraitPositionY: 50, bannerPortraitZoom: 100 }); }}>Retirer</button>}</div>
               </div>
+
+              {company.public_page_enabled && company.public_slug && <section className="metier-public-share-kit full">
+                <div className="metier-public-share-head"><div><p className="eyebrow">DIFFUSER LA RÉSERVATION</p><h3>QR, lien direct & widget</h3><small>Trois façons de transformer votre page en point de réservation.</small></div><Icon name="globe" size={23}/></div>
+                <div className="metier-public-share-grid">
+                  <div className="metier-public-qr-card">
+                    <div className="metier-public-qr-preview">{qrCodes[company.id] ? <img src={qrCodes[company.id]} alt={`QR de réservation ${company.name}`}/> : <span className="spinner"/>}</div>
+                    <div><strong>QR de réservation</strong><small>À imprimer, afficher en vitrine ou partager sur vos supports.</small></div>
+                    {qrCodes[company.id] && <a className="secondary-button compact-button" href={qrCodes[company.id]} download={`qr-reservation-${company.public_slug}.png`}><Icon name="download" size={14}/> Télécharger le QR</a>}
+                  </div>
+                  <div className="metier-public-share-tools">
+                    <label>Lien direct de réservation<div className="metier-public-copy-field"><input readOnly value={bookingUrl(company.public_slug)}/><button type="button" onClick={() => void copyText(bookingUrl(company.public_slug!), 'Lien de réservation copié.')}><Icon name="clipboard" size={14}/> Copier</button></div></label>
+                    <label>Widget à intégrer sur un site<textarea readOnly rows={4} value={widgetCode(company.public_slug)}/><button className="secondary-button compact-button" type="button" onClick={() => void copyText(widgetCode(company.public_slug!), 'Code du widget copié.')}><Icon name="clipboard" size={14}/> Copier le widget</button></label>
+                    <details className="metier-public-widget-preview"><summary>Aperçu du widget</summary><div><iframe title={`Aperçu réservation ${company.name}`} src={widgetUrl(company.public_slug)} loading="lazy"/></div></details>
+                  </div>
+                </div>
+              </section>}
 
               <label>Adresse publique<div className="metier-public-slug-row"><span>/salon/</span><input value={draft.slug} onChange={(event) => updateDraft(company.id, { slug: event.target.value })}/></div></label>
               <label>Slogan<input value={draft.tagline} onChange={(event) => updateDraft(company.id, { tagline: event.target.value })} placeholder="Votre moment beauté, simplement."/></label>
