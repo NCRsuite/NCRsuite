@@ -227,6 +227,12 @@ function StaffArea() {
   return <ModuleAccessGuard moduleKey="staff"><StaffPage /></ModuleAccessGuard>;
 }
 
+function BeautyResourcesArea() {
+  const { organization } = useOrganization();
+  if (organization?.business_type !== 'coiffure' || organization.plan !== 'metier') return <Navigate to="/" replace />;
+  return <ModuleAccessGuard moduleKey="services"><BeautyResourcesPage /></ModuleAccessGuard>;
+}
+
 function StockArea() {
   const { organization } = useOrganization();
   if (organization?.business_type === 'nettoyage') return <CleaningOnlyArea><CleaningFeatureGate feature="cleaning_stock" requiredPlan="Professionnelle" description="Pilotez les produits, consommables, coûts et seuils de réapprovisionnement."><CleaningStockPage /></CleaningFeatureGate></CleaningOnlyArea>;
@@ -376,7 +382,7 @@ export default function App() {
         <Route path="rendez-vous" element={<ModuleAccessGuard moduleKey="appointments"><AppointmentsPage /></ModuleAccessGuard>} />
         <Route path="clients" element={<ClientsArea />} />
         <Route path="prestations" element={<ModuleAccessGuard moduleKey="services"><ServicesPage /></ModuleAccessGuard>} />
-        <Route path="ressources" element={<ModuleAccessGuard moduleKey="services"><BeautyResourcesPage /></ModuleAccessGuard>} />
+        <Route path="ressources" element={<BeautyResourcesArea />} />
         <Route path="fidelite" element={<LoyaltyPage />} />
         <Route path="equipe" element={<StaffArea />} />
         <Route path="acces-equipe" element={<TeamAccessArea />} />
