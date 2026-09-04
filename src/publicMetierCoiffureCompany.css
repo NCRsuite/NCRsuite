@@ -30,3 +30,6 @@
 
 .company-public-referral-success{display:flex;align-items:flex-start;gap:8px;margin:14px auto 0;padding:10px 12px;max-width:760px;border:1px solid color-mix(in srgb,var(--company-accent) 22%,#dfe4e9);border-radius:12px;background:color-mix(in srgb,var(--company-accent) 6%,#fff);color:#4c5966;font-size:10px;line-height:1.45}
 .company-public-referral-success svg{flex:0 0 auto;color:var(--company-accent)}
+
+.company-public-referral-invite{display:flex;align-items:flex-start;gap:9px;margin:0 0 12px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--company-accent) 20%,#dfe4e9);border-radius:12px;background:color-mix(in srgb,var(--company-accent) 5%,#fff);color:#4d5966}
+.company-public-referral-invite>svg{flex:0 0 auto;color:var(--company-accent);margin-top:1px}.company-public-referral-invite>div{display:flex;flex-direction:column;gap:2px}.company-public-referral-invite strong{font-size:10px}.company-public-referral-invite small{font-size:9px;line-height:1.45;color:#7c8793}
