@@ -97,8 +97,12 @@ type PortalDashboard = {
     amount_cents: number | null;
     public_token: string | null;
     service_name: string;
+    service_ids: string[];
+    staff_id: string | null;
     staff_name: string;
     site_name: string | null;
+    can_cancel: boolean;
+    can_reschedule: boolean;
   }>;
 };
 
@@ -151,6 +155,7 @@ export function CoiffureClientPortalPage() {
   const [dashboard, setDashboard] = useState<PortalDashboard | null>(null);
   const [reviewStates, setReviewStates] = useState<ReviewState[]>([]);
   const [reviewingAppointment, setReviewingAppointment] = useState<PortalAppointment | null>(null);
+  const [busyAppointmentId, setBusyAppointmentId] = useState('');
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
@@ -240,12 +245,29 @@ export function CoiffureClientPortalPage() {
 
   function rebookPath(appointment: PortalAppointment) {
     if (!dashboard?.organization.slug) return '/reserver/';
-    const reviewState = reviewByAppointment.get(appointment.id);
     const params = new URLSearchParams();
-    if (reviewState?.service_id) params.set('service', reviewState.service_id);
-    if (reviewState?.staff_id) params.set('staff', reviewState.staff_id);
+    if (appointment.service_ids?.length) params.set('services', appointment.service_ids.join(','));
+    if (appointment.staff_id) params.set('staff', appointment.staff_id);
     const query = params.toString();
     return `/salon/${dashboard.organization.slug}${query ? `?${query}` : ''}#reserver`;
+  }
+
+  async function cancelAppointment(appointment: PortalAppointment) {
+    if (!supabase || !appointment.public_token || !appointment.can_cancel) return;
+    if (!window.confirm('Annuler ce rendez-vous ?')) return;
+    setBusyAppointmentId(appointment.id);
+    setError('');
+    setSuccess('');
+    const { error: cancelError } = await supabase.rpc('cancel_public_booking', {
+      p_token: appointment.public_token,
+      p_reason: 'Annulation depuis l’espace client Beauty'
+    });
+    if (cancelError) setError(cancelError.message);
+    else {
+      setSuccess('Votre rendez-vous a bien été annulé.');
+      await loadDashboard();
+    }
+    setBusyAppointmentId('');
   }
 
   async function login(event: FormEvent) {
@@ -350,7 +372,7 @@ export function CoiffureClientPortalPage() {
         <section className="beauty-client-dashboard-grid">
           <article className="beauty-client-card">
             <div className="beauty-client-card-head"><div><p className="beauty-client-eyebrow">MES RDV</p><h2>{nextAppointment ? 'Prochain rendez-vous' : 'Aucun rendez-vous à venir'}</h2></div><button onClick={() => setTab('appointments')}>Tout voir</button></div>
-            {nextAppointment ? <div className="beauty-client-next"><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(nextAppointment.starts_at))}</strong><small>{monthShort.format(new Date(nextAppointment.starts_at)).replace('.', '')}</small></span><div><h3>{nextAppointment.service_name}</h3><p>{dateTime(nextAppointment.starts_at)}<br/>avec {nextAppointment.staff_name}{nextAppointment.site_name ? ` · ${nextAppointment.site_name}` : ''}</p></div>{nextAppointment.public_token && <Link to={`/reservation/${nextAppointment.public_token}`}>Gérer</Link>}</div> : <div className="beauty-client-empty"><Icon name="calendar" size={25}/><p>Réservez votre prochain créneau directement auprès de votre enseigne.</p><Link to={bookingPath}>Réserver maintenant</Link></div>}
+            {nextAppointment ? <div className="beauty-client-next"><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(nextAppointment.starts_at))}</strong><small>{monthShort.format(new Date(nextAppointment.starts_at)).replace('.', '')}</small></span><div><h3>{nextAppointment.service_name}</h3><p>{dateTime(nextAppointment.starts_at)}<br/>avec {nextAppointment.staff_name}{nextAppointment.site_name ? ` · ${nextAppointment.site_name}` : ''}</p></div>{nextAppointment.public_token && <div className="beauty-client-next-actions">{nextAppointment.can_reschedule && <Link to={`/reservation/${nextAppointment.public_token}?action=reschedule`}>Modifier</Link>}{nextAppointment.can_cancel && <button type="button" disabled={busyAppointmentId === nextAppointment.id} onClick={() => void cancelAppointment(nextAppointment)}>{busyAppointmentId === nextAppointment.id ? 'Annulation…' : 'Annuler'}</button>}{!nextAppointment.can_reschedule && !nextAppointment.can_cancel && <Link to={`/reservation/${nextAppointment.public_token}`}>Voir</Link>}</div>}</div> : <div className="beauty-client-empty"><Icon name="calendar" size={25}/><p>Réservez votre prochain créneau directement auprès de votre enseigne.</p><Link to={bookingPath}>Réserver maintenant</Link></div>}
             {latestCompleted && <div className="beauty-client-rebook"><div><strong>Envie de reprendre rendez-vous ?</strong><small>Dernière prestation : {latestCompleted.service_name} avec {latestCompleted.staff_name}</small></div><div className="beauty-client-appointment-actions"><Link to={rebookPath(latestCompleted)}>Reprendre RDV →</Link>{latestReviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(latestCompleted)}>Donner mon avis</button>}{latestReviewState?.review_id && <span className="beauty-client-review-published"><b>★ {latestReviewState.rating}</b> Avis publié</span>}</div></div>}
           </article>
 
@@ -367,7 +389,7 @@ export function CoiffureClientPortalPage() {
 
       {tab === 'appointments' && <section>
         <div className="beauty-client-section-head"><div><p className="beauty-client-eyebrow">RENDEZ-VOUS</p><h1>Mes rendez-vous</h1></div><Link className="beauty-client-primary" to={bookingPath}><Icon name="plus" size={16}/>Nouveau rendez-vous</Link></div>
-        <div className="beauty-client-appointment-group"><h2>À venir</h2><div className="beauty-client-appointment-list">{upcoming.map((appointment) => <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}{appointment.site_name ? ` · ${appointment.site_name}` : ''}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}</div></div><div className="beauty-client-appointment-actions">{appointment.public_token && <Link className="primary" to={`/reservation/${appointment.public_token}`}>Gérer</Link>}</div></article>)}{upcoming.length === 0 && <div className="beauty-client-empty"><Icon name="calendar" size={26}/><p>Aucun rendez-vous à venir.</p><Link to={bookingPath}>Prendre rendez-vous</Link></div>}</div></div>
+        <div className="beauty-client-appointment-group"><h2>À venir</h2><div className="beauty-client-appointment-list">{upcoming.map((appointment) => <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}{appointment.site_name ? ` · ${appointment.site_name}` : ''}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}</div></div><div className="beauty-client-appointment-actions">{appointment.public_token && appointment.can_reschedule && <Link className="primary" to={`/reservation/${appointment.public_token}?action=reschedule`}>Modifier</Link>}{appointment.public_token && appointment.can_cancel && <button type="button" className="beauty-client-cancel-action" disabled={busyAppointmentId === appointment.id} onClick={() => void cancelAppointment(appointment)}>{busyAppointmentId === appointment.id ? 'Annulation…' : 'Annuler'}</button>}{appointment.public_token && !appointment.can_reschedule && !appointment.can_cancel && <Link to={`/reservation/${appointment.public_token}`}>Voir</Link>}</div></article>)}{upcoming.length === 0 && <div className="beauty-client-empty"><Icon name="calendar" size={26}/><p>Aucun rendez-vous à venir.</p><Link to={bookingPath}>Prendre rendez-vous</Link></div>}</div></div>
         <div className="beauty-client-appointment-group"><h2>Historique</h2><div className="beauty-client-appointment-list">{history.map((appointment) => { const reviewState = reviewByAppointment.get(appointment.id); return <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}{reviewState?.review_id && <span className="beauty-client-review-published"><b>★ {reviewState.rating}</b> Avis vérifié</span>}</div></div><div className="beauty-client-appointment-actions">{appointment.status === 'completed' && <Link to={rebookPath(appointment)}>Reprendre RDV</Link>}{appointment.status === 'completed' && reviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(appointment)}>Donner mon avis</button>}</div></article>; })}{history.length === 0 && <div className="beauty-client-empty"><p>Aucun historique pour le moment.</p></div>}</div></div>
       </section>}
 
