@@ -11,6 +11,7 @@ type Tab = 'programme' | 'clients' | 'recompenses';
 
 interface LoyaltySettings {
   organization_id: string;
+  company_id?: string;
   portal_enabled: boolean;
   program_active: boolean;
   program_name: string;
@@ -232,16 +233,28 @@ export function LoyaltyPage() {
       setLoading(false);
       return;
     }
-    const { data, error: rpcError } = await supabase.rpc('coiffure_loyalty_admin_overview', { p_organization_id: organization.id });
+    const { data, error: rpcError } = beautyMode && selectedEnseigneId
+      ? await supabase.rpc('coiffure_company_loyalty_admin_overview', {
+          p_organization_id: organization.id,
+          p_company_id: selectedEnseigneId
+        })
+      : await supabase.rpc('coiffure_loyalty_admin_overview', {
+          p_organization_id: organization.id
+        });
     if (rpcError) setError(rpcError.message);
     else {
       const next = data as LoyaltyOverview;
       setOverview(next);
-      setSettings({ ...defaultSettings, ...(next.settings ?? {}), organization_id: organization.id });
+      setSettings({
+        ...defaultSettings,
+        ...(next.settings ?? {}),
+        organization_id: organization.id,
+        company_id: beautyMode ? selectedEnseigneId ?? undefined : undefined
+      });
       setSelectedClientId((current) => current && next.clients.some((client) => client.id === current) ? current : next.clients[0]?.id ?? '');
     }
     setLoading(false);
-  }, [organization]);
+  }, [organization, beautyMode, selectedEnseigneId]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -268,7 +281,16 @@ export function LoyaltyPage() {
     event.preventDefault();
     if (!organization || !supabase) return;
     setBusy('settings'); setError(''); setSuccess('');
-    const { error: rpcError } = await supabase.rpc('update_coiffure_loyalty_settings', { p_organization_id: organization.id, p_settings: settings });
+    const { error: rpcError } = beautyMode && selectedEnseigneId
+      ? await supabase.rpc('update_coiffure_company_loyalty_settings', {
+          p_organization_id: organization.id,
+          p_company_id: selectedEnseigneId,
+          p_settings: settings
+        })
+      : await supabase.rpc('update_coiffure_loyalty_settings', {
+          p_organization_id: organization.id,
+          p_settings: settings
+        });
     if (rpcError) setError(rpcError.message);
     else { setSuccess('La configuration fidélité a été enregistrée.'); await load(); }
     setBusy('');
@@ -372,7 +394,7 @@ export function LoyaltyPage() {
 
   return <div className="page loyalty-page">
     <header className="page-header loyalty-page-header">
-      <div><p className="eyebrow">COIFFURE · RELATION CLIENT</p><h1>Fidélité & espace client</h1><p>Active seulement les mécaniques qui correspondent au salon : points, carte de passages, anniversaire, bienvenue ou récompenses libres.</p></div>
+      <div><p className="eyebrow">RELATION CLIENT{beautyMode && selectedEnseigne ? ` · ${selectedEnseigne.name}` : ''}</p><h1>Fidélité & espace client</h1><p>Chaque enseigne gère indépendamment ses points, passages, anniversaires, bonus de bienvenue et récompenses.</p></div>
       <button className="secondary-button" onClick={() => void load()} disabled={loading}><Icon name="activity" size={18}/>Actualiser</button>
     </header>
 
@@ -406,7 +428,7 @@ export function LoyaltyPage() {
       <section className="panel loyalty-master-panel">
         <div className="panel-header"><div><p className="eyebrow">ACTIVATION GÉNÉRALE</p><h2>Un programme entièrement modulable</h2></div><label className="switch-field"><input type="checkbox" checked={settings.program_active} onChange={(event) => setSettings((current) => ({ ...current, program_active: event.target.checked }))}/><span/>Programme actif</label></div>
         <div className="loyalty-basic-fields"><label>Nom du programme<input value={settings.program_name} onChange={(event) => setSettings((current) => ({ ...current, program_name: event.target.value }))}/></label><label>Description affichée au client<textarea rows={3} value={settings.program_description ?? ''} onChange={(event) => setSettings((current) => ({ ...current, program_description: event.target.value || null }))} placeholder="Ex. Chaque passage vous rapproche d’un nouvel avantage."/></label></div>
-        <div className="loyalty-portal-toggle"><div><span><Icon name="monitor" size={21}/></span><p><strong>Espace client Coiffure</strong><small>Rendez-vous, solde fidélité, récompenses et préférences anniversaire.</small></p></div><label className="switch-field"><input type="checkbox" checked={settings.portal_enabled} onChange={(event) => setSettings((current) => ({ ...current, portal_enabled: event.target.checked }))}/><span/>{settings.portal_enabled ? 'Ouvert' : 'Fermé'}</label></div>
+        <div className="loyalty-portal-toggle"><div><span><Icon name="monitor" size={21}/></span><p><strong>Espace client</strong><small>Rendez-vous, solde fidélité, récompenses et préférences anniversaire de cette enseigne.</small></p></div><label className="switch-field"><input type="checkbox" checked={settings.portal_enabled} onChange={(event) => setSettings((current) => ({ ...current, portal_enabled: event.target.checked }))}/><span/>{settings.portal_enabled ? 'Ouvert' : 'Fermé'}</label></div>
       </section>
 
       <section className="loyalty-rule-grid">
@@ -431,7 +453,7 @@ export function LoyaltyPage() {
         </article>
       </section>
 
-      <div className="loyalty-save-bar"><div><strong>Le salon garde le contrôle</strong><span>Les systèmes désactivés ne sont ni calculés ni affichés au client.</span></div><button className="primary-button" disabled={!canManage || busy === 'settings'}>{busy === 'settings' ? 'Enregistrement…' : 'Enregistrer le programme'}</button></div>
+      <div className="loyalty-save-bar"><div><strong>L’enseigne garde le contrôle</strong><span>Les systèmes désactivés ne sont ni calculés ni affichés au client.</span></div><button className="primary-button" disabled={!canManage || busy === 'settings'}>{busy === 'settings' ? 'Enregistrement…' : 'Enregistrer le programme'}</button></div>
     </form> : tab === 'clients' ? <section className="loyalty-client-layout">
       <aside className="panel loyalty-client-list">
         <div className="panel-header"><div><p className="eyebrow">CLIENTS</p><h2>{filteredClients.length} fiche{filteredClients.length > 1 ? 's' : ''}</h2></div></div>
