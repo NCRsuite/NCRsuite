@@ -1292,7 +1292,7 @@ const allowedAnonFunctions = new Set([
   'create_public_metier_coiffure_company_booking','get_public_metier_coiffure_company_reviews',
   'get_public_metier_coiffure_company_multi_slots','get_public_metier_coiffure_next_multi_slots',
   'create_public_metier_coiffure_company_booking_v2','reschedule_public_booking_v3',
-  'public_booking_client_portal_activation_status','request_public_booking_client_portal_activation'
+  'public_booking_client_portal_activation_status','request_public_booking_client_portal_activation','register_public_booking_referral'
 ]);
 for (const match of allSql.matchAll(/grant\s+execute\s+on\s+function\s+public\.(\w+)[^;]*?\s+to\s+([^;]+);/ig)) {
   const roles = match[2].toLowerCase().split(',').map((role) => role.trim());
