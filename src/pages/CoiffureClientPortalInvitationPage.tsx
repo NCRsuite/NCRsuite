@@ -54,7 +54,10 @@ export function CoiffureClientPortalInvitationPage() {
     try {
       if (mode === 'login') {
         await signIn(details.invited_email, password);
-        setMessage('Connexion réussie. Active maintenant ton espace client.');
+        const { error: acceptError } = await supabase.rpc('accept_coiffure_client_portal_invitation', { p_token: token });
+        if (acceptError) throw acceptError;
+        navigate('/espace-client-coiffure', { replace: true });
+        return;
       } else {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: details.invited_email,
@@ -65,8 +68,13 @@ export function CoiffureClientPortalInvitationPage() {
         if (data.user && (data.user.identities?.length ?? 0) === 0) {
           setMode('login');
           setMessage('Un compte existe déjà avec cette adresse. Connecte-toi pour activer l’invitation.');
+        } else if (data.session) {
+          const { error: acceptError } = await supabase.rpc('accept_coiffure_client_portal_invitation', { p_token: token });
+          if (acceptError) throw acceptError;
+          navigate('/espace-client-coiffure', { replace: true });
+          return;
         } else {
-          setMessage(data.session ? 'Compte créé. Active maintenant ton espace client.' : 'Compte créé. Confirme ton adresse depuis l’e-mail reçu, puis reviens sur cette page.');
+          setMessage('Compte créé. Confirme ton adresse depuis l’e-mail reçu, puis reviens sur cette page : l’activation se terminera automatiquement après connexion.');
         }
       }
     } catch (caught) {
