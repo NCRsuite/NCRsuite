@@ -212,6 +212,23 @@ function imageExtension(file: File) {
   return 'jpg';
 }
 
+function documentExtension(file: File) {
+  const match = file.name.toLowerCase().match(/\.([a-z0-9]{1,8})$/);
+  if (match?.[1]) return match[1];
+  if (file.type === 'application/pdf') return 'pdf';
+  if (file.type === 'text/plain') return 'txt';
+  if (file.type.includes('word')) return 'docx';
+  if (file.type === 'image/png') return 'png';
+  if (file.type === 'image/webp') return 'webp';
+  return 'jpg';
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} o`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Ko`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+}
+
 async function normalizePhoto(file: File) {
   if (!['image/heic', 'image/heif'].includes(file.type)) return file;
   const url = URL.createObjectURL(file);
@@ -352,6 +369,32 @@ export function BeautyClientCrmPanel({
     setSavingProfile(false);
   }
 
+  async function saveQuestionnaire(event: FormEvent) {
+    event.preventDefault();
+    if (!supabase || !data) return;
+    setSavingQuestionnaire(true);
+    setError('');
+    setSuccess('');
+    const cleanAnswers = Object.fromEntries(
+      Object.entries(questionnaireAnswers)
+        .map(([key,value]) => [key, value.trim()])
+        .filter(([,value]) => value.length > 0)
+    );
+    const { error: saveError } = await supabase.rpc('save_beauty_client_questionnaire', {
+      p_organization_id: organizationId,
+      p_company_id: companyId,
+      p_client_id: client.id,
+      p_activity_kind: data.activity_kind,
+      p_answers: cleanAnswers
+    });
+    if (saveError) setError(saveError.message);
+    else {
+      setSuccess(`Questionnaire ${activityLabels[data.activity_kind]} enregistré.`);
+      await load();
+    }
+    setSavingQuestionnaire(false);
+  }
+
   async function addNote(event: FormEvent) {
     event.preventDefault();
     if (!supabase || !noteText.trim()) return;
@@ -457,6 +500,78 @@ export function BeautyClientCrmPanel({
     } finally {
       setUploadingMedia(false);
     }
+  }
+
+  async function uploadDocument(file: File | null) {
+    if (!supabase || !file) return;
+    setError('');
+    setSuccess('');
+    if (file.size > 15 * 1024 * 1024) {
+      setError('Le document ne doit pas dépasser 15 Mo.');
+      return;
+    }
+    const allowed = [
+      'application/pdf','image/jpeg','image/png','image/webp','text/plain',
+      'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    if (!allowed.includes(file.type)) {
+      setError('Format accepté : PDF, image, texte ou Word.');
+      return;
+    }
+
+    setUploadingDocument(true);
+    let storagePath = '';
+    try {
+      const extension = documentExtension(file);
+      storagePath = `${organizationId}/${companyId}/${client.id}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
+      const { error: uploadError } = await supabase.storage.from('beauty-client-documents').upload(storagePath, file, {
+        contentType: file.type,
+        cacheControl: '3600',
+        upsert: false
+      });
+      if (uploadError) throw uploadError;
+
+      const { error: metadataError } = await supabase.from('beauty_client_documents').insert({
+        organization_id: organizationId,
+        company_id: companyId,
+        client_id: client.id,
+        title: documentTitle.trim() || file.name,
+        category: documentCategory,
+        storage_path: storagePath,
+        mime_type: file.type,
+        size_bytes: file.size,
+        created_by: userId
+      });
+      if (metadataError) {
+        await supabase.storage.from('beauty-client-documents').remove([storagePath]);
+        throw metadataError;
+      }
+
+      setDocumentTitle('');
+      setSuccess('Document ajouté au dossier privé.');
+      await load();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Import du document impossible.');
+    } finally {
+      setUploadingDocument(false);
+    }
+  }
+
+  async function deleteDocument(item: CrmPayload['documents'][number]) {
+    if (!supabase || !canManage || !window.confirm('Supprimer ce document du dossier ?')) return;
+    setError('');
+    const { error: deleteError } = await supabase.from('beauty_client_documents')
+      .delete()
+      .eq('organization_id', organizationId)
+      .eq('company_id', companyId)
+      .eq('client_id', client.id)
+      .eq('id', item.id);
+    if (deleteError) {
+      setError(deleteError.message);
+      return;
+    }
+    await supabase.storage.from('beauty-client-documents').remove([item.storage_path]);
+    await load();
   }
 
   async function deleteMedia(item: CrmPayload['media'][number]) {
