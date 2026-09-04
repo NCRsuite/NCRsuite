@@ -170,6 +170,16 @@ function rewardStatus(status: PortalDashboard['rewards'][number]['status']) {
   return 'Annulé';
 }
 
+function loyaltyEntryLabel(type: string) {
+  if (type === 'appointment_credit') return 'Rendez-vous crédité';
+  if (type === 'appointment_reversal') return 'Crédit retiré';
+  if (type === 'appointment_adjustment') return 'Rendez-vous corrigé';
+  if (type === 'manual_adjustment') return 'Ajustement du salon';
+  if (type === 'reward_exchange') return 'Récompense débloquée';
+  if (type === 'welcome_bonus') return 'Bonus de bienvenue';
+  return 'Mouvement fidélité';
+}
+
 export function CoiffureClientPortalPage() {
   const { user, signIn, signOut } = useAuth();
   const [email, setEmail] = useState('');
@@ -286,6 +296,8 @@ export function CoiffureClientPortalPage() {
   const reviewByAppointment = useMemo(() => new Map(reviewStates.map((state) => [state.appointment_id, state])), [reviewStates]);
   const latestCompleted = useMemo(() => history.find((appointment) => appointment.status === 'completed') ?? null, [history]);
   const availableRewards = useMemo(() => dashboard?.rewards.filter((reward) => reward.status === 'available') ?? [], [dashboard]);
+  const pastRewards = useMemo(() => dashboard?.rewards.filter((reward) => reward.status !== 'available') ?? [], [dashboard]);
+  const loyaltyHistory = useMemo(() => dashboard?.history ?? [], [dashboard]);
   const selectedAccount = accounts.find((account) => account.account_id === selectedAccountId);
   const accent = dashboard?.organization.primary_color || selectedAccount?.organization_primary_color || '#2997ff';
   const style = { '--beauty-client-accent': accent } as CSSProperties;
@@ -545,8 +557,30 @@ export function CoiffureClientPortalPage() {
           </button>
         </section>}
 
-        <div className="beauty-client-rewards-list-head"><div><p className="beauty-client-eyebrow">RÉCOMPENSES</p><h2>Mes récompenses</h2></div><small>{dashboard.rewards.length} au total</small></div>
-        <div className="beauty-client-reward-grid">{dashboard.rewards.map((reward) => <article className={`beauty-client-reward ${reward.status === 'redeemed' ? 'used' : reward.status}`} key={reward.id}><div className="beauty-client-reward-head"><span className="beauty-client-reward-icon"><Icon name="sparkles" size={19}/></span><em>{rewardStatus(reward.status)}</em></div><h2>{reward.title}</h2><strong>{rewardValue(reward.reward_kind, reward.reward_value)}</strong>{reward.description && <p>{reward.description}</p>}<small>{reward.status === 'redeemed' ? `Utilisé le ${shortDate(reward.redeemed_at)}` : `Valable jusqu’au ${shortDate(reward.expires_at)}`}</small></article>)}{dashboard.rewards.length === 0 && <div className="beauty-client-empty"><Icon name="sparkles" size={28}/><p>Aucun avantage pour le moment. Vos prochains avantages apparaîtront ici.</p></div>}</div>
+        <div className="beauty-client-rewards-list-head"><div><p className="beauty-client-eyebrow">DISPONIBLES</p><h2>Mes récompenses</h2></div><small>{availableRewards.length} disponible{availableRewards.length > 1 ? 's' : ''}</small></div>
+        <div className="beauty-client-reward-grid">{availableRewards.map((reward) => <article className="beauty-client-reward available" key={reward.id}><div className="beauty-client-reward-head"><span className="beauty-client-reward-icon"><Icon name="sparkles" size={19}/></span><em>{rewardStatus(reward.status)}</em></div><h2>{reward.title}</h2><strong>{rewardValue(reward.reward_kind, reward.reward_value)}</strong>{reward.description && <p>{reward.description}</p>}<small>Valable jusqu’au {shortDate(reward.expires_at)}</small></article>)}{availableRewards.length === 0 && <div className="beauty-client-empty"><Icon name="sparkles" size={28}/><p>Aucune récompense disponible pour le moment.</p></div>}</div>
+
+        {pastRewards.length > 0 && <>
+          <div className="beauty-client-rewards-list-head beauty-client-rewards-history-head"><div><p className="beauty-client-eyebrow">ARCHIVES</p><h2>Anciennes récompenses</h2></div><small>{pastRewards.length} au total</small></div>
+          <div className="beauty-client-reward-grid beauty-client-reward-grid-past">{pastRewards.map((reward) => <article className={`beauty-client-reward ${reward.status === 'redeemed' ? 'used' : reward.status}`} key={reward.id}><div className="beauty-client-reward-head"><span className="beauty-client-reward-icon"><Icon name="sparkles" size={19}/></span><em>{rewardStatus(reward.status)}</em></div><h2>{reward.title}</h2><strong>{rewardValue(reward.reward_kind, reward.reward_value)}</strong>{reward.description && <p>{reward.description}</p>}<small>{reward.status === 'redeemed' ? `Utilisé le ${shortDate(reward.redeemed_at)}` : reward.status === 'expired' ? `Expiré le ${shortDate(reward.expires_at)}` : 'Récompense annulée'}</small></article>)}</div>
+        </>}
+
+        <section className="beauty-client-loyalty-history">
+          <div className="beauty-client-rewards-list-head"><div><p className="beauty-client-eyebrow">HISTORIQUE</p><h2>Activité fidélité</h2></div><small>{loyaltyHistory.length} mouvement{loyaltyHistory.length > 1 ? 's' : ''}</small></div>
+          {loyaltyHistory.length > 0 ? <div className="beauty-client-loyalty-history-list">{loyaltyHistory.map((entry) => {
+            const positive = entry.points_delta > 0 || entry.visits_delta > 0;
+            const negative = entry.points_delta < 0 || entry.visits_delta < 0;
+            return <article key={entry.id} className={`beauty-client-loyalty-history-item ${positive ? 'positive' : negative ? 'negative' : ''}`}>
+              <span className="beauty-client-loyalty-history-icon"><Icon name={positive ? 'plus' : negative ? 'minus' : 'activity'} size={16}/></span>
+              <div><strong>{entry.label || loyaltyEntryLabel(entry.entry_type)}</strong><small>{loyaltyEntryLabel(entry.entry_type)} · {shortDate(entry.created_at)}</small></div>
+              <span className="beauty-client-loyalty-history-delta">
+                {entry.points_delta !== 0 && <b className={entry.points_delta > 0 ? 'positive' : 'negative'}>{entry.points_delta > 0 ? '+' : ''}{entry.points_delta} pts</b>}
+                {entry.visits_delta !== 0 && <b className={entry.visits_delta > 0 ? 'positive' : 'negative'}>{entry.visits_delta > 0 ? '+' : ''}{entry.visits_delta} passage{Math.abs(entry.visits_delta) > 1 ? 's' : ''}</b>}
+                {entry.points_delta === 0 && entry.visits_delta === 0 && <b>—</b>}
+              </span>
+            </article>;
+          })}</div> : <div className="beauty-client-empty"><Icon name="activity" size={26}/><p>L’historique de votre fidélité apparaîtra ici après vos premiers mouvements.</p></div>}
+        </section>
       </section>}
 
       {tab === 'profile' && <section>
