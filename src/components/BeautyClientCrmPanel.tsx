@@ -21,7 +21,18 @@ interface BeautyClientCrmProps {
   onClose: () => void;
 }
 
+type ClientProfileActivity = 'general' | 'hair' | 'barber' | 'nails' | 'lashes' | 'aesthetics';
+
+interface QuestionnaireField {
+  key: string;
+  label: string;
+  placeholder?: string;
+  type?: 'text' | 'textarea' | 'select';
+  options?: string[];
+}
+
 interface CrmPayload {
+  activity_kind: ClientProfileActivity;
   client: BeautyCrmClientRef & {
     notes: string | null;
     birth_date: string | null;
@@ -80,6 +91,25 @@ interface CrmPayload {
     recorded_at: string;
     note: string | null;
   }>;
+  documents: Array<{
+    id: string;
+    appointment_id: string | null;
+    title: string;
+    category: 'questionnaire' | 'consent' | 'technical' | 'reference' | 'other';
+    storage_path: string;
+    mime_type: string;
+    size_bytes: number;
+    created_by: string | null;
+    created_at: string;
+  }>;
+  questionnaires: Array<{
+    id: string;
+    activity_kind: ClientProfileActivity;
+    answers: Record<string, string>;
+    source: string;
+    created_by: string | null;
+    created_at: string;
+  }>;
 }
 
 const currency = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
@@ -99,6 +129,67 @@ const mediaLabels: Record<CrmPayload['media'][number]['media_kind'], string> = {
   result: 'Résultat',
   reference: 'Référence'
 };
+
+const activityLabels: Record<ClientProfileActivity, string> = {
+  general: 'Généraliste',
+  hair: 'Coiffure',
+  barber: 'Barber',
+  nails: 'Onglerie',
+  lashes: 'Cils',
+  aesthetics: 'Esthétique'
+};
+
+const questionnaireFields: Record<ClientProfileActivity, QuestionnaireField[]> = {
+  general: [
+    { key: 'preferred_style', label: 'Style / résultat préféré', placeholder: 'Ce que le client aime habituellement…' },
+    { key: 'sensitivities', label: 'Sensibilités signalées', type: 'textarea', placeholder: 'Informations déclarées par le client…' },
+    { key: 'products_to_avoid', label: 'Produits / techniques à éviter', type: 'textarea', placeholder: 'Produits, odeurs, textures ou techniques à éviter…' },
+    { key: 'next_goal', label: 'Objectif de la prochaine prestation', type: 'textarea', placeholder: 'Résultat souhaité…' }
+  ],
+  hair: [
+    { key: 'hair_texture', label: 'Type / texture déclarée', type: 'select', options: ['', 'Fin', 'Normal', 'Épais', 'Bouclé', 'Frisé / crépu'] },
+    { key: 'current_color', label: 'Couleur / état actuel', placeholder: 'Naturel, coloration, mèches…' },
+    { key: 'technical_history', label: 'Historique technique récent', type: 'textarea', placeholder: 'Coloration, décoloration, lissage, permanente…' },
+    { key: 'scalp_sensitivity', label: 'Sensibilité du cuir chevelu signalée', type: 'textarea', placeholder: 'Information déclarée, sans diagnostic…' },
+    { key: 'desired_result', label: 'Résultat recherché', type: 'textarea', placeholder: 'Coupe, couleur, entretien souhaité…' }
+  ],
+  barber: [
+    { key: 'haircut_style', label: 'Coupe habituelle', placeholder: 'Dégradé, classique, crop, longueur…' },
+    { key: 'fade_preference', label: 'Préférence de dégradé', type: 'select', options: ['', 'Bas', 'Moyen', 'Haut', 'À définir ensemble'] },
+    { key: 'beard_style', label: 'Style de barbe', placeholder: 'Contour, barbe courte, longue…' },
+    { key: 'beard_length', label: 'Longueur habituelle', placeholder: 'Sabot / longueur / repère…' },
+    { key: 'skin_sensitivity', label: 'Sensibilité cutanée signalée', type: 'textarea', placeholder: 'Réactions ou inconforts déclarés…' }
+  ],
+  nails: [
+    { key: 'nail_shape', label: 'Forme préférée', type: 'select', options: ['', 'Carré', 'Carré arrondi', 'Amande', 'Ovale', 'Coffin', 'Stiletto'] },
+    { key: 'nail_length', label: 'Longueur préférée', type: 'select', options: ['', 'Courte', 'Moyenne', 'Longue', 'Très longue'] },
+    { key: 'current_product', label: 'Produit / pose actuelle', placeholder: 'Gel, semi-permanent, capsules, naturel…' },
+    { key: 'sensitivities', label: 'Sensibilités signalées', type: 'textarea', placeholder: 'Informations déclarées par le client…' },
+    { key: 'desired_finish', label: 'Finition / style recherché', type: 'textarea', placeholder: 'Nude, nail art, french, couleur…' }
+  ],
+  lashes: [
+    { key: 'desired_style', label: 'Effet souhaité', type: 'select', options: ['', 'Naturel', 'Cat eye', 'Doll eye', 'Wispy', 'Volume', 'À définir ensemble'] },
+    { key: 'curl', label: 'Courbure habituelle', placeholder: 'C, CC, D… si connue' },
+    { key: 'length', label: 'Longueur habituelle', placeholder: 'Repère ou préférence…' },
+    { key: 'eye_sensitivity', label: 'Sensibilité oculaire signalée', type: 'textarea', placeholder: 'Inconfort ou sensibilité déclarée…' },
+    { key: 'previous_reaction', label: 'Réaction antérieure signalée', type: 'textarea', placeholder: 'Information déclarée, sans diagnostic…' }
+  ],
+  aesthetics: [
+    { key: 'skin_feel', label: 'Type / ressenti de peau déclaré', type: 'select', options: ['', 'Sèche', 'Normale', 'Mixte', 'Grasse', 'Sensible', 'À préciser'] },
+    { key: 'sensitivity', label: 'Sensibilités signalées', type: 'textarea', placeholder: 'Informations déclarées par le client…' },
+    { key: 'recent_care', label: 'Soins / prestations récentes', type: 'textarea', placeholder: 'Soins ou techniques récents…' },
+    { key: 'products_to_avoid', label: 'Produits à éviter', type: 'textarea', placeholder: 'Produits ou actifs que le client souhaite éviter…' },
+    { key: 'goal', label: 'Objectif de la prestation', type: 'textarea', placeholder: 'Confort, éclat, détente, entretien…' }
+  ]
+};
+
+const documentCategoryLabels = {
+  questionnaire: 'Questionnaire',
+  consent: 'Consentement',
+  technical: 'Document technique',
+  reference: 'Référence',
+  other: 'Autre'
+} as const;
 
 const statusLabels: Record<string, string> = {
   pending: 'En attente',
@@ -161,10 +252,16 @@ export function BeautyClientCrmPanel({
   const [mediaKind, setMediaKind] = useState<CrmPayload['media'][number]['media_kind']>('before');
   const [mediaCaption, setMediaCaption] = useState('');
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
+  const [questionnaireAnswers, setQuestionnaireAnswers] = useState<Record<string, string>>({});
+  const [documentTitle, setDocumentTitle] = useState('');
+  const [documentCategory, setDocumentCategory] = useState<CrmPayload['documents'][number]['category']>('other');
+  const [documentUrls, setDocumentUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [addingNote, setAddingNote] = useState(false);
   const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [savingQuestionnaire, setSavingQuestionnaire] = useState(false);
+  const [uploadingDocument, setUploadingDocument] = useState(false);
   const [busyConsent, setBusyConsent] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -191,6 +288,8 @@ export function BeautyClientCrmPanel({
       preferences: next.profile?.preferences ?? '',
       contraindications: next.profile?.contraindications ?? ''
     });
+    const latestQuestionnaire = next.questionnaires.find((item) => item.activity_kind === next.activity_kind);
+    setQuestionnaireAnswers(latestQuestionnaire?.answers ?? (next.profile?.custom_fields as Record<string, string> | undefined) ?? {});
 
     const paths = next.media.map((item) => item.storage_path);
     if (paths.length > 0) {
@@ -201,6 +300,17 @@ export function BeautyClientCrmPanel({
       setMediaUrls(Object.fromEntries(entries));
     } else {
       setMediaUrls({});
+    }
+
+    const documentPaths = next.documents.map((item) => item.storage_path);
+    if (documentPaths.length > 0) {
+      const documentEntries = await Promise.all(documentPaths.map(async (path) => {
+        const { data: signed } = await db.storage.from('beauty-client-documents').createSignedUrl(path, 3600);
+        return [path, signed?.signedUrl ?? ''] as const;
+      }));
+      setDocumentUrls(Object.fromEntries(documentEntries));
+    } else {
+      setDocumentUrls({});
     }
     setLoading(false);
   }
