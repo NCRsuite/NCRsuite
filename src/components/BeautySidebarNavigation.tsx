@@ -41,6 +41,7 @@ const BASE_GROUPS: BeautyNavigationGroup[] = [
       { label: 'Fidélité', path: '/fidelite', icon: 'chart' },
       { label: 'Ressources', path: '/ressources', icon: 'tool' },
       { label: 'Stock & consommables', path: '/stocks', icon: 'briefcase' },
+      { label: 'Historique', path: '/historique', icon: 'activity', managerOnly: true },
       { label: 'Secrétariat partagé', path: '/?metier=reception', icon: 'calendar', reception: true },
       { label: 'Centre & enseignes', path: '/offre-metier', icon: 'building', ownerOnly: true }
     ]
