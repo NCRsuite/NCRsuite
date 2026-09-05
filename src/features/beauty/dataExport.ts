@@ -133,6 +133,31 @@ export function makeCsvExport(
 export function companyCsvDatasets(
   payload: BeautyCompanyDataExport
 ): BeautyCsvDataset[] {
+  const serviceRows = [...payload.appointment_service_items];
+  const appointmentsWithItems = new Set(
+    payload.appointment_service_items
+      .map((row) => String(row.appointment_id ?? ''))
+      .filter(Boolean)
+  );
+  const servicesById = new Map(
+    payload.services.map((row) => [String(row.id ?? ''), row])
+  );
+
+  payload.appointments.forEach((appointment) => {
+    const appointmentId = String(appointment.id ?? '');
+    if (!appointmentId || appointmentsWithItems.has(appointmentId)) return;
+    const service = servicesById.get(String(appointment.service_id ?? '')) ?? {};
+    serviceRows.push({
+      appointment_id: appointmentId,
+      service_id: appointment.service_id ?? null,
+      service_name: service.name ?? 'Prestation',
+      duration_minutes: service.duration_minutes ?? null,
+      price_cents: appointment.amount_cents ?? service.price_cents ?? null,
+      position: 0,
+      legacy_fallback: true
+    });
+  });
+
   const loyaltyRows = [
     ...payload.loyalty_ledger.map((row) => ({ record_type: 'ledger', ...row })),
     ...payload.loyalty_rewards.map((row) => ({ record_type: 'reward', ...row }))
@@ -155,7 +180,7 @@ export function companyCsvDatasets(
       key: 'services',
       label: 'Prestations réalisées',
       filenameSuffix: 'prestations',
-      rows: payload.appointment_service_items
+      rows: serviceRows
     },
     {
       key: 'consents',
