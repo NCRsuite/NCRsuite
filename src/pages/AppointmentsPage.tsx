@@ -277,10 +277,29 @@ export function AppointmentsPage() {
   const defaultBeautySiteId = activeSiteId && beautySites.some((site) => site.id === activeSiteId)
     ? activeSiteId
     : beautySites.find((site) => site.is_primary)?.id ?? beautySites[0]?.id ?? '';
+  const appointmentSites = beautyMode ? beautySites : sites;
+  const effectivePlanningSiteId = beautyMode
+    ? (activeSiteId && beautySites.some((site) => site.id === activeSiteId)
+      ? activeSiteId
+      : beautySites.length === 1 ? beautySites[0].id : null)
+    : activeSiteId;
 
   const loadData = useCallback(async () => {
     if (!organization) return;
     const organizationId = organization.id;
+    if (beautyMode && !selectedEnseigneId) {
+      setClients([]);
+      setServices([]);
+      setStaff([]);
+      setStaffServices([]);
+      setWorkingHours([]);
+      setBreaks([]);
+      setAppointments([]);
+      setAppointmentItems([]);
+      setAvailabilityBlocks([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError('');
 
@@ -308,6 +327,8 @@ export function AppointmentsPage() {
     const rangeEnd = new Date();
     rangeEnd.setFullYear(rangeEnd.getFullYear() + 1);
 
+    let clientsQuery = supabase.from('clients').select('id,first_name,last_name,email,phone,status').eq('organization_id', organizationId).eq('status', 'active').order('first_name');
+    let servicesQuery = supabase.from('services').select('id,name,duration_minutes,price_cents,active').eq('organization_id', organizationId).eq('active', true).order('name');
     let staffQuery = supabase.from('staff').select('id,display_name,site_id,color,active').eq('organization_id', organizationId).eq('active', true).order('display_name');
     let appointmentsQuery = supabase.from('appointments')
       .select('id,client_id,service_id,staff_id,site_id,starts_at,ends_at,status,notes,amount_cents,source,created_at')
@@ -315,14 +336,20 @@ export function AppointmentsPage() {
       .gte('starts_at', rangeStart.toISOString())
       .lt('starts_at', rangeEnd.toISOString())
       .order('starts_at', { ascending: true });
-    if (organization.plan === 'metier' && activeSiteId) {
-      staffQuery = staffQuery.eq('site_id', activeSiteId);
-      appointmentsQuery = appointmentsQuery.eq('site_id', activeSiteId);
+    if (beautyMode && selectedEnseigneId) {
+      clientsQuery = clientsQuery.eq('company_id', selectedEnseigneId);
+      servicesQuery = servicesQuery.eq('company_id', selectedEnseigneId);
+      staffQuery = staffQuery.eq('company_id', selectedEnseigneId);
+      appointmentsQuery = appointmentsQuery.eq('company_id', selectedEnseigneId);
+    }
+    if (organization.plan === 'metier' && effectivePlanningSiteId) {
+      staffQuery = staffQuery.eq('site_id', effectivePlanningSiteId);
+      appointmentsQuery = appointmentsQuery.eq('site_id', effectivePlanningSiteId);
     }
 
     const [clientsResult, servicesResult, staffResult, assignmentsResult, hoursResult, breaksResult, appointmentsResult] = await Promise.all([
-      supabase.from('clients').select('id,first_name,last_name,email,phone,status').eq('organization_id', organizationId).eq('status', 'active').order('first_name'),
-      supabase.from('services').select('id,name,duration_minutes,price_cents,active').eq('organization_id', organizationId).eq('active', true).order('name'),
+      clientsQuery,
+      servicesQuery,
       staffQuery,
       supabase.from('staff_services').select('staff_id,service_id').eq('organization_id', organizationId),
       supabase.from('staff_working_hours').select('staff_id,weekday,start_time,end_time').eq('organization_id', organizationId),
@@ -368,14 +395,18 @@ export function AppointmentsPage() {
       setAvailabilityBlocks((blocksResult.data ?? []) as AvailabilityBlockRecord[]);
     }
     setLoading(false);
-  }, [organization, demoMode, activeSiteId, beautyMode, selectedEnseigneId]);
+  }, [organization, demoMode, effectivePlanningSiteId, beautyMode, selectedEnseigneId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
   useEffect(() => {
-    const defaultSiteId = activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? '';
-    setForm((current) => current.siteId ? current : { ...current, siteId: defaultSiteId });
-  }, [activeSiteId, sites]);
+    const defaultSiteId = beautyMode
+      ? defaultBeautySiteId
+      : activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? '';
+    setForm((current) => current.siteId && appointmentSites.some((site) => site.id === current.siteId)
+      ? current
+      : { ...current, siteId: defaultSiteId, staffId: '' });
+  }, [beautyMode, defaultBeautySiteId, activeSiteId, sites, appointmentSites]);
 
   useEffect(() => {
     if (!beautyMode || !selectedEnseigneId) {
@@ -437,10 +468,10 @@ export function AppointmentsPage() {
   }, [staff, beautySites, availabilityForm.siteId]);
 
   const visibleAvailabilityBlocks = useMemo(() => availabilityBlocks.filter((block) => {
-    if (activeSiteId && block.site_id !== activeSiteId) return false;
+    if (effectivePlanningSiteId && block.site_id !== effectivePlanningSiteId) return false;
     if (staffFilter === 'all') return true;
     return block.staff_id === null || block.staff_id === staffFilter;
-  }), [availabilityBlocks, activeSiteId, staffFilter]);
+  }), [availabilityBlocks, effectivePlanningSiteId, staffFilter]);
 
   const weekStart = useMemo(() => startOfWeek(selectedDate), [selectedDate]);
   const weekDays = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
@@ -466,7 +497,7 @@ export function AppointmentsPage() {
     if (!canEditAppointments) return;
     setAvailabilityFormOpen(false);
     setEditingAvailabilityId(null);
-    const base = emptyForm(activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? '');
+    const base = emptyForm(beautyMode ? defaultBeautySiteId : activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? '');
     if (date) base.date = dateToInput(date);
     if (time) base.time = time;
     setEditingId(null);
@@ -487,7 +518,7 @@ export function AppointmentsPage() {
     }
     const start = new Date(appointment.starts_at);
     setForm({
-      siteId: appointment.site_id ?? activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? '',
+      siteId: appointment.site_id ?? (beautyMode ? defaultBeautySiteId : activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? ''),
       clientId: appointment.client_id,
       serviceId: appointment.service_id,
       staffId: appointment.staff_id,
@@ -505,7 +536,7 @@ export function AppointmentsPage() {
 
   function closeForm() {
     setEditingId(null);
-    setForm(emptyForm(activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? ''));
+    setForm(emptyForm(beautyMode ? defaultBeautySiteId : activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? ''));
     setError('');
     setSearchParams({});
   }
@@ -786,7 +817,7 @@ export function AppointmentsPage() {
       setSelectedDate(startOfDay(startsAt));
       setSuccess(editingId ? 'Le rendez-vous a bien été modifié.' : 'Le rendez-vous a bien été créé.');
       setEditingId(null);
-      setForm(emptyForm(activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? ''));
+      setForm(emptyForm(beautyMode ? defaultBeautySiteId : activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? ''));
       setSearchParams({});
     } catch (caught) {
       const message = typeof caught === 'object' && caught && 'message' in caught ? String(caught.message) : 'Une erreur inconnue est survenue.';
@@ -944,9 +975,9 @@ export function AppointmentsPage() {
             {organization?.plan === 'metier' && (
               <label>
                 Établissement <span aria-hidden="true">*</span>
-                <select value={form.siteId} onChange={(event) => setForm((current) => ({ ...current, siteId: event.target.value, staffId: '' }))} required disabled={Boolean(activeSiteId)}>
+                <select value={form.siteId} onChange={(event) => setForm((current) => ({ ...current, siteId: event.target.value, staffId: '' }))} required disabled={beautyMode ? appointmentSites.length === 1 : Boolean(activeSiteId)}>
                   <option value="">Sélectionner un établissement</option>
-                  {sites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.is_primary ? ' · Principal' : ''}</option>)}
+                  {appointmentSites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.is_primary ? ' · Principal' : ''}</option>)}
                 </select>
               </label>
             )}
