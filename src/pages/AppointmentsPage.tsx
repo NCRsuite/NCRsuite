@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
+import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import { supabase } from '../lib/supabase';
 import '../beautyAppointmentWeekPlanner.css';
 
@@ -304,6 +305,7 @@ export function AppointmentsPage() {
   const { organization, sites, activeSite, activeSiteId } = useOrganization();
   const { demoMode } = useAuth();
   const { beautyMode, selectedEnseigne, selectedEnseigneId } = useBeautyEnseigneContext();
+  const { confirm } = useConfirmDialog();
   const [searchParams, setSearchParams] = useSearchParams();
   const [clients, setClients] = useState<ClientRecord[]>([]);
   const [services, setServices] = useState<ServiceRecord[]>([]);
@@ -928,7 +930,13 @@ export function AppointmentsPage() {
 
   async function removeAvailabilityBlock(block: AvailabilityBlockRecord) {
     if (!organization || !selectedEnseigneId || !canEditAppointments) return;
-    if (!window.confirm(`Supprimer « ${block.label || availabilityKindLabels[block.kind]} » du planning ?`)) return;
+    const decision = await confirm({
+      title: 'Retirer cette indisponibilité ?',
+      message: `« ${block.label || availabilityKindLabels[block.kind]} » redeviendra disponible à la réservation selon les horaires et les autres contraintes du planning.`,
+      confirmLabel: 'Retirer',
+      tone: 'warning'
+    });
+    if (!decision.confirmed) return;
     setAvailabilityBusyId(block.id);
     setError('');
     setSuccess('');
@@ -1080,8 +1088,19 @@ export function AppointmentsPage() {
     if (!organization || !canChangeStatus || appointment.status === status) return;
     let reason: string | null = null;
     if (status === 'cancelled') {
-      reason = window.prompt('Motif d’annulation (facultatif) :')?.trim() || null;
-      if (!window.confirm('Confirmer l’annulation de ce rendez-vous ?')) return;
+      const client = clientById.get(appointment.client_id);
+      const decision = await confirm({
+        title: 'Annuler ce rendez-vous ?',
+        message: `Le rendez-vous de ${fullClientName(client)} sera marqué comme annulé. Le créneau pourra ensuite redevenir disponible selon les règles du planning.`,
+        confirmLabel: 'Annuler le rendez-vous',
+        tone: 'danger',
+        inputLabel: 'Motif d’annulation',
+        inputPlaceholder: 'Facultatif · ex. empêchement client',
+        inputHint: 'Le motif est conservé avec l’annulation lorsqu’il est renseigné.',
+        inputMaxLength: 300
+      });
+      if (!decision.confirmed) return;
+      reason = decision.value || null;
     }
 
     setBusyId(appointment.id);
