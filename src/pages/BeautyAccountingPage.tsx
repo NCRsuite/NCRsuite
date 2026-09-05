@@ -318,6 +318,10 @@ export function BeautyAccountingPage() {
         <Icon name="info" size={14}/>
         <p>Cette feuille est une synthèse interne issue des rendez-vous terminés enregistrés dans NCR Suite. Elle facilite le suivi mensuel et la transmission au comptable, mais ne remplace pas les justificatifs comptables ou fiscaux requis.</p>
       </section>
-    </> : !demoMode && <div className="panel list-state">Aucune donnée comptable disponible.</div>}
+    </> : !demoMode && <div className="panel list-state empty-service-state">
+      <div className="empty-icon"><Icon name="file" size={28}/></div>
+      <h3>Aucune donnée comptable pour ce mois</h3>
+      <p>La feuille se remplira dès qu’au moins un rendez-vous sera marqué « Terminé » sur la période sélectionnée.</p>
+    </div>}
   </div>;
 }
