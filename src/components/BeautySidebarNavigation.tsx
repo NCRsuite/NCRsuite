@@ -41,6 +41,7 @@ const BASE_GROUPS: BeautyNavigationGroup[] = [
       { label: 'Pilotage', path: '/pilotage', icon: 'chart', managerOnly: true },
       { label: 'CRM & segments', path: '/crm', icon: 'users', managerOnly: true },
       { label: 'Imports & migration', path: '/imports', icon: 'file', managerOnly: true },
+      { label: 'Données & RGPD', path: '/donnees-rgpd', icon: 'shield', managerOnly: true },
       { label: 'Comptabilité', path: '/comptabilite', icon: 'creditCard', managerOnly: true },
       { label: 'Fidélité', path: '/fidelite', icon: 'chart' },
       { label: 'Ressources', path: '/ressources', icon: 'tool' },
