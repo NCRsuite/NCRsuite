@@ -1003,7 +1003,7 @@ export function AppointmentsPage() {
         && (block.staff_id === null || block.staff_id === member.id)
         && slotStart < new Date(block.ends_at)
         && slotEnd > new Date(block.starts_at));
-      const occupied = visibleAppointments.some((appointment) => appointment.staff_id === member.id
+      const occupied = appointments.some((appointment) => appointment.staff_id === member.id
         && appointment.status !== 'cancelled'
         && slotStart < new Date(appointment.ends_at)
         && slotEnd > new Date(appointment.starts_at));
@@ -1024,7 +1024,18 @@ export function AppointmentsPage() {
     const rect = event.currentTarget.getBoundingClientRect();
     const relativeY = clamp(event.clientY - rect.top, 0, rect.height);
     const minute = weekPlannerBounds.startMinute + relativeY / WEEK_GRID_PX_PER_MINUTE;
-    openCreateForm(day, timeFromMinutes(minute), staffFilter === 'all' ? undefined : staffFilter);
+    const roundedMinute = clamp(Math.round(minute / 15) * 15, weekPlannerBounds.startMinute, weekPlannerBounds.endMinute - 15);
+    const slotMinute = Math.floor(roundedMinute / WEEK_SLOT_MINUTES) * WEEK_SLOT_MINUTES;
+    const state = weekSlotState(day, slotMinute);
+    if (state !== 'free') {
+      setError(state === 'closed'
+        ? 'Ce créneau est en dehors des horaires de travail.'
+        : state === 'blocked'
+          ? 'Ce créneau est bloqué par une pause ou une indisponibilité.'
+          : 'Tous les collaborateurs disponibles sont déjà occupés sur ce créneau.');
+      return;
+    }
+    openCreateForm(day, timeFromMinutes(roundedMinute), staffFilter === 'all' ? undefined : staffFilter);
   }
 
   function availabilityBlockCard(block: AvailabilityBlockRecord) {
