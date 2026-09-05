@@ -1442,6 +1442,11 @@ export function AppointmentsPage() {
               <span><i className="closed"/>Hors horaires</span>
             </div>
 
+            <div className="beauty-week-mobile-hint" role="note">
+              <Icon name="calendar" size={14} />
+              <span>Balayez horizontalement pour parcourir toute la semaine. Touchez un jour pour ouvrir sa vue détaillée.</span>
+            </div>
+
             <div className="beauty-week-planner" style={{ '--week-grid-height': `${weekPlannerHeight}px` } as CSSProperties}>
               <div className="beauty-week-header-time">HEURE</div>
               {weekDays.map((day) => {
