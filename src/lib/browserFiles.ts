@@ -145,3 +145,78 @@ export function showBlobDownload(
     }, 180);
   }
 }
+
+
+export function showDataBlobDownload(
+  target: Window | null,
+  url: string,
+  filename: string,
+  title = 'Fichier prêt'
+) {
+  const appleTouch = isAppleTouchBrowser();
+  const host = target && !target.closed ? target : window.open('', '_blank');
+
+  if (!appleTouch) {
+    try {
+      triggerDownloadInCurrentDocument(url, filename);
+    } catch {
+      // Le lien manuel reste disponible dans la fenêtre de secours.
+    }
+  }
+
+  if (!host) {
+    if (appleTouch) window.location.assign(url);
+    else triggerDownloadInCurrentDocument(url, filename);
+    return;
+  }
+
+  host.document.open();
+  host.document.write(pageShell(
+    title,
+    appleTouch
+      ? 'Le fichier est prêt. Sur iPhone ou iPad, il va s’ouvrir afin que tu puisses l’enregistrer avec Partager → Enregistrer dans Fichiers.'
+      : 'Le téléchargement a été lancé. Si ton navigateur le bloque, utilise le bouton ci-dessous.'
+  ));
+  host.document.close();
+
+  const main = host.document.querySelector('main');
+  if (!main) {
+    host.location.replace(url);
+    return;
+  }
+
+  const actions = host.document.createElement('div');
+  actions.className = 'actions';
+
+  const downloadLink = host.document.createElement('a');
+  downloadLink.className = 'primary';
+  downloadLink.href = url;
+  downloadLink.rel = 'noopener';
+  if (appleTouch) {
+    downloadLink.target = '_self';
+    downloadLink.textContent = 'Ouvrir pour enregistrer';
+  } else {
+    downloadLink.download = filename;
+    downloadLink.textContent = 'Télécharger le fichier';
+  }
+
+  const openLink = host.document.createElement('a');
+  openLink.className = 'secondary';
+  openLink.href = url;
+  openLink.target = '_self';
+  openLink.textContent = 'Ouvrir le fichier';
+
+  const help = host.document.createElement('small');
+  help.textContent = appleTouch
+    ? 'Sur iPhone/iPad : ouvre le fichier, touche Partager puis Enregistrer dans Fichiers.'
+    : 'Si le téléchargement automatique est bloqué, utilise « Télécharger le fichier ».';
+
+  actions.append(downloadLink, openLink);
+  main.append(actions, help);
+
+  if (appleTouch) {
+    window.setTimeout(() => {
+      try { host.location.replace(url); } catch { /* Le bouton manuel reste disponible. */ }
+    }, 180);
+  }
+}
