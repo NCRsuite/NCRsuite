@@ -299,6 +299,7 @@ export function BeautyCrmSegmentsPage() {
       </div>
       <div className="beauty-crm-header-actions">
         <Link className="secondary-button" to="/clients"><Icon name="users" size={16}/> Répertoire clients</Link>
+        <Link className="secondary-button" to="/imports"><Icon name="file" size={16}/> Imports</Link>
         <Link className="secondary-button" to="/pilotage"><Icon name="chart" size={16}/> Pilotage</Link>
       </div>
     </header>
