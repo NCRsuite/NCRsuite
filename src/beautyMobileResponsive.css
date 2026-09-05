@@ -1019,3 +1019,41 @@
     min-height: 52px;
   }
 }
+
+
+/* NCR Suite · Coiffure bottom nav anchor fix V4 */
+@media (max-width: 900px) {
+  /*
+    Coiffure : la navigation doit rester ancrée au bas de l'écran.
+    On ignore volontairement la compensation VisualViewport ici :
+    Safari/iOS la recalculait pendant le scroll et faisait remonter la barre
+    au milieu de la page.
+  */
+  html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav {
+    position: fixed !important;
+    top: auto !important;
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    will-change: auto !important;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: calc(116px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage > .page {
+    min-height: calc(100dvh - 68px);
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 900px) {
+    html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav {
+      bottom: max(8px, env(safe-area-inset-bottom)) !important;
+      transform: none !important;
+      -webkit-transform: none !important;
+    }
+  }
+}
