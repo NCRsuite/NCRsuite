@@ -109,6 +109,8 @@ export function BeautyDataPrivacyPage() {
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [loadingClients, setLoadingClients] = useState(true);
   const [clientQuery, setClientQuery] = useState('');
+  const [serverClientQuery, setServerClientQuery] = useState('');
+  const [totalClients, setTotalClients] = useState(0);
   const [selectedClientId, setSelectedClientId] = useState('');
   const [clientMedia, setClientMedia] = useState<ClientMediaFile[]>([]);
   const [clientDocuments, setClientDocuments] = useState<ClientDocumentFile[]>([]);
@@ -133,46 +135,37 @@ export function BeautyDataPrivacyPage() {
     [clients, selectedClientId]
   );
 
-  const filteredClients = useMemo(() => {
-    const needle = clientQuery.trim().toLocaleLowerCase('fr');
-    if (!needle) return clients;
-    return clients.filter((client) => {
-      const haystack = [
-        client.first_name,
-        client.last_name,
-        client.email,
-        client.phone
-      ].filter(Boolean).join(' ').toLocaleLowerCase('fr');
-      return haystack.includes(needle);
-    });
-  }, [clients, clientQuery]);
-
   async function loadClients() {
     if (!organization || !selectedEnseigneId || !canView || demoMode || !supabase) {
       setClients([]);
+      setTotalClients(0);
       setLoadingClients(false);
       return;
     }
 
     setLoadingClients(true);
-    const { data, error: requestError } = await supabase
-      .from('clients')
-      .select('id,first_name,last_name,email,phone,status,created_at')
-      .eq('organization_id', organization.id)
-      .eq('company_id', selectedEnseigneId)
-      .order('created_at', { ascending: false });
+    const { data, error: requestError } = await supabase.rpc('beauty_client_privacy_directory', {
+      p_organization_id: organization.id,
+      p_company_id: selectedEnseigneId,
+      p_search: serverClientQuery || null,
+      p_limit: 100,
+      p_offset: 0
+    });
 
     if (requestError) {
       setError(requestError.message);
       setClients([]);
+      setTotalClients(0);
       setLoadingClients(false);
       return;
     }
 
-    setClients(
-      ((data ?? []) as ClientOption[])
-        .filter((client) => client.first_name !== 'Client supprimé')
-    );
+    const payload = (data ?? { total: 0, items: [] }) as {
+      total: number;
+      items: ClientOption[];
+    };
+    setClients(Array.isArray(payload.items) ? payload.items : []);
+    setTotalClients(Number(payload.total ?? 0));
     setLoadingClients(false);
   }
 
@@ -213,6 +206,8 @@ export function BeautyDataPrivacyPage() {
     setCompanyExport(null);
     setSelectedClientId('');
     setClientQuery('');
+    setServerClientQuery('');
+    setTotalClients(0);
     setClientMedia([]);
     setClientDocuments([]);
     setErasurePreview(null);
@@ -220,8 +215,19 @@ export function BeautyDataPrivacyPage() {
     setErasureConfirm('');
     setError('');
     setSuccess('');
+  }, [organization?.id, selectedEnseigneId]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => setServerClientQuery(clientQuery.trim()),
+      clientQuery.trim() ? 280 : 0
+    );
+    return () => window.clearTimeout(timeout);
+  }, [clientQuery]);
+
+  useEffect(() => {
     void loadClients();
-  }, [organization?.id, selectedEnseigneId, canView, demoMode]);
+  }, [organization?.id, selectedEnseigneId, canView, demoMode, serverClientQuery]);
 
   useEffect(() => {
     setErasurePreview(null);
@@ -511,9 +517,19 @@ export function BeautyDataPrivacyPage() {
           <span>Rechercher une cliente</span>
           <input
             value={clientQuery}
-            onChange={(event) => setClientQuery(event.target.value)}
+            onChange={(event) => {
+              setClientQuery(event.target.value);
+              setSelectedClientId('');
+            }}
             placeholder="Nom, e-mail ou téléphone…"
+            autoComplete="off"
           />
+          <small>{loadingClients
+            ? 'Recherche…'
+            : totalClients > clients.length
+              ? `${clients.length} fiche${clients.length > 1 ? 's' : ''} affichée${clients.length > 1 ? 's' : ''} sur ${totalClients} · recherchez pour retrouver les autres`
+              : `${totalClients} fiche${totalClients > 1 ? 's' : ''} trouvée${totalClients > 1 ? 's' : ''}`
+          }</small>
         </label>
         <select
           value={selectedClientId}
@@ -522,7 +538,7 @@ export function BeautyDataPrivacyPage() {
           aria-busy={loadingClients}
         >
           <option value="">{loadingClients ? 'Chargement des clientes…' : 'Sélectionner une fiche…'}</option>
-          {filteredClients.map((client) => <option key={client.id} value={client.id}>
+          {clients.map((client) => <option key={client.id} value={client.id}>
             {fullName(client)}{client.email ? ` · ${client.email}` : ''}{client.status === 'archived' ? ' · archivée' : ''}
           </option>)}
         </select>
