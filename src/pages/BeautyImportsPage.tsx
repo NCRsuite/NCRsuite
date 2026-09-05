@@ -558,7 +558,7 @@ export function BeautyImportsPage() {
     {demoMode && <div className="info-message page-message">Les imports utilisent les données réelles Supabase et sont désactivés en mode démonstration.</div>}
     {!selectedEnseigneId && !enseigneLoading && <div className="info-message page-message">Aucune enseigne Beauty sélectionnée.</div>}
     {error && <div className="error-message page-message" role="alert">{error}</div>}
-    {success && <div className="success-message page-message">{success}</div>}
+    {success && <div className="success-message page-message" role="status">{success}</div>}
 
     <section className="panel beauty-import-safety">
       <span><Icon name="shield" size={19}/></span>
@@ -647,7 +647,7 @@ export function BeautyImportsPage() {
       {mappingIssue && <div className="beauty-import-inline-warning"><Icon name="alert" size={14}/>{mappingIssue}</div>}
 
       <div className="beauty-import-actions">
-        <button type="button" className="primary-button" disabled={Boolean(mappingIssue) || loadingPreview} onClick={() => void runPreview()}>
+        <button type="button" className="primary-button" disabled={Boolean(mappingIssue) || loadingPreview} aria-busy={loadingPreview} onClick={() => void runPreview()}>
           <Icon name="eye" size={16}/>{loadingPreview ? 'Analyse…' : 'Prévisualiser l’import'}
         </button>
       </div>
@@ -700,7 +700,7 @@ export function BeautyImportsPage() {
           <strong>{clientCreateCount} à créer · {clientMergeCount} à compléter</strong>
           <small>Les fiches complétées conservent toujours leurs données NCR Suite existantes.</small>
         </div>
-        <button type="button" className="primary-button" disabled={importing || clientActionCount === 0} onClick={() => void runImport()}>
+        <button type="button" className="primary-button" disabled={importing || clientActionCount === 0} aria-busy={importing} onClick={() => void runImport()}>
           <Icon name="check" size={16}/>{importing ? 'Import en cours…' : 'Valider les décisions'}
         </button>
       </div>
@@ -737,7 +737,7 @@ export function BeautyImportsPage() {
 
       <div className="beauty-import-final-action">
         <div><strong>{readyCount} rendez-vous à créer</strong><small>Les doublons sont ignorés et les conflits restent hors import.</small></div>
-        <button type="button" className="primary-button" disabled={importing || readyCount === 0} onClick={() => void runImport()}>
+        <button type="button" className="primary-button" disabled={importing || readyCount === 0} aria-busy={importing} onClick={() => void runImport()}>
           <Icon name="check" size={16}/>{importing ? 'Import en cours…' : 'Lancer l’import'}
         </button>
       </div>
@@ -754,6 +754,7 @@ export function BeautyImportsPage() {
           type="button"
           className="secondary-button compact-button"
           disabled={loadingDuplicates || demoMode || !selectedEnseigneId}
+          aria-busy={loadingDuplicates}
           onClick={() => void scanExistingDuplicates()}
         >
           <Icon name="search" size={14}/>{loadingDuplicates ? 'Analyse…' : duplicateCandidates ? 'Réanalyser' : 'Analyser la base'}
@@ -792,6 +793,7 @@ export function BeautyImportsPage() {
                 type="button"
                 className={candidate.recommended_keep_id === client.id ? 'primary-button compact-button' : 'secondary-button compact-button'}
                 disabled={busy}
+                aria-busy={busy}
                 onClick={() => void mergeExistingPair(candidate, client.id)}
               >
                 {busy ? 'Fusion…' : 'Conserver cette fiche'}
@@ -825,10 +827,10 @@ export function BeautyImportsPage() {
     <section className="panel beauty-import-jobs-panel">
       <div className="panel-header">
         <div><p className="eyebrow">HISTORIQUE</p><h2>Imports de l’enseigne</h2><small>Les autres enseignes restent invisibles dans cet historique.</small></div>
-        <button type="button" className="secondary-button compact-button" onClick={() => void loadJobs()} disabled={loadingJobs}><Icon name="refresh" size={14}/> Actualiser</button>
+        <button type="button" className="secondary-button compact-button" onClick={() => void loadJobs()} disabled={loadingJobs} aria-busy={loadingJobs}><Icon name="refresh" size={14}/> Actualiser</button>
       </div>
 
-      {loadingJobs ? <div className="list-state">Chargement de l’historique…</div> : jobs.length === 0 ? <div className="list-state">Aucun import Beauty pour cette enseigne.</div> : <div className="beauty-import-jobs">
+      {loadingJobs ? <div className="list-state beauty-loading-state" aria-busy="true">Chargement de l’historique…</div> : jobs.length === 0 ? <div className="list-state">Aucun import Beauty pour cette enseigne.</div> : <div className="beauty-import-jobs">
         {jobs.map((job) => <article key={job.id}>
           <span className="beauty-import-job-icon"><Icon name={job.import_scope === 'beauty_appointments' ? 'calendar' : 'users'} size={16}/></span>
           <div>
