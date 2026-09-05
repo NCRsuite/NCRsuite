@@ -61,7 +61,7 @@ function statusLabel(status: AppointmentStatus) {
   if (status === 'confirmed') return 'Confirmé';
   if (status === 'pending') return 'À confirmer';
   if (status === 'completed') return 'Terminé';
-  if (status === 'no_show') return 'Absent';
+  if (status === 'no_show') return 'Pas venu';
   return 'Annulé';
 }
 
@@ -76,6 +76,19 @@ function formatAppointmentDate(value: string) {
       : new Intl.DateTimeFormat('fr-FR', { weekday: 'short', day: '2-digit', month: 'short' }).format(date);
   const time = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(date);
   return { day, time };
+}
+
+function appointmentTimingLabel(value: string) {
+  const target = new Date(value).getTime();
+  const deltaMinutes = Math.round((target - Date.now()) / 60_000);
+  if (deltaMinutes <= 0 && deltaMinutes >= -15) return 'Maintenant';
+  if (deltaMinutes > 0 && deltaMinutes < 60) return `Dans ${deltaMinutes} min`;
+  if (deltaMinutes >= 60 && deltaMinutes < 240) {
+    const hours = Math.floor(deltaMinutes / 60);
+    const minutes = deltaMinutes % 60;
+    return minutes > 0 ? `Dans ${hours} h ${minutes}` : `Dans ${hours} h`;
+  }
+  return null;
 }
 
 const currencyFormatter = new Intl.NumberFormat('fr-FR', {
@@ -266,16 +279,36 @@ export function BookingDashboardPage() {
         <article className="beauty-card">
           <div className="beauty-card-heading"><div><p>PROCHAINS RENDEZ-VOUS</p><h2>Votre journée</h2></div><Link className="secondary-button compact-button" to="/rendez-vous">Tout voir</Link></div>
           {loading ? <div className="beauty-skeleton" /> : upcoming.length === 0 ? (
-            <div className="beauty-next-empty"><span><Icon name="calendar" size={18} /></span><div><strong>Aucun rendez-vous à venir</strong><br /><small>Votre prochain rendez-vous apparaîtra ici.</small></div></div>
+            <div className="beauty-next-empty">
+              <span><Icon name="calendar" size={18} /></span>
+              <div><strong>Aucun rendez-vous à venir</strong><br /><small>Votre prochain rendez-vous apparaîtra ici.</small></div>
+              {canManage && <Link className="beauty-next-empty-action" to="/rendez-vous?new=1">Ajouter</Link>}
+            </div>
           ) : (
             <div className="beauty-next-list">
               {upcoming.map((appointment, index) => {
                 const formatted = formatAppointmentDate(appointment.starts_at);
-                return <div className="beauty-next-row" key={`${appointment.starts_at}-${appointment.client_id}-${index}`}>
-                  <div className="beauty-next-time">{formatted.time}<br /><small>{formatted.day}</small></div>
-                  <div className="beauty-next-copy"><strong>Rendez-vous client</strong><small>{appointment.amount_cents ? currencyFormatter.format(appointment.amount_cents / 100) : 'Montant à préciser'}</small></div>
+                const timing = appointmentTimingLabel(appointment.starts_at);
+                return <Link
+                  className={`beauty-next-row${index === 0 ? ' next' : ''}`}
+                  to="/rendez-vous"
+                  key={`${appointment.starts_at}-${appointment.client_id}-${index}`}
+                  aria-label={`Ouvrir l’agenda pour le rendez-vous de ${formatted.day} à ${formatted.time}`}
+                >
+                  <div className="beauty-next-time">
+                    {formatted.time}
+                    <small>{formatted.day}</small>
+                  </div>
+                  <div className="beauty-next-copy">
+                    <strong>{index === 0 ? 'Prochain rendez-vous' : 'Rendez-vous client'}</strong>
+                    <small>
+                      {timing ? `${timing} · ` : ''}
+                      {appointment.amount_cents ? currencyFormatter.format(appointment.amount_cents / 100) : 'Montant à préciser'}
+                    </small>
+                  </div>
                   <span className={`beauty-status ${appointment.status}`}>{statusLabel(appointment.status)}</span>
-                </div>;
+                  <Icon className="beauty-next-chevron" name="chevronRight" size={15} />
+                </Link>;
               })}
             </div>
           )}
