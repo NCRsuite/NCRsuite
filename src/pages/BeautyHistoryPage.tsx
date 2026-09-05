@@ -187,6 +187,7 @@ export function BeautyHistoryPage() {
   const [siteId, setSiteId] = useState('all');
   const [actor, setActor] = useState('all');
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [period, setPeriod] = useState<'7' | '30' | '90' | 'all'>('30');
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -212,11 +213,19 @@ export function BeautyHistoryPage() {
     setError('');
     try {
       const offset = append ? items.length : 0;
-      const { data, error: rpcError } = await supabase.rpc('beauty_audit_history', {
+      const since = period === 'all'
+        ? null
+        : new Date(Date.now() - Number(period) * 86_400_000).toISOString();
+      const { data, error: rpcError } = await supabase.rpc('beauty_audit_history_v2', {
         p_organization_id: organization.id,
         p_company_id: selectedEnseigneId,
         p_limit: limit,
-        p_offset: offset
+        p_offset: offset,
+        p_since: since,
+        p_category: category,
+        p_site_id: siteId === 'all' ? null : siteId,
+        p_actor: actor,
+        p_search: debouncedQuery || null
       });
       if (rpcError) throw rpcError;
       const payload = (data ?? { total: 0, items: [] }) as AuditPayload;
@@ -237,10 +246,21 @@ export function BeautyHistoryPage() {
     setSiteId('all');
     setActor('all');
     setQuery('');
+    setDebouncedQuery('');
     setPeriod('30');
     setExpandedId(null);
+  }, [organization?.id, selectedEnseigneId]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebouncedQuery(query.trim()), query.trim() ? 280 : 0);
+    return () => window.clearTimeout(timeout);
+  }, [query]);
+
+  useEffect(() => {
+    setLoadedLimit(100);
+    setExpandedId(null);
     void load(100, false);
-  }, [organization?.id, selectedEnseigneId, canView, demoMode]);
+  }, [organization?.id, selectedEnseigneId, canView, demoMode, category, siteId, actor, period, debouncedQuery]);
 
   const actors = useMemo(() => {
     const map = new Map<string, string>();
@@ -248,31 +268,7 @@ export function BeautyHistoryPage() {
     return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1], 'fr'));
   }, [items]);
 
-  const filteredItems = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase('fr-FR');
-    const now = Date.now();
-    const cutoff = period === 'all' ? null : now - Number(period) * 86_400_000;
-
-    return items.filter((item) => {
-      const itemCategory = categoryFor(item);
-      if (category !== 'all' && itemCategory !== category) return false;
-      if (siteId !== 'all' && item.site_id !== siteId) return false;
-      if (actor !== 'all' && (item.user_id ?? 'system') !== actor) return false;
-      if (cutoff !== null && new Date(item.created_at).getTime() < cutoff) return false;
-      if (needle) {
-        const haystack = [
-          item.actor_name,
-          item.entity_label,
-          item.site_name,
-          item.company_name,
-          labelForAction(item.action),
-          ...(Array.isArray(item.metadata?.changed_fields) ? item.metadata.changed_fields.map(String) : [])
-        ].filter(Boolean).join(' ').toLocaleLowerCase('fr-FR');
-        if (!haystack.includes(needle)) return false;
-      }
-      return true;
-    });
-  }, [items, category, siteId, actor, query, period]);
+  const filteredItems = items;
 
   const todayCount = items.filter((item) => {
     const date = new Date(item.created_at);
@@ -312,7 +308,7 @@ export function BeautyHistoryPage() {
       <div className="beauty-history-toolbar">
         <div>
           <p className="eyebrow">JOURNAL · {selectedEnseigne?.name ?? 'BEAUTY'}</p>
-          <h2>{filteredItems.length} événement{filteredItems.length > 1 ? 's' : ''} affiché{filteredItems.length > 1 ? 's' : ''}</h2>
+          <h2>{total} événement{total > 1 ? 's' : ''} trouvé{total > 1 ? 's' : ''}</h2>{items.length < total && <small>{items.length} chargé{items.length > 1 ? 's' : ''} actuellement</small>}
         </div>
         <div className="beauty-history-search">
           <Icon name="search" size={16}/>
