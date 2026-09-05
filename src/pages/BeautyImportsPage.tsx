@@ -546,7 +546,7 @@ export function BeautyImportsPage() {
 
   if (!organization) return null;
   if (!beautyMode) return <div className="page"><div className="info-message page-message">Les imports avancés sont disponibles dans l’environnement Coiffure & beauté Métier.</div></div>;
-  if (!canManage) return <div className="page"><div className="error-message page-message">Les imports sont réservés aux propriétaires, administrateurs et responsables autorisés.</div></div>;
+  if (!canManage) return <div className="page"><div className="error-message page-message" role="alert">Les imports sont réservés aux propriétaires, administrateurs et responsables autorisés.</div></div>;
 
   const preview = kind === 'clients' ? clientPreview : appointmentPreview;
   const readyCount = preview?.ready_rows ?? 0;
