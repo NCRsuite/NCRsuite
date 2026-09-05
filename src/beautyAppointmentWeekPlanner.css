@@ -55,3 +55,156 @@
 .appointment-client-search input:focus{border-color:#aeb9c6;background:#fff}
 .appointment-client-search small{font-size:8px;color:#8a939d;font-weight:650}
 @media(max-width:640px){.appointment-client-search small{font-size:9px}}
+
+
+/* NCR Suite · Coiffure agenda status clarity V6 */
+
+/* Légende plus lisible, sans modifier la structure de l'agenda */
+.beauty-week-planner-legend{
+  gap:8px;
+}
+
+.beauty-week-planner-legend span{
+  min-height:24px;
+  padding:4px 7px;
+  border:1px solid #e5e9ee;
+  border-radius:999px;
+  background:#fff;
+  color:#66717f;
+  font-size:9px;
+  line-height:1;
+}
+
+.beauty-week-planner-legend i{
+  width:11px;
+  height:11px;
+  border-radius:4px;
+}
+
+/* Libre : fond blanc net */
+.beauty-week-planner-legend i.free{
+  background:#fff;
+  border-color:#cfdad4;
+}
+
+.beauty-week-slot.free{
+  background:#fff;
+}
+
+/* Occupé : bleu très léger */
+.beauty-week-planner-legend i.busy{
+  background:#eaf0fb;
+  border-color:#c8d5ed;
+}
+
+.beauty-week-slot.busy{
+  background:linear-gradient(
+    180deg,
+    rgba(234,240,251,.72),
+    rgba(246,248,252,.82)
+  );
+}
+
+/* Pause / indisponible : beige tramé */
+.beauty-week-planner-legend i.blocked{
+  background:repeating-linear-gradient(
+    -45deg,
+    #f3e3c7,
+    #f3e3c7 3px,
+    #fff9ef 3px,
+    #fff9ef 6px
+  );
+  border-color:#ddc79f;
+}
+
+.beauty-week-slot.blocked{
+  background:repeating-linear-gradient(
+    -45deg,
+    rgba(222,196,153,.20),
+    rgba(222,196,153,.20) 6px,
+    rgba(255,249,239,.34) 6px,
+    rgba(255,249,239,.34) 12px
+  );
+}
+
+/* Hors horaires : gris tramé différent du blocage */
+.beauty-week-planner-legend i.closed{
+  background:repeating-linear-gradient(
+    -45deg,
+    #e8ecf0,
+    #e8ecf0 3px,
+    #f7f8f9 3px,
+    #f7f8f9 6px
+  );
+  border-color:#cfd5dc;
+}
+
+.beauty-week-slot.closed{
+  background:repeating-linear-gradient(
+    -45deg,
+    #eef1f4,
+    #eef1f4 7px,
+    #f7f8f9 7px,
+    #f7f8f9 14px
+  );
+}
+
+/* Rendez-vous : relief légèrement renforcé pour mieux se détacher de la grille */
+.beauty-week-appointment{
+  border-left-width:3px;
+  box-shadow:0 3px 10px rgba(32,39,47,.10);
+}
+
+/* États métier distincts mais discrets */
+.beauty-week-appointment.status-pending{
+  border-left-style:dashed;
+}
+
+.beauty-week-appointment.status-completed{
+  opacity:.82;
+  filter:saturate(.78);
+}
+
+.beauty-week-appointment.status-cancelled{
+  opacity:.48;
+  background:#f5f6f7;
+}
+
+.beauty-week-appointment.status-no_show{
+  background:#fff1f1;
+  border-left-color:#9f4545;
+}
+
+.beauty-week-unavailability{
+  background:rgba(255,247,232,.96);
+  border-color:#dec79f;
+}
+
+.beauty-week-unavailability.kind-leave{
+  background:rgba(244,240,255,.96);
+  border-color:#d2c7e6;
+  color:#695982;
+}
+
+.beauty-week-unavailability.kind-closure{
+  background:rgba(238,241,244,.96);
+  border-color:#cfd5dc;
+  color:#58636f;
+}
+
+@media(max-width:640px){
+  .beauty-week-planner-legend{
+    gap:6px;
+  }
+
+  .beauty-week-planner-legend span{
+    min-height:23px;
+    padding:4px 6px;
+    font-size:8px;
+  }
+
+  .beauty-week-planner-legend i{
+    width:10px;
+    height:10px;
+  }
+}
