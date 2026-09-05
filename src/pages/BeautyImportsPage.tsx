@@ -3,6 +3,7 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
+import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import {
   appointmentMappingFields,
   autoMapHeaders,
@@ -209,6 +210,7 @@ export function BeautyImportsPage() {
   const { organization } = useOrganization();
   const { demoMode } = useAuth();
   const { beautyMode, selectedEnseigne, selectedEnseigneId, loading: enseigneLoading } = useBeautyEnseigneContext();
+  const { confirm } = useConfirmDialog();
 
   const [source, setSource] = useState<BeautyImportSource>('planity');
   const [kind, setKind] = useState<BeautyImportKind>('clients');
@@ -296,10 +298,13 @@ export function BeautyImportsPage() {
     const merge = candidate.client_a.id === keepId ? candidate.client_b : candidate.client_a;
     const pairKey = [candidate.client_a.id, candidate.client_b.id].sort().join(':');
 
-    const accepted = window.confirm(
-      `Fusionner définitivement « ${fullName(merge.first_name, merge.last_name)} » dans « ${fullName(keep.first_name, keep.last_name)} » ?\n\nLa fiche conservée garde ses coordonnées déjà renseignées. Les rendez-vous, notes, médias, documents, consentements, fidélité et autres historiques de l’ancienne fiche seront rattachés à la fiche conservée.\n\nL’ancienne fiche sera ensuite supprimée.`
-    );
-    if (!accepted) return;
+    const decision = await confirm({
+      title: 'Fusionner ces deux fiches clientes ?',
+      message: `« ${fullName(merge.first_name, merge.last_name)} » sera regroupée dans « ${fullName(keep.first_name, keep.last_name)} ».\n\nLa fiche conservée garde ses coordonnées déjà renseignées. Les rendez-vous, notes, médias, documents, consentements, fidélité et autres historiques seront rattachés à la fiche conservée. L’ancienne fiche sera ensuite supprimée.`,
+      confirmLabel: 'Fusionner les fiches',
+      tone: 'danger'
+    });
+    if (!decision.confirmed) return;
 
     setMergingPairKey(pairKey);
     setError('');
