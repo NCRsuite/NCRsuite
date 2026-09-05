@@ -291,7 +291,7 @@ export function BeautyHistoryPage() {
         <h1>Historique</h1>
         <p>{selectedEnseigne ? `Retrouvez les modifications de ${selectedEnseigne.name} : rendez-vous, clients, prestations, équipe, ressources, stock et réglages.` : 'Sélectionnez une enseigne pour consulter son journal.'}</p>
       </div>
-      <button type="button" className="secondary-button" onClick={() => void load(100, false)} disabled={loading || !selectedEnseigneId}><Icon name="activity" size={17}/>Actualiser</button>
+      <button type="button" className="secondary-button" onClick={() => void load(100, false)} disabled={loading || !selectedEnseigneId} aria-busy={loading}><Icon name="activity" size={17}/>Actualiser</button>
     </header>
 
     {!selectedEnseigneId && !enseigneLoading && <div className="info-message page-message">Aucune enseigne Beauty sélectionnée.</div>}
@@ -336,7 +336,7 @@ export function BeautyHistoryPage() {
         </select>
       </div>
 
-      {loading || enseigneLoading ? <div className="list-state">Chargement de l’historique…</div> : filteredItems.length === 0 ? <div className="list-state empty-service-state"><div className="empty-icon"><Icon name="activity" size={30}/></div><h3>Aucun événement</h3><p>Modifiez les filtres ou effectuez une action sur cette enseigne pour alimenter le journal.</p></div> : <div className="beauty-history-timeline">
+      {loading || enseigneLoading ? <div className="list-state beauty-loading-state" aria-busy="true">Chargement de l’historique…</div> : filteredItems.length === 0 ? <div className="list-state empty-service-state"><div className="empty-icon"><Icon name="activity" size={30}/></div><h3>Aucun événement</h3><p>Modifiez les filtres ou effectuez une action sur cette enseigne pour alimenter le journal.</p></div> : <div className="beauty-history-timeline">
         {filteredItems.map((item) => {
           const itemCategory = categoryFor(item);
           const changedFields = Array.isArray(item.metadata?.changed_fields) ? item.metadata.changed_fields.map(String) : [];
@@ -390,7 +390,7 @@ export function BeautyHistoryPage() {
       </div>}
 
       {items.length < total && <div className="beauty-history-load-more">
-        <button type="button" className="secondary-button" disabled={loadingMore} onClick={() => {
+        <button type="button" className="secondary-button" disabled={loadingMore} aria-busy={loadingMore} onClick={() => {
           const next = Math.min(100, total - items.length);
           setLoadedLimit(next);
           void load(next, true);
