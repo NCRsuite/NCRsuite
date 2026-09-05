@@ -46,6 +46,29 @@
 .beauty-import-resolution button.merge.active{border-color:#9ac9aa;background:#eef8f1;color:#39714b}
 .beauty-import-resolution button.create.active{border-color:#e0bf76;background:#fff8e7;color:#80631f}
 .beauty-import-job-counts span.merged{color:#3d744e;font-weight:850}
+.beauty-import-dedupe-empty,.beauty-import-dedupe-clean{display:flex;align-items:center;gap:10px;padding:14px;border-radius:12px;background:#f7f9fa;color:#6f7a84}
+.beauty-import-dedupe-clean{background:#f0f8f2;color:#447653}
+.beauty-import-dedupe-empty>div,.beauty-import-dedupe-clean>div{display:flex;flex-direction:column;gap:2px}
+.beauty-import-dedupe-empty strong,.beauty-import-dedupe-clean strong{font-size:9px;color:#39434d}
+.beauty-import-dedupe-empty span,.beauty-import-dedupe-clean span{font-size:7px;line-height:1.4}
+.beauty-import-dedupe-summary{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:10px 11px;margin-bottom:9px;border-radius:10px;background:#f5f7f9}
+.beauty-import-dedupe-summary strong{font-size:9px;color:#333d47}.beauty-import-dedupe-summary span{max-width:610px;font-size:7px;line-height:1.4;color:#7b8590;text-align:right}
+.beauty-import-dedupe-list{display:grid;gap:9px}
+.beauty-import-dedupe-pair{border:1px solid #e6eaee;border-left:3px solid #d1a445;border-radius:12px;padding:10px;background:#fff}
+.beauty-import-dedupe-pair.strong{border-left-color:#55a46d}
+.beauty-import-dedupe-signals{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:9px}
+.beauty-import-dedupe-signals span{font-size:6px;font-weight:850;padding:4px 6px;border-radius:999px;background:#f0f2f4;color:#69747f}
+.beauty-import-dedupe-signals span.strong{background:#edf7f0;color:#3d744e}.beauty-import-dedupe-signals span.review{background:#fff6e1;color:#81641f}
+.beauty-import-dedupe-clients{display:grid;grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr);gap:9px;align-items:stretch}
+.beauty-import-dedupe-client{border:1px solid #e8ebee;border-radius:11px;padding:10px;display:flex;flex-direction:column;gap:4px;background:#fbfcfd;min-width:0}
+.beauty-import-dedupe-client.recommended{border-color:#c5e2ce;background:#f5fbf7}
+.beauty-import-dedupe-client-head{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.beauty-import-dedupe-client-head strong{font-size:9px;color:#323c46}.beauty-import-dedupe-client-head em{font-style:normal;font-size:6px;font-weight:900;padding:3px 5px;border-radius:999px;background:#e6f5ea;color:#3d744e}
+.beauty-import-dedupe-client>span{font-size:7px;color:#77828d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beauty-import-dedupe-metrics{display:flex;gap:7px;flex-wrap:wrap;margin:4px 0 6px}.beauty-import-dedupe-metrics small{font-size:6.5px;color:#7a8590}.beauty-import-dedupe-metrics b{color:#3d4751}
+.beauty-import-dedupe-client>.compact-button{margin-top:auto;align-self:flex-start}
+.beauty-import-dedupe-versus{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#9098a0}.beauty-import-dedupe-versus span{font-size:6px;text-transform:uppercase;font-weight:850;letter-spacing:.04em}
+
 .beauty-import-limit-note{font-size:7px;color:#858f99;margin:9px 0 0}
 .beauty-import-history-note{display:flex;align-items:flex-start;gap:7px;margin-top:12px;padding:10px;border-radius:10px;background:#f5f8fb;color:#6d7883;font-size:8px;line-height:1.45}
 .beauty-import-final-action{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding-top:13px;border-top:1px solid #e9ecef}
@@ -56,5 +79,5 @@
 .beauty-import-job-counts{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.beauty-import-job-counts span{font-size:7px;color:#6e7984}.beauty-import-job-counts span.error{color:#a45151}
 .beauty-import-jobs em{font-style:normal;font-size:6px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;border-radius:999px;padding:5px 7px;background:#eef1f4;color:#68737d;white-space:nowrap}.beauty-import-jobs em.status-completed{background:#edf7f0;color:#3d744e}.beauty-import-jobs em.status-completed_with_errors{background:#fff4df;color:#84621f}.beauty-import-jobs em.status-failed{background:#fff0f0;color:#a04a4a}
 @media(max-width:1050px){.beauty-import-source-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.beauty-import-mapping-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:760px){.beauty-import-mapping-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.beauty-import-preview-list>article{grid-template-columns:35px minmax(0,1fr)}.beauty-import-force,.beauty-import-resolution{grid-column:2;justify-content:flex-start;max-width:none}.beauty-import-jobs>article{grid-template-columns:38px minmax(0,1fr) auto}.beauty-import-job-counts{grid-column:2;justify-content:flex-start}.beauty-import-jobs em{grid-column:3;grid-row:1/3}}
+@media(max-width:760px){.beauty-import-dedupe-clients{grid-template-columns:1fr}.beauty-import-dedupe-versus{flex-direction:row;padding:1px 0}.beauty-import-dedupe-summary{flex-direction:column}.beauty-import-dedupe-summary span{text-align:left}.beauty-import-mapping-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.beauty-import-preview-list>article{grid-template-columns:35px minmax(0,1fr)}.beauty-import-force,.beauty-import-resolution{grid-column:2;justify-content:flex-start;max-width:none}.beauty-import-jobs>article{grid-template-columns:38px minmax(0,1fr) auto}.beauty-import-job-counts{grid-column:2;justify-content:flex-start}.beauty-import-jobs em{grid-column:3;grid-row:1/3}}
 @media(max-width:640px){.beauty-imports-page{gap:14px}.beauty-import-source-grid{grid-template-columns:1fr}.beauty-import-kind-tabs{display:grid;grid-template-columns:1fr 1fr}.beauty-import-kind-tabs button{justify-content:center}.beauty-import-mapping-grid{grid-template-columns:1fr}.beauty-import-preview-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.beauty-import-final-action{align-items:stretch;flex-direction:column}.beauty-import-final-action>.primary-button{width:100%;justify-content:center}.beauty-import-actions>.primary-button{width:100%;justify-content:center}.beauty-import-preview-list{max-height:none}.beauty-import-jobs>article{grid-template-columns:34px minmax(0,1fr)}.beauty-import-job-counts{grid-column:2}.beauty-import-jobs em{grid-column:2;grid-row:auto;justify-self:start}}
