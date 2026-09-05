@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
+import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import { supabase } from '../lib/supabase';
 import '../beautyServiceImages.css';
 
@@ -144,6 +145,7 @@ export function ServicesPage() {
   const { organization } = useOrganization();
   const { demoMode } = useAuth();
   const { beautyMode, selectedEnseigne, selectedEnseigneId, loading: enseigneLoading } = useBeautyEnseigneContext();
+  const { confirm } = useConfirmDialog();
   const [searchParams, setSearchParams] = useSearchParams();
   const [services, setServices] = useState<ServiceRecord[]>([]);
   const [form, setForm] = useState<ServiceFormState>(emptyForm);
@@ -480,8 +482,17 @@ export function ServicesPage() {
   async function toggleServiceStatus(service: ServiceRecord) {
     if (!organization || !canManage) return;
     const nextActive = !service.active;
-    const action = nextActive ? 'réactiver' : 'désactiver';
-    if (!window.confirm(`Voulez-vous ${action} la prestation « ${service.name} » ?`)) return;
+    const decision = await confirm({
+      title: `${nextActive ? 'Réactiver' : 'Désactiver'} ${service.name} ?`,
+      message: nextActive
+        ? 'La prestation redeviendra disponible dans le catalogue et dans les parcours qui l’utilisent.'
+        : beautyMode
+          ? 'La prestation reste conservée dans l’historique, mais elle ne sera plus proposée pour les nouveaux rendez-vous tant qu’elle est désactivée.'
+          : 'La prestation reste conservée dans l’historique, mais elle ne sera plus proposée tant qu’elle est désactivée.',
+      confirmLabel: nextActive ? 'Réactiver' : 'Désactiver',
+      tone: nextActive ? 'default' : 'warning'
+    });
+    if (!decision.confirmed) return;
     setBusyId(service.id);
     setError('');
     setSuccess('');
