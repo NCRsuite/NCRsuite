@@ -99,9 +99,57 @@ interface ImportResult {
   status: string;
   total_rows: number;
   inserted_rows: number;
+  merged_rows?: number;
   skipped_rows: number;
   error_rows: number;
   errors: Array<{ line?: number; message?: string }>;
+}
+
+interface DuplicateClientSummary {
+  id: string;
+  first_name: string;
+  last_name: string | null;
+  email: string | null;
+  phone: string | null;
+  birth_date: string | null;
+  appointment_count: number;
+  completed_count: number;
+  spent_cents: number;
+  data_score: number;
+  created_at: string;
+}
+
+interface DuplicateCandidate {
+  client_a: DuplicateClientSummary;
+  client_b: DuplicateClientSummary;
+  email_match: boolean;
+  phone_match: boolean;
+  name_match: boolean;
+  birth_match: boolean;
+  match_score: number;
+  strength: 'strong' | 'review';
+  recommended_keep_id: string;
+}
+
+interface DuplicateCandidatesPayload {
+  candidate_count: number;
+  items: DuplicateCandidate[];
+}
+
+interface MergeClientsResult {
+  kept_client_id: string;
+  merged_client_id: string;
+  appointments_moved: number;
+  notes_moved: number;
+  media_moved: number;
+  documents_moved: number;
+  consents_moved: number;
+  questionnaires_moved: number;
+  waitlist_moved: number;
+  reviews_moved: number;
+  loyalty_rows_moved: number;
+  rewards_moved: number;
+  portal_accounts_moved: number;
 }
 
 const sourceOptions: Array<{ key: BeautyImportSource; label: string; description: string }> = [
@@ -174,6 +222,9 @@ export function BeautyImportsPage() {
   const [appointmentPreview, setAppointmentPreview] = useState<AppointmentPreview | null>(null);
   const [forceLines, setForceLines] = useState<Set<number>>(new Set());
   const [mergeTargets, setMergeTargets] = useState<Map<number, string>>(new Map());
+  const [duplicateCandidates, setDuplicateCandidates] = useState<DuplicateCandidatesPayload | null>(null);
+  const [loadingDuplicates, setLoadingDuplicates] = useState(false);
+  const [mergingPairKey, setMergingPairKey] = useState('');
   const [jobs, setJobs] = useState<ImportJob[]>([]);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -193,6 +244,8 @@ export function BeautyImportsPage() {
     setAppointmentPreview(null);
     setForceLines(new Set());
     setMergeTargets(new Map());
+    setDuplicateCandidates(null);
+    setMergingPairKey('');
     setError('');
     setSuccess('');
   }, [selectedEnseigneId, kind]);
@@ -214,6 +267,66 @@ export function BeautyImportsPage() {
   useEffect(() => {
     void loadJobs();
   }, [organization?.id, selectedEnseigneId, canManage, demoMode]);
+
+  async function scanExistingDuplicates() {
+    if (!organization || !selectedEnseigneId || !canManage || demoMode || !supabase) {
+      setDuplicateCandidates(null);
+      return;
+    }
+
+    setLoadingDuplicates(true);
+    setError('');
+    const { data, error: requestError } = await supabase.rpc('beauty_client_duplicate_candidates', {
+      p_organization_id: organization.id,
+      p_company_id: selectedEnseigneId
+    });
+
+    if (requestError) {
+      setError(requestError.message);
+      setDuplicateCandidates(null);
+    } else {
+      setDuplicateCandidates((data ?? { candidate_count: 0, items: [] }) as DuplicateCandidatesPayload);
+    }
+    setLoadingDuplicates(false);
+  }
+
+  async function mergeExistingPair(candidate: DuplicateCandidate, keepId: string) {
+    if (!organization || !selectedEnseigneId || !supabase) return;
+    const keep = candidate.client_a.id === keepId ? candidate.client_a : candidate.client_b;
+    const merge = candidate.client_a.id === keepId ? candidate.client_b : candidate.client_a;
+    const pairKey = [candidate.client_a.id, candidate.client_b.id].sort().join(':');
+
+    const accepted = window.confirm(
+      `Fusionner définitivement « ${fullName(merge.first_name, merge.last_name)} » dans « ${fullName(keep.first_name, keep.last_name)} » ?\n\nLa fiche conservée garde ses coordonnées déjà renseignées. Les rendez-vous, notes, médias, documents, consentements, fidélité et autres historiques de l’ancienne fiche seront rattachés à la fiche conservée.\n\nL’ancienne fiche sera ensuite supprimée.`
+    );
+    if (!accepted) return;
+
+    setMergingPairKey(pairKey);
+    setError('');
+    setSuccess('');
+
+    const { data, error: requestError } = await supabase.rpc('beauty_merge_clients', {
+      p_organization_id: organization.id,
+      p_company_id: selectedEnseigneId,
+      p_keep_client_id: keep.id,
+      p_merge_client_id: merge.id
+    });
+
+    if (requestError) {
+      setError(requestError.message);
+    } else {
+      const result = data as MergeClientsResult;
+      setSuccess(
+        `Fusion terminée : ${fullName(merge.first_name, merge.last_name)} a été regroupé dans ${fullName(keep.first_name, keep.last_name)} · ${result.appointments_moved} RDV déplacé${result.appointments_moved > 1 ? 's' : ''}.`
+      );
+      setClientPreview(null);
+      setAppointmentPreview(null);
+      setForceLines(new Set());
+      setMergeTargets(new Map());
+      await scanExistingDuplicates();
+    }
+    setMergingPairKey('');
+  }
 
   function clearPreview() {
     setClientPreview(null);
@@ -631,6 +744,85 @@ export function BeautyImportsPage() {
         </button>
       </div>
     </section>}
+
+    <section className="panel beauty-import-dedupe-panel">
+      <div className="panel-header">
+        <div>
+          <p className="eyebrow">DÉDOUBLONNAGE DE LA BASE</p>
+          <h2>Doublons déjà présents</h2>
+          <small>NCR Suite recherche les fiches qui partagent le même e-mail, le même téléphone ou exactement le même prénom + nom. Aucune fusion n’est automatique.</small>
+        </div>
+        <button
+          type="button"
+          className="secondary-button compact-button"
+          disabled={loadingDuplicates || demoMode || !selectedEnseigneId}
+          onClick={() => void scanExistingDuplicates()}
+        >
+          <Icon name="search" size={14}/>{loadingDuplicates ? 'Analyse…' : duplicateCandidates ? 'Réanalyser' : 'Analyser la base'}
+        </button>
+      </div>
+
+      {!duplicateCandidates ? <div className="beauty-import-dedupe-empty">
+        <Icon name="users" size={22}/>
+        <div><strong>Analyse à la demande</strong><span>L’outil ne modifie rien tant que vous ne validez pas explicitement une fusion.</span></div>
+      </div> : duplicateCandidates.items.length === 0 ? <div className="beauty-import-dedupe-clean">
+        <Icon name="check" size={18}/>
+        <div><strong>Aucun doublon détecté</strong><span>Aucune paire de clientes actives ne partage actuellement un signal de doublon dans cette enseigne.</span></div>
+      </div> : <>
+        <div className="beauty-import-dedupe-summary">
+          <strong>{duplicateCandidates.candidate_count} paire{duplicateCandidates.candidate_count > 1 ? 's' : ''} à vérifier</strong>
+          <span>Les correspondances e-mail/téléphone sont signalées comme fortes. Un même nom seul nécessite davantage de vigilance.</span>
+        </div>
+
+        <div className="beauty-import-dedupe-list">
+          {duplicateCandidates.items.map((candidate) => {
+            const pairKey = [candidate.client_a.id, candidate.client_b.id].sort().join(':');
+            const busy = mergingPairKey === pairKey;
+            const clientCard = (client: DuplicateClientSummary) => <div className={`beauty-import-dedupe-client${candidate.recommended_keep_id === client.id ? ' recommended' : ''}`}>
+              <div className="beauty-import-dedupe-client-head">
+                <strong>{fullName(client.first_name, client.last_name)}</strong>
+                {candidate.recommended_keep_id === client.id && <em>Recommandée</em>}
+              </div>
+              <span>{client.email || 'E-mail non renseigné'}</span>
+              <span>{client.phone || 'Téléphone non renseigné'}</span>
+              <div className="beauty-import-dedupe-metrics">
+                <small><b>{client.appointment_count}</b> RDV</small>
+                <small><b>{client.completed_count}</b> terminés</small>
+                <small><b>{(client.spent_cents / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</b> réalisé</small>
+              </div>
+              <button
+                type="button"
+                className={candidate.recommended_keep_id === client.id ? 'primary-button compact-button' : 'secondary-button compact-button'}
+                disabled={busy}
+                onClick={() => void mergeExistingPair(candidate, client.id)}
+              >
+                {busy ? 'Fusion…' : 'Conserver cette fiche'}
+              </button>
+            </div>;
+
+            return <article key={pairKey} className={`beauty-import-dedupe-pair ${candidate.strength}`}>
+              <div className="beauty-import-dedupe-signals">
+                <span className={candidate.strength === 'strong' ? 'strong' : 'review'}>{candidate.strength === 'strong' ? 'Correspondance forte' : 'À vérifier'}</span>
+                {candidate.email_match && <span>E-mail identique</span>}
+                {candidate.phone_match && <span>Téléphone identique</span>}
+                {candidate.name_match && <span>Nom identique</span>}
+                {candidate.birth_match && <span>Naissance identique</span>}
+              </div>
+              <div className="beauty-import-dedupe-clients">
+                {clientCard(candidate.client_a)}
+                <div className="beauty-import-dedupe-versus"><Icon name="refresh" size={15}/><span>fusionner</span></div>
+                {clientCard(candidate.client_b)}
+              </div>
+            </article>;
+          })}
+        </div>
+
+        <div className="beauty-import-history-note">
+          <Icon name="shield" size={14}/>
+          <span>La fusion déplace l’historique complet vers la fiche conservée. Les coordonnées déjà présentes sur la fiche conservée ont priorité. Les cas de parrainage ambigus sont bloqués automatiquement par la base.</span>
+        </div>
+      </>}
+    </section>
 
     <section className="panel beauty-import-jobs-panel">
       <div className="panel-header">
