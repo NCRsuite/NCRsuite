@@ -325,6 +325,8 @@ export function BeautyPilotagePage() {
           key={value}
           className={period === value ? 'active' : ''}
           onClick={() => setPeriod(value)}
+          disabled={loading}
+          aria-busy={loading && period === value}
         >{periodLabels[value]}</button>)}
       </div>
     </header>
@@ -332,7 +334,7 @@ export function BeautyPilotagePage() {
     {!selectedEnseigneId && !enseigneLoading && <div className="info-message page-message">Aucune enseigne Beauty sélectionnée.</div>}
     {error && <div className="error-message page-message" role="alert">{error}</div>}
 
-    {loading || enseigneLoading ? <div className="panel beauty-pilot-loading">Calcul des indicateurs…</div> : !dashboard || !s || !changes ? <div className="panel list-state">Aucune donnée de pilotage disponible.</div> : <>
+    {loading || enseigneLoading ? <div className="panel beauty-pilot-loading beauty-loading-state" aria-busy="true">Calcul des indicateurs…</div> : !dashboard || !s || !changes ? <div className="panel list-state">Aucune donnée de pilotage disponible.</div> : <>
       <section className="beauty-pilot-kpis">
         <article className="panel beauty-pilot-kpi primary">
           <div className="beauty-pilot-kpi-head"><span>CA réalisé</span><span className="beauty-pilot-kpi-icon"><Icon name="chart" size={18}/></span></div>
