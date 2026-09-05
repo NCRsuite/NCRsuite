@@ -1,0 +1,65 @@
+.beauty-crm-segments-page{display:flex;flex-direction:column;gap:18px}
+.beauty-crm-segments-header{align-items:flex-end}
+.beauty-crm-header-actions{display:flex;gap:8px;flex-wrap:wrap}
+.beauty-crm-loading{min-height:170px;display:grid;place-items:center;color:#78818c;font-size:12px}
+.beauty-crm-loading.compact{min-height:100px;background:#f8f9fb;border-radius:12px}
+.beauty-crm-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.beauty-crm-kpis>article{padding:14px 15px;display:flex;flex-direction:column;gap:3px}
+.beauty-crm-kpis span{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#7d8792;font-weight:900}
+.beauty-crm-kpis strong{font-size:23px;letter-spacing:-.035em}
+.beauty-crm-kpis small{font-size:8px;color:#8b939c}
+.beauty-crm-segment-panel,.beauty-crm-audience-panel,.beauty-crm-marketing-readiness{overflow:hidden}
+.beauty-crm-segment-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.beauty-crm-segment-card{border:1px solid #e7e9ed;border-radius:13px;background:#fff;padding:11px;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:9px;align-items:center;text-align:left;cursor:pointer;position:relative;transition:.18s ease}
+.beauty-crm-segment-card:hover{transform:translateY(-1px);border-color:#d9dde2;box-shadow:0 5px 16px rgba(28,35,42,.06)}
+.beauty-crm-segment-card.active{border-color:color-mix(in srgb,var(--business-accent,#2997ff) 45%,#dde2e8);box-shadow:0 0 0 2px color-mix(in srgb,var(--business-accent,#2997ff) 10%,transparent)}
+.beauty-crm-segment-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#f1f3f5;color:#697480}
+.beauty-crm-segment-card.positive .beauty-crm-segment-icon{background:#edf7f0;color:#3e7650}
+.beauty-crm-segment-card.warning .beauty-crm-segment-icon{background:#fff5dc;color:#8a6920}
+.beauty-crm-segment-card.accent .beauty-crm-segment-icon{background:color-mix(in srgb,var(--business-accent,#2997ff) 10%,#fff);color:var(--business-accent,#2997ff)}
+.beauty-crm-segment-copy{display:flex;flex-direction:column;min-width:0}
+.beauty-crm-segment-copy strong{font-size:10px;color:#303741;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beauty-crm-segment-copy small{font-size:8px;color:#858e98;margin-top:2px}
+.beauty-crm-segment-card>b{font-size:18px;letter-spacing:-.03em;color:#343c45}
+.beauty-crm-segment-card>em{grid-column:2/4;font-style:normal;font-size:7px;color:#8b939c;margin-top:-3px}
+.beauty-crm-overlap-note{display:flex;align-items:flex-start;gap:6px;margin:13px 1px 0;padding-top:10px;border-top:1px solid #eceef1;font-size:8px;line-height:1.45;color:#818a94}
+.beauty-crm-audience-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}
+.beauty-crm-audience-head>div:first-child{min-width:0}
+.beauty-crm-audience-head h2{margin-bottom:3px}.beauty-crm-audience-head p{font-size:10px;color:#747e89;line-height:1.45;max-width:760px}
+.beauty-crm-audience-count{display:flex;flex-direction:column;align-items:flex-end;min-width:120px}
+.beauty-crm-audience-count>strong{font-size:28px;letter-spacing:-.04em}.beauty-crm-audience-count>span{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:#7d8791;font-weight:900}
+.beauty-crm-audience-count>small{font-size:8px;color:#6f8b78;margin-top:3px;text-align:right}
+.beauty-crm-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 12px}
+.beauty-crm-search{flex:1;max-width:540px;display:flex;align-items:center;gap:8px;border:1px solid #e2e5e9;border-radius:11px;background:#fff;padding:0 10px;color:#7c8792}
+.beauty-crm-search input{border:0;background:transparent;padding:10px 0;outline:none;width:100%;font-size:10px}
+.beauty-crm-search button{border:0;background:transparent;color:#7f8993;display:grid;place-items:center;padding:4px;cursor:pointer}
+.beauty-crm-contact-stats{display:flex;gap:8px;flex-wrap:wrap}
+.beauty-crm-contact-stats span{display:inline-flex;align-items:center;gap:5px;background:#f5f7f9;border-radius:999px;padding:7px 9px;font-size:8px;font-weight:800;color:#69737e}
+.beauty-crm-client-list{display:grid;gap:8px}
+.beauty-crm-client-card{display:grid;grid-template-columns:42px minmax(190px,1.5fr) minmax(240px,1fr) minmax(220px,1fr) auto;gap:11px;align-items:center;border:1px solid #e7eaee;border-radius:13px;background:#fff;padding:11px}
+.beauty-crm-client-avatar{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(145deg,color-mix(in srgb,var(--business-accent,#2997ff) 12%,#f4f6f8),#eef1f4);color:var(--business-accent,#2997ff);font-weight:900;font-size:14px}
+.beauty-crm-client-main{min-width:0;display:flex;flex-direction:column;gap:5px}
+.beauty-crm-client-title{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.beauty-crm-client-title>strong{font-size:10px;color:#303841}
+.beauty-crm-client-title>span{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:4px 6px;font-size:7px;font-weight:850}
+.beauty-crm-client-title>span.allowed{background:#edf7f0;color:#39734b}.beauty-crm-client-title>span.blocked{background:#f1f3f5;color:#79838e}
+.beauty-crm-client-contact{display:flex;gap:8px;flex-wrap:wrap}.beauty-crm-client-contact span{font-size:8px;color:#7b8590}
+.beauty-crm-client-tags{display:flex;gap:4px;flex-wrap:wrap}.beauty-crm-client-tags span{font-size:7px;padding:3px 5px;border-radius:999px;background:#f4f6f8;color:#6f7a85}
+.beauty-crm-client-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.beauty-crm-client-metrics>div,.beauty-crm-client-context>span{display:flex;flex-direction:column;min-width:0}
+.beauty-crm-client-metrics span,.beauty-crm-client-context small{font-size:7px;color:#8a929c;text-transform:uppercase;letter-spacing:.04em;font-weight:800}
+.beauty-crm-client-metrics strong,.beauty-crm-client-context strong{font-size:9px;color:#404951;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.beauty-crm-client-context{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.beauty-crm-client-context .warning strong{color:#966a22}
+.beauty-crm-client-actions{display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.beauty-crm-pagination{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:13px;padding-top:12px;border-top:1px solid #eceef1}
+.beauty-crm-pagination span{font-size:8px;color:#7f8993}
+.beauty-crm-marketing-readiness{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:18px;background:linear-gradient(145deg,color-mix(in srgb,var(--business-accent,#2997ff) 6%,#fff),#fff)}
+.beauty-crm-marketing-readiness>div{display:flex;gap:12px;align-items:flex-start;min-width:0}
+.beauty-crm-marketing-icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--business-accent,#2997ff) 11%,#fff);color:var(--business-accent,#2997ff);flex:0 0 auto}
+.beauty-crm-marketing-readiness h2{font-size:16px;margin:2px 0 4px}.beauty-crm-marketing-readiness p{font-size:9px;line-height:1.45;color:#76808b;max-width:760px}
+.beauty-crm-marketing-readiness>strong{font-size:27px;letter-spacing:-.04em;display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}
+.beauty-crm-marketing-readiness>strong small{font-size:8px;text-transform:uppercase;letter-spacing:.05em;color:#71808b}
+@media(max-width:1180px){.beauty-crm-segment-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.beauty-crm-client-card{grid-template-columns:42px minmax(190px,1fr) minmax(220px,1fr) auto}.beauty-crm-client-context{grid-column:2/4}.beauty-crm-client-actions{grid-row:1/3;grid-column:4}}
+@media(max-width:900px){.beauty-crm-segments-header{align-items:flex-start}.beauty-crm-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.beauty-crm-segment-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.beauty-crm-toolbar{align-items:stretch;flex-direction:column}.beauty-crm-search{max-width:none}.beauty-crm-client-card{grid-template-columns:42px minmax(0,1fr) auto}.beauty-crm-client-metrics,.beauty-crm-client-context{grid-column:2/4}.beauty-crm-client-actions{grid-column:2/4;grid-row:auto;flex-direction:row}.beauty-crm-client-actions>*{flex:1}}
+@media(max-width:640px){.beauty-crm-segments-page{gap:14px}.beauty-crm-header-actions{width:100%}.beauty-crm-header-actions>*{flex:1;justify-content:center}.beauty-crm-kpis{gap:7px}.beauty-crm-kpis>article{padding:11px}.beauty-crm-kpis strong{font-size:20px}.beauty-crm-segment-grid{grid-template-columns:1fr}.beauty-crm-segment-card{grid-template-columns:32px minmax(0,1fr) auto}.beauty-crm-audience-head{flex-direction:column}.beauty-crm-audience-count{align-items:flex-start}.beauty-crm-audience-count>small{text-align:left}.beauty-crm-client-card{grid-template-columns:38px minmax(0,1fr)}.beauty-crm-client-avatar{width:38px;height:38px}.beauty-crm-client-metrics,.beauty-crm-client-context,.beauty-crm-client-actions{grid-column:1/3}.beauty-crm-client-actions{flex-direction:column}.beauty-crm-marketing-readiness{align-items:flex-start;flex-direction:column}.beauty-crm-marketing-readiness>strong{align-items:flex-start}}
