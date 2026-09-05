@@ -374,7 +374,7 @@ export function BeautyHistoryPage() {
               {changedFields.length > 0 && !changedFields.includes('created') && <div className="beauty-history-changed-fields">{changedFields.map((field) => <span key={field}>{fieldLabels[field] || field.replaceAll('_', ' ')}</span>)}</div>}
 
               {hasDiff && <button type="button" className="beauty-history-detail-button" onClick={() => setExpandedId(expanded ? null : item.id)}>
-                {expanded ? 'Masquer le détail' : 'Voir le détail avant / après'} <Icon name={expanded ? 'chevronUp' : 'chevronDown'} size={13}/>
+                {expanded ? 'Masquer le détail' : 'Voir le détail avant / après'} <span className={expanded ? 'rotated' : ''}><Icon name="chevronDown" size={13}/></span>
               </button>}
 
               {expanded && <div className="beauty-history-diff">
