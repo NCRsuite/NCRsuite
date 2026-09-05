@@ -7,6 +7,7 @@ export const MODULE_BY_PATH: Record<string, string> = {
   '/rendez-vous': 'appointments',
   '/clients': 'clients',
   '/crm': 'clients',
+  '/comptabilite': 'billing',
   '/equipe': 'staff',
   '/acces-equipe': 'team_access',
   '/prestations': 'services',
@@ -253,8 +254,9 @@ export function organizationCanAccessPath(organization: Organization, pathname: 
   // sélection de modules Métier. Les restrictions des rôles personnalisés restent actives.
   const isCoiffureLoyaltyBase = organization.business_type === 'coiffure' && normalized === '/fidelite';
   const isCoiffureStockBase = organization.business_type === 'coiffure' && normalized === '/stocks';
+  const isCoiffureAccountingBase = organization.business_type === 'coiffure' && normalized === '/comptabilite';
   const isUniversalModule = UNIVERSAL_MODULE_PATHS.has(normalized);
-  if (!isUniversalModule && !isCoiffureLoyaltyBase && !isCoiffureStockBase && organization.plan === 'metier' && organization.metier_modules_configured && !(organization.enabled_modules ?? []).includes(moduleKey)) return false;
+  if (!isUniversalModule && !isCoiffureLoyaltyBase && !isCoiffureStockBase && !isCoiffureAccountingBase && organization.plan === 'metier' && organization.metier_modules_configured && !(organization.enabled_modules ?? []).includes(moduleKey)) return false;
   if (!isUniversalModule && organization.plan === 'metier' && organization.custom_role_id && moduleKey !== 'dashboard' && !(organization.custom_module_keys ?? []).includes(moduleKey)) return false;
   return true;
 }
