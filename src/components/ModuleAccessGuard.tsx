@@ -18,7 +18,9 @@ export function ModuleAccessGuard({ moduleKey, children }: ModuleAccessGuardProp
 
   if (organization.plan !== 'metier') return <>{children}</>;
 
-  if (organization.metier_modules_configured && !(organization.enabled_modules ?? []).includes(moduleKey)) {
+  const coiffureBaseStock = organization.business_type === 'coiffure' && moduleKey === 'stock';
+
+  if (!coiffureBaseStock && organization.metier_modules_configured && !(organization.enabled_modules ?? []).includes(moduleKey)) {
     return <Navigate to="/" replace />;
   }
 
