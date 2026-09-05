@@ -67,7 +67,7 @@ export function BeautyAccountingPage() {
   const [success, setSuccess] = useState('');
 
   const canView = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
-  const canConfigure = ['owner', 'admin'].includes(organization?.role ?? 'viewer');
+  const canConfigure = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
 
   const selectedMonthLabel = useMemo(() => monthLabel(monthValue), [monthValue]);
 
@@ -309,7 +309,7 @@ export function BeautyAccountingPage() {
             ? report.tax.mode === 'vat'
               ? `TVA applicable · ${(report.tax.vat_rate_basis_points / 100).toLocaleString('fr-FR')} %`
               : 'TVA non applicable'
-            : 'Le propriétaire ou un administrateur doit configurer le régime fiscal.'}</span>
+            : 'Le propriétaire, un administrateur ou un responsable doit configurer le régime fiscal.'}</span>
         </div>}
       </section>
 
