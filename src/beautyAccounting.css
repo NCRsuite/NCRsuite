@@ -1,0 +1,43 @@
+.beauty-accounting-page{display:flex;flex-direction:column;gap:18px}
+.beauty-accounting-header{align-items:flex-end}
+.beauty-accounting-period-panel{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 16px}
+.beauty-accounting-period-controls{display:flex;align-items:center;gap:8px}
+.beauty-accounting-period-controls label{display:flex;flex-direction:column;gap:4px}
+.beauty-accounting-period-controls label span{font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:#7d8792;font-weight:900}
+.beauty-accounting-period-controls input{border:1px solid #e0e4e8;border-radius:10px;padding:8px 10px;background:#fff;font-size:10px;color:#303841}
+.beauty-accounting-period-copy{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+.beauty-accounting-period-copy strong{font-size:15px;text-transform:capitalize}
+.beauty-accounting-period-copy span{font-size:8px;color:#7f8993;margin-top:2px}
+.beauty-accounting-loading{min-height:170px;display:grid;place-items:center;color:#78818c;font-size:12px}
+.beauty-accounting-warning{display:grid;grid-template-columns:42px minmax(0,1fr);gap:11px;align-items:flex-start;background:#fff8e8;border-color:#ead9b4}
+.beauty-accounting-warning>span{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#fff0c8;color:#8b6920}
+.beauty-accounting-warning strong{font-size:11px}.beauty-accounting-warning p{font-size:9px;color:#766f60;line-height:1.45;margin:3px 0 0}
+.beauty-accounting-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.beauty-accounting-kpis>article{padding:15px;display:flex;flex-direction:column;gap:4px;min-height:110px}
+.beauty-accounting-kpis>article.primary{background:linear-gradient(145deg,color-mix(in srgb,var(--business-accent,#2997ff) 8%,#fff),#fff);border-color:color-mix(in srgb,var(--business-accent,#2997ff) 20%,#e2e6eb)}
+.beauty-accounting-kpis span{font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:#7e8791;font-weight:900}
+.beauty-accounting-kpis strong{font-size:24px;letter-spacing:-.035em;color:#252c34}
+.beauty-accounting-kpis small{font-size:8px;color:#88919a;margin-top:auto;line-height:1.35}
+.beauty-accounting-table-panel,.beauty-accounting-sites-panel,.beauty-accounting-tax-panel{overflow:hidden}
+.beauty-accounting-table-wrap{overflow-x:auto}
+.beauty-accounting-table{width:100%;border-collapse:collapse;min-width:680px}
+.beauty-accounting-table th{padding:9px 10px;text-align:left;background:#2e343b;color:#fff;font-size:7px;text-transform:uppercase;letter-spacing:.05em}
+.beauty-accounting-table th:not(:first-child),.beauty-accounting-table td:not(:first-child){text-align:right}
+.beauty-accounting-table td{padding:11px 10px;border-bottom:1px solid #eaedf0;font-size:9px;color:#3d4650}
+.beauty-accounting-table td:first-child{display:flex;flex-direction:column;align-items:flex-start}
+.beauty-accounting-table td strong{font-size:9px}.beauty-accounting-table td small{font-size:7px;color:#8a929c;margin-top:2px}
+.beauty-accounting-table tfoot td{font-weight:900;background:#f7f8fa;border-bottom:0}
+.beauty-accounting-sites{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.beauty-accounting-sites article{padding:11px 12px;border:1px solid #e8ebee;border-radius:12px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.beauty-accounting-sites article>div{display:flex;flex-direction:column}.beauty-accounting-sites strong{font-size:9px}.beauty-accounting-sites small{font-size:7px;color:#89919a;margin-top:2px}.beauty-accounting-sites article>span{font-size:11px;font-weight:900;white-space:nowrap}
+.beauty-accounting-tax-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.beauty-accounting-tax-form label{display:flex;flex-direction:column;gap:5px;font-size:8px;font-weight:850;color:#68737d}
+.beauty-accounting-tax-form label.wide{grid-column:1/-1}
+.beauty-accounting-tax-form select,.beauty-accounting-tax-form input,.beauty-accounting-tax-form textarea{border:1px solid #dfe3e7;border-radius:10px;background:#fff;padding:9px 10px;font:inherit;color:#303841;outline:none}
+.beauty-accounting-tax-form textarea{resize:vertical}
+.beauty-accounting-tax-actions{grid-column:1/-1;display:flex;justify-content:flex-end}
+.beauty-accounting-tax-readonly{display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:11px;background:#f6f8fa;color:#66717d;font-size:9px}
+.beauty-accounting-disclaimer{display:flex;align-items:flex-start;gap:7px;padding:0 3px;color:#7d8791}
+.beauty-accounting-disclaimer p{font-size:8px;line-height:1.45;margin:0}
+@media(max-width:900px){.beauty-accounting-header{align-items:flex-start}.beauty-accounting-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.beauty-accounting-page{gap:14px}.beauty-accounting-header>.primary-button{width:100%;justify-content:center}.beauty-accounting-period-panel{align-items:stretch;flex-direction:column}.beauty-accounting-period-copy{align-items:flex-start;text-align:left}.beauty-accounting-kpis{gap:7px}.beauty-accounting-kpis>article{padding:11px;min-height:96px}.beauty-accounting-kpis strong{font-size:20px}.beauty-accounting-sites{grid-template-columns:1fr}.beauty-accounting-tax-form{grid-template-columns:1fr}.beauty-accounting-tax-form label.wide,.beauty-accounting-tax-actions{grid-column:1}.beauty-accounting-tax-actions>.primary-button{width:100%;justify-content:center}}
