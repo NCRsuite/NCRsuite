@@ -1,10 +1,11 @@
-import { type CSSProperties, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, type MouseEvent as ReactMouseEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
 import { supabase } from '../lib/supabase';
+import '../beautyAppointmentWeekPlanner.css';
 
 type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
 type ViewMode = 'week' | 'day';
@@ -232,6 +233,71 @@ function overlapsDay(block: AvailabilityBlockRecord, date: Date) {
   const dayStart = startOfDay(date);
   const dayEnd = addDays(dayStart, 1);
   return new Date(block.starts_at) < dayEnd && new Date(block.ends_at) > dayStart;
+}
+
+const WEEK_SLOT_MINUTES = 30;
+const WEEK_GRID_PX_PER_MINUTE = 1.15;
+
+interface WeekAppointmentLayout {
+  appointment: AppointmentRecord;
+  lane: number;
+  laneCount: number;
+}
+
+function clamp(value: number, minimum: number, maximum: number) {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
+function minuteOfDay(date: Date) {
+  return date.getHours() * 60 + date.getMinutes();
+}
+
+function timeFromMinutes(totalMinutes: number) {
+  const normalized = clamp(Math.round(totalMinutes / 15) * 15, 0, 23 * 60 + 45);
+  const hours = Math.floor(normalized / 60);
+  const minutes = normalized % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function layoutOverlappingAppointments(rows: AppointmentRecord[]): WeekAppointmentLayout[] {
+  const sorted = [...rows].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+  const result: WeekAppointmentLayout[] = [];
+  let group: AppointmentRecord[] = [];
+  let groupEnd = 0;
+
+  const flush = () => {
+    if (group.length === 0) return;
+    const laneEnds: number[] = [];
+    const staged: Array<{ appointment: AppointmentRecord; lane: number }> = [];
+
+    group.forEach((appointment) => {
+      const start = new Date(appointment.starts_at).getTime();
+      const end = new Date(appointment.ends_at).getTime();
+      let lane = laneEnds.findIndex((laneEnd) => laneEnd <= start);
+      if (lane < 0) {
+        lane = laneEnds.length;
+        laneEnds.push(end);
+      } else {
+        laneEnds[lane] = end;
+      }
+      staged.push({ appointment, lane });
+    });
+
+    const laneCount = Math.max(1, laneEnds.length);
+    staged.forEach((item) => result.push({ ...item, laneCount }));
+    group = [];
+    groupEnd = 0;
+  };
+
+  sorted.forEach((appointment) => {
+    const start = new Date(appointment.starts_at).getTime();
+    const end = new Date(appointment.ends_at).getTime();
+    if (group.length > 0 && start >= groupEnd) flush();
+    group.push(appointment);
+    groupEnd = Math.max(groupEnd, end);
+  });
+  flush();
+  return result;
 }
 
 export function AppointmentsPage() {
@@ -484,6 +550,45 @@ export function AppointmentsPage() {
     () => visibleAvailabilityBlocks.filter((block) => overlapsDay(block, selectedDate)).sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
     [visibleAvailabilityBlocks, selectedDate]
   );
+
+  const weekPlannerBounds = useMemo(() => {
+    const relevantStaffIds = new Set(visibleStaff.map((member) => member.id));
+    const hourStarts = workingHours
+      .filter((row) => relevantStaffIds.has(row.staff_id))
+      .map((row) => minutesFromTime(row.start_time));
+    const hourEnds = workingHours
+      .filter((row) => relevantStaffIds.has(row.staff_id))
+      .map((row) => minutesFromTime(row.end_time));
+    const weekEnd = addDays(weekStart, 7);
+    const appointmentStarts = visibleAppointments
+      .filter((row) => {
+        const start = new Date(row.starts_at);
+        return start >= weekStart && start < weekEnd;
+      })
+      .map((row) => minuteOfDay(new Date(row.starts_at)));
+    const appointmentEnds = visibleAppointments
+      .filter((row) => {
+        const start = new Date(row.starts_at);
+        return start >= weekStart && start < weekEnd;
+      })
+      .map((row) => minuteOfDay(new Date(row.ends_at)));
+
+    const rawStart = Math.min(8 * 60, ...(hourStarts.length ? hourStarts : [8 * 60]), ...(appointmentStarts.length ? appointmentStarts : [8 * 60]));
+    const rawEnd = Math.max(20 * 60, ...(hourEnds.length ? hourEnds : [20 * 60]), ...(appointmentEnds.length ? appointmentEnds : [20 * 60]));
+    const startMinute = clamp(Math.floor(rawStart / 60) * 60, 5 * 60, 12 * 60);
+    const endMinute = clamp(Math.ceil(rawEnd / 60) * 60, 14 * 60, 24 * 60);
+    return { startMinute, endMinute };
+  }, [visibleStaff, workingHours, visibleAppointments, weekStart]);
+
+  const weekPlannerSlots = useMemo(() => {
+    const slots: number[] = [];
+    for (let minute = weekPlannerBounds.startMinute; minute < weekPlannerBounds.endMinute; minute += WEEK_SLOT_MINUTES) {
+      slots.push(minute);
+    }
+    return slots;
+  }, [weekPlannerBounds]);
+
+  const weekPlannerHeight = (weekPlannerBounds.endMinute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE;
 
   const todayAppointments = appointments.filter((row) => row.status !== 'cancelled' && sameDay(new Date(row.starts_at), new Date()));
   const weekAppointments = appointments.filter((row) => {
@@ -866,6 +971,61 @@ export function AppointmentsPage() {
     setSelectedDate((current) => addDays(current, direction * (viewMode === 'week' ? 7 : 1)));
   }
 
+  function weekSlotState(day: Date, slotStartMinute: number) {
+    const slotEndMinute = slotStartMinute + WEEK_SLOT_MINUTES;
+    const weekday = (day.getDay() + 6) % 7;
+    const relevantStaff = visibleStaff.filter((member) => {
+      if (effectivePlanningSiteId && member.site_id !== effectivePlanningSiteId) return false;
+      return workingHours.some((row) => row.staff_id === member.id
+        && row.weekday === weekday
+        && slotStartMinute >= minutesFromTime(row.start_time)
+        && slotEndMinute <= minutesFromTime(row.end_time));
+    });
+
+    if (relevantStaff.length === 0) return 'closed';
+
+    const slotStart = new Date(day);
+    slotStart.setHours(Math.floor(slotStartMinute / 60), slotStartMinute % 60, 0, 0);
+    const slotEnd = new Date(day);
+    slotEnd.setHours(Math.floor(slotEndMinute / 60), slotEndMinute % 60, 0, 0);
+
+    let blockedCount = 0;
+    let busyCount = 0;
+    let freeCount = 0;
+
+    relevantStaff.forEach((member) => {
+      const onBreak = breaks.some((row) => row.staff_id === member.id
+        && row.weekday === weekday
+        && slotStartMinute < minutesFromTime(row.end_time)
+        && slotEndMinute > minutesFromTime(row.start_time));
+      const unavailable = visibleAvailabilityBlocks.some((block) => block.site_id === member.site_id
+        && (block.staff_id === null || block.staff_id === member.id)
+        && slotStart < new Date(block.ends_at)
+        && slotEnd > new Date(block.starts_at));
+      const occupied = visibleAppointments.some((appointment) => appointment.staff_id === member.id
+        && appointment.status !== 'cancelled'
+        && slotStart < new Date(appointment.ends_at)
+        && slotEnd > new Date(appointment.starts_at));
+
+      if (onBreak || unavailable) blockedCount += 1;
+      else if (occupied) busyCount += 1;
+      else freeCount += 1;
+    });
+
+    if (freeCount > 0) return 'free';
+    if (busyCount > 0) return 'busy';
+    if (blockedCount > 0) return 'blocked';
+    return 'closed';
+  }
+
+  function handleWeekDayClick(day: Date, event: ReactMouseEvent<HTMLDivElement>) {
+    if (!canEditAppointments) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const relativeY = clamp(event.clientY - rect.top, 0, rect.height);
+    const minute = weekPlannerBounds.startMinute + relativeY / WEEK_GRID_PX_PER_MINUTE;
+    openCreateForm(day, timeFromMinutes(minute));
+  }
+
   function availabilityBlockCard(block: AvailabilityBlockRecord) {
     const member = block.staff_id ? staffById.get(block.staff_id) : null;
     const site = sites.find((item) => item.id === block.site_id);
@@ -1087,38 +1247,144 @@ export function AppointmentsPage() {
         {loading ? (
           <div className="list-state">Chargement du planning…</div>
         ) : viewMode === 'week' ? (
-          <div className="planning-grid-scroll appointment-team-scroll">
-            <div className="planning-team-grid appointment-team-grid" style={{ gridTemplateColumns: `190px repeat(7, minmax(155px, 1fr))` }}>
-              <div className="planning-grid-corner">COLLABORATEURS</div>
+          <div className="beauty-week-planner-shell">
+            <div className="beauty-week-planner-legend">
+              <span><i className="free"/>Libre</span>
+              <span><i className="busy"/>Occupé</span>
+              <span><i className="blocked"/>Pause / indisponible</span>
+              <span><i className="closed"/>Hors horaires</span>
+            </div>
+
+            <div className="beauty-week-planner" style={{ '--week-grid-height': `${weekPlannerHeight}px` } as CSSProperties}>
+              <div className="beauty-week-header-time">HEURE</div>
               {weekDays.map((day) => {
-                const count = visibleAppointments.filter((row) => sameDay(new Date(row.starts_at), day)).length;
-                return <button key={day.toISOString()} type="button" className={`planning-grid-date${sameDay(day, new Date()) ? ' today' : ''}`} onClick={() => { setSelectedDate(day); setViewMode('day'); }}><span>{day.toLocaleDateString('fr-FR', { weekday: 'short' })}</span><strong>{day.getDate()}</strong><small>{count} rendez-vous</small></button>;
+                const dayRows = visibleAppointments.filter((row) => sameDay(new Date(row.starts_at), day));
+                return <button
+                  key={`head-${day.toISOString()}`}
+                  type="button"
+                  className={`beauty-week-day-header${sameDay(day, new Date()) ? ' today' : ''}`}
+                  onClick={() => { setSelectedDate(day); setViewMode('day'); }}
+                >
+                  <span>{day.toLocaleDateString('fr-FR', { weekday: 'short' })}</span>
+                  <strong>{day.getDate()}</strong>
+                  <small>{dayRows.length} RDV</small>
+                </button>;
               })}
-              {visibleStaff.map((member) => (
-                <div className="planning-grid-row" style={{ display: 'contents' }} key={member.id}>
-                  <div className="planning-person-cell appointment-staff-cell">
-                    <span className="planning-avatar appointment-avatar" style={{ background: member.color || undefined }}>{member.display_name.split(' ').slice(0, 2).map((part) => part.slice(0, 1)).join('')}</span>
-                    <div><strong>{member.display_name}</strong><small>{weekAppointments.filter((row) => row.staff_id === member.id).length} rendez-vous · {currencyFormatter.format(weekAppointments.filter((row) => row.staff_id === member.id).reduce((sum, row) => sum + (row.amount_cents ?? 0), 0) / 100)}</small></div>
+
+              <div className="beauty-week-time-axis" style={{ height: weekPlannerHeight }}>
+                {weekPlannerSlots.filter((minute) => minute % 60 === 0).map((minute) => (
+                  <span key={minute} style={{ top: (minute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE }}>
+                    {timeFromMinutes(minute)}
+                  </span>
+                ))}
+              </div>
+
+              {weekDays.map((day) => {
+                const dayAppointments = visibleAppointments
+                  .filter((row) => sameDay(new Date(row.starts_at), day))
+                  .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+                const laidOutAppointments = layoutOverlappingAppointments(dayAppointments);
+                const dayBlocks = visibleAvailabilityBlocks
+                  .filter((block) => overlapsDay(block, day))
+                  .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+                const isToday = sameDay(day, new Date());
+                const now = new Date();
+                const nowMinute = minuteOfDay(now);
+                const showNow = isToday
+                  && nowMinute >= weekPlannerBounds.startMinute
+                  && nowMinute <= weekPlannerBounds.endMinute;
+
+                return <div
+                  key={`column-${day.toISOString()}`}
+                  className={`beauty-week-day-column${isToday ? ' today' : ''}`}
+                  style={{ height: weekPlannerHeight }}
+                  onClick={(event) => handleWeekDayClick(day, event)}
+                >
+                  <div className="beauty-week-slot-layer" aria-hidden="true">
+                    {weekPlannerSlots.map((minute) => (
+                      <span
+                        key={minute}
+                        className={`beauty-week-slot ${weekSlotState(day, minute)}`}
+                        style={{
+                          top: (minute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE,
+                          height: WEEK_SLOT_MINUTES * WEEK_GRID_PX_PER_MINUTE
+                        }}
+                      />
+                    ))}
                   </div>
-                  {weekDays.map((day) => {
-                    const cellRows = visibleAppointments.filter((row) => row.staff_id === member.id && sameDay(new Date(row.starts_at), day)).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
-                    const cellBlocks = visibleAvailabilityBlocks.filter((block) => block.site_id === member.site_id && (block.staff_id === null || block.staff_id === member.id) && overlapsDay(block, day));
-                    return <div key={`${member.id}-${day.toISOString()}`} className="planning-grid-cell appointment-team-cell" onClick={() => openCreateForm(day, '09:00')}>
-                      {cellBlocks.map((block) => <button type="button" key={`block-${block.id}`} className={`availability-grid-event kind-${block.kind}`} onClick={(event) => { event.stopPropagation(); openEditAvailability(block); }}><span><Icon name={block.kind === 'leave' ? 'users' : block.kind === 'closure' ? 'building' : 'lock'} size={13} /></span><strong>{block.label || availabilityKindLabels[block.kind]}</strong><small>{block.all_day ? 'Toute la journée' : `${timeFormatter.format(new Date(block.starts_at))} — ${timeFormatter.format(new Date(block.ends_at))}`}</small></button>)}
-                      {cellRows.map((appointment) => {
-                        const client = clientById.get(appointment.client_id);
-                        const items = appointmentItemsById.get(appointment.id) ?? [];
-                        return <button type="button" key={appointment.id} className={`appointment-grid-event ${appointment.status}`} style={{ '--appointment-color': member.color || '#8b5cf6' } as CSSProperties} onClick={(event) => { event.stopPropagation(); if (items.length > 1) { setSelectedDate(startOfDay(new Date(appointment.starts_at))); setViewMode('day'); } else { openEditForm(appointment); } }}>
-                          <strong>{timeFormatter.format(new Date(appointment.starts_at))} · {fullClientName(client)}</strong>
-                          <span>{appointmentServiceLabel(appointment)}</span>
-                          <small>{appointmentDurationMinutes(appointment)} min · {statusLabels[appointment.status]}{items.length > 1 ? ` · ${items.length} prestations` : ''}</small>
-                        </button>;
-                      })}
-                      {canEditAppointments && <button type="button" className="planning-cell-add" onClick={(event) => { event.stopPropagation(); openCreateForm(day, '09:00'); }}>+</button>}
-                    </div>;
+
+                  {dayBlocks.map((block) => {
+                    const dayStart = startOfDay(day);
+                    const dayEnd = addDays(dayStart, 1);
+                    const blockStart = new Date(Math.max(new Date(block.starts_at).getTime(), dayStart.getTime()));
+                    const blockEnd = new Date(Math.min(new Date(block.ends_at).getTime(), dayEnd.getTime()));
+                    const startMinute = block.all_day ? weekPlannerBounds.startMinute : clamp(minuteOfDay(blockStart), weekPlannerBounds.startMinute, weekPlannerBounds.endMinute);
+                    const endMinute = block.all_day ? weekPlannerBounds.endMinute : clamp(minuteOfDay(blockEnd), weekPlannerBounds.startMinute, weekPlannerBounds.endMinute);
+                    if (endMinute <= startMinute) return null;
+                    const member = block.staff_id ? staffById.get(block.staff_id) : null;
+                    return <button
+                      key={`week-block-${block.id}-${dateToInput(day)}`}
+                      type="button"
+                      className={`beauty-week-unavailability kind-${block.kind}${block.staff_id ? ' staff-only' : ' whole-site'}`}
+                      style={{
+                        top: (startMinute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE,
+                        height: Math.max(22, (endMinute - startMinute) * WEEK_GRID_PX_PER_MINUTE)
+                      }}
+                      onClick={(event) => { event.stopPropagation(); openEditAvailability(block); }}
+                      title={`${block.label || availabilityKindLabels[block.kind]}${member ? ` · ${member.display_name}` : ''}`}
+                    >
+                      <Icon name={block.kind === 'leave' ? 'users' : block.kind === 'closure' ? 'building' : 'lock'} size={11}/>
+                      <span>{block.label || availabilityKindLabels[block.kind]}</span>
+                      {member && <small>{member.display_name}</small>}
+                    </button>;
                   })}
-                </div>
-              ))}
+
+                  {laidOutAppointments.map(({ appointment, lane, laneCount }) => {
+                    const client = clientById.get(appointment.client_id);
+                    const member = staffById.get(appointment.staff_id);
+                    const items = appointmentItemsById.get(appointment.id) ?? [];
+                    const start = new Date(appointment.starts_at);
+                    const end = new Date(appointment.ends_at);
+                    const startMinute = clamp(minuteOfDay(start), weekPlannerBounds.startMinute, weekPlannerBounds.endMinute);
+                    const endMinute = clamp(minuteOfDay(end), weekPlannerBounds.startMinute, weekPlannerBounds.endMinute);
+                    const duration = Math.max(15, endMinute - startMinute);
+                    const laneWidth = 100 / laneCount;
+                    return <button
+                      type="button"
+                      key={appointment.id}
+                      className={`beauty-week-appointment status-${appointment.status}`}
+                      style={{
+                        '--appointment-color': member?.color || '#8b5cf6',
+                        top: (startMinute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE + 2,
+                        height: Math.max(28, duration * WEEK_GRID_PX_PER_MINUTE - 4),
+                        left: `calc(${lane * laneWidth}% + 2px)`,
+                        width: `calc(${laneWidth}% - 4px)`
+                      } as CSSProperties}
+                      title={`${timeFormatter.format(start)}–${timeFormatter.format(end)} · ${fullClientName(client)} · ${appointmentServiceLabel(appointment)} · ${member?.display_name ?? ''}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (items.length > 1) {
+                          setSelectedDate(startOfDay(start));
+                          setViewMode('day');
+                        } else {
+                          openEditForm(appointment);
+                        }
+                      }}
+                    >
+                      <span className="beauty-week-appointment-time">{timeFormatter.format(start)}</span>
+                      <strong>{fullClientName(client)}</strong>
+                      <span className="beauty-week-appointment-service">{appointmentServiceLabel(appointment)}</span>
+                      <small>{member?.display_name ?? 'Équipe'} · {appointmentDurationMinutes(appointment)} min</small>
+                    </button>;
+                  })}
+
+                  {showNow && <span
+                    className="beauty-week-now-line"
+                    style={{ top: (nowMinute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE }}
+                    aria-label="Heure actuelle"
+                  ><i/></span>}
+                </div>;
+              })}
             </div>
           </div>
         ) : (
