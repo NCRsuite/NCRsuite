@@ -8,16 +8,17 @@
   }
 
   html[data-beauty-metier="true"] .app-shell .mobile-header {
-    padding-top: env(safe-area-inset-top);
+    padding-top: calc(10px + env(safe-area-inset-top));
   }
 
   html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
   }
 
-  html[data-beauty-metier="true"] .app-shell .mobile-navigation-drawer {
-    padding-top: env(safe-area-inset-top);
-    padding-left: env(safe-area-inset-left);
+  html[data-beauty-metier="true"] .app-shell .mobile-navigation-drawer .mobile-drawer-header {
+    margin-top: env(safe-area-inset-top);
+    margin-left: env(safe-area-inset-left);
+    margin-right: env(safe-area-inset-right);
   }
 
   html[data-beauty-metier="true"] .beauty-sidebar-navigation-host.mobile {
