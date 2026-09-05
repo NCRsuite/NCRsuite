@@ -490,6 +490,16 @@ export function BeautyImportsPage() {
       return;
     }
 
+    const importDecision = await confirm({
+      title: kind === 'clients' ? 'Importer ces fiches clientes ?' : 'Importer ces rendez-vous ?',
+      message: kind === 'clients'
+        ? `${ready} fiche${ready > 1 ? 's' : ''} seront créées et ${merged} fiche${merged > 1 ? 's' : ''} existante${merged > 1 ? 's' : ''} seront complétées. Les doublons ignorés et les lignes en conflit ne seront pas écrits.`
+        : `${ready} rendez-vous historique${ready > 1 ? 's' : ''} seront créés. Les doublons, conflits et lignes non résolues resteront hors import.`,
+      confirmLabel: 'Lancer l’import',
+      tone: 'warning'
+    });
+    if (!importDecision.confirmed) return;
+
     setImporting(true);
     setError('');
     setSuccess('');
