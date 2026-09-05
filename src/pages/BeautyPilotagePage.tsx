@@ -83,7 +83,7 @@ interface GrowthDashboard {
     pending_referrals?: number;
   };
   opportunities?: Array<{
-    id: string;
+    client_id: string;
     first_name: string;
     last_name: string | null;
     reason: 'birthday' | 'inactive' | 'rebook_due' | string;
@@ -473,7 +473,7 @@ export function BeautyPilotagePage() {
         </div>
 
         {opportunities.length > 0 && <div className="beauty-pilot-opportunity-list">
-          {opportunities.slice(0, 6).map((item) => <article key={item.id}>
+          {opportunities.slice(0, 6).map((item) => <article key={item.client_id}>
             <span><Icon name="users" size={16}/></span>
             <div><strong>{fullName(item.first_name, item.last_name)}</strong><small>{opportunityLabel(item.reason)}{item.last_service_name ? ` · ${item.last_service_name}` : ''}</small></div>
             <em>Score {item.score}</em>
