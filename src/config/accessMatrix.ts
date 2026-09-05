@@ -23,7 +23,7 @@ const common = () => new Set<string>(COMMON_ORGANIZATION_PATHS);
 export const BUSINESS_ROUTE_PATHS: Record<BusinessType, Set<string>> = {
   coiffure: new Set([
     ...common(),
-    '/rendez-vous', '/clients', '/equipe', '/acces-equipe', '/prestations', '/ressources', '/stocks', '/historique', '/fidelite', '/personnalisation'
+    '/rendez-vous', '/clients', '/equipe', '/acces-equipe', '/prestations', '/ressources', '/stocks', '/pilotage', '/historique', '/fidelite', '/personnalisation'
   ]),
   formation: new Set([
     ...common(),
