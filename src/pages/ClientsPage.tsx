@@ -272,7 +272,7 @@ export function ClientsPage() {
             ? selectedEnseigne ? `Répertoire client propre à l’enseigne ${selectedEnseigne.name}.` : 'Créez une enseigne pour commencer à constituer son fichier clients.'
             : `Créez et retrouvez les fiches clients de ${organization.name}.`}</p>
         </div>
-        <div className="client-header-actions">
+        <div className="client-header-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {beautyMode && canManage && selectedEnseigneId && <Link className="secondary-button" to="/crm"><Icon name="chart" size={17}/> CRM & segments</Link>}
           {canManage && (
             <button className="primary-button" type="button" onClick={openForm} disabled={beautyMode && !selectedEnseigneId}>
