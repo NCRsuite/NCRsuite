@@ -328,6 +328,10 @@ export function AppointmentsPage() {
   const [success, setSuccess] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('week');
   const [selectedDate, setSelectedDate] = useState(startOfDay(new Date()));
+  const [clientSearch, setClientSearch] = useState('');
+  const [clientSearchBusy, setClientSearchBusy] = useState(false);
+  const [todayAppointmentCount, setTodayAppointmentCount] = useState(0);
+  const [pendingAppointmentCount, setPendingAppointmentCount] = useState(0);
   const [staffFilter, setStaffFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all');
 
@@ -350,6 +354,8 @@ export function AppointmentsPage() {
       : beautySites.length === 1 ? beautySites[0].id : null)
     : activeSiteId;
 
+  const planningWeekKey = dateToInput(startOfWeek(selectedDate));
+
   const loadData = useCallback(async () => {
     if (!organization) return;
     const organizationId = organization.id;
@@ -363,6 +369,8 @@ export function AppointmentsPage() {
       setAppointments([]);
       setAppointmentItems([]);
       setAvailabilityBlocks([]);
+      setTodayAppointmentCount(0);
+      setPendingAppointmentCount(0);
       setLoading(false);
       return;
     }
@@ -374,13 +382,16 @@ export function AppointmentsPage() {
         const raw = localStorage.getItem(`${key}-${organizationId}`);
         return raw ? JSON.parse(raw) as T[] : [];
       };
+      const demoAppointments = read<AppointmentRecord>('ncr-suite-demo-appointments');
       setClients(read<ClientRecord>('ncr-suite-demo-clients').filter((row) => row.status === 'active'));
       setServices(read<ServiceRecord>('ncr-suite-demo-services').filter((row) => row.active));
       setStaff(read<StaffRecord>('ncr-suite-demo-staff').filter((row) => row.active));
       setStaffServices(read<StaffServiceRecord>('ncr-suite-demo-staff-services'));
       setWorkingHours(read<WorkingHourRecord>('ncr-suite-demo-staff-hours'));
       setBreaks(read<BreakRecord>('ncr-suite-demo-staff-breaks'));
-      setAppointments(read<AppointmentRecord>('ncr-suite-demo-appointments'));
+      setAppointments(demoAppointments);
+      setTodayAppointmentCount(demoAppointments.filter((row) => row.status !== 'cancelled' && sameDay(new Date(row.starts_at), new Date())).length);
+      setPendingAppointmentCount(demoAppointments.filter((row) => row.status === 'pending').length);
       setAppointmentItems([]);
       const demoBlocks = read<AvailabilityBlockRecord>('ncr-suite-demo-beauty-blocks');
       setAvailabilityBlocks(beautyMode && selectedEnseigneId ? demoBlocks.filter((row) => row.company_id === selectedEnseigneId && row.active) : []);
@@ -388,12 +399,34 @@ export function AppointmentsPage() {
       return;
     }
 
-    const rangeStart = new Date();
-    rangeStart.setMonth(rangeStart.getMonth() - 3);
-    const rangeEnd = new Date();
-    rangeEnd.setFullYear(rangeEnd.getFullYear() + 1);
+    let rangeStart: Date;
+    let rangeEnd: Date;
+    if (beautyMode) {
+      const anchor = new Date(`${planningWeekKey}T00:00:00`);
+      rangeStart = addDays(anchor, -7);
+      rangeEnd = addDays(anchor, 14);
+    } else {
+      rangeStart = new Date();
+      rangeStart.setMonth(rangeStart.getMonth() - 3);
+      rangeEnd = new Date();
+      rangeEnd.setFullYear(rangeEnd.getFullYear() + 1);
+    }
 
-    let clientsQuery = supabase.from('clients').select('id,first_name,last_name,email,phone,status').eq('organization_id', organizationId).eq('status', 'active').order('first_name');
+    const clientsRequest = beautyMode && selectedEnseigneId
+      ? supabase.rpc('beauty_client_directory', {
+          p_organization_id: organizationId,
+          p_company_id: selectedEnseigneId,
+          p_search: null,
+          p_limit: 100,
+          p_offset: 0,
+          p_active_only: true
+        })
+      : supabase.from('clients')
+          .select('id,first_name,last_name,email,phone,status')
+          .eq('organization_id', organizationId)
+          .eq('status', 'active')
+          .order('first_name');
+
     let servicesQuery = supabase.from('services').select('id,name,duration_minutes,price_cents,active').eq('organization_id', organizationId).eq('active', true).order('name');
     let staffQuery = supabase.from('staff').select('id,display_name,site_id,color,active').eq('organization_id', organizationId).eq('active', true).order('display_name');
     let appointmentsQuery = supabase.from('appointments')
@@ -402,8 +435,8 @@ export function AppointmentsPage() {
       .gte('starts_at', rangeStart.toISOString())
       .lt('starts_at', rangeEnd.toISOString())
       .order('starts_at', { ascending: true });
+
     if (beautyMode && selectedEnseigneId) {
-      clientsQuery = clientsQuery.eq('company_id', selectedEnseigneId);
       servicesQuery = servicesQuery.eq('company_id', selectedEnseigneId);
       staffQuery = staffQuery.eq('company_id', selectedEnseigneId);
       appointmentsQuery = appointmentsQuery.eq('company_id', selectedEnseigneId);
@@ -413,25 +446,47 @@ export function AppointmentsPage() {
       appointmentsQuery = appointmentsQuery.eq('site_id', effectivePlanningSiteId);
     }
 
-    const [clientsResult, servicesResult, staffResult, assignmentsResult, hoursResult, breaksResult, appointmentsResult] = await Promise.all([
-      clientsQuery,
+    let todayCountQuery = supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', organizationId);
+    let pendingCountQuery = supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', organizationId).eq('status', 'pending');
+    const todayStart = startOfDay(new Date());
+    const todayEnd = addDays(todayStart, 1);
+    todayCountQuery = todayCountQuery.gte('starts_at', todayStart.toISOString()).lt('starts_at', todayEnd.toISOString()).neq('status', 'cancelled');
+
+    if (beautyMode && selectedEnseigneId) {
+      todayCountQuery = todayCountQuery.eq('company_id', selectedEnseigneId);
+      pendingCountQuery = pendingCountQuery.eq('company_id', selectedEnseigneId);
+    }
+    if (organization.plan === 'metier' && effectivePlanningSiteId) {
+      todayCountQuery = todayCountQuery.eq('site_id', effectivePlanningSiteId);
+      pendingCountQuery = pendingCountQuery.eq('site_id', effectivePlanningSiteId);
+    }
+
+    const [clientsResult, servicesResult, staffResult, assignmentsResult, hoursResult, breaksResult, appointmentsResult, todayCountResult, pendingCountResult] = await Promise.all([
+      clientsRequest,
       servicesQuery,
       staffQuery,
       supabase.from('staff_services').select('staff_id,service_id').eq('organization_id', organizationId),
       supabase.from('staff_working_hours').select('staff_id,weekday,start_time,end_time').eq('organization_id', organizationId),
       supabase.from('staff_breaks').select('staff_id,weekday,start_time,end_time').eq('organization_id', organizationId),
-      appointmentsQuery
+      appointmentsQuery,
+      beautyMode ? todayCountQuery : Promise.resolve({ count: null, error: null }),
+      beautyMode ? pendingCountQuery : Promise.resolve({ count: null, error: null })
     ]);
 
-    const appointmentIds = ((appointmentsResult.data ?? []) as AppointmentRecord[]).map((row) => row.id);
-    const itemsResult = beautyMode && selectedEnseigneId && appointmentIds.length > 0
-      ? await supabase.from('appointment_service_items')
-        .select('appointment_id,service_id,position,service_name,duration_minutes,price_cents')
-        .eq('organization_id', organizationId)
-        .eq('company_id', selectedEnseigneId)
-        .in('appointment_id', appointmentIds)
-        .order('position', { ascending: true })
-      : { data: [], error: null };
+    const appointmentRows = (appointmentsResult.data ?? []) as AppointmentRecord[];
+    const appointmentIds = appointmentRows.map((row) => row.id);
+
+    const itemChunks: string[][] = [];
+    for (let index = 0; index < appointmentIds.length; index += 150) itemChunks.push(appointmentIds.slice(index, index + 150));
+    const itemResults = beautyMode && selectedEnseigneId
+      ? await Promise.all(itemChunks.map((chunk) => supabase.from('appointment_service_items')
+          .select('appointment_id,service_id,position,service_name,duration_minutes,price_cents')
+          .eq('organization_id', organizationId)
+          .eq('company_id', selectedEnseigneId)
+          .in('appointment_id', chunk)
+          .order('position', { ascending: true })))
+      : [];
+    const appointmentItemRows = itemResults.flatMap((result) => (result.data ?? []) as AppointmentServiceItemRecord[]);
 
     const blocksResult = beautyMode && selectedEnseigneId
       ? await supabase.from('beauty_availability_blocks')
@@ -444,26 +499,107 @@ export function AppointmentsPage() {
         .order('starts_at', { ascending: true })
       : { data: [], error: null };
 
-    const firstError = [clientsResult, servicesResult, staffResult, assignmentsResult, hoursResult, breaksResult, appointmentsResult, itemsResult, blocksResult]
-      .find((result) => result.error)?.error;
+    let baseClients: ClientRecord[];
+    if (beautyMode && selectedEnseigneId) {
+      const directoryPayload = (clientsResult.data ?? { items: [] }) as { items?: ClientRecord[] };
+      baseClients = Array.isArray(directoryPayload.items) ? directoryPayload.items : [];
+    } else {
+      baseClients = (clientsResult.data ?? []) as ClientRecord[];
+    }
+
+    const loadedClientIds = new Set(baseClients.map((client) => client.id));
+    const missingClientIds = [...new Set(appointmentRows.map((row) => row.client_id))]
+      .filter((id) => id && !loadedClientIds.has(id));
+    const clientChunks: string[][] = [];
+    for (let index = 0; index < missingClientIds.length; index += 100) clientChunks.push(missingClientIds.slice(index, index + 100));
+    const appointmentClientResults = beautyMode && selectedEnseigneId
+      ? await Promise.all(clientChunks.map((chunk) => supabase.from('clients')
+          .select('id,first_name,last_name,email,phone,status')
+          .eq('organization_id', organizationId)
+          .eq('company_id', selectedEnseigneId)
+          .in('id', chunk)))
+      : [];
+    const appointmentClients = appointmentClientResults.flatMap((result) => (result.data ?? []) as ClientRecord[]);
+
+    const allResults = [
+      clientsResult,servicesResult,staffResult,assignmentsResult,hoursResult,breaksResult,appointmentsResult,
+      blocksResult,...itemResults,...appointmentClientResults
+    ];
+    const firstError = allResults.find((result) => result.error)?.error
+      || (beautyMode ? todayCountResult.error || pendingCountResult.error : null);
 
     if (firstError) {
       setError(`Impossible de charger le planning : ${firstError.message}`);
     } else {
-      setClients((clientsResult.data ?? []) as ClientRecord[]);
+      const mergedClients = [...baseClients];
+      const known = new Set(mergedClients.map((client) => client.id));
+      appointmentClients.forEach((client) => {
+        if (!known.has(client.id)) {
+          known.add(client.id);
+          mergedClients.push(client);
+        }
+      });
+      setClients(mergedClients);
       setServices((servicesResult.data ?? []) as ServiceRecord[]);
       setStaff((staffResult.data ?? []) as StaffRecord[]);
       setStaffServices((assignmentsResult.data ?? []) as StaffServiceRecord[]);
       setWorkingHours((hoursResult.data ?? []) as WorkingHourRecord[]);
       setBreaks((breaksResult.data ?? []) as BreakRecord[]);
-      setAppointments((appointmentsResult.data ?? []) as AppointmentRecord[]);
-      setAppointmentItems((itemsResult.data ?? []) as AppointmentServiceItemRecord[]);
+      setAppointments(appointmentRows);
+      setAppointmentItems(appointmentItemRows);
       setAvailabilityBlocks((blocksResult.data ?? []) as AvailabilityBlockRecord[]);
+      if (beautyMode) {
+        setTodayAppointmentCount(Number(todayCountResult.count ?? 0));
+        setPendingAppointmentCount(Number(pendingCountResult.count ?? 0));
+      }
     }
     setLoading(false);
-  }, [organization, demoMode, effectivePlanningSiteId, beautyMode, selectedEnseigneId]);
+  }, [organization, demoMode, effectivePlanningSiteId, beautyMode, selectedEnseigneId, planningWeekKey]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  useEffect(() => {
+    if (!beautyMode || !selectedEnseigneId || !organization || demoMode || !supabase || !formOpen) {
+      setClientSearchBusy(false);
+      return;
+    }
+    const needle = clientSearch.trim();
+    if (needle.length < 2) {
+      setClientSearchBusy(false);
+      return;
+    }
+
+    let active = true;
+    const timeout = window.setTimeout(async () => {
+      setClientSearchBusy(true);
+      const { data, error: searchError } = await supabase.rpc('beauty_client_directory', {
+        p_organization_id: organization.id,
+        p_company_id: selectedEnseigneId,
+        p_search: needle,
+        p_limit: 50,
+        p_offset: 0,
+        p_active_only: true
+      });
+      if (!active) return;
+      if (searchError) {
+        setError(`Recherche client impossible : ${searchError.message}`);
+      } else {
+        const payload = (data ?? { items: [] }) as { items?: ClientRecord[] };
+        const next = Array.isArray(payload.items) ? payload.items : [];
+        setClients((current) => {
+          const map = new Map(current.map((client) => [client.id, client]));
+          next.forEach((client) => map.set(client.id, client));
+          return [...map.values()];
+        });
+      }
+      setClientSearchBusy(false);
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+    };
+  }, [clientSearch, beautyMode, selectedEnseigneId, organization?.id, demoMode, formOpen]);
 
   useEffect(() => {
     const defaultSiteId = beautyMode
@@ -590,12 +726,16 @@ export function AppointmentsPage() {
 
   const weekPlannerHeight = (weekPlannerBounds.endMinute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE;
 
-  const todayAppointments = appointments.filter((row) => row.status !== 'cancelled' && sameDay(new Date(row.starts_at), new Date()));
+  const todayCount = beautyMode && !demoMode
+    ? todayAppointmentCount
+    : appointments.filter((row) => row.status !== 'cancelled' && sameDay(new Date(row.starts_at), new Date())).length;
   const weekAppointments = appointments.filter((row) => {
     const start = new Date(row.starts_at);
     return row.status !== 'cancelled' && start >= weekStart && start < addDays(weekStart, 7);
   });
-  const pendingCount = appointments.filter((row) => row.status === 'pending').length;
+  const pendingCount = beautyMode && !demoMode
+    ? pendingAppointmentCount
+    : appointments.filter((row) => row.status === 'pending').length;
   const weekAmount = weekAppointments.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
 
   function openCreateForm(date?: Date, time?: string, staffId?: string) {
@@ -608,6 +748,7 @@ export function AppointmentsPage() {
     if (staffId && staff.some((member) => member.id === staffId)) base.staffId = staffId;
     setEditingId(null);
     setForm(base);
+    setClientSearch('');
     setError('');
     setSuccess('');
     setSearchParams({ new: '1' });
@@ -634,6 +775,7 @@ export function AppointmentsPage() {
       notes: appointment.notes ?? ''
     });
     setEditingId(appointment.id);
+    setClientSearch('');
     setSearchParams({});
     setError('');
     setSuccess('');
@@ -642,6 +784,7 @@ export function AppointmentsPage() {
 
   function closeForm() {
     setEditingId(null);
+    setClientSearch('');
     setForm(emptyForm(beautyMode ? defaultBeautySiteId : activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? ''));
     setError('');
     setSearchParams({});
@@ -1153,8 +1296,18 @@ export function AppointmentsPage() {
                 </select>
               </label>
             )}
-            <label>
+            <label className="appointment-client-field">
               Client <span aria-hidden="true">*</span>
+              {beautyMode && <span className="appointment-client-search">
+                <input
+                  type="search"
+                  value={clientSearch}
+                  onChange={(event) => setClientSearch(event.target.value)}
+                  placeholder="Rechercher par nom, e-mail ou téléphone…"
+                  autoComplete="off"
+                />
+                <small>{clientSearchBusy ? 'Recherche…' : clientSearch.trim().length > 0 && clientSearch.trim().length < 2 ? 'Saisissez au moins 2 caractères' : '100 clientes récentes + résultats de recherche'}</small>
+              </span>}
               <select value={form.clientId} onChange={(event) => setForm((current) => ({ ...current, clientId: event.target.value }))} required>
                 <option value="">Sélectionner un client</option>
                 {clients.map((client) => <option key={client.id} value={client.id}>{fullClientName(client)}{client.phone ? ` · ${client.phone}` : ''}</option>)}
@@ -1216,7 +1369,7 @@ export function AppointmentsPage() {
       {success && <div className="success-message page-message" role="status">{success}</div>}
 
       <section className="appointment-summary-grid" aria-label="Résumé des rendez-vous">
-        <article className="panel appointment-summary-card"><span>Aujourd’hui</span><strong>{todayAppointments.length}</strong><small>rendez-vous non annulé{todayAppointments.length > 1 ? 's' : ''}</small></article>
+        <article className="panel appointment-summary-card"><span>Aujourd’hui</span><strong>{todayCount}</strong><small>rendez-vous non annulé{todayCount > 1 ? 's' : ''}</small></article>
         <article className="panel appointment-summary-card"><span>Semaine affichée</span><strong>{weekAppointments.length}</strong><small>rendez-vous planifié{weekAppointments.length > 1 ? 's' : ''}</small></article>
         <article className="panel appointment-summary-card"><span>À confirmer</span><strong>{pendingCount}</strong><small>demande{pendingCount > 1 ? 's' : ''} en attente</small></article>
         <article className="panel appointment-summary-card"><span>Prévision semaine</span><strong>{currencyFormatter.format(weekAmount / 100)}</strong><small>hors rendez-vous annulés</small></article>
