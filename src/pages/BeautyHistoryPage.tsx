@@ -144,7 +144,7 @@ function iconFor(category: HistoryCategory) {
 
 function labelForAction(action: string) {
   if (actionLabels[action]) return actionLabels[action];
-  return action.split('.').pop()?.replaceAll('_', ' ') || 'Modification';
+  return action.split('.').pop()?.replace(/_/g, ' ') || 'Modification';
 }
 
 function formatDateTime(value: string) {
@@ -371,7 +371,7 @@ export function BeautyHistoryPage() {
               {statusValue && <p className="beauty-history-inline-detail">Nouveau statut : <strong>{statusValue}</strong></p>}
               {Number.isFinite(requirementCount) && <p className="beauty-history-inline-detail"><strong>{requirementCount}</strong> prestation{requirementCount > 1 ? 's' : ''} configurée{requirementCount > 1 ? 's' : ''}.</p>}
               {Number.isFinite(delta) && <p className="beauty-history-inline-detail">Mouvement : <strong>{delta > 0 ? '+' : ''}{delta}</strong></p>}
-              {changedFields.length > 0 && !changedFields.includes('created') && <div className="beauty-history-changed-fields">{changedFields.map((field) => <span key={field}>{fieldLabels[field] || field.replaceAll('_', ' ')}</span>)}</div>}
+              {changedFields.length > 0 && !changedFields.includes('created') && <div className="beauty-history-changed-fields">{changedFields.map((field) => <span key={field}>{fieldLabels[field] || field.replace(/_/g, ' ')}</span>)}</div>}
 
               {hasDiff && <button type="button" className="beauty-history-detail-button" onClick={() => setExpandedId(expanded ? null : item.id)}>
                 {expanded ? 'Masquer le détail' : 'Voir le détail avant / après'} <span className={expanded ? 'rotated' : ''}><Icon name="chevronDown" size={13}/></span>
