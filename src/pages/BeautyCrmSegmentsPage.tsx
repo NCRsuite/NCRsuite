@@ -68,6 +68,10 @@ interface SegmentClientsPayload {
   items: SegmentClient[];
 }
 
+interface CrmWorkspacePayload extends SegmentSummary {
+  audience: SegmentClientsPayload;
+}
+
 const money = new Intl.NumberFormat('fr-FR', {
   style: 'currency',
   currency: 'EUR',
@@ -210,46 +214,23 @@ export function BeautyCrmSegmentsPage() {
 
   useEffect(() => {
     let active = true;
-    async function loadSummary() {
+
+    async function loadWorkspace() {
       if (!organization || !selectedEnseigneId || !canView || demoMode || !supabase) {
         if (active) {
           setSummary(null);
-          setLoadingSummary(false);
-        }
-        return;
-      }
-      setLoadingSummary(true);
-      setError('');
-      const { data, error: requestError } = await supabase.rpc('beauty_crm_segments_dashboard', {
-        p_organization_id: organization.id,
-        p_company_id: selectedEnseigneId
-      });
-      if (!active) return;
-      if (requestError) {
-        setError(requestError.message);
-        setSummary(null);
-      } else {
-        setSummary((data ?? null) as SegmentSummary | null);
-      }
-      setLoadingSummary(false);
-    }
-    void loadSummary();
-    return () => { active = false; };
-  }, [organization?.id, selectedEnseigneId, canView, demoMode]);
-
-  useEffect(() => {
-    let active = true;
-    async function loadClients() {
-      if (!organization || !selectedEnseigneId || !canView || demoMode || !supabase) {
-        if (active) {
           setClientsPayload(null);
+          setLoadingSummary(false);
           setLoadingClients(false);
         }
         return;
       }
+
+      setLoadingSummary(true);
       setLoadingClients(true);
       setError('');
-      const { data, error: requestError } = await supabase.rpc('beauty_crm_segment_clients', {
+
+      const { data, error: requestError } = await supabase.rpc('beauty_crm_workspace', {
         p_organization_id: organization.id,
         p_company_id: selectedEnseigneId,
         p_segment: selectedSegment,
@@ -257,16 +238,27 @@ export function BeautyCrmSegmentsPage() {
         p_limit: 100,
         p_offset: offset
       });
+
       if (!active) return;
+
       if (requestError) {
         setError(requestError.message);
+        setSummary(null);
         setClientsPayload(null);
       } else {
-        setClientsPayload((data ?? null) as SegmentClientsPayload | null);
+        const workspace = (data ?? null) as CrmWorkspacePayload | null;
+        setSummary(workspace ? {
+          summary: workspace.summary,
+          segments: workspace.segments
+        } : null);
+        setClientsPayload(workspace?.audience ?? null);
       }
+
+      setLoadingSummary(false);
       setLoadingClients(false);
     }
-    void loadClients();
+
+    void loadWorkspace();
     return () => { active = false; };
   }, [organization?.id, selectedEnseigneId, selectedSegment, query, offset, canView, demoMode]);
 
