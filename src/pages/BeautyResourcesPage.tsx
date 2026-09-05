@@ -384,7 +384,7 @@ export function BeautyResourcesPage() {
         <label>Établissement <select disabled={editingId !== 'new'} value={form.siteId} onChange={(event) => setForm((current) => ({ ...current, siteId: event.target.value }))}><option value="">Sélectionner</option>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select>{editingId !== 'new' && <small>Pour déplacer physiquement une ressource, recréez-la dans le bon établissement afin de préserver ses affectations.</small>}</label>
         <label>Capacité simultanée <input type="number" min={1} max={100} inputMode="numeric" value={form.capacity} onChange={(event) => setForm((current) => ({ ...current, capacity: event.target.value }))}/><small>Ex. 4 si « Fauteuils coiffure » représente 4 postes identiques.</small></label>
         <label className="full-field">Notes<textarea rows={3} maxLength={1000} value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Référence machine, emplacement, informations internes…"/></label>
-        <div className="form-actions full-field"><button type="button" className="secondary-button" onClick={closeForm}>Annuler</button><button type="submit" className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button></div>
+        <div className="form-actions full-field"><button type="button" className="secondary-button" onClick={closeForm}>Annuler</button><button type="submit" className="primary-button" disabled={saving} aria-busy={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button></div>
       </form>
     </section>}
 
@@ -404,7 +404,7 @@ export function BeautyResourcesPage() {
           </label>;
         })}</div>
         {services.filter((service) => service.active).length === 0 && <div className="list-state">Aucune prestation active à associer.</div>}
-        <div className="form-actions"><button type="button" className="secondary-button" onClick={() => setAssigningId(null)}>Annuler</button><button type="submit" className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer les affectations'}</button></div>
+        <div className="form-actions"><button type="button" className="secondary-button" onClick={() => setAssigningId(null)}>Annuler</button><button type="submit" className="primary-button" disabled={saving} aria-busy={saving}>{saving ? 'Enregistrement…' : 'Enregistrer les affectations'}</button></div>
       </form>
     </section>}
 
@@ -417,7 +417,7 @@ export function BeautyResourcesPage() {
 
     <section className="panel beauty-resources-list-panel">
       <div className="beauty-resources-toolbar"><div><p className="eyebrow">RESSOURCES{selectedEnseigne ? ` · ${selectedEnseigne.name}` : ''}</p><h2>{resources.length} ressource{resources.length > 1 ? 's' : ''}</h2></div><label><span className="sr-only">Filtrer par établissement</span><select value={siteFilter} onChange={(event) => setSiteFilter(event.target.value)}><option value="all">Tous les établissements</option>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label></div>
-      {loading || enseigneLoading ? <div className="list-state">Chargement des ressources…</div> : filteredResources.length === 0 ? <div className="list-state empty-service-state"><div className="empty-icon"><Icon name="tool" size={30}/></div><h3>Aucune ressource</h3><p>Ajoutez vos cabines, fauteuils, machines ou postes pour les intégrer automatiquement à la disponibilité des rendez-vous.</p>{canManage && sites.length > 0 && <button className="primary-button" type="button" onClick={openCreate}>Créer la première ressource</button>}</div> : <div className="beauty-resources-grid">{filteredResources.map((resource) => {
+      {loading || enseigneLoading ? <div className="list-state beauty-loading-state" aria-busy="true">Chargement des ressources…</div> : filteredResources.length === 0 ? <div className="list-state empty-service-state"><div className="empty-icon"><Icon name="tool" size={30}/></div><h3>Aucune ressource</h3><p>Ajoutez vos cabines, fauteuils, machines ou postes pour les intégrer automatiquement à la disponibilité des rendez-vous.</p>{canManage && sites.length > 0 && <button className="primary-button" type="button" onClick={openCreate}>Créer la première ressource</button>}</div> : <div className="beauty-resources-grid">{filteredResources.map((resource) => {
         const site = sites.find((row) => row.id === resource.site_id);
         const resourceRequirements = assignmentsByResource.get(resource.id) ?? [];
         const serviceNames = resourceRequirements.map((requirement) => services.find((service) => service.id === requirement.service_id)?.name).filter(Boolean) as string[];
@@ -426,7 +426,7 @@ export function BeautyResourcesPage() {
           <div className="beauty-resource-meta"><span><Icon name="map" size={14}/>{site?.name || 'Établissement'}</span><span><Icon name="users" size={14}/>Capacité {resource.capacity}</span></div>
           <div className="beauty-resource-services"><small>Prestations liées</small>{serviceNames.length > 0 ? <div>{serviceNames.slice(0,4).map((name) => <span key={name}>{name}</span>)}{serviceNames.length > 4 && <span>+{serviceNames.length-4}</span>}</div> : <p>Aucune prestation n’utilise encore cette ressource.</p>}</div>
           {resource.notes && <p className="beauty-resource-notes">{resource.notes}</p>}
-          {canManage && <div className="beauty-resource-actions"><button className="secondary-button compact-button" type="button" onClick={() => openAssignments(resource)}>Prestations</button><button className="secondary-button compact-button" type="button" onClick={() => openEdit(resource)}>Modifier</button><button className={resource.active ? 'danger-text-button' : 'icon-text-button'} type="button" disabled={busyId === resource.id} onClick={() => void toggleResource(resource)}>{busyId === resource.id ? 'Mise à jour…' : resource.active ? 'Désactiver' : 'Réactiver'}</button></div>}
+          {canManage && <div className="beauty-resource-actions"><button className="secondary-button compact-button" type="button" onClick={() => openAssignments(resource)}>Prestations</button><button className="secondary-button compact-button" type="button" onClick={() => openEdit(resource)}>Modifier</button><button className={resource.active ? 'danger-text-button' : 'icon-text-button'} type="button" disabled={busyId === resource.id} aria-busy={busyId === resource.id} onClick={() => void toggleResource(resource)}>{busyId === resource.id ? 'Mise à jour…' : resource.active ? 'Désactiver' : 'Réactiver'}</button></div>}
         </article>;
       })}</div>}
     </section>
