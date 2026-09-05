@@ -439,7 +439,7 @@ export function BeautyDataPrivacyPage() {
     return <div className="page"><div className="info-message page-message">Les exports et outils RGPD sont disponibles dans l’environnement Coiffure & beauté Métier.</div></div>;
   }
   if (!canView) {
-    return <div className="page"><div className="error-message page-message">Cette rubrique est réservée aux propriétaires, administrateurs et responsables autorisés.</div></div>;
+    return <div className="page"><div className="error-message page-message" role="alert">Cette rubrique est réservée aux propriétaires, administrateurs et responsables autorisés.</div></div>;
   }
 
   return <div className="page beauty-data-privacy-page">
