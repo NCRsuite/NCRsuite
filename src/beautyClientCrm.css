@@ -37,3 +37,7 @@
   .beauty-crm-document-list article>button{grid-column:3;grid-row:1}
   .beauty-crm-document-list article>a,.beauty-crm-document-list article>em{grid-column:2;justify-self:start}
 }
+
+.beauty-clients-load-more{display:flex;justify-content:center;padding:14px 0 2px}
+.beauty-clients-load-more>.secondary-button{min-width:220px;justify-content:center}
+@media(max-width:640px){.beauty-clients-load-more>.secondary-button{width:100%;min-width:0}}
