@@ -107,6 +107,7 @@ export function BeautyDataPrivacyPage() {
   const { confirm } = useConfirmDialog();
 
   const [clients, setClients] = useState<ClientOption[]>([]);
+  const [loadingClients, setLoadingClients] = useState(true);
   const [clientQuery, setClientQuery] = useState('');
   const [selectedClientId, setSelectedClientId] = useState('');
   const [clientMedia, setClientMedia] = useState<ClientMediaFile[]>([]);
@@ -149,9 +150,11 @@ export function BeautyDataPrivacyPage() {
   async function loadClients() {
     if (!organization || !selectedEnseigneId || !canView || demoMode || !supabase) {
       setClients([]);
+      setLoadingClients(false);
       return;
     }
 
+    setLoadingClients(true);
     const { data, error: requestError } = await supabase
       .from('clients')
       .select('id,first_name,last_name,email,phone,status,created_at')
@@ -162,6 +165,7 @@ export function BeautyDataPrivacyPage() {
     if (requestError) {
       setError(requestError.message);
       setClients([]);
+      setLoadingClients(false);
       return;
     }
 
@@ -169,6 +173,7 @@ export function BeautyDataPrivacyPage() {
       ((data ?? []) as ClientOption[])
         .filter((client) => client.first_name !== 'Client supprimé')
     );
+    setLoadingClients(false);
   }
 
   async function loadSelectedClientFiles(clientId: string) {
@@ -465,6 +470,7 @@ export function BeautyDataPrivacyPage() {
           type="button"
           className="primary-button"
           disabled={preparingCompanyExport || !selectedEnseigneId || demoMode}
+          aria-busy={preparingCompanyExport}
           onClick={() => void prepareCompanyExport()}
         >
           <Icon name="file" size={16}/>{preparingCompanyExport ? 'Préparation…' : companyExport ? 'Actualiser l’export' : 'Préparer les exports'}
@@ -512,8 +518,10 @@ export function BeautyDataPrivacyPage() {
         <select
           value={selectedClientId}
           onChange={(event) => setSelectedClientId(event.target.value)}
+          disabled={loadingClients}
+          aria-busy={loadingClients}
         >
-          <option value="">Sélectionner une fiche…</option>
+          <option value="">{loadingClients ? 'Chargement des clientes…' : 'Sélectionner une fiche…'}</option>
           {filteredClients.map((client) => <option key={client.id} value={client.id}>
             {fullName(client)}{client.email ? ` · ${client.email}` : ''}{client.status === 'archived' ? ' · archivée' : ''}
           </option>)}
@@ -529,7 +537,7 @@ export function BeautyDataPrivacyPage() {
             <em>Fiche créée le {dateOnly.format(new Date(selectedClient.created_at))}</em>
           </div>
         </div>
-        <button type="button" className="primary-button" disabled={exportingClient} onClick={() => void exportSelectedClient()}>
+        <button type="button" className="primary-button" disabled={exportingClient} aria-busy={exportingClient} onClick={() => void exportSelectedClient()}>
           <Icon name="file" size={16}/>{exportingClient ? 'Export…' : 'Exporter la portabilité'}
         </button>
       </div>}
@@ -544,6 +552,7 @@ export function BeautyDataPrivacyPage() {
               type="button"
               className="secondary-button compact-button"
               disabled={downloadingFileId === item.id}
+              aria-busy={downloadingFileId === item.id}
               onClick={() => void downloadPrivateFile(
                 'beauty-client-media',
                 item.storage_path,
@@ -582,6 +591,7 @@ export function BeautyDataPrivacyPage() {
           type="button"
           className="secondary-button compact-button"
           disabled={!selectedClient || preparingErasure || demoMode}
+          aria-busy={preparingErasure}
           onClick={() => void prepareErasure()}
         >
           <Icon name="shield" size={14}/>{preparingErasure ? 'Analyse…' : 'Préparer l’effacement'}
@@ -641,6 +651,7 @@ export function BeautyDataPrivacyPage() {
             type="button"
             className="danger-button"
             disabled={erasing || erasureConfirm.trim().toUpperCase() !== 'EFFACER' || erasureReason.trim().length < 5}
+            aria-busy={erasing}
             onClick={() => void executeErasure()}
           >
             <Icon name="alert" size={15}/>{erasing ? 'Effacement…' : 'Effacer et anonymiser'}
