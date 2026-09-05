@@ -172,7 +172,7 @@ export function BeautyAccountingPage() {
     return <div className="page"><div className="info-message page-message">La feuille comptable mensuelle est disponible dans l’environnement Coiffure & beauté Métier.</div></div>;
   }
   if (!canView) {
-    return <div className="page"><div className="error-message page-message">La comptabilité est réservée aux propriétaires, administrateurs et managers autorisés.</div></div>;
+    return <div className="page"><div className="error-message page-message" role="alert">La comptabilité est réservée aux propriétaires, administrateurs et managers autorisés.</div></div>;
   }
 
   const summary = report?.summary;
