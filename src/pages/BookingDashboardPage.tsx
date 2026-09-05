@@ -236,6 +236,7 @@ export function BookingDashboardPage() {
         </div>
         <div className="beauty-hero-actions">
           {canManage ? <Link className="primary-button" to="/rendez-vous?new=1"><Icon name="plus" size={17} /> Nouveau rendez-vous</Link> : <Link className="primary-button" to="/rendez-vous"><Icon name="calendar" size={17} /> Mon planning</Link>}
+          {canManage && organization.plan === 'metier' && <Link className="secondary-button" to="/pilotage"><Icon name="chart" size={17} /> Pilotage</Link>}
           {canConfigure && centerMode && receptionReady.length > 0
             ? <Link className="secondary-button" to="/?metier=reception"><Icon name="calendar" size={17} /> Accueil partagé</Link>
             : canConfigure && organization.plan === 'metier'
