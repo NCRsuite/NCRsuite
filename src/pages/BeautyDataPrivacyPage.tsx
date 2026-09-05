@@ -14,6 +14,7 @@ import {
   type BeautyCsvDatasetKey
 } from '../features/beauty/dataExport';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
+import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import {
   closeFileWindow,
   prepareFileWindow,
@@ -102,6 +103,8 @@ export function BeautyDataPrivacyPage() {
     selectedEnseigneId,
     loading: enseigneLoading
   } = useBeautyEnseigneContext();
+
+  const { confirm } = useConfirmDialog();
 
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [clientQuery, setClientQuery] = useState('');
@@ -388,10 +391,13 @@ export function BeautyDataPrivacyPage() {
       return;
     }
 
-    const accepted = window.confirm(
-      `Confirmer l’effacement RGPD de ${fullName(selectedClient)} ?\n\nCette action supprime le dossier privé, retire les fichiers, désactive les usages marketing et anonymise la fiche. Les rendez-vous historiques nécessaires au suivi d’activité restent conservés sans identité.`
-    );
-    if (!accepted) return;
+    const decision = await confirm({
+      title: `Effacer et anonymiser ${fullName(selectedClient)} ?`,
+      message: 'Cette action supprime le dossier privé, retire les fichiers, désactive les usages marketing et anonymise la fiche. Les rendez-vous historiques nécessaires au suivi d’activité restent conservés sans identité.\n\nCette opération est volontairement protégée par la saisie EFFACER déjà effectuée.',
+      confirmLabel: 'Effacer définitivement',
+      tone: 'danger'
+    });
+    if (!decision.confirmed) return;
 
     setErasing(true);
     setError('');
