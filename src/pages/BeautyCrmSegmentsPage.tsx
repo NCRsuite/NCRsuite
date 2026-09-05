@@ -226,7 +226,7 @@ export function BeautyCrmSegmentsPage() {
         return;
       }
 
-      setLoadingSummary(true);
+      if (!summary) setLoadingSummary(true);
       setLoadingClients(true);
       setError('');
 
@@ -300,7 +300,7 @@ export function BeautyCrmSegmentsPage() {
     {!selectedEnseigneId && !enseigneLoading && <div className="info-message page-message">Aucune enseigne Beauty sélectionnée.</div>}
     {error && <div className="error-message page-message" role="alert">{error}</div>}
 
-    {loadingSummary || enseigneLoading ? <div className="panel beauty-crm-loading">Analyse du fichier client…</div> : summary ? <>
+    {loadingSummary || enseigneLoading ? <div className="panel beauty-crm-loading beauty-loading-state" aria-busy="true">Analyse du fichier client…</div> : summary ? <>
       <section className="beauty-crm-kpis">
         <article className="panel"><span>Clients actifs</span><strong>{summary.summary.active_clients}</strong><small>dans cette enseigne</small></article>
         <article className="panel"><span>Marketing autorisé</span><strong>{summary.summary.marketing_allowed}</strong><small>selon le dernier consentement</small></article>
@@ -370,7 +370,7 @@ export function BeautyCrmSegmentsPage() {
           </div>
         </div>
 
-        {loadingClients ? <div className="beauty-crm-loading compact">Chargement de l’audience…</div> : items.length === 0 ? <div className="list-state">Aucune cliente dans ce segment{query ? ' pour cette recherche' : ''}.</div> : <>
+        {loadingClients ? <div className="beauty-crm-loading compact beauty-loading-state" aria-busy="true">Chargement de l’audience…</div> : items.length === 0 ? <div className="list-state">Aucune cliente dans ce segment{query ? ' pour cette recherche' : ''}.</div> : <>
           <div className="beauty-crm-client-list">
             {items.map((client) => <article key={client.id} className="beauty-crm-client-card">
               <div className="beauty-crm-client-avatar">{client.first_name.slice(0,1).toUpperCase()}</div>
