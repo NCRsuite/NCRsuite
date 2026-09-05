@@ -401,6 +401,8 @@ export function AppointmentsPage() {
       return;
     }
 
+    const supabaseClient = supabase;
+
     let rangeStart: Date;
     let rangeEnd: Date;
     if (beautyMode) {
@@ -481,7 +483,7 @@ export function AppointmentsPage() {
     const itemChunks: string[][] = [];
     for (let index = 0; index < appointmentIds.length; index += 150) itemChunks.push(appointmentIds.slice(index, index + 150));
     const itemResults = beautyMode && selectedEnseigneId
-      ? await Promise.all(itemChunks.map((chunk) => supabase.from('appointment_service_items')
+      ? await Promise.all(itemChunks.map((chunk) => supabaseClient.from('appointment_service_items')
           .select('appointment_id,service_id,position,service_name,duration_minutes,price_cents')
           .eq('organization_id', organizationId)
           .eq('company_id', selectedEnseigneId)
@@ -515,7 +517,7 @@ export function AppointmentsPage() {
     const clientChunks: string[][] = [];
     for (let index = 0; index < missingClientIds.length; index += 100) clientChunks.push(missingClientIds.slice(index, index + 100));
     const appointmentClientResults = beautyMode && selectedEnseigneId
-      ? await Promise.all(clientChunks.map((chunk) => supabase.from('clients')
+      ? await Promise.all(clientChunks.map((chunk) => supabaseClient.from('clients')
           .select('id,first_name,last_name,email,phone,status')
           .eq('organization_id', organizationId)
           .eq('company_id', selectedEnseigneId)
@@ -565,6 +567,7 @@ export function AppointmentsPage() {
       setClientSearchBusy(false);
       return;
     }
+    const supabaseClient = supabase;
     const needle = clientSearch.trim();
     if (needle.length < 2) {
       setClientSearchBusy(false);
@@ -574,7 +577,7 @@ export function AppointmentsPage() {
     let active = true;
     const timeout = window.setTimeout(async () => {
       setClientSearchBusy(true);
-      const { data, error: searchError } = await supabase.rpc('beauty_client_directory', {
+      const { data, error: searchError } = await supabaseClient.rpc('beauty_client_directory', {
         p_organization_id: organization.id,
         p_company_id: selectedEnseigneId,
         p_search: needle,
