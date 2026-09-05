@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
 import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
+import { readJsonStorage, writeJsonStorage } from '../lib/safeStorage';
 import { supabase } from '../lib/supabase';
 import '../beautyStock.css';
 
@@ -202,12 +203,12 @@ export function BeautyStockPage() {
       const consumableKey = `ncr-suite-demo-beauty-consumables-${organization.id}`;
       const movementKey = `ncr-suite-demo-beauty-stock-movements-${organization.id}`;
       const serviceKey = `ncr-suite-demo-services-${organization.id}`;
-      const allItems = JSON.parse(localStorage.getItem(stockKey) || '[]') as BeautyStockItem[];
+      const allItems = readJsonStorage<BeautyStockItem[]>(stockKey, []);
       const scopedItems = allItems.filter((row) => row.company_id === selectedEnseigneId);
       const itemIds = new Set(scopedItems.map((row) => row.id));
-      const allConsumables = JSON.parse(localStorage.getItem(consumableKey) || '[]') as BeautyConsumable[];
-      const allMovements = JSON.parse(localStorage.getItem(movementKey) || '[]') as BeautyStockMovement[];
-      const allServices = JSON.parse(localStorage.getItem(serviceKey) || '[]') as Array<BeautyService & { company_id?: string | null }>;
+      const allConsumables = readJsonStorage<BeautyConsumable[]>(consumableKey, []);
+      const allMovements = readJsonStorage<BeautyStockMovement[]>(movementKey, []);
+      const allServices = readJsonStorage<Array<BeautyService & { company_id?: string | null }>>(serviceKey, []);
       setItems(scopedItems);
       setConsumables(allConsumables.filter((row) => itemIds.has(row.stock_item_id)));
       setMovements(allMovements.filter((row) => itemIds.has(row.stock_item_id)).slice(0, 80));
@@ -360,7 +361,7 @@ export function BeautyStockPage() {
 
       if (demoMode || !supabase) {
         const key = `ncr-suite-demo-beauty-stock-${organization.id}`;
-        const allRows = JSON.parse(localStorage.getItem(key) || '[]') as BeautyStockItem[];
+        const allRows = readJsonStorage<BeautyStockItem[]>(key, []);
         const existing = editingId && editingId !== 'new' ? allRows.find((row) => row.id === editingId) : null;
         const saved: BeautyStockItem = existing ? { ...existing, ...common } : {
           id: crypto.randomUUID(),
@@ -373,7 +374,7 @@ export function BeautyStockPage() {
           ...common
         };
         const next = existing ? allRows.map((row) => row.id === saved.id ? saved : row) : [saved, ...allRows];
-        localStorage.setItem(key, JSON.stringify(next));
+        writeJsonStorage(key, next);
       } else if (editingId && editingId !== 'new') {
         const { error: updateError } = await supabase.from('beauty_stock_items').update(common)
           .eq('organization_id', organization.id)
@@ -429,13 +430,13 @@ export function BeautyStockPage() {
       if (demoMode || !supabase) {
         const stockKey = `ncr-suite-demo-beauty-stock-${organization.id}`;
         const movementKey = `ncr-suite-demo-beauty-stock-movements-${organization.id}`;
-        const allRows = JSON.parse(localStorage.getItem(stockKey) || '[]') as BeautyStockItem[];
+        const allRows = readJsonStorage<BeautyStockItem[]>(stockKey, []);
         const item = allRows.find((row) => row.id === movementForm.itemId);
         if (!item) throw new Error('Produit introuvable.');
         const after = Number(item.quantity_on_hand) + delta;
         if (delta < 0 && after < 0) throw new Error('Stock insuffisant pour cette sortie.');
         const nextRows = allRows.map((row) => row.id === item.id ? { ...row, quantity_on_hand: after } : row);
-        const allMovements = JSON.parse(localStorage.getItem(movementKey) || '[]') as BeautyStockMovement[];
+        const allMovements = readJsonStorage<BeautyStockMovement[]>(movementKey, []);
         const movement: BeautyStockMovement = {
           id: crypto.randomUUID(),
           stock_item_id: item.id,
@@ -453,8 +454,8 @@ export function BeautyStockPage() {
           created_at: new Date().toISOString(),
           beauty_stock_items: { name: item.name }
         };
-        localStorage.setItem(stockKey, JSON.stringify(nextRows));
-        localStorage.setItem(movementKey, JSON.stringify([movement, ...allMovements]));
+        writeJsonStorage(stockKey, nextRows);
+        writeJsonStorage(movementKey, [movement, ...allMovements]);
       } else {
         const { error: rpcError } = await supabase.rpc('adjust_beauty_stock', {
           p_organization_id: organization.id,
@@ -510,7 +511,7 @@ export function BeautyStockPage() {
     try {
       if (demoMode || !supabase) {
         const key = `ncr-suite-demo-beauty-consumables-${organization.id}`;
-        const allRows = JSON.parse(localStorage.getItem(key) || '[]') as BeautyConsumable[];
+        const allRows = readJsonStorage<BeautyConsumable[]>(key, []);
         const kept = allRows.filter((row) => row.stock_item_id !== assigningId);
         const created = rows.map((row) => ({
           id: crypto.randomUUID(),
@@ -519,7 +520,7 @@ export function BeautyStockPage() {
           quantity_used: row.quantity_used,
           automatic_deduction: true
         }));
-        localStorage.setItem(key, JSON.stringify([...kept, ...created]));
+        writeJsonStorage(key, [...kept, ...created]);
       } else {
         const { error: rpcError } = await supabase.rpc('replace_beauty_stock_item_services', {
           p_organization_id: organization.id,
@@ -558,8 +559,8 @@ export function BeautyStockPage() {
     try {
       if (demoMode || !supabase) {
         const key = `ncr-suite-demo-beauty-stock-${organization.id}`;
-        const rows = JSON.parse(localStorage.getItem(key) || '[]') as BeautyStockItem[];
-        localStorage.setItem(key, JSON.stringify(rows.map((row) => row.id === item.id ? { ...row, active: nextActive } : row)));
+        const rows = readJsonStorage<BeautyStockItem[]>(key, []);
+        writeJsonStorage(key, rows.map((row) => row.id === item.id ? { ...row, active: nextActive } : row));
       } else {
         const { error: updateError } = await supabase.from('beauty_stock_items').update({ active: nextActive })
           .eq('organization_id', organization.id)
