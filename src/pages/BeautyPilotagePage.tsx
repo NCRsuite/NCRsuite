@@ -209,7 +209,7 @@ export function BeautyPilotagePage() {
         p_company_id: selectedEnseigneId,
         p_days: period
       }),
-      supabase.rpc('get_beauty_growth_dashboard', {
+      supabase.rpc('beauty_growth_pilot_compact', {
         p_organization_id: organization.id,
         p_company_id: selectedEnseigneId
       })
