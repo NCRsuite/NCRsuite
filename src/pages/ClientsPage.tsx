@@ -274,6 +274,7 @@ export function ClientsPage() {
         </div>
         <div className="client-header-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {beautyMode && canManage && selectedEnseigneId && <Link className="secondary-button" to="/crm"><Icon name="chart" size={17}/> CRM & segments</Link>}
+          {beautyMode && canManage && selectedEnseigneId && <Link className="secondary-button" to="/donnees-rgpd"><Icon name="shield" size={17}/> Données & RGPD</Link>}
           {canManage && (
             <button className="primary-button" type="button" onClick={openForm} disabled={beautyMode && !selectedEnseigneId}>
               <Icon name="users" size={18} />Créer un client
