@@ -3,6 +3,7 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
+import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import { supabase } from '../lib/supabase';
 import '../beautyStock.css';
 
@@ -159,6 +160,7 @@ export function BeautyStockPage() {
   const { organization } = useOrganization();
   const { user, demoMode } = useAuth();
   const { beautyMode, selectedEnseigne, selectedEnseigneId, loading: enseigneLoading } = useBeautyEnseigneContext();
+  const { confirm } = useConfirmDialog();
   const [items, setItems] = useState<BeautyStockItem[]>([]);
   const [consumables, setConsumables] = useState<BeautyConsumable[]>([]);
   const [services, setServices] = useState<BeautyService[]>([]);
@@ -541,7 +543,15 @@ export function BeautyStockPage() {
   async function toggleItem(item: BeautyStockItem) {
     if (!organization || !selectedEnseigneId || !canManage) return;
     const nextActive = !item.active;
-    if (!window.confirm(`${nextActive ? 'Réactiver' : 'Désactiver'} « ${item.name} » ?`)) return;
+    const decision = await confirm({
+      title: `${nextActive ? 'Réactiver' : 'Désactiver'} ${item.name} ?`,
+      message: nextActive
+        ? 'Le produit redeviendra disponible dans le stock et pourra de nouveau être consommé automatiquement par les prestations liées.'
+        : 'Le produit restera dans l’historique, mais il ne sera plus déduit automatiquement tant qu’il est désactivé.',
+      confirmLabel: nextActive ? 'Réactiver' : 'Désactiver',
+      tone: nextActive ? 'default' : 'warning'
+    });
+    if (!decision.confirmed) return;
     setBusyId(item.id);
     setError('');
     setSuccess('');
