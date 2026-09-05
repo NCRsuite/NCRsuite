@@ -370,7 +370,11 @@ export function BeautyCrmSegmentsPage() {
           </div>
         </div>
 
-        {loadingClients ? <div className="beauty-crm-loading compact beauty-loading-state" aria-busy="true">Chargement de l’audience…</div> : items.length === 0 ? <div className="list-state">Aucune cliente dans ce segment{query ? ' pour cette recherche' : ''}.</div> : <>
+        {loadingClients ? <div className="beauty-crm-loading compact beauty-loading-state" aria-busy="true">Chargement de l’audience…</div> : items.length === 0 ? <div className="list-state empty-service-state">
+      <div className="empty-icon"><Icon name="users" size={28}/></div>
+      <h3>{query ? 'Aucune cliente trouvée' : 'Segment vide'}</h3>
+      <p>{query ? 'Essayez un autre nom, e-mail ou téléphone.' : 'Aucune fiche active ne correspond encore aux critères de ce segment.'}</p>
+    </div> : <>
           <div className="beauty-crm-client-list">
             {items.map((client) => <article key={client.id} className="beauty-crm-client-card">
               <div className="beauty-crm-client-avatar">{client.first_name.slice(0,1).toUpperCase()}</div>
@@ -429,7 +433,11 @@ export function BeautyCrmSegmentsPage() {
         </div>
         <strong>{summary.summary.marketing_allowed}<small>contacts autorisés</small></strong>
       </section>
-    </> : !demoMode && <div className="panel list-state">Aucune donnée CRM disponible.</div>}
+    </> : !demoMode && <div className="panel list-state empty-service-state">
+      <div className="empty-icon"><Icon name="chart" size={28}/></div>
+      <h3>Aucune donnée CRM exploitable</h3>
+      <p>Ajoutez des clientes et des rendez-vous terminés pour commencer à alimenter les segments.</p>
+    </div>}
 
     {selectedClient && selectedEnseigneId && user && (
       <BeautyClientCrmPanel
