@@ -247,14 +247,14 @@ export function BeautyAccountingPage() {
             <thead><tr><th>Prestation</th><th>Quantité</th><th>HT</th><th>TVA</th><th>TTC</th></tr></thead>
             <tbody>
               {report.services.map((item, index) => <tr key={item.service_id || `${item.service_name}-${index}`}>
-                <td><strong>{item.service_name || 'Prestation'}</strong><small>{item.appointment_count} RDV concerné{item.appointment_count > 1 ? 's' : ''}</small></td>
-                <td>{item.prestation_count}</td>
-                <td>{formatMoney(item.total_ht_cents)}</td>
-                <td>{formatMoney(item.total_vat_cents)}</td>
-                <td><strong>{formatMoney(item.total_ttc_cents)}</strong></td>
+                <td data-label="Prestation"><strong>{item.service_name || 'Prestation'}</strong><small>{item.appointment_count} RDV concerné{item.appointment_count > 1 ? 's' : ''}</small></td>
+                <td data-label="Quantité">{item.prestation_count}</td>
+                <td data-label="HT">{formatMoney(item.total_ht_cents)}</td>
+                <td data-label="TVA">{formatMoney(item.total_vat_cents)}</td>
+                <td data-label="TTC"><strong>{formatMoney(item.total_ttc_cents)}</strong></td>
               </tr>)}
             </tbody>
-            <tfoot><tr><td>Total</td><td>{summary.prestation_count}</td><td>{formatMoney(summary.total_ht_cents)}</td><td>{formatMoney(summary.total_vat_cents)}</td><td>{formatMoney(summary.total_ttc_cents)}</td></tr></tfoot>
+            <tfoot><tr><td data-label="Total">Total</td><td data-label="Quantité">{summary.prestation_count}</td><td data-label="HT">{formatMoney(summary.total_ht_cents)}</td><td data-label="TVA">{formatMoney(summary.total_vat_cents)}</td><td data-label="TTC">{formatMoney(summary.total_ttc_cents)}</td></tr></tfoot>
           </table>
         </div>}
       </section>
