@@ -905,3 +905,117 @@
     font-size:9px;
   }
 }
+
+
+/* NCR Suite · Coiffure bottom navigation compact V3 */
+@media (max-width: 900px) {
+  /*
+    La barre est déjà positionnée au-dessus de la safe-area.
+    On ne réinjecte donc pas la safe-area dans sa hauteur interne :
+    cela évite le double comptage visible sur iPhone.
+  */
+  html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav {
+    left: max(12px, env(safe-area-inset-left)) !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+    bottom: calc(7px + env(safe-area-inset-bottom) + var(--mobile-nav-y-compensation, 0px)) !important;
+    width: auto !important;
+    min-height: 68px !important;
+    height: 68px !important;
+    box-sizing: border-box;
+    padding: 5px 8px 6px !important;
+    border: 1px solid color-mix(in srgb, var(--ncr26-border-strong, #d7dde5) 82%, transparent);
+    border-radius: 24px !important;
+    background: rgba(255, 255, 255, .94);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .10), 0 2px 7px rgba(15, 23, 42, .04);
+    overflow: visible;
+  }
+
+  @supports (backdrop-filter: blur(18px)) {
+    html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav {
+      background: rgba(255, 255, 255, .90);
+      backdrop-filter: saturate(135%) blur(18px);
+      -webkit-backdrop-filter: saturate(135%) blur(18px);
+    }
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav > :where(a, button) {
+    min-height: 48px !important;
+    height: 48px;
+    padding: 3px 2px !important;
+    gap: 3px !important;
+    border-radius: 14px;
+    line-height: 1;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav > :where(a, button):not(.mobile-create-action) > span {
+    font-size: 10px !important;
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav > :where(a, button):not(.mobile-create-action) > svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-create-action {
+    position: relative;
+    overflow: visible;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-create-action > span {
+    width: 54px !important;
+    height: 54px !important;
+    min-width: 54px;
+    min-height: 54px;
+    margin-top: -17px;
+    border-radius: 18px !important;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--ncr26-brand, #7d2a68) 28%, transparent), 0 2px 6px rgba(15, 23, 42, .12) !important;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-create-action > span > svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-create-action > small {
+    margin-top: -4px;
+    font-size: 10px !important;
+    line-height: 1;
+  }
+
+  /*
+    Réserve réellement la zone occupée par la navigation fixe.
+    La dernière carte/action peut ainsi remonter entièrement au-dessus de la barre.
+  */
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: calc(108px + env(safe-area-inset-bottom)) !important;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage > .page {
+    padding-bottom: 18px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav {
+    left: max(9px, env(safe-area-inset-left)) !important;
+    right: max(9px, env(safe-area-inset-right)) !important;
+    border-radius: 21px !important;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav > :where(a, button):not(.mobile-create-action) > span,
+  html[data-beauty-metier="true"] .app-shell .mobile-create-action > small {
+    font-size: 9px !important;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-create-action > span {
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px;
+    min-height: 52px;
+  }
+}
