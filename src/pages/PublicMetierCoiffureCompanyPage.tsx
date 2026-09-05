@@ -212,6 +212,14 @@ export function PublicMetierCoiffureCompanyPage() {
   const searchParams = new URLSearchParams(location.search);
   const embedMode = searchParams.get('embed') === '1';
   const referralCode = searchParams.get('ref')?.trim().toUpperCase() || '';
+  const requestedOrigin = searchParams.get('src');
+  const trackedOrigin = requestedOrigin === 'qr'
+    ? 'qr_code'
+    : requestedOrigin === 'widget'
+      ? 'widget'
+      : requestedOrigin === 'direct'
+        ? 'direct_link'
+        : 'public_page';
 
   useEffect(() => {
     let active = true;
@@ -492,6 +500,23 @@ export function PublicMetierCoiffureCompanyPage() {
     const booking = bookingData as BookingResult;
     setResult(booking);
     setReferralMessage('');
+
+    if (booking?.token && !portalIdentity) {
+      const originDetail = trackedOrigin === 'qr_code'
+        ? 'QR de réservation'
+        : trackedOrigin === 'widget'
+          ? 'Widget intégré'
+          : trackedOrigin === 'direct_link'
+            ? 'Lien direct de réservation'
+            : 'Page publique';
+      await supabase.rpc('tag_public_beauty_booking_origin', {
+        p_token: booking.token,
+        p_origin: trackedOrigin,
+        p_detail: originDetail,
+        p_meta: {}
+      });
+    }
+
     if (referralCode && booking?.token) {
       const { data: referralData } = await supabase.rpc('register_public_booking_referral', {
         p_token: booking.token,
