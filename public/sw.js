@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'ncr-suite-shell-';
-const CACHE = 'ncr-suite-shell-v2.29.25-beauty-mobile-r1';
+const CACHE = 'ncr-suite-shell-v2.29.25-training-test-sandbox';
 const SHELL = [
   '/',
   '/connexion?source=pwa',
