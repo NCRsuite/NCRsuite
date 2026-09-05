@@ -840,7 +840,11 @@ export function BeautyImportsPage() {
         <button type="button" className="secondary-button compact-button" onClick={() => void loadJobs()} disabled={loadingJobs} aria-busy={loadingJobs}><Icon name="refresh" size={14}/> Actualiser</button>
       </div>
 
-      {loadingJobs ? <div className="list-state beauty-loading-state" aria-busy="true">Chargement de l’historique…</div> : jobs.length === 0 ? <div className="list-state">Aucun import Beauty pour cette enseigne.</div> : <div className="beauty-import-jobs">
+      {loadingJobs ? <div className="list-state beauty-loading-state" aria-busy="true">Chargement de l’historique…</div> : jobs.length === 0 ? <div className="list-state empty-service-state">
+      <div className="empty-icon"><Icon name="file" size={28}/></div>
+      <h3>Aucun import réalisé</h3>
+      <p>Les imports validés apparaîtront ici avec leur date, leur source et le nombre de lignes traitées.</p>
+    </div> : <div className="beauty-import-jobs">
         {jobs.map((job) => <article key={job.id}>
           <span className="beauty-import-job-icon"><Icon name={job.import_scope === 'beauty_appointments' ? 'calendar' : 'users'} size={16}/></span>
           <div>
