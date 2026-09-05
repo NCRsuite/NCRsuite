@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { BeautyClientCrmPanel } from '../components/BeautyClientCrmPanel';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
@@ -272,11 +272,14 @@ export function ClientsPage() {
             ? selectedEnseigne ? `Répertoire client propre à l’enseigne ${selectedEnseigne.name}.` : 'Créez une enseigne pour commencer à constituer son fichier clients.'
             : `Créez et retrouvez les fiches clients de ${organization.name}.`}</p>
         </div>
-        {canManage && (
-          <button className="primary-button" type="button" onClick={openForm} disabled={beautyMode && !selectedEnseigneId}>
-            <Icon name="users" size={18} />Créer un client
-          </button>
-        )}
+        <div className="client-header-actions">
+          {beautyMode && canManage && selectedEnseigneId && <Link className="secondary-button" to="/crm"><Icon name="chart" size={17}/> CRM & segments</Link>}
+          {canManage && (
+            <button className="primary-button" type="button" onClick={openForm} disabled={beautyMode && !selectedEnseigneId}>
+              <Icon name="users" size={18} />Créer un client
+            </button>
+          )}
+        </div>
       </header>
 
       {beautyMode && !selectedEnseigneId && !enseigneLoading && (
