@@ -19,6 +19,7 @@ import { NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED } from './config/ui2026
 import { AuthProvider } from './contexts/AuthContext';
 import { OrganizationProvider } from './contexts/OrganizationContext';
 import { PlatformAdminProvider } from './contexts/PlatformAdminContext';
+import { ConfirmDialogProvider } from './contexts/ConfirmDialogContext';
 import { PublicMetierCoiffureCompanyPage } from './pages/PublicMetierCoiffureCompanyPage';
 import './ncrUi2026.css';
 import './ncrUi2026Pages.css';
@@ -62,6 +63,7 @@ import './beautyAvailabilityBlocks.css';
 import './beautyClientCrm.css';
 import './beautyGrowth.css';
 import './beautyMobileResponsive.css';
+import './beautyConfirmDialog.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
@@ -143,7 +145,9 @@ function RoutedApplication() {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <RoutedApplication />
+      <ConfirmDialogProvider>
+        <RoutedApplication />
+      </ConfirmDialogProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
