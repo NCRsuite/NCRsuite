@@ -129,6 +129,16 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
     { label: 'Réservation en ligne', detail: 'Publiez votre page', done: false, icon: 'calendar' as const, action: 'detail' as const }
   ];
 
+  const operationalGuide = [
+    { label: 'Fichier clients', detail: 'Créer une fiche, retrouver une cliente, consulter son historique, ses notes, photos et consentements.', icon: 'users' as const, path: '/clients', action: 'Ouvrir les clients' },
+    { label: 'Agenda du salon', detail: 'Prendre un rendez-vous, bloquer une période, filtrer par collaborateur et suivre les statuts.', icon: 'calendar' as const, path: '/rendez-vous', action: 'Ouvrir l’agenda' },
+    { label: 'Stock & consommables', detail: 'Suivre les quantités, seuils d’alerte et consommations automatiques liées aux prestations.', icon: 'activity' as const, path: '/stocks', action: 'Ouvrir le stock' },
+    { label: 'CRM & relances', detail: 'Retrouver les clientes fidèles, inactives, à replanifier ou à reconquérir sans fouiller le fichier.', icon: 'message' as const, path: '/crm', action: 'Ouvrir le CRM' },
+    { label: 'Pilotage', detail: 'Contrôler chiffre d’affaires, panier moyen, occupation, annulations, no-show et prestations fortes.', icon: 'chart' as const, path: '/pilotage', action: 'Voir le pilotage' },
+    { label: 'Importer vos données', detail: 'Reprendre vos clientes et rendez-vous depuis Planity, Booksy, Treatwell ou un fichier CSV.', icon: 'refresh' as const, path: '/imports', action: 'Ouvrir les imports' },
+    { label: 'Données & RGPD', detail: 'Exporter les données, répondre à une demande cliente et gérer l’anonymisation de manière encadrée.', icon: 'shield' as const, path: '/donnees-rgpd', action: 'Ouvrir le RGPD' }
+  ];
+
   if (!organization || organization.plan !== 'metier') return null;
 
   function openDetails() {
@@ -224,6 +234,33 @@ export function BeautySetupHub({ onOpenReception, onOpenAdvanced }: {
               </section>
             </>
           )}
+
+          <section className="beauty-hub-section beauty-operations-guide">
+            <div className="beauty-hub-heading">
+              <div><p>UTILISER NCR AU QUOTIDIEN</p><h2>Le parcours d’un salon, sans chercher où cliquer</h2></div>
+              <span>Ces raccourcis restent disponibles après la configuration initiale.</span>
+            </div>
+
+            <div className="beauty-operations-routine" aria-label="Routine quotidienne conseillée">
+              <article><span><Icon name="sun" size={17} /></span><div><strong>Avant l’ouverture</strong><small>Vérifiez l’agenda, les absences et les périodes bloquées.</small></div></article>
+              <article><span><Icon name="scissors" size={17} /></span><div><strong>Pendant la journée</strong><small>Ouvrez la fiche cliente et mettez le rendez-vous à jour au fil de la prestation.</small></div></article>
+              <article><span><Icon name="chart" size={17} /></span><div><strong>En fin de journée</strong><small>Contrôlez les stocks, les rendez-vous non clôturés et les indicateurs utiles.</small></div></article>
+            </div>
+
+            <div className="beauty-operations-grid">
+              {operationalGuide.map((item) => (
+                <Link className="beauty-operation-card" to={item.path} key={item.path}>
+                  <span><Icon name={item.icon} size={19} /></span>
+                  <div><strong>{item.label}</strong><small>{item.detail}</small><b>{item.action} →</b></div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="beauty-operations-tip">
+              <Icon name="info" size={16} />
+              <p><strong>Repère simple :</strong> l’agenda sert à gérer la journée, la fiche cliente à garder le contexte, le CRM à savoir qui relancer, et le pilotage à décider quoi améliorer.</p>
+            </div>
+          </section>
 
           <section className="beauty-detail-gate">
             <div><span><Icon name="settings" size={18} /></span><div><strong>Besoin d’un réglage plus précis ?</strong><small>Les paramètres détaillés restent disponibles, mais ne sont plus imposés dans le parcours principal.</small></div></div>
