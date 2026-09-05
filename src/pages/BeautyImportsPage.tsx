@@ -39,6 +39,7 @@ interface ClientPreviewItem {
     last_name: string | null;
     email: string | null;
     phone: string | null;
+    birth_date?: string | null;
   } | null;
 }
 
@@ -84,9 +85,11 @@ interface ImportJob {
   status: string;
   total_rows: number;
   inserted_rows: number;
+  merged_rows?: number;
   skipped_rows: number;
   error_rows: number;
   errors: Array<{ line?: number; message?: string }>;
+  metadata?: { merged?: number; [key: string]: unknown };
   created_at: string;
   completed_at: string | null;
 }
@@ -170,6 +173,7 @@ export function BeautyImportsPage() {
   const [clientPreview, setClientPreview] = useState<ClientPreview | null>(null);
   const [appointmentPreview, setAppointmentPreview] = useState<AppointmentPreview | null>(null);
   const [forceLines, setForceLines] = useState<Set<number>>(new Set());
+  const [mergeTargets, setMergeTargets] = useState<Map<number, string>>(new Map());
   const [jobs, setJobs] = useState<ImportJob[]>([]);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -188,6 +192,7 @@ export function BeautyImportsPage() {
     setClientPreview(null);
     setAppointmentPreview(null);
     setForceLines(new Set());
+    setMergeTargets(new Map());
     setError('');
     setSuccess('');
   }, [selectedEnseigneId, kind]);
@@ -214,6 +219,7 @@ export function BeautyImportsPage() {
     setClientPreview(null);
     setAppointmentPreview(null);
     setForceLines(new Set());
+    setMergeTargets(new Map());
     setSuccess('');
   }
 
@@ -262,7 +268,8 @@ export function BeautyImportsPage() {
         phone: getMapped(row, mapping, 'phone') || null,
         birth_date: normalizeBirthDate(getMapped(row, mapping, 'birth_date')) || null,
         notes: getMapped(row, mapping, 'notes') || null,
-        force_import: includeForce && forceLines.has(index + 2)
+        force_import: includeForce && forceLines.has(index + 2),
+        merge_target_id: includeForce ? (mergeTargets.get(index + 2) ?? null) : null
       };
     });
   }
@@ -324,6 +331,7 @@ export function BeautyImportsPage() {
     setError('');
     setSuccess('');
     setForceLines(new Set());
+    setMergeTargets(new Map());
 
     const functionName = kind === 'clients'
       ? 'beauty_preview_client_import'
@@ -356,14 +364,18 @@ export function BeautyImportsPage() {
     if (!preview) return;
 
     const forced = kind === 'clients' ? forceLines.size : 0;
+    const merged = kind === 'clients' ? mergeTargets.size : 0;
     const ready = preview.ready_rows + forced;
-    if (ready <= 0) {
-      setError('Aucune ligne prête à importer.');
+    const actionable = ready + merged;
+    if (actionable <= 0) {
+      setError('Aucune ligne prête à créer ou à compléter.');
       return;
     }
 
     const accepted = window.confirm(
-      `Importer maintenant ${ready} ligne${ready > 1 ? 's' : ''} dans « ${selectedEnseigne?.name ?? 'cette enseigne'} » ?\n\nLes doublons sûrs seront ignorés et les lignes en conflit resteront non importées.`
+      kind === 'clients'
+        ? `Valider l’import dans « ${selectedEnseigne?.name ?? 'cette enseigne'} » ?\n\n${ready} fiche${ready > 1 ? 's' : ''} à créer · ${merged} fiche${merged > 1 ? 's' : ''} existante${merged > 1 ? 's' : ''} à compléter.\n\nLes lignes laissées sur « Ignorer » et les conflits resteront inchangés.`
+        : `Importer maintenant ${ready} ligne${ready > 1 ? 's' : ''} dans « ${selectedEnseigne?.name ?? 'cette enseigne'} » ?\n\nLes doublons sûrs seront ignorés et les lignes en conflit resteront non importées.`
     );
     if (!accepted) return;
 
@@ -386,7 +398,9 @@ export function BeautyImportsPage() {
     } else {
       const result = data as ImportResult;
       setSuccess(
-        `Import terminé : ${result.inserted_rows} ajoutée${result.inserted_rows > 1 ? 's' : ''}, ${result.skipped_rows} ignorée${result.skipped_rows > 1 ? 's' : ''}, ${result.error_rows} erreur${result.error_rows > 1 ? 's' : ''}.`
+        kind === 'clients'
+          ? `Import terminé : ${result.inserted_rows} créée${result.inserted_rows > 1 ? 's' : ''}, ${result.merged_rows ?? 0} complétée${(result.merged_rows ?? 0) > 1 ? 's' : ''}, ${result.skipped_rows} ignorée${result.skipped_rows > 1 ? 's' : ''}, ${result.error_rows} erreur${result.error_rows > 1 ? 's' : ''}.`
+          : `Import terminé : ${result.inserted_rows} ajoutée${result.inserted_rows > 1 ? 's' : ''}, ${result.skipped_rows} ignorée${result.skipped_rows > 1 ? 's' : ''}, ${result.error_rows} erreur${result.error_rows > 1 ? 's' : ''}.`
       );
       await loadJobs();
       await runPreview();
@@ -394,11 +408,17 @@ export function BeautyImportsPage() {
     setImporting(false);
   }
 
-  function toggleForce(line: number) {
+  function chooseClientResolution(line: number, action: 'ignore' | 'merge' | 'create', targetId?: string) {
     setForceLines((current) => {
       const next = new Set(current);
-      if (next.has(line)) next.delete(line);
-      else next.add(line);
+      if (action === 'create') next.add(line);
+      else next.delete(line);
+      return next;
+    });
+    setMergeTargets((current) => {
+      const next = new Map(current);
+      if (action === 'merge' && targetId) next.set(line, targetId);
+      else next.delete(line);
       return next;
     });
   }
@@ -409,6 +429,9 @@ export function BeautyImportsPage() {
 
   const preview = kind === 'clients' ? clientPreview : appointmentPreview;
   const readyCount = preview?.ready_rows ?? 0;
+  const clientCreateCount = (clientPreview?.ready_rows ?? 0) + forceLines.size;
+  const clientMergeCount = mergeTargets.size;
+  const clientActionCount = clientCreateCount + clientMergeCount;
 
   return <div className="page beauty-imports-page">
     <header className="page-header beauty-imports-header">
@@ -430,7 +453,7 @@ export function BeautyImportsPage() {
       <span><Icon name="shield" size={19}/></span>
       <div>
         <strong>Import sécurisé par défaut</strong>
-        <p>Les doublons e-mail/téléphone sont ignorés, les conflits sont bloqués et les consentements marketing ne sont jamais activés automatiquement par un fichier importé.</p>
+        <p>Les doublons sont contrôlés avant import. Vous pouvez compléter une fiche existante sans écraser ses données, créer une nouvelle fiche uniquement lorsqu’il n’y a pas de doublon e-mail/téléphone, et les conflits restent bloqués. Les consentements marketing ne sont jamais activés automatiquement.</p>
       </div>
     </section>
 
@@ -540,18 +563,34 @@ export function BeautyImportsPage() {
             <p>{item.reason}</p>
             {item.matched_client && <span className="beauty-import-existing">Existant : {fullName(item.matched_client.first_name, item.matched_client.last_name)} · {item.matched_client.email || item.matched_client.phone || 'sans contact'}</span>}
           </div>
-          {item.status === 'possible_duplicate' && <label className="beauty-import-force">
-            <input type="checkbox" checked={forceLines.has(item.line)} onChange={() => toggleForce(item.line)}/>
-            Importer quand même
-          </label>}
+          {item.matched_client && ['duplicate', 'possible_duplicate'].includes(item.status) && <div className="beauty-import-resolution">
+            <button
+              type="button"
+              className={!mergeTargets.has(item.line) && !forceLines.has(item.line) ? 'active' : ''}
+              onClick={() => chooseClientResolution(item.line, 'ignore')}
+            >Ignorer</button>
+            <button
+              type="button"
+              className={mergeTargets.has(item.line) ? 'active merge' : 'merge'}
+              onClick={() => chooseClientResolution(item.line, 'merge', item.matched_client!.id)}
+            >Compléter l’existante</button>
+            {item.status === 'possible_duplicate' && <button
+              type="button"
+              className={forceLines.has(item.line) ? 'active create' : 'create'}
+              onClick={() => chooseClientResolution(item.line, 'create')}
+            >Créer nouvelle</button>}
+          </div>}
         </article>)}
       </div>
       {clientPreview.items.length > 200 && <p className="beauty-import-limit-note">Aperçu limité aux 200 premières lignes. Les {clientPreview.total_rows} lignes seront contrôlées côté serveur.</p>}
 
       <div className="beauty-import-final-action">
-        <div><strong>{clientPreview.ready_rows + forceLines.size} cliente{clientPreview.ready_rows + forceLines.size > 1 ? 's' : ''} à créer</strong><small>Les doublons sûrs seront ignorés.</small></div>
-        <button type="button" className="primary-button" disabled={importing || clientPreview.ready_rows + forceLines.size === 0} onClick={() => void runImport()}>
-          <Icon name="check" size={16}/>{importing ? 'Import en cours…' : 'Lancer l’import'}
+        <div>
+          <strong>{clientCreateCount} à créer · {clientMergeCount} à compléter</strong>
+          <small>Les fiches complétées conservent toujours leurs données NCR Suite existantes.</small>
+        </div>
+        <button type="button" className="primary-button" disabled={importing || clientActionCount === 0} onClick={() => void runImport()}>
+          <Icon name="check" size={16}/>{importing ? 'Import en cours…' : 'Valider les décisions'}
         </button>
       </div>
     </section>}
@@ -608,6 +647,7 @@ export function BeautyImportsPage() {
           </div>
           <div className="beauty-import-job-counts">
             <span>{job.inserted_rows} ajoutés</span>
+            {(job.metadata?.merged ?? 0) > 0 && <span className="merged">{job.metadata?.merged} complétés</span>}
             <span>{job.skipped_rows} ignorés</span>
             {job.error_rows > 0 && <span className="error">{job.error_rows} erreurs</span>}
           </div>
