@@ -400,3 +400,112 @@
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+
+/* Les CSS des routes lazy peuvent être injectés après ce fichier.
+   Ces règles plus spécifiques garantissent les corrections critiques. */
+@media (max-width: 640px) {
+  html[data-beauty-metier="true"] .beauty-week-planner-shell {
+    margin-inline: -8px;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-planner {
+    grid-template-columns: 36px repeat(7, minmax(0, 1fr));
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header {
+    min-height: 58px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header > span {
+    font-size: 7px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header > strong {
+    font-size: 15px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header > small {
+    display: none;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-time-axis > span {
+    font-size: 6px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment-time {
+    font-size: 6px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment > strong {
+    font-size: 7px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment-service,
+  html[data-beauty-metier="true"] .beauty-week-unavailability > span {
+    font-size: 6px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-accounting-table-wrap {
+    overflow: visible;
+  }
+
+  html[data-beauty-metier="true"] .beauty-accounting-table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  html[data-beauty-metier="true"] .beauty-accounting-table thead {
+    display: none;
+  }
+
+  html[data-beauty-metier="true"] .beauty-accounting-table tbody,
+  html[data-beauty-metier="true"] .beauty-accounting-table tfoot {
+    display: grid;
+  }
+
+  html[data-beauty-metier="true"] .beauty-accounting-table tbody > tr,
+  html[data-beauty-metier="true"] .beauty-accounting-table tfoot > tr {
+    display: grid;
+  }
+
+  html[data-beauty-metier="true"] .beauty-accounting-table td,
+  html[data-beauty-metier="true"] .beauty-accounting-table td:first-child {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    text-align: right;
+  }
+
+  html[data-beauty-metier="true"] .beauty-accounting-table td[data-label="Prestation"] {
+    align-items: flex-start;
+    flex-direction: column;
+    text-align: left;
+  }
+
+  html[data-beauty-metier="true"] .beauty-pilot-period {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    overflow: visible !important;
+  }
+
+  html[data-beauty-metier="true"] .beauty-import-resolution {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  html[data-beauty-metier="true"] .beauty-week-appointment-service {
+    display: none;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment > strong {
+    font-size: 7.5px;
+  }
+}
