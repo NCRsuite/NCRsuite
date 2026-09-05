@@ -598,13 +598,14 @@ export function AppointmentsPage() {
   const pendingCount = appointments.filter((row) => row.status === 'pending').length;
   const weekAmount = weekAppointments.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
 
-  function openCreateForm(date?: Date, time?: string) {
+  function openCreateForm(date?: Date, time?: string, staffId?: string) {
     if (!canEditAppointments) return;
     setAvailabilityFormOpen(false);
     setEditingAvailabilityId(null);
     const base = emptyForm(beautyMode ? defaultBeautySiteId : activeSiteId ?? sites.find((site) => site.is_primary)?.id ?? sites[0]?.id ?? '');
     if (date) base.date = dateToInput(date);
     if (time) base.time = time;
+    if (staffId && staff.some((member) => member.id === staffId)) base.staffId = staffId;
     setEditingId(null);
     setForm(base);
     setError('');
@@ -1023,7 +1024,7 @@ export function AppointmentsPage() {
     const rect = event.currentTarget.getBoundingClientRect();
     const relativeY = clamp(event.clientY - rect.top, 0, rect.height);
     const minute = weekPlannerBounds.startMinute + relativeY / WEEK_GRID_PX_PER_MINUTE;
-    openCreateForm(day, timeFromMinutes(minute));
+    openCreateForm(day, timeFromMinutes(minute), staffFilter === 'all' ? undefined : staffFilter);
   }
 
   function availabilityBlockCard(block: AvailabilityBlockRecord) {
@@ -1404,7 +1405,7 @@ export function AppointmentsPage() {
             ) : <div className="day-appointment-list">{selectedDayAppointments.map(appointmentCard)}</div>}
           </div>
         )}
-        <div className="planning-mobile-agenda appointment-mobile-agenda"><div className="planning-mobile-agenda-heading"><p className="eyebrow">AGENDA DU JOUR</p><strong>{fullDateFormatter.format(selectedDate)}</strong></div>{selectedDayAvailabilityBlocks.length > 0 && <div className="availability-day-list compact">{selectedDayAvailabilityBlocks.map(availabilityBlockCard)}</div>}{selectedDayAppointments.length === 0 ? <div className="planning-empty-state compact"><Icon name="calendar" size={26}/><strong>Aucun rendez-vous</strong><span>{selectedDayAvailabilityBlocks.length > 0 ? 'Les périodes bloquées sont affichées ci-dessus.' : 'La journée est libre pour les filtres choisis.'}</span></div> : <div className="day-appointment-list">{selectedDayAppointments.map(appointmentCard)}</div>}</div>
+        {viewMode === 'day' && <div className="planning-mobile-agenda appointment-mobile-agenda"><div className="planning-mobile-agenda-heading"><p className="eyebrow">AGENDA DU JOUR</p><strong>{fullDateFormatter.format(selectedDate)}</strong></div>{selectedDayAvailabilityBlocks.length > 0 && <div className="availability-day-list compact">{selectedDayAvailabilityBlocks.map(availabilityBlockCard)}</div>}{selectedDayAppointments.length === 0 ? <div className="planning-empty-state compact"><Icon name="calendar" size={26}/><strong>Aucun rendez-vous</strong><span>{selectedDayAvailabilityBlocks.length > 0 ? 'Les périodes bloquées sont affichées ci-dessus.' : 'La journée est libre pour les filtres choisis.'}</span></div> : <div className="day-appointment-list">{selectedDayAppointments.map(appointmentCard)}</div>}</div>}
       </section>
     </div>
   );
