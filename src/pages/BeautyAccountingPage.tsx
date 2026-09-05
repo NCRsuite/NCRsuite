@@ -190,6 +190,7 @@ export function BeautyAccountingPage() {
         type="button"
         className="primary-button"
         disabled={!report?.tax.configured || exporting || loading}
+        aria-busy={exporting}
         onClick={() => void downloadPdf()}
       >
         <Icon name="file" size={17}/>
@@ -200,7 +201,7 @@ export function BeautyAccountingPage() {
     {demoMode && <div className="info-message page-message">La comptabilité mensuelle utilise les rendez-vous réels Supabase et n’est pas simulée en mode démonstration.</div>}
     {!selectedEnseigneId && !enseigneLoading && <div className="info-message page-message">Aucune enseigne Beauty sélectionnée.</div>}
     {error && <div className="error-message page-message" role="alert">{error}</div>}
-    {success && <div className="success-message page-message">{success}</div>}
+    {success && <div className="success-message page-message" role="status">{success}</div>}
 
     <section className="panel beauty-accounting-period-panel">
       <div className="beauty-accounting-period-controls">
@@ -217,7 +218,7 @@ export function BeautyAccountingPage() {
       </div>
     </section>
 
-    {loading || enseigneLoading ? <div className="panel beauty-accounting-loading">Calcul de la feuille comptable…</div> : report && summary ? <>
+    {loading || enseigneLoading ? <div className="panel beauty-accounting-loading beauty-loading-state" aria-busy="true">Calcul de la feuille comptable…</div> : report && summary ? <>
       {!report.tax.configured && <section className="panel beauty-accounting-warning">
         <span><Icon name="alert" size={20}/></span>
         <div>
@@ -299,7 +300,7 @@ export function BeautyAccountingPage() {
           </label>}
 
           <div className="beauty-accounting-tax-actions">
-            <button type="button" className="primary-button" disabled={savingSettings} onClick={() => void saveTaxSettings()}>
+            <button type="button" className="primary-button" disabled={savingSettings} aria-busy={savingSettings} onClick={() => void saveTaxSettings()}>
               {savingSettings ? 'Enregistrement…' : 'Enregistrer les paramètres'}
             </button>
           </div>
