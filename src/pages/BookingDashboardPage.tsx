@@ -307,7 +307,7 @@ export function BookingDashboardPage() {
                     </small>
                   </div>
                   <span className={`beauty-status ${appointment.status}`}>{statusLabel(appointment.status)}</span>
-                  <Icon className="beauty-next-chevron" name="chevronRight" size={15} />
+                  <span className="beauty-next-chevron"><Icon name="chevronRight" size={15} /></span>
                 </Link>;
               })}
             </div>
