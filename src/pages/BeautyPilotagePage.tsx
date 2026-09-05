@@ -334,7 +334,11 @@ export function BeautyPilotagePage() {
     {!selectedEnseigneId && !enseigneLoading && <div className="info-message page-message">Aucune enseigne Beauty sélectionnée.</div>}
     {error && <div className="error-message page-message" role="alert">{error}</div>}
 
-    {loading || enseigneLoading ? <div className="panel beauty-pilot-loading beauty-loading-state" aria-busy="true">Calcul des indicateurs…</div> : !dashboard || !s || !changes ? <div className="panel list-state">Aucune donnée de pilotage disponible.</div> : <>
+    {loading || enseigneLoading ? <div className="panel beauty-pilot-loading beauty-loading-state" aria-busy="true">Calcul des indicateurs…</div> : !dashboard || !s || !changes ? <div className="panel list-state empty-service-state">
+      <div className="empty-icon"><Icon name="chart" size={28}/></div>
+      <h3>Pas encore d’indicateurs à analyser</h3>
+      <p>Les statistiques apparaîtront dès que l’enseigne aura des rendez-vous et des prestations terminées sur la période choisie.</p>
+    </div> : <>
       <section className="beauty-pilot-kpis">
         <article className="panel beauty-pilot-kpi primary">
           <div className="beauty-pilot-kpi-head"><span>CA réalisé</span><span className="beauty-pilot-kpi-icon"><Icon name="chart" size={18}/></span></div>
