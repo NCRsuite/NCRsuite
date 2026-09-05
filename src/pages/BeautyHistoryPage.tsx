@@ -282,7 +282,7 @@ export function BeautyHistoryPage() {
 
   if (!organization) return null;
   if (!beautyMode) return <div className="page"><div className="info-message page-message">L’historique avancé est disponible dans l’environnement Coiffure & beauté Métier.</div></div>;
-  if (!canView) return <div className="page"><div className="error-message page-message">Cet historique est réservé aux propriétaires, administrateurs et managers.</div></div>;
+  if (!canView) return <div className="page"><div className="error-message page-message" role="alert">Cet historique est réservé aux propriétaires, administrateurs et managers.</div></div>;
 
   return <div className="page beauty-history-page">
     <header className="page-header">
