@@ -293,7 +293,9 @@ export function BeautyImportsPage() {
           getMapped(row, mapping, 'appointment_time')
         ) || null,
         duration_minutes: durationToMinutes(getMapped(row, mapping, 'duration_minutes')) || null,
-        amount_cents: String(eurosToCents(getMapped(row, mapping, 'amount_euros'))),
+        amount_cents: getMapped(row, mapping, 'amount_euros')
+          ? String(eurosToCents(getMapped(row, mapping, 'amount_euros')))
+          : null,
         status: getMapped(row, mapping, 'status') || null,
         notes: getMapped(row, mapping, 'notes') || null
       };
