@@ -490,14 +490,6 @@ export function BeautyImportsPage() {
       return;
     }
 
-    const decision = await confirm({
-      title: 'Fusionner ces deux fiches clientes ?',
-      message: `« ${fullName(merge.first_name, merge.last_name)} » sera regroupée dans « ${fullName(keep.first_name, keep.last_name)} ».\n\nLa fiche conservée garde ses coordonnées déjà renseignées. Les rendez-vous, notes, médias, documents, consentements, fidélité et autres historiques seront rattachés à la fiche conservée. L’ancienne fiche sera ensuite supprimée.`,
-      confirmLabel: 'Fusionner les fiches',
-      tone: 'danger'
-    });
-    if (!decision.confirmed) return;
-
     setImporting(true);
     setError('');
     setSuccess('');
