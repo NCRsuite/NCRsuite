@@ -64,6 +64,7 @@ import './beautyClientCrm.css';
 import './beautyGrowth.css';
 import './beautyMobileResponsive.css';
 import './beautyConfirmDialog.css';
+import './beautyUxPolish.css';
 
 document.documentElement.setAttribute(NCR_UI_2026_DATA_ATTRIBUTE, NCR_UI_2026_ENABLED ? 'true' : 'false');
 
