@@ -1,0 +1,402 @@
+/* NCR Suite · Beauty mobile / PWA hardening
+   Chargé après les styles Beauty existants afin de corriger uniquement
+   les usages tactiles, safe areas et compositions petit écran. */
+
+@media (max-width: 900px) {
+  html[data-beauty-metier="true"] .app-shell .mobile-header {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  html[data-beauty-metier="true"] .app-shell .mobile-navigation-drawer {
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+  }
+
+  html[data-beauty-metier="true"] .beauty-sidebar-navigation-host.mobile {
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage {
+    scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage > .page {
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  }
+
+  .beauty-crm-panel {
+    height: 100dvh;
+  }
+
+  .beauty-crm-header {
+    padding-top: calc(18px + env(safe-area-inset-top));
+  }
+
+  .beauty-crm-body {
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 640px) {
+  /* Empêche le zoom automatique iOS au focus sur les champs < 16 px. */
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage :where(input, select, textarea) {
+    font-size: 16px !important;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage :where(
+    .primary-button,
+    .secondary-button,
+    .icon-text-button,
+    .danger-button
+  ) {
+    min-height: 44px;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage .page-header {
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage .page-header > :where(
+    .primary-button,
+    .secondary-button
+  ) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Agenda semaine : 7 jours restent visibles, mais avec texte réellement lisible. */
+  .beauty-week-planner-shell {
+    margin-inline: -8px;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .beauty-week-planner {
+    grid-template-columns: 36px repeat(7, minmax(0, 1fr));
+  }
+
+  .beauty-week-day-header {
+    min-height: 58px;
+    touch-action: manipulation;
+  }
+
+  .beauty-week-day-header > span {
+    font-size: 7px;
+  }
+
+  .beauty-week-day-header > strong {
+    font-size: 15px;
+  }
+
+  .beauty-week-day-header.today > strong {
+    width: 25px;
+    height: 25px;
+  }
+
+  .beauty-week-day-header > small {
+    display: none;
+  }
+
+  .beauty-week-time-axis > span {
+    right: 4px;
+    font-size: 6px;
+  }
+
+  .beauty-week-day-column {
+    touch-action: pan-y pinch-zoom;
+  }
+
+  .beauty-week-appointment {
+    min-height: 28px;
+    padding: 3px;
+  }
+
+  .beauty-week-appointment-time {
+    font-size: 6px;
+  }
+
+  .beauty-week-appointment > strong {
+    font-size: 7px;
+    line-height: 1.1;
+  }
+
+  .beauty-week-appointment-service {
+    font-size: 6px;
+  }
+
+  .beauty-week-unavailability > span {
+    font-size: 6px;
+  }
+
+  /* Fiche client CRM : vraie feuille plein écran PWA. */
+  .beauty-crm-backdrop {
+    align-items: stretch;
+  }
+
+  .beauty-crm-panel {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100dvh;
+  }
+
+  .beauty-crm-header {
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-top: calc(13px + env(safe-area-inset-top));
+  }
+
+  .beauty-crm-body {
+    padding-left: max(10px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .beauty-crm-header-actions > button {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Clients : le tableau desktop devient une liste de cartes mobile. */
+  html[data-beauty-metier="true"] .client-table-wrap {
+    overflow: visible;
+  }
+
+  html[data-beauty-metier="true"] .client-table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  html[data-beauty-metier="true"] .client-table thead {
+    display: none;
+  }
+
+  html[data-beauty-metier="true"] .client-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  html[data-beauty-metier="true"] .client-table tbody > tr {
+    display: grid;
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid #e5e9ed;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(25, 32, 40, .035);
+  }
+
+  html[data-beauty-metier="true"] .client-table tbody > tr > td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-width: 0 !important;
+    padding: 10px 12px;
+    border: 0;
+    border-bottom: 1px solid #edf0f2;
+    text-align: right;
+  }
+
+  html[data-beauty-metier="true"] .client-table tbody > tr > td:last-child {
+    border-bottom: 0;
+  }
+
+  html[data-beauty-metier="true"] .client-table tbody > tr > td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: #8b949e;
+    font-size: 9px;
+    font-weight: 850;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  html[data-beauty-metier="true"] .client-table tbody > tr > td[data-label="Client"] {
+    justify-content: flex-start;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  html[data-beauty-metier="true"] .client-table tbody > tr > td[data-label="Client"]::before {
+    display: none;
+  }
+
+  html[data-beauty-metier="true"] .client-table .client-identity,
+  html[data-beauty-metier="true"] .client-table .client-contact {
+    min-width: 0;
+    text-align: left;
+  }
+
+  html[data-beauty-metier="true"] .client-table .table-actions {
+    min-width: 0 !important;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  html[data-beauty-metier="true"] .client-table .table-actions::before {
+    align-self: flex-start;
+  }
+
+  html[data-beauty-metier="true"] .client-table .beauty-client-row-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  html[data-beauty-metier="true"] .client-table .beauty-client-row-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Comptabilité : supprime le tableau horizontal 680 px sur téléphone. */
+  .beauty-accounting-table-wrap {
+    overflow: visible;
+  }
+
+  .beauty-accounting-table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+  }
+
+  .beauty-accounting-table thead {
+    display: none;
+  }
+
+  .beauty-accounting-table tbody,
+  .beauty-accounting-table tfoot {
+    display: grid;
+    gap: 9px;
+  }
+
+  .beauty-accounting-table tbody > tr,
+  .beauty-accounting-table tfoot > tr {
+    display: grid;
+    overflow: hidden;
+    border: 1px solid #e5e9ed;
+    border-radius: 13px;
+    background: #fff;
+  }
+
+  .beauty-accounting-table tfoot {
+    margin-top: 10px;
+  }
+
+  .beauty-accounting-table tfoot > tr {
+    border-color: color-mix(in srgb, var(--business-accent, #2997ff) 22%, #e5e9ed);
+    background: color-mix(in srgb, var(--business-accent, #2997ff) 4%, #fff);
+  }
+
+  .beauty-accounting-table td,
+  .beauty-accounting-table td:first-child {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 11px;
+    border: 0;
+    border-bottom: 1px solid #edf0f2;
+    text-align: right;
+  }
+
+  .beauty-accounting-table tr > td:last-child {
+    border-bottom: 0;
+  }
+
+  .beauty-accounting-table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: #8a939d;
+    font-size: 8px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  .beauty-accounting-table td[data-label="Prestation"] {
+    align-items: flex-start;
+    flex-direction: column;
+    text-align: left;
+  }
+
+  .beauty-accounting-table td[data-label="Prestation"]::before {
+    display: none;
+  }
+
+  /* Pilotage : périodes accessibles sans scroll horizontal. */
+  .beauty-pilot-period {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    width: 100%;
+    overflow: visible !important;
+  }
+
+  .beauty-pilot-period button {
+    min-width: 0;
+    padding-inline: 6px;
+    font-size: 10px;
+  }
+
+  /* Les décisions Import/RGPD doivent rester faciles à toucher. */
+  .beauty-import-resolution {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .beauty-import-resolution button {
+    min-height: 42px;
+    width: 100%;
+    font-size: 9px;
+  }
+
+  .beauty-data-files-list article > .compact-button {
+    min-height: 40px;
+  }
+
+  .beauty-accounting-period-controls .icon-nav-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 430px) {
+  .beauty-week-appointment-service {
+    display: none;
+  }
+
+  .beauty-week-appointment > strong {
+    font-size: 7.5px;
+  }
+
+  .beauty-week-day-header > span {
+    font-size: 6.5px;
+  }
+
+  .beauty-crm-stats,
+  .beauty-accounting-kpis,
+  .beauty-pilot-kpis,
+  .beauty-pilot-health,
+  .beauty-pilot-growth-kpis,
+  .beauty-data-erasure-counts {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (display-mode: standalone) and (max-width: 900px) {
+  html[data-beauty-metier="true"] .app-shell .mobile-header,
+  html[data-beauty-metier="true"] .app-shell .mobile-bottom-nav,
+  html[data-beauty-metier="true"] .app-shell .mobile-navigation-drawer {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
