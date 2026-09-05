@@ -336,6 +336,7 @@ export function AppointmentsPage() {
   const [pendingAppointmentCount, setPendingAppointmentCount] = useState(0);
   const [staffFilter, setStaffFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all');
+  const [weekQuickAppointmentId, setWeekQuickAppointmentId] = useState<string | null>(null);
 
   const canEditAppointments = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
   const canChangeStatus = ['owner', 'admin', 'manager', 'employee'].includes(organization?.role ?? 'viewer');
@@ -741,6 +742,9 @@ export function AppointmentsPage() {
   const pendingCount = beautyMode && !demoMode
     ? pendingAppointmentCount
     : appointments.filter((row) => row.status === 'pending').length;
+  const weekQuickAppointment = weekQuickAppointmentId
+    ? appointments.find((row) => row.id === weekQuickAppointmentId) ?? null
+    : null;
   const weekAmount = weekAppointments.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
 
   function openCreateForm(date?: Date, time?: string, staffId?: string) {
@@ -1088,7 +1092,7 @@ export function AppointmentsPage() {
   }
 
   async function changeStatus(appointment: AppointmentRecord, status: AppointmentStatus) {
-    if (!organization || !canChangeStatus || appointment.status === status) return;
+    if (!organization || !canChangeStatus || appointment.status === status) return false;
     let reason: string | null = null;
     if (status === 'cancelled') {
       const client = clientById.get(appointment.client_id);
@@ -1102,7 +1106,7 @@ export function AppointmentsPage() {
         inputHint: 'Le motif est conservé avec l’annulation lorsqu’il est renseigné.',
         inputMaxLength: 300
       });
-      if (!decision.confirmed) return;
+      if (!decision.confirmed) return false;
       reason = decision.value || null;
     }
 
@@ -1125,9 +1129,11 @@ export function AppointmentsPage() {
         await loadData();
       }
       setSuccess(`Le rendez-vous est maintenant « ${statusLabels[status]} ».`);
+      return true;
     } catch (caught) {
       const message = typeof caught === 'object' && caught && 'message' in caught ? String(caught.message) : 'Une erreur inconnue est survenue.';
       setError(`Mise à jour impossible : ${message}`);
+      return false;
     } finally {
       setBusyId(null);
     }
@@ -1555,6 +1561,10 @@ export function AppointmentsPage() {
                       title={`${timeFormatter.format(start)}–${timeFormatter.format(end)} · ${fullClientName(client)} · ${appointmentServiceLabel(appointment)} · ${member?.display_name ?? ''}`}
                       onClick={(event) => {
                         event.stopPropagation();
+                        if (canChangeStatus) {
+                          setWeekQuickAppointmentId(appointment.id);
+                          return;
+                        }
                         if (items.length > 1) {
                           setSelectedDate(startOfDay(start));
                           setViewMode('day');
@@ -1598,6 +1608,84 @@ export function AppointmentsPage() {
         )}
         {viewMode === 'day' && <div className="planning-mobile-agenda appointment-mobile-agenda"><div className="planning-mobile-agenda-heading"><p className="eyebrow">AGENDA DU JOUR</p><strong>{fullDateFormatter.format(selectedDate)}</strong></div>{selectedDayAvailabilityBlocks.length > 0 && <div className="availability-day-list compact">{selectedDayAvailabilityBlocks.map(availabilityBlockCard)}</div>}{selectedDayAppointments.length === 0 ? <div className="planning-empty-state compact"><Icon name="calendar" size={26}/><strong>Aucun rendez-vous</strong><span>{selectedDayAvailabilityBlocks.length > 0 ? 'Les périodes bloquées sont affichées ci-dessus.' : 'La journée est libre pour les filtres choisis.'}</span></div> : <div className="day-appointment-list">{selectedDayAppointments.map(appointmentCard)}</div>}</div>}
       </section>
+
+      {beautyMode && viewMode === 'week' && weekQuickAppointment && (
+        <div className="beauty-week-quick-backdrop" role="presentation" onClick={() => setWeekQuickAppointmentId(null)}>
+          <section
+            className="beauty-week-quick-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Actions rapides pour le rendez-vous de ${fullClientName(clientById.get(weekQuickAppointment.client_id))}`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="beauty-week-quick-head">
+              <div>
+                <span className={`beauty-week-quick-current status-${weekQuickAppointment.status}`}>{statusLabels[weekQuickAppointment.status]}</span>
+                <h3>{fullClientName(clientById.get(weekQuickAppointment.client_id))}</h3>
+                <p>
+                  {timeFormatter.format(new Date(weekQuickAppointment.starts_at))}
+                  {' · '}
+                  {appointmentServiceLabel(weekQuickAppointment)}
+                  {' · '}
+                  {staffById.get(weekQuickAppointment.staff_id)?.display_name ?? 'Équipe'}
+                </p>
+              </div>
+              <button type="button" className="beauty-week-quick-close" onClick={() => setWeekQuickAppointmentId(null)} aria-label="Fermer">
+                <Icon name="close" size={18} />
+              </button>
+            </header>
+
+            <div className="beauty-week-quick-statuses" aria-label="Changer rapidement le statut">
+              <button
+                type="button"
+                className={`beauty-week-quick-status completed${weekQuickAppointment.status === 'completed' ? ' active' : ''}`}
+                disabled={busyId === weekQuickAppointment.id || weekQuickAppointment.status === 'completed'}
+                aria-busy={busyId === weekQuickAppointment.id}
+                onClick={() => void changeStatus(weekQuickAppointment, 'completed').then((changed) => {
+                  if (changed) setWeekQuickAppointmentId(null);
+                })}
+              >
+                <span><Icon name="check" size={20} /></span>
+                <strong>{weekQuickAppointment.status === 'completed' ? 'Terminé' : 'Terminer'}</strong>
+                <small>La prestation a été réalisée</small>
+              </button>
+
+              <button
+                type="button"
+                className={`beauty-week-quick-status no-show${weekQuickAppointment.status === 'no_show' ? ' active' : ''}`}
+                disabled={busyId === weekQuickAppointment.id || weekQuickAppointment.status === 'no_show'}
+                aria-busy={busyId === weekQuickAppointment.id}
+                onClick={() => void changeStatus(weekQuickAppointment, 'no_show').then((changed) => {
+                  if (changed) setWeekQuickAppointmentId(null);
+                })}
+              >
+                <span><Icon name="close" size={20} /></span>
+                <strong>Pas venu</strong>
+                <small>Le client ne s’est pas présenté</small>
+              </button>
+            </div>
+
+            <div className="beauty-week-quick-secondary">
+              {canEditAppointments && weekQuickAppointment.status !== 'cancelled' && (appointmentItemsById.get(weekQuickAppointment.id)?.length ?? 0) <= 1 && (
+                <button type="button" onClick={() => {
+                  const appointment = weekQuickAppointment;
+                  setWeekQuickAppointmentId(null);
+                  openEditForm(appointment);
+                }}>
+                  <Icon name="settings" size={16} /> Modifier le rendez-vous
+                </button>
+              )}
+              <button type="button" onClick={() => {
+                setSelectedDate(startOfDay(new Date(weekQuickAppointment.starts_at)));
+                setWeekQuickAppointmentId(null);
+                setViewMode('day');
+              }}>
+                <Icon name="calendar" size={16} /> Voir la journée
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
