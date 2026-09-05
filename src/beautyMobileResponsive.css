@@ -1057,3 +1057,16 @@
     }
   }
 }
+
+
+/* NCR Suite · Coiffure week horizontal no-overlap V5 */
+@media (max-width:900px){
+  html[data-beauty-metier="true"] .beauty-week-planner-shell{
+    scroll-snap-type:none !important;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header,
+  html[data-beauty-metier="true"] .beauty-week-day-column{
+    scroll-snap-align:none !important;
+  }
+}
