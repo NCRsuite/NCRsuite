@@ -2,7 +2,7 @@ CREATE OR REPLACE FUNCTION private.beauty_crm_segment_clients(p_organization_id 
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public,private,pg_catalog
 AS $function$
 declare
   v_segment text:=coalesce(nullif(trim(p_segment),''),'all');
@@ -185,7 +185,7 @@ CREATE OR REPLACE FUNCTION private.beauty_crm_segments_dashboard(p_organization_
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public,private,pg_catalog
 AS $function$
 declare
   v_vip_threshold integer;
@@ -332,7 +332,7 @@ CREATE OR REPLACE FUNCTION public.beauty_crm_segment_clients(p_organization_id u
  RETURNS jsonb
  LANGUAGE sql
  STABLE
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public,private,pg_catalog
 AS $function$
   select private.beauty_crm_segment_clients(
     p_organization_id,p_company_id,p_segment,p_search,p_limit,p_offset
@@ -344,7 +344,7 @@ CREATE OR REPLACE FUNCTION public.beauty_crm_segments_dashboard(p_organization_i
  RETURNS jsonb
  LANGUAGE sql
  STABLE
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public,private,pg_catalog
 AS $function$
   select private.beauty_crm_segments_dashboard(p_organization_id,p_company_id);
 $function$
