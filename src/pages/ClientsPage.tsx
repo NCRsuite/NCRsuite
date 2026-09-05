@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { BeautyClientCrmPanel } from '../components/BeautyClientCrmPanel';
 import { Icon } from '../components/Icon';
@@ -38,6 +38,8 @@ const activityLabels = {
 
 type ClientProfileActivity = keyof typeof activityLabels;
 
+const CLIENT_PAGE_SIZE = 100;
+
 const emptyForm: ClientFormState = {
   firstName: '',
   lastName: '',
@@ -63,10 +65,22 @@ export function ClientsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [query, setQuery] = useState('');
+  const [serverQuery, setServerQuery] = useState('');
+  const [totalClients, setTotalClients] = useState(0);
+  const [loadingMoreClients, setLoadingMoreClients] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
   const [savingActivity, setSavingActivity] = useState(false);
   const formOpen = searchParams.get('new') === '1';
   const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
+
+  useEffect(() => {
+    if (!beautyMode || demoMode) {
+      setServerQuery('');
+      return;
+    }
+    const timeout = window.setTimeout(() => setServerQuery(query.trim()), query.trim() ? 280 : 0);
+    return () => window.clearTimeout(timeout);
+  }, [query, beautyMode, demoMode]);
 
   useEffect(() => {
     if (!organization) return;
@@ -81,6 +95,7 @@ export function ClientsPage() {
       if (beautyMode && !selectedEnseigneId) {
         if (active) {
           setClients([]);
+          setTotalClients(0);
           setLoading(false);
         }
         return;
@@ -92,46 +107,103 @@ export function ClientsPage() {
         const scoped = beautyMode ? rows.filter((row) => row.company_id === selectedEnseigneId) : rows;
         if (active) {
           setClients(scoped);
+          setTotalClients(scoped.length);
           setLoading(false);
         }
         return;
       }
 
-      let request = supabase
+      if (beautyMode && selectedEnseigneId) {
+        const { data, error: loadError } = await supabase.rpc('beauty_client_directory', {
+          p_organization_id: organizationId,
+          p_company_id: selectedEnseigneId,
+          p_search: serverQuery || null,
+          p_limit: CLIENT_PAGE_SIZE,
+          p_offset: 0,
+          p_active_only: false
+        });
+        if (!active) return;
+        if (loadError) {
+          setError(`Impossible de charger les clients : ${loadError.message}`);
+          setClients([]);
+          setTotalClients(0);
+        } else {
+          const payload = (data ?? { total: 0, items: [] }) as { total: number; items: ClientRecord[] };
+          setClients(Array.isArray(payload.items) ? payload.items : []);
+          setTotalClients(Number(payload.total ?? 0));
+        }
+        setLoading(false);
+        return;
+      }
+
+      const { data, error: loadError } = await supabase
         .from('clients')
         .select('id,company_id,first_name,last_name,email,phone,notes,status,created_at')
         .eq('organization_id', organizationId)
-        .neq('status', 'archived');
-      if (beautyMode && selectedEnseigneId) request = request.eq('company_id', selectedEnseigneId);
-      const { data, error: loadError } = await request.order('created_at', { ascending: false });
+        .neq('status', 'archived')
+        .order('created_at', { ascending: false });
 
       if (!active) return;
       if (loadError) setError(`Impossible de charger les clients : ${loadError.message}`);
-      else setClients((data ?? []) as ClientRecord[]);
+      else {
+        const rows = (data ?? []) as ClientRecord[];
+        setClients(rows);
+        setTotalClients(rows.length);
+      }
       setLoading(false);
     }
 
     void loadClients();
     return () => { active = false; };
-  }, [organization?.id, demoMode, beautyMode, selectedEnseigneId, enseigneLoading]);
+  }, [organization?.id, demoMode, beautyMode, selectedEnseigneId, enseigneLoading, serverQuery]);
 
   useEffect(() => {
     setSearchParams({});
     setForm(emptyForm);
     setQuery('');
+    setServerQuery('');
+    setTotalClients(0);
     setSuccess('');
     setSelectedClient(null);
   }, [selectedEnseigneId]);
 
-  const filteredClients = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase('fr');
-    if (!needle) return clients;
-    return clients.filter((client) => {
-      const text = [client.first_name, client.last_name, client.email, client.phone]
-        .filter(Boolean).join(' ').toLocaleLowerCase('fr');
-      return text.includes(needle);
+  const filteredClients = beautyMode && !demoMode
+    ? clients
+    : (() => {
+        const needle = query.trim().toLocaleLowerCase('fr');
+        if (!needle) return clients;
+        return clients.filter((client) => {
+          const text = [client.first_name, client.last_name, client.email, client.phone]
+            .filter(Boolean).join(' ').toLocaleLowerCase('fr');
+          return text.includes(needle);
+        });
+      })();
+
+  async function loadMoreBeautyClients() {
+    if (!organization || !selectedEnseigneId || !beautyMode || demoMode || !supabase || loadingMoreClients) return;
+    setLoadingMoreClients(true);
+    setError('');
+    const { data, error: loadError } = await supabase.rpc('beauty_client_directory', {
+      p_organization_id: organization.id,
+      p_company_id: selectedEnseigneId,
+      p_search: serverQuery || null,
+      p_limit: CLIENT_PAGE_SIZE,
+      p_offset: clients.length,
+      p_active_only: false
     });
-  }, [clients, query]);
+    if (loadError) {
+      setError(`Impossible de charger la suite : ${loadError.message}`);
+    } else {
+      const payload = (data ?? { total: 0, items: [] }) as { total: number; items: ClientRecord[] };
+      const next = Array.isArray(payload.items) ? payload.items : [];
+      setClients((current) => {
+        const seen = new Set(current.map((client) => client.id));
+        return [...current, ...next.filter((client) => !seen.has(client.id))];
+      });
+      setTotalClients(Number(payload.total ?? 0));
+    }
+    setLoadingMoreClients(false);
+  }
 
   function openForm() {
     if (!canManage || (beautyMode && !selectedEnseigneId)) return;
@@ -204,6 +276,7 @@ export function ClientsPage() {
       }
 
       setClients((current) => [created, ...current.filter((client) => client.id !== created.id)]);
+      if (beautyMode && !serverQuery) setTotalClients((current) => current + 1);
       setForm(emptyForm);
       setSuccess(beautyMode && selectedEnseigne ? `Client ajouté à ${selectedEnseigne.name}.` : 'Le client a bien été créé.');
       setSearchParams({});
@@ -251,6 +324,7 @@ export function ClientsPage() {
         if (archiveError) throw archiveError;
       }
       setClients((current) => current.filter((row) => row.id !== client.id));
+      if (beautyMode) setTotalClients((current) => Math.max(0, current - 1));
       if (selectedClient?.id === client.id) setSelectedClient(null);
       setSuccess('Le client a été archivé.');
     } catch (caught) {
@@ -312,7 +386,7 @@ export function ClientsPage() {
 
       <section className="panel clients-list-panel">
         <div className="clients-toolbar">
-          <div><p className="eyebrow">RÉPERTOIRE{scopeLabel ? ` · ${scopeLabel}` : ''}</p><h2>{clients.length} client{clients.length > 1 ? 's' : ''}</h2></div>
+          <div><p className="eyebrow">RÉPERTOIRE{scopeLabel ? ` · ${scopeLabel}` : ''}</p><h2>{beautyMode && !demoMode ? totalClients : clients.length} client{(beautyMode && !demoMode ? totalClients : clients.length) > 1 ? 's' : ''}</h2>{beautyMode && !demoMode && totalClients > clients.length && <small>{clients.length} fiche{clients.length > 1 ? 's' : ''} chargée{clients.length > 1 ? 's' : ''}</small>}</div>
           <div className="beauty-clients-toolbar-actions">
             {beautyMode && selectedEnseigne && <label className="beauty-client-activity-picker"><span>Profil métier</span><select value={selectedEnseigne.client_profile_activity ?? 'general'} disabled={!canManage || savingActivity} onChange={(event) => void updateClientProfileActivity(event.target.value as ClientProfileActivity)}>{Object.entries(activityLabels).map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>}
             <label className="search-field"><span className="sr-only">Rechercher un client</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher un nom, un e-mail ou un téléphone" /></label>
@@ -324,9 +398,9 @@ export function ClientsPage() {
         ) : filteredClients.length === 0 ? (
           <div className="list-state empty-client-state">
             <div className="empty-icon"><Icon name="users" size={30} /></div>
-            <h3>{clients.length === 0 ? 'Aucun client pour le moment' : 'Aucun résultat'}</h3>
-            <p>{clients.length === 0 ? (beautyMode && selectedEnseigne ? `Aucun client n’est encore rattaché à ${selectedEnseigne.name}.` : 'Créez votre première fiche client pour commencer.') : 'Essayez une autre recherche.'}</p>
-            {clients.length === 0 && canManage && (!beautyMode || selectedEnseigneId) && <button className="primary-button" type="button" onClick={openForm}>Créer le premier client</button>}
+            <h3>{(beautyMode && !demoMode ? totalClients : clients.length) === 0 && !query.trim() ? 'Aucun client pour le moment' : 'Aucun résultat'}</h3>
+            <p>{(beautyMode && !demoMode ? totalClients : clients.length) === 0 && !query.trim() ? (beautyMode && selectedEnseigne ? `Aucun client n’est encore rattaché à ${selectedEnseigne.name}.` : 'Créez votre première fiche client pour commencer.') : 'Essayez une autre recherche.'}</p>
+            {(beautyMode && !demoMode ? totalClients : clients.length) === 0 && !query.trim() && canManage && (!beautyMode || selectedEnseigneId) && <button className="primary-button" type="button" onClick={openForm}>Créer le premier client</button>}
           </div>
         ) : (
           <div className="client-table-wrap">
@@ -345,6 +419,11 @@ export function ClientsPage() {
             </table>
           </div>
         )}
+        {beautyMode && !demoMode && clients.length < totalClients && <div className="beauty-clients-load-more">
+          <button className="secondary-button" type="button" disabled={loadingMoreClients} onClick={() => void loadMoreBeautyClients()}>
+            {loadingMoreClients ? 'Chargement…' : `Charger ${Math.min(CLIENT_PAGE_SIZE, totalClients - clients.length)} cliente${Math.min(CLIENT_PAGE_SIZE, totalClients - clients.length) > 1 ? 's' : ''} de plus`}
+          </button>
+        </div>}
       </section>
 
       {beautyMode && selectedClient && selectedEnseigneId && user && (
