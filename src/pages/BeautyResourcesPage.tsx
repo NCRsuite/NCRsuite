@@ -3,6 +3,7 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
+import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import { supabase } from '../lib/supabase';
 import '../beautyResources.css';
 
@@ -60,6 +61,7 @@ export function BeautyResourcesPage() {
   const { organization } = useOrganization();
   const { demoMode } = useAuth();
   const { beautyMode, selectedEnseigne, selectedEnseigneId, loading: enseigneLoading } = useBeautyEnseigneContext();
+  const { confirm } = useConfirmDialog();
   const [resources, setResources] = useState<BeautyResource[]>([]);
   const [requirements, setRequirements] = useState<ResourceRequirement[]>([]);
   const [services, setServices] = useState<ServiceRecord[]>([]);
@@ -262,7 +264,15 @@ export function BeautyResourcesPage() {
   async function toggleResource(resource: BeautyResource) {
     if (!organization || !selectedEnseigneId || !canManage) return;
     const nextActive = !resource.active;
-    if (!window.confirm(`${nextActive ? 'Réactiver' : 'Désactiver'} « ${resource.name} » ?`)) return;
+    const decision = await confirm({
+      title: `${nextActive ? 'Réactiver' : 'Désactiver'} ${resource.name} ?`,
+      message: nextActive
+        ? 'La ressource redeviendra disponible pour les prestations qui en ont besoin.'
+        : 'La ressource ne sera plus considérée disponible. Les prestations qui en dépendent pourront être limitées tant qu’elle reste désactivée.',
+      confirmLabel: nextActive ? 'Réactiver' : 'Désactiver',
+      tone: nextActive ? 'default' : 'warning'
+    });
+    if (!decision.confirmed) return;
     setBusyId(resource.id);
     setError('');
     setSuccess('');
