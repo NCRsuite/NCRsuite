@@ -54,11 +54,15 @@ function publicUrl(slug: string) {
 }
 
 function bookingUrl(slug: string) {
-  return `${publicUrl(slug)}#reserver`;
+  return `${publicUrl(slug)}?src=direct#reserver`;
+}
+
+function qrBookingUrl(slug: string) {
+  return `${publicUrl(slug)}?src=qr#reserver`;
 }
 
 function widgetUrl(slug: string) {
-  return `${publicUrl(slug)}?embed=1`;
+  return `${publicUrl(slug)}?embed=1&src=widget`;
 }
 
 function widgetCode(slug: string) {
@@ -165,7 +169,7 @@ export function BeautyPublicPageManagementPage() {
       const entries = await Promise.all(companies
         .filter((company) => company.public_page_enabled && company.public_slug)
         .map(async (company) => {
-          const dataUrl = await QRCode.toDataURL(bookingUrl(company.public_slug!), {
+          const dataUrl = await QRCode.toDataURL(qrBookingUrl(company.public_slug!), {
             width: 720,
             margin: 2,
             errorCorrectionLevel: 'H'
