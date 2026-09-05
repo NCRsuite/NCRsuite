@@ -23,6 +23,7 @@ const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then((module)
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })));
 const ServicesPage = lazy(() => import('./pages/ServicesPage').then((module) => ({ default: module.ServicesPage })));
 const BeautyResourcesPage = lazy(() => import('./pages/BeautyResourcesPage').then((module) => ({ default: module.BeautyResourcesPage })));
+const BeautyStockPage = lazy(() => import('./pages/BeautyStockPage').then((module) => ({ default: module.BeautyStockPage })));
 const StaffPage = lazy(() => import('./pages/StaffPage').then((module) => ({ default: module.StaffPage })));
 const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage').then((module) => ({ default: module.AppointmentsPage })));
 const PublicBookingPage = lazy(() => import('./pages/PublicBookingPage').then((module) => ({ default: module.PublicBookingPage })));
@@ -235,6 +236,7 @@ function BeautyResourcesArea() {
 
 function StockArea() {
   const { organization } = useOrganization();
+  if (organization?.business_type === 'coiffure' && organization.plan === 'metier') return <ModuleAccessGuard moduleKey="stock"><BeautyStockPage /></ModuleAccessGuard>;
   if (organization?.business_type === 'nettoyage') return <CleaningOnlyArea><CleaningFeatureGate feature="cleaning_stock" requiredPlan="Professionnelle" description="Pilotez les produits, consommables, coûts et seuils de réapprovisionnement."><CleaningStockPage /></CleaningFeatureGate></CleaningOnlyArea>;
   if (organization?.business_type === 'restauration') return <ModuleAccessGuard moduleKey="restaurant_stock"><RestaurantStockPage /></ModuleAccessGuard>;
   return <Navigate to="/" replace />;
