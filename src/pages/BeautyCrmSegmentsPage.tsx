@@ -282,7 +282,7 @@ export function BeautyCrmSegmentsPage() {
 
   if (!organization) return null;
   if (!beautyMode) return <div className="page"><div className="info-message page-message">Le CRM avancé est disponible dans l’environnement Coiffure & beauté Métier.</div></div>;
-  if (!canView) return <div className="page"><div className="error-message page-message">Le CRM est réservé aux propriétaires, administrateurs et managers autorisés.</div></div>;
+  if (!canView) return <div className="page"><div className="error-message page-message" role="alert">Le CRM est réservé aux propriétaires, administrateurs et managers autorisés.</div></div>;
 
   return <div className="page beauty-crm-segments-page">
     <header className="page-header beauty-crm-segments-header">
