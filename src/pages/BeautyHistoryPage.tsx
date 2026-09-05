@@ -383,7 +383,7 @@ export function BeautyHistoryPage() {
                   const hasAfter = Object.prototype.hasOwnProperty.call(after, field);
                   if (!hasBefore && !hasAfter) return <div key={field} className="privacy-only"><span>{fieldLabels[field] || field}</span><small>Champ modifié · valeur non dupliquée dans le journal</small></div>;
                   return <div key={field}>
-                    <span>{fieldLabels[field] || field.replaceAll('_', ' ')}</span>
+                    <span>{fieldLabels[field] || field.replace(/_/g, ' ')}</span>
                     <div><del>{formatValue(field, before[field])}</del><Icon name="chevronRight" size={12}/><ins>{formatValue(field, after[field])}</ins></div>
                   </div>;
                 })}
