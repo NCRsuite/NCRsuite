@@ -72,6 +72,7 @@ export function ClientsPage() {
   const [loadingMoreClients, setLoadingMoreClients] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
   const [savingActivity, setSavingActivity] = useState(false);
+  const [archivingClientId, setArchivingClientId] = useState('');
   const formOpen = searchParams.get('new') === '1';
   const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
 
@@ -318,6 +319,7 @@ export function ClientsPage() {
       tone: 'warning'
     });
     if (!decision.confirmed) return;
+    setArchivingClientId(client.id);
     setError('');
 
     try {
@@ -340,6 +342,8 @@ export function ClientsPage() {
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : 'Une erreur inconnue est survenue.';
       setError(`Archivage impossible : ${message}`);
+    } finally {
+      setArchivingClientId('');
     }
   }
 
@@ -386,7 +390,7 @@ export function ClientsPage() {
             <label>Téléphone<input inputMode="tel" value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} placeholder="06 00 00 00 00" /></label>
             <label>Adresse e-mail<input type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} placeholder="client@exemple.fr" /></label>
             <label className="full-field">Notes internes<textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Préférences, allergies, informations utiles…" rows={4} /></label>
-            <div className="form-actions full-field"><button className="secondary-button" type="button" onClick={closeForm}>Annuler</button><button className="primary-button" type="submit" disabled={saving}>{saving ? 'Création…' : 'Enregistrer le client'}</button></div>
+            <div className="form-actions full-field"><button className="secondary-button" type="button" onClick={closeForm}>Annuler</button><button className="primary-button" type="submit" disabled={saving} aria-busy={saving}>{saving ? 'Création…' : 'Enregistrer le client'}</button></div>
           </form>
         </section>
       )}
@@ -404,7 +408,7 @@ export function ClientsPage() {
         </div>
 
         {loading || enseigneLoading ? (
-          <div className="list-state">Chargement des clients…</div>
+          <div className="list-state beauty-loading-state" aria-busy="true">Chargement des clients…</div>
         ) : filteredClients.length === 0 ? (
           <div className="list-state empty-client-state">
             <div className="empty-icon"><Icon name="users" size={30} /></div>
@@ -422,7 +426,7 @@ export function ClientsPage() {
                     <td data-label="Client"><div className="client-identity"><span>{client.first_name.slice(0, 1).toUpperCase()}</span><div><strong>{client.first_name}{client.last_name ? ` ${client.last_name}` : ''}</strong>{client.notes && <small>{client.notes}</small>}</div></div></td>
                     <td data-label="Coordonnées"><div className="client-contact"><span>{client.phone || 'Téléphone non renseigné'}</span><small>{client.email || 'E-mail non renseigné'}</small></div></td>
                     <td data-label="Ajouté le">{new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(client.created_at))}</td>
-                    <td className="table-actions" data-label="Actions"><div className="beauty-client-row-actions">{beautyMode && !demoMode && selectedEnseigneId && user && <button className="icon-text-button beauty-client-crm-open" type="button" onClick={() => setSelectedClient(client)}><Icon name="sparkles" size={14}/> Fiche client pro</button>}{canManage && <button className="icon-text-button danger" type="button" onClick={() => archiveClient(client)}>Archiver</button>}</div></td>
+                    <td className="table-actions" data-label="Actions"><div className="beauty-client-row-actions">{beautyMode && !demoMode && selectedEnseigneId && user && <button className="icon-text-button beauty-client-crm-open" type="button" onClick={() => setSelectedClient(client)}><Icon name="sparkles" size={14}/> Fiche client pro</button>}{canManage && <button className="icon-text-button danger" type="button" disabled={archivingClientId === client.id} aria-busy={archivingClientId === client.id} onClick={() => void archiveClient(client)}>{archivingClientId === client.id ? 'Archivage…' : 'Archiver'}</button>}</div></td>
                   </tr>
                 ))}
               </tbody>
@@ -430,7 +434,7 @@ export function ClientsPage() {
           </div>
         )}
         {beautyMode && !demoMode && clients.length < totalClients && <div className="beauty-clients-load-more">
-          <button className="secondary-button" type="button" disabled={loadingMoreClients} onClick={() => void loadMoreBeautyClients()}>
+          <button className="secondary-button" type="button" disabled={loadingMoreClients} aria-busy={loadingMoreClients} onClick={() => void loadMoreBeautyClients()}>
             {loadingMoreClients ? 'Chargement…' : `Charger ${Math.min(CLIENT_PAGE_SIZE, totalClients - clients.length)} cliente${Math.min(CLIENT_PAGE_SIZE, totalClients - clients.length) > 1 ? 's' : ''} de plus`}
           </button>
         </div>}
