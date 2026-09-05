@@ -4,6 +4,7 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
+import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import { supabase } from '../lib/supabase';
 import { parseStoredJson, writeJsonStorage } from '../lib/safeStorage';
 
@@ -51,6 +52,7 @@ export function StaffPage() {
   const { organization, sites, activeSite, activeSiteId } = useOrganization();
   const { demoMode } = useAuth();
   const { beautyMode, selectedEnseigne, selectedEnseigneId, loading: enseigneLoading } = useBeautyEnseigneContext();
+  const { confirm } = useConfirmDialog();
   const [searchParams, setSearchParams] = useSearchParams();
   const [staff, setStaff] = useState<StaffRecord[]>([]);
   const [services, setServices] = useState<ServiceOption[]>([]);
@@ -232,7 +234,17 @@ export function StaffPage() {
   async function toggleStaffStatus(member: StaffRecord) {
     if (!organization || !canManage) return;
     const nextActive = !member.active;
-    if (!window.confirm(`Voulez-vous ${nextActive ? 'réactiver' : 'désactiver'} « ${member.display_name} » ?`)) return;
+    const decision = await confirm({
+      title: `${nextActive ? 'Réactiver' : 'Désactiver'} ${member.display_name} ?`,
+      message: nextActive
+        ? 'Le collaborateur redeviendra disponible dans l’équipe et pourra être proposé sur les prestations compatibles.'
+        : beautyMode
+          ? 'Le collaborateur reste dans l’historique, mais il ne sera plus proposé pour les nouveaux rendez-vous tant qu’il est désactivé.'
+          : 'Le collaborateur reste dans l’historique, mais il ne sera plus proposé dans les nouvelles affectations tant qu’il est désactivé.',
+      confirmLabel: nextActive ? 'Réactiver' : 'Désactiver',
+      tone: nextActive ? 'default' : 'warning'
+    });
+    if (!decision.confirmed) return;
     setBusyId(member.id); setError(''); setSuccess('');
     try {
       if (demoMode || !supabase) {
