@@ -3,6 +3,10 @@
    les usages tactiles, safe areas et compositions petit écran. */
 
 @media (max-width: 900px) {
+  html[data-beauty-metier="true"] .app-shell .premium-route-stage :where(input, select, textarea) {
+    font-size: 16px !important;
+  }
+
   html[data-beauty-metier="true"] .app-shell .mobile-header {
     padding-top: env(safe-area-inset-top);
   }
@@ -42,10 +46,7 @@
 }
 
 @media (max-width: 640px) {
-  /* Empêche le zoom automatique iOS au focus sur les champs < 16 px. */
-  html[data-beauty-metier="true"] .app-shell .premium-route-stage :where(input, select, textarea) {
-    font-size: 16px !important;
-  }
+  /* Les champs sont déjà forcés à 16 px jusqu’à 900 px pour iOS/iPadOS. */
 
   html[data-beauty-metier="true"] .app-shell .premium-route-stage :where(
     .primary-button,
