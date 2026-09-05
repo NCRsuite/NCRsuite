@@ -616,7 +616,7 @@ export function BeautyStockPage() {
         <label>Fournisseur<input value={stockForm.supplier} onChange={(event) => setStockForm((current) => ({ ...current, supplier: event.target.value }))} placeholder="Facultatif"/></label>
         <label>Emplacement<input value={stockForm.storageLocation} onChange={(event) => setStockForm((current) => ({ ...current, storageLocation: event.target.value }))} placeholder="Ex. Réserve, meuble 2…"/></label>
         <label className="full-field">Notes<textarea rows={3} maxLength={1500} value={stockForm.notes} onChange={(event) => setStockForm((current) => ({ ...current, notes: event.target.value }))}/></label>
-        <div className="form-actions full-field"><button type="button" className="secondary-button" onClick={() => setEditingId(null)}>Annuler</button><button type="submit" className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button></div>
+        <div className="form-actions full-field"><button type="button" className="secondary-button" onClick={() => setEditingId(null)}>Annuler</button><button type="submit" className="primary-button" disabled={saving} aria-busy={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button></div>
       </form>
     </section>}
 
@@ -626,7 +626,7 @@ export function BeautyStockPage() {
         <label>Type<select value={movementForm.kind} onChange={(event) => setMovementForm((current) => ({ ...current, kind: event.target.value as ManualMovementKind }))}><option value="purchase">Réapprovisionnement</option><option value="manual_in">Autre entrée</option><option value="manual_out">Sortie manuelle</option><option value="waste">Perte / casse</option><option value="correction_add">Correction +</option><option value="correction_remove">Correction −</option></select></label>
         <label>Quantité ({unitLabels[movementItem.unit]})<input autoFocus inputMode="decimal" value={movementForm.quantity} onChange={(event) => setMovementForm((current) => ({ ...current, quantity: event.target.value }))}/></label>
         <label className="full-field">Motif / note<textarea rows={2} value={movementForm.reason} onChange={(event) => setMovementForm((current) => ({ ...current, reason: event.target.value }))} placeholder="Ex. Livraison fournisseur, inventaire, produit cassé…"/></label>
-        <div className="form-actions full-field"><button type="button" className="secondary-button" onClick={() => setMovementOpen(false)}>Annuler</button><button type="submit" className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Valider le mouvement'}</button></div>
+        <div className="form-actions full-field"><button type="button" className="secondary-button" onClick={() => setMovementOpen(false)}>Annuler</button><button type="submit" className="primary-button" disabled={saving} aria-busy={saving}>{saving ? 'Enregistrement…' : 'Valider le mouvement'}</button></div>
       </form>
     </section>}
 
@@ -649,7 +649,7 @@ export function BeautyStockPage() {
         })}</div>
         {services.filter((service) => service.active).length === 0 && <div className="list-state">Aucune prestation active à configurer.</div>}
         <div className="beauty-stock-auto-note"><Icon name="activity" size={17}/><span><strong>Déduction automatique activée</strong><small>Elle se déclenche quand le rendez-vous passe à « Terminé ». Une correction du statut réintègre automatiquement le stock.</small></span></div>
-        <div className="form-actions"><button type="button" className="secondary-button" onClick={() => setAssigningId(null)}>Annuler</button><button type="submit" className="primary-button" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer les consommations'}</button></div>
+        <div className="form-actions"><button type="button" className="secondary-button" onClick={() => setAssigningId(null)}>Annuler</button><button type="submit" className="primary-button" disabled={saving} aria-busy={saving}>{saving ? 'Enregistrement…' : 'Enregistrer les consommations'}</button></div>
       </form>
     </section>}
 
@@ -670,7 +670,7 @@ export function BeautyStockPage() {
         </div>
       </div>
 
-      {loading || enseigneLoading ? <div className="list-state">Chargement du stock…</div> : filteredItems.length === 0 ? <div className="list-state empty-service-state"><div className="empty-icon"><Icon name="briefcase" size={30}/></div><h3>{items.length === 0 ? 'Aucun produit en stock' : 'Aucun résultat'}</h3><p>{items.length === 0 ? 'Ajoutez vos consommables puis liez-les aux prestations pour automatiser les sorties.' : 'Modifiez les filtres ou la recherche.'}</p>{items.length === 0 && canManage && sites.length > 0 && <button type="button" className="primary-button" onClick={openCreate}>Ajouter le premier produit</button>}</div> : <div className="beauty-stock-grid">{filteredItems.map((item) => {
+      {loading || enseigneLoading ? <div className="list-state beauty-loading-state" aria-busy="true">Chargement du stock…</div> : filteredItems.length === 0 ? <div className="list-state empty-service-state"><div className="empty-icon"><Icon name="briefcase" size={30}/></div><h3>{items.length === 0 ? 'Aucun produit en stock' : 'Aucun résultat'}</h3><p>{items.length === 0 ? 'Ajoutez vos consommables puis liez-les aux prestations pour automatiser les sorties.' : 'Modifiez les filtres ou la recherche.'}</p>{items.length === 0 && canManage && sites.length > 0 && <button type="button" className="primary-button" onClick={openCreate}>Ajouter le premier produit</button>}</div> : <div className="beauty-stock-grid">{filteredItems.map((item) => {
         const quantity = Number(item.quantity_on_hand);
         const threshold = Number(item.alert_threshold);
         const negative = quantity < 0;
@@ -685,7 +685,7 @@ export function BeautyStockPage() {
           <div className="beauty-stock-cost"><span>Coût unitaire <strong>{formatMoneyFromCents(item.unit_cost_cents)}</strong> / {unitLabels[item.unit]}</span><span>Valeur en stock <strong>{formatMoneyFromCents(Math.max(0, quantity) * Number(item.unit_cost_cents))}</strong></span></div>
           <div className="beauty-stock-linked-services"><small>Consommation automatique</small>{serviceNames.length > 0 ? <div>{serviceNames.slice(0,4).map((name) => <span key={name}>{name}</span>)}{serviceNames.length > 4 && <span>+{serviceNames.length - 4}</span>}</div> : <p>Aucune prestation liée.</p>}</div>
           {item.sku && <small className="beauty-stock-sku">Réf. {item.sku}</small>}
-          {canManage && <div className="beauty-stock-actions"><button type="button" className="primary-button compact-button" onClick={() => openMovement(item)}>Mouvement</button><button type="button" className="secondary-button compact-button" onClick={() => openAssignments(item)}>Prestations</button><button type="button" className="secondary-button compact-button" onClick={() => openEdit(item)}>Modifier</button><button type="button" className={item.active ? 'danger-text-button' : 'icon-text-button'} disabled={busyId === item.id} onClick={() => void toggleItem(item)}>{busyId === item.id ? 'Mise à jour…' : item.active ? 'Désactiver' : 'Réactiver'}</button></div>}
+          {canManage && <div className="beauty-stock-actions"><button type="button" className="primary-button compact-button" onClick={() => openMovement(item)}>Mouvement</button><button type="button" className="secondary-button compact-button" onClick={() => openAssignments(item)}>Prestations</button><button type="button" className="secondary-button compact-button" onClick={() => openEdit(item)}>Modifier</button><button type="button" className={item.active ? 'danger-text-button' : 'icon-text-button'} disabled={busyId === item.id} aria-busy={busyId === item.id} onClick={() => void toggleItem(item)}>{busyId === item.id ? 'Mise à jour…' : item.active ? 'Désactiver' : 'Réactiver'}</button></div>}
         </article>;
       })}</div>}
     </section>
