@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION private.beauty_crm_segment_clients(p_organization_id 
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public,private,pg_catalog
 AS $function$
 declare
   v_segment text:=coalesce(nullif(trim(p_segment),''),'all');
@@ -187,7 +187,7 @@ CREATE OR REPLACE FUNCTION private.beauty_crm_segments_dashboard(p_organization_
  RETURNS jsonb
  LANGUAGE plpgsql
  STABLE SECURITY DEFINER
- SET search_path TO 'public', 'private', 'pg_catalog'
+ SET search_path = public,private,pg_catalog
 AS $function$
 declare
   v_vip_threshold integer;
