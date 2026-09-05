@@ -303,7 +303,7 @@ export function BeautyPilotagePage() {
 
   if (!organization) return null;
   if (!beautyMode) return <div className="page"><div className="info-message page-message">Le pilotage avancé est disponible dans l’environnement Coiffure & beauté Métier.</div></div>;
-  if (!canView) return <div className="page"><div className="error-message page-message">Le pilotage est réservé aux propriétaires, administrateurs et managers.</div></div>;
+  if (!canView) return <div className="page"><div className="error-message page-message" role="alert">Le pilotage est réservé aux propriétaires, administrateurs et managers.</div></div>;
 
   const s = dashboard?.summary;
   const changes = dashboard?.changes;
