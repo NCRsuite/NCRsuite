@@ -5,6 +5,7 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
+import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import { supabase } from '../lib/supabase';
 
 interface ClientRecord {
@@ -57,6 +58,7 @@ export function ClientsPage() {
   const { organization } = useOrganization();
   const { user, demoMode } = useAuth();
   const { beautyMode, selectedEnseigne, selectedEnseigneId, loading: enseigneLoading } = useBeautyEnseigneContext();
+  const { confirm } = useConfirmDialog();
   const [searchParams, setSearchParams] = useSearchParams();
   const [clients, setClients] = useState<ClientRecord[]>([]);
   const [form, setForm] = useState<ClientFormState>(emptyForm);
@@ -307,7 +309,15 @@ export function ClientsPage() {
   }
 
   async function archiveClient(client: ClientRecord) {
-    if (!organization || !canManage || !window.confirm(`Archiver ${client.first_name}${client.last_name ? ` ${client.last_name}` : ''} ?`)) return;
+    if (!organization || !canManage) return;
+    const name = `${client.first_name}${client.last_name ? ` ${client.last_name}` : ''}`;
+    const decision = await confirm({
+      title: `Archiver ${name} ?`,
+      message: 'La fiche ne sera plus visible dans le répertoire actif. Les rendez-vous et historiques nécessaires au suivi restent conservés.',
+      confirmLabel: 'Archiver la fiche',
+      tone: 'warning'
+    });
+    if (!decision.confirmed) return;
     setError('');
 
     try {
