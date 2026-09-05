@@ -462,7 +462,7 @@ export function BeautyPilotagePage() {
       <section className="panel beauty-pilot-growth">
         <div className="panel-header">
           <div><p className="eyebrow">CROISSANCE CLIENT</p><h2>Opportunités à exploiter</h2><small>Relances, avis, anniversaires et parrainage déjà détectés par NCR Suite.</small></div>
-          <Link className="secondary-button compact-button" to="/clients">Voir les clients</Link>
+          <Link className="secondary-button compact-button" to="/crm">CRM & segments</Link>
         </div>
         <div className="beauty-pilot-growth-kpis">
           <div><span>À replanifier</span><strong>{growthSummary.rebook_due ?? 0}</strong></div>
