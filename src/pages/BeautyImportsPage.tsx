@@ -490,12 +490,13 @@ export function BeautyImportsPage() {
       return;
     }
 
-    const accepted = window.confirm(
-      kind === 'clients'
-        ? `Valider l’import dans « ${selectedEnseigne?.name ?? 'cette enseigne'} » ?\n\n${ready} fiche${ready > 1 ? 's' : ''} à créer · ${merged} fiche${merged > 1 ? 's' : ''} existante${merged > 1 ? 's' : ''} à compléter.\n\nLes lignes laissées sur « Ignorer » et les conflits resteront inchangés.`
-        : `Importer maintenant ${ready} ligne${ready > 1 ? 's' : ''} dans « ${selectedEnseigne?.name ?? 'cette enseigne'} » ?\n\nLes doublons sûrs seront ignorés et les lignes en conflit resteront non importées.`
-    );
-    if (!accepted) return;
+    const decision = await confirm({
+      title: 'Fusionner ces deux fiches clientes ?',
+      message: `« ${fullName(merge.first_name, merge.last_name)} » sera regroupée dans « ${fullName(keep.first_name, keep.last_name)} ».\n\nLa fiche conservée garde ses coordonnées déjà renseignées. Les rendez-vous, notes, médias, documents, consentements, fidélité et autres historiques seront rattachés à la fiche conservée. L’ancienne fiche sera ensuite supprimée.`,
+      confirmLabel: 'Fusionner les fiches',
+      tone: 'danger'
+    });
+    if (!decision.confirmed) return;
 
     setImporting(true);
     setError('');
