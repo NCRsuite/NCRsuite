@@ -205,6 +205,10 @@ export function BeautyCrmSegmentsPage() {
   }, [searchValue]);
 
   useEffect(() => {
+    setSummary(null);
+    setClientsPayload(null);
+    setLoadingSummary(true);
+    setLoadingClients(true);
     setSelectedSegment('all');
     setOffset(0);
     setQuery('');
