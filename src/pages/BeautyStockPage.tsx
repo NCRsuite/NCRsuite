@@ -595,7 +595,7 @@ export function BeautyStockPage() {
     {!selectedEnseigneId && !enseigneLoading && <div className="info-message page-message">Aucune enseigne Beauty sélectionnée.</div>}
     {selectedEnseigneId && sites.length === 0 && <div className="info-message page-message">Ajoutez d’abord un établissement à cette enseigne.</div>}
     {!canManage && <div className="info-message page-message">Votre rôle permet de consulter le stock, mais pas de le modifier.</div>}
-    {negativeStock.length > 0 && <div className="error-message page-message"><strong>{negativeStock.length} stock{negativeStock.length > 1 ? 's sont' : ' est'} négatif{negativeStock.length > 1 ? 's' : ''}.</strong> Cela signifie que des prestations ont consommé davantage que le stock théorique. Réapprovisionnez ou corrigez l’inventaire.</div>}
+    {negativeStock.length > 0 && <div className="error-message page-message" role="alert"><strong>{negativeStock.length} stock{negativeStock.length > 1 ? 's sont' : ' est'} négatif{negativeStock.length > 1 ? 's' : ''}.</strong> Cela signifie que des prestations ont consommé davantage que le stock théorique. Réapprovisionnez ou corrigez l’inventaire.</div>}
     {error && <div className="error-message page-message" role="alert">{error}</div>}
     {success && <div className="success-message page-message" role="status">{success}</div>}
 
