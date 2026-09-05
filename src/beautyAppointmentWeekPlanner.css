@@ -1,0 +1,50 @@
+.beauty-week-planner-shell{display:flex;flex-direction:column;gap:10px}
+.beauty-week-planner-legend{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding:2px 1px 6px}
+.beauty-week-planner-legend span{display:inline-flex;align-items:center;gap:5px;font-size:8px;font-weight:800;color:#747d87}
+.beauty-week-planner-legend i{width:9px;height:9px;border-radius:3px;border:1px solid #dfe4e8;background:#fff}
+.beauty-week-planner-legend i.free{background:#fbfdfc;border-color:#dfe9e3}
+.beauty-week-planner-legend i.busy{background:#eef3ff;border-color:#d7e2fa}
+.beauty-week-planner-legend i.blocked{background:repeating-linear-gradient(-45deg,#f7ead4,#f7ead4 3px,#fff8ec 3px,#fff8ec 6px);border-color:#ead7b7}
+.beauty-week-planner-legend i.closed{background:#f0f1f3;border-color:#e2e4e7}
+.beauty-week-planner{display:grid;grid-template-columns:54px repeat(7,minmax(0,1fr));grid-template-rows:auto var(--week-grid-height);width:100%;border:1px solid #e4e7eb;border-radius:16px;overflow:hidden;background:#fff}
+.beauty-week-header-time,.beauty-week-day-header{position:sticky;top:0;z-index:8;min-height:64px;border:0;border-bottom:1px solid #e6e9ed;background:#fbfcfd}
+.beauty-week-header-time{display:grid;place-items:center;font-size:7px;font-weight:900;letter-spacing:.08em;color:#98a0a9;border-right:1px solid #e6e9ed}
+.beauty-week-day-header{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-right:1px solid #e8ebee;cursor:pointer;color:#303943;padding:5px 2px}
+.beauty-week-day-header:last-of-type{border-right:0}
+.beauty-week-day-header>span{font-size:8px;font-weight:850;text-transform:uppercase;color:#7b8490}
+.beauty-week-day-header>strong{font-size:18px;line-height:1;letter-spacing:-.03em}
+.beauty-week-day-header>small{font-size:7px;color:#9098a1}
+.beauty-week-day-header.today{background:color-mix(in srgb,var(--business-accent,#2997ff) 7%,#fff)}
+.beauty-week-day-header.today>strong{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--business-accent,#2997ff);color:#fff}
+.beauty-week-time-axis{position:relative;grid-column:1;grid-row:2;background:#fafbfc;border-right:1px solid #e4e7eb;overflow:visible}
+.beauty-week-time-axis>span{position:absolute;right:7px;transform:translateY(-50%);font-size:7px;font-weight:800;color:#8d959e;white-space:nowrap}
+.beauty-week-day-column{position:relative;grid-row:2;border-right:1px solid #e8ebef;background:#fff;overflow:hidden;cursor:crosshair;min-width:0}
+.beauty-week-day-column:last-child{border-right:0}
+.beauty-week-day-column.today{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--business-accent,#2997ff) 15%,transparent)}
+.beauty-week-slot-layer{position:absolute;inset:0;pointer-events:none}
+.beauty-week-slot{position:absolute;left:0;right:0;border-bottom:1px solid rgba(223,227,232,.7)}
+.beauty-week-slot:nth-child(2n){border-bottom-color:#e7eaee}
+.beauty-week-slot.free{background:#fff}
+.beauty-week-slot.busy{background:#fbfcff}
+.beauty-week-slot.blocked{background:repeating-linear-gradient(-45deg,rgba(232,215,183,.18),rgba(232,215,183,.18) 5px,rgba(255,250,240,.22) 5px,rgba(255,250,240,.22) 10px)}
+.beauty-week-slot.closed{background:#f4f5f7}
+.beauty-week-appointment{position:absolute;z-index:5;border:0;border-left:3px solid var(--appointment-color,#8b5cf6);border-radius:7px;padding:4px 5px;text-align:left;overflow:hidden;background:color-mix(in srgb,var(--appointment-color,#8b5cf6) 13%,#fff);box-shadow:0 2px 8px rgba(32,39,47,.08);cursor:pointer;color:#303841;display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0}
+.beauty-week-appointment:hover{z-index:9;box-shadow:0 5px 16px rgba(24,31,38,.15);transform:translateY(-1px)}
+.beauty-week-appointment.status-pending{border-left-style:dashed}
+.beauty-week-appointment.status-completed{opacity:.72}
+.beauty-week-appointment.status-cancelled{opacity:.42;text-decoration:line-through}
+.beauty-week-appointment.status-no_show{background:#fff2f2;border-left-color:#a64c4c}
+.beauty-week-appointment-time{font-size:7px;font-weight:900;color:#626d78;line-height:1}
+.beauty-week-appointment>strong{font-size:8px;line-height:1.15;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beauty-week-appointment-service{font-size:7px;line-height:1.15;color:#66717d;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beauty-week-appointment>small{font-size:6px;line-height:1.1;color:#7f8993;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beauty-week-unavailability{position:absolute;z-index:3;right:2px;width:42%;min-height:22px;border:1px solid #e4d3b5;border-radius:6px;background:rgba(255,247,231,.9);padding:3px 4px;display:flex;align-items:flex-start;gap:3px;overflow:hidden;color:#846325;cursor:pointer;text-align:left}
+.beauty-week-unavailability.whole-site{left:2px;right:2px;width:auto;background:rgba(255,244,224,.93)}
+.beauty-week-unavailability.kind-leave{background:rgba(244,239,255,.9);border-color:#dcd2ee;color:#725d91}
+.beauty-week-unavailability.kind-closure{background:rgba(240,242,245,.94);border-color:#d8dde3;color:#626b75}
+.beauty-week-unavailability>span{font-size:6px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.beauty-week-unavailability>small{font-size:5px;color:inherit;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beauty-week-now-line{position:absolute;z-index:7;left:0;right:0;height:2px;background:#ef4444;pointer-events:none}
+.beauty-week-now-line>i{position:absolute;left:-3px;top:-3px;width:8px;height:8px;border-radius:50%;background:#ef4444}
+@media(max-width:900px){.beauty-week-planner{grid-template-columns:44px repeat(7,minmax(0,1fr));border-radius:13px}.beauty-week-header-time,.beauty-week-day-header{min-height:58px}.beauty-week-day-header>span{font-size:7px}.beauty-week-day-header>strong{font-size:16px}.beauty-week-day-header>small{font-size:6px}.beauty-week-time-axis>span{right:5px;font-size:6px}.beauty-week-appointment{padding:3px;border-left-width:2px}.beauty-week-appointment>small{display:none}.beauty-week-unavailability{width:50%}}
+@media(max-width:640px){.beauty-week-planner-shell{margin-inline:-10px}.beauty-week-planner-legend{padding-inline:10px;gap:7px}.beauty-week-planner-legend span{font-size:7px}.beauty-week-planner{grid-template-columns:34px repeat(7,minmax(0,1fr));border-left:0;border-right:0;border-radius:0}.beauty-week-header-time,.beauty-week-day-header{min-height:54px}.beauty-week-header-time{font-size:5px}.beauty-week-day-header{padding:4px 1px}.beauty-week-day-header>span{font-size:6px}.beauty-week-day-header>strong{font-size:14px}.beauty-week-day-header.today>strong{width:23px;height:23px}.beauty-week-day-header>small{font-size:5px}.beauty-week-time-axis>span{right:3px;font-size:5px}.beauty-week-appointment{border-radius:5px;padding:2px;box-shadow:0 1px 4px rgba(32,39,47,.08)}.beauty-week-appointment-time{font-size:5px}.beauty-week-appointment>strong{font-size:6px}.beauty-week-appointment-service{font-size:5px}.beauty-week-unavailability{right:1px;width:54%;padding:2px;border-radius:4px}.beauty-week-unavailability.whole-site{left:1px;right:1px}.beauty-week-unavailability svg{display:none}.beauty-week-unavailability>span{font-size:5px}.beauty-week-unavailability>small{display:none}}
