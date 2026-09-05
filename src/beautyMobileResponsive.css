@@ -511,3 +511,397 @@
     font-size: 7.5px;
   }
 }
+
+
+/* NCR Suite · Coiffure mobile usability V2 */
+.beauty-week-mobile-hint{display:none}
+
+@media (max-width:900px){
+  html[data-beauty-metier="true"] .beauty-week-planner-shell{
+    display:block;
+    overflow-x:auto;
+    overflow-y:visible;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
+    scrollbar-gutter:stable;
+    padding-bottom:6px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-planner-legend{
+    position:sticky;
+    left:0;
+    width:max-content;
+    min-width:min(100%,760px);
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-mobile-hint{
+    position:sticky;
+    left:0;
+    display:flex;
+    align-items:flex-start;
+    gap:7px;
+    width:min(100%,520px);
+    margin:0 0 8px;
+    padding:8px 10px;
+    border:1px solid #e5e9ed;
+    border-radius:10px;
+    background:#f8fafb;
+    color:#65717d;
+    font-size:10px;
+    font-weight:700;
+    line-height:1.4;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-mobile-hint svg{
+    flex:0 0 auto;
+    margin-top:1px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-planner{
+    width:100%;
+    min-width:820px;
+    grid-template-columns:48px repeat(7,minmax(108px,1fr));
+    border-radius:14px;
+    overflow:visible;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-header-time{
+    position:sticky;
+    left:0;
+    top:0;
+    z-index:14;
+    background:#fbfcfd;
+    box-shadow:1px 0 0 #e6e9ed;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-time-axis{
+    position:sticky;
+    left:0;
+    z-index:11;
+    background:#fafbfc;
+    box-shadow:1px 0 0 #e4e7eb;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header{
+    scroll-snap-align:start;
+    min-height:64px;
+    padding:6px 4px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-column{
+    scroll-snap-align:start;
+    cursor:pointer;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header>span{
+    font-size:9px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header>strong{
+    font-size:18px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header>small{
+    display:block;
+    font-size:8px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-time-axis>span{
+    right:6px;
+    font-size:8px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment{
+    min-height:32px;
+    padding:4px 5px;
+    border-radius:7px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment-time{
+    font-size:8px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment>strong{
+    font-size:10px;
+    line-height:1.15;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment-service{
+    display:block;
+    font-size:8px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-unavailability>span{
+    font-size:8px;
+  }
+}
+
+@media (max-width:640px){
+  html[data-beauty-metier="true"] .beauty-week-planner-shell{
+    margin-inline:0;
+    padding-inline:0;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-planner{
+    min-width:800px;
+    grid-template-columns:46px repeat(7,minmax(106px,1fr));
+    border:1px solid #e4e7eb;
+    border-radius:13px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-header-time,
+  html[data-beauty-metier="true"] .beauty-week-day-header{
+    min-height:62px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-header-time{
+    font-size:8px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header>span{
+    font-size:9px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header>strong{
+    font-size:18px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header.today>strong{
+    width:28px;
+    height:28px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header>small{
+    display:block;
+    font-size:8px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-time-axis>span{
+    right:5px;
+    font-size:8px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment-time{
+    font-size:8px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment>strong{
+    font-size:10px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment-service{
+    display:block;
+    font-size:8px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-unavailability>span{
+    font-size:8px;
+  }
+
+  /* Clients / fiche pro */
+  html[data-beauty-metier="true"] .client-table .client-identity strong{
+    font-size:13px;
+  }
+
+  html[data-beauty-metier="true"] .client-table .client-identity small,
+  html[data-beauty-metier="true"] .client-table .client-contact span,
+  html[data-beauty-metier="true"] .client-table .client-contact small{
+    font-size:11px;
+    line-height:1.4;
+  }
+
+  html[data-beauty-metier="true"] .beauty-client-activity-picker>span{
+    font-size:10px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-client-activity-picker select{
+    min-height:44px;
+    font-size:12px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-crm-section-head h3{
+    font-size:16px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-crm-section-note,
+  html[data-beauty-metier="true"] .beauty-crm-consents small,
+  html[data-beauty-metier="true"] .beauty-crm-notes small,
+  html[data-beauty-metier="true"] .beauty-crm-timeline small{
+    font-size:10px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-crm-profile form label,
+  html[data-beauty-metier="true"] .beauty-crm-questionnaire-form label{
+    font-size:11px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-crm-notes p,
+  html[data-beauty-metier="true"] .beauty-crm-timeline strong,
+  html[data-beauty-metier="true"] .beauty-crm-timeline p{
+    font-size:11px;
+  }
+
+  /* CRM & segments */
+  html[data-beauty-metier="true"] .beauty-crm-segment-card{
+    min-height:72px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-crm-segment-copy strong,
+  html[data-beauty-metier="true"] .beauty-crm-client-title>strong{
+    font-size:12px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-crm-segment-copy small,
+  html[data-beauty-metier="true"] .beauty-crm-client-contact span,
+  html[data-beauty-metier="true"] .beauty-crm-client-tags span,
+  html[data-beauty-metier="true"] .beauty-crm-client-metrics span,
+  html[data-beauty-metier="true"] .beauty-crm-client-context small,
+  html[data-beauty-metier="true"] .beauty-crm-pagination span{
+    font-size:9px;
+    line-height:1.35;
+  }
+
+  html[data-beauty-metier="true"] .beauty-crm-client-metrics strong,
+  html[data-beauty-metier="true"] .beauty-crm-client-context strong{
+    font-size:11px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-crm-search input{
+    min-height:44px;
+    font-size:16px;
+  }
+
+  /* Stock */
+  html[data-beauty-metier="true"] .beauty-stock-card-head>div>span,
+  html[data-beauty-metier="true"] .beauty-stock-card-head em,
+  html[data-beauty-metier="true"] .beauty-stock-meta>span,
+  html[data-beauty-metier="true"] .beauty-stock-sku,
+  html[data-beauty-metier="true"] .beauty-stock-linked-services>small{
+    font-size:10px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-stock-level span,
+  html[data-beauty-metier="true"] .beauty-stock-level small,
+  html[data-beauty-metier="true"] .beauty-stock-cost>span,
+  html[data-beauty-metier="true"] .beauty-stock-linked-services p,
+  html[data-beauty-metier="true"] .beauty-stock-history-list small,
+  html[data-beauty-metier="true"] .beauty-stock-history-list p{
+    font-size:10px;
+    line-height:1.4;
+  }
+
+  html[data-beauty-metier="true"] .beauty-stock-linked-services>div span{
+    font-size:10px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-stock-history-list strong{
+    font-size:12px;
+  }
+
+  /* Pilotage */
+  html[data-beauty-metier="true"] .beauty-pilot-kpi-head>span:first-child,
+  html[data-beauty-metier="true"] .beauty-pilot-health span,
+  html[data-beauty-metier="true"] .beauty-pilot-growth-kpis span,
+  html[data-beauty-metier="true"] .beauty-pilot-demand-section>small{
+    font-size:10px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-pilot-kpi>small,
+  html[data-beauty-metier="true"] .beauty-pilot-kpi>em,
+  html[data-beauty-metier="true"] .beauty-pilot-health small,
+  html[data-beauty-metier="true"] .beauty-pilot-insight-list small,
+  html[data-beauty-metier="true"] .beauty-pilot-source-list span,
+  html[data-beauty-metier="true"] .beauty-pilot-source-list small,
+  html[data-beauty-metier="true"] .beauty-pilot-rank-list small,
+  html[data-beauty-metier="true"] .beauty-pilot-opportunity-list small{
+    font-size:10px;
+    line-height:1.4;
+  }
+
+  html[data-beauty-metier="true"] .beauty-pilot-rank-list strong,
+  html[data-beauty-metier="true"] .beauty-pilot-opportunity-list strong,
+  html[data-beauty-metier="true"] .beauty-pilot-source-list strong{
+    font-size:11px;
+  }
+
+  /* Imports */
+  html[data-beauty-metier="true"] .beauty-import-source-grid>button{
+    min-height:78px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-import-source-grid strong,
+  html[data-beauty-metier="true"] .beauty-import-dropzone strong,
+  html[data-beauty-metier="true"] .beauty-import-preview-main strong,
+  html[data-beauty-metier="true"] .beauty-import-dedupe-client-head strong,
+  html[data-beauty-metier="true"] .beauty-import-final-action strong,
+  html[data-beauty-metier="true"] .beauty-import-jobs article strong{
+    font-size:11px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-import-source-grid small,
+  html[data-beauty-metier="true"] .beauty-import-dropzone span,
+  html[data-beauty-metier="true"] .beauty-import-preview-main small,
+  html[data-beauty-metier="true"] .beauty-import-preview-main p,
+  html[data-beauty-metier="true"] .beauty-import-dedupe-summary span,
+  html[data-beauty-metier="true"] .beauty-import-dedupe-client>span,
+  html[data-beauty-metier="true"] .beauty-import-dedupe-metrics small,
+  html[data-beauty-metier="true"] .beauty-import-limit-note,
+  html[data-beauty-metier="true"] .beauty-import-history-note,
+  html[data-beauty-metier="true"] .beauty-import-final-action small,
+  html[data-beauty-metier="true"] .beauty-import-jobs article small,
+  html[data-beauty-metier="true"] .beauty-import-job-counts span{
+    font-size:10px;
+    line-height:1.4;
+  }
+
+  html[data-beauty-metier="true"] .beauty-import-resolution button{
+    min-height:44px;
+    font-size:10px;
+  }
+
+  /* Données & RGPD */
+  html[data-beauty-metier="true"] .beauty-data-export-card{
+    min-height:68px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-data-export-card strong,
+  html[data-beauty-metier="true"] .beauty-data-empty strong,
+  html[data-beauty-metier="true"] .beauty-data-restricted strong,
+  html[data-beauty-metier="true"] .beauty-data-client-identity strong,
+  html[data-beauty-metier="true"] .beauty-data-subhead strong,
+  html[data-beauty-metier="true"] .beauty-data-erasure-summary strong{
+    font-size:11px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-data-export-card span,
+  html[data-beauty-metier="true"] .beauty-data-empty span,
+  html[data-beauty-metier="true"] .beauty-data-restricted span,
+  html[data-beauty-metier="true"] .beauty-data-erasure-intro p,
+  html[data-beauty-metier="true"] .beauty-data-client-identity small,
+  html[data-beauty-metier="true"] .beauty-data-client-identity em,
+  html[data-beauty-metier="true"] .beauty-data-subhead span,
+  html[data-beauty-metier="true"] .beauty-data-files-list strong,
+  html[data-beauty-metier="true"] .beauty-data-files-list small,
+  html[data-beauty-metier="true"] .beauty-data-erasure-summary span,
+  html[data-beauty-metier="true"] .beauty-data-erasure-counts span,
+  html[data-beauty-metier="true"] .beauty-data-erasure-form label,
+  html[data-beauty-metier="true"] .beauty-data-privacy-note p{
+    font-size:10px;
+    line-height:1.4;
+  }
+}
+
+@media (max-width:430px){
+  html[data-beauty-metier="true"] .beauty-week-appointment-service{
+    display:block;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-appointment>strong{
+    font-size:10px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-day-header>span{
+    font-size:9px;
+  }
+}
