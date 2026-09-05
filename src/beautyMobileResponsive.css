@@ -1070,3 +1070,15 @@
     scroll-snap-align:none !important;
   }
 }
+
+
+/* NCR Suite · Coiffure agenda full-grid horizontal swipe V8 */
+@media (max-width:900px){
+  html[data-beauty-metier="true"] .beauty-week-day-column{
+    touch-action:pan-x pan-y pinch-zoom !important;
+  }
+
+  html[data-beauty-metier="true"] .beauty-week-planner{
+    touch-action:pan-x pan-y pinch-zoom;
+  }
+}
