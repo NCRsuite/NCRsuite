@@ -1215,7 +1215,7 @@ export function AppointmentsPage() {
           <div className="availability-day-title"><strong>{block.label || availabilityKindLabels[block.kind]}</strong><span>{availabilityKindLabels[block.kind]}</span></div>
           <p>{period}{member ? ` · ${member.display_name}` : ' · Tout le lieu'}{site ? ` · ${site.name}` : ''}</p>
         </div>
-        {canEditAppointments && <div className="availability-day-actions"><button type="button" onClick={() => openEditAvailability(block)}>Modifier</button><button type="button" disabled={availabilityBusyId === block.id} onClick={() => void removeAvailabilityBlock(block)}>{availabilityBusyId === block.id ? 'Retrait…' : 'Retirer'}</button></div>}
+        {canEditAppointments && <div className="availability-day-actions"><button type="button" onClick={() => openEditAvailability(block)}>Modifier</button><button type="button" disabled={availabilityBusyId === block.id} aria-busy={availabilityBusyId === block.id} onClick={() => void removeAvailabilityBlock(block)}>{availabilityBusyId === block.id ? 'Retrait…' : 'Retirer'}</button></div>}
       </article>
     );
   }
@@ -1294,7 +1294,7 @@ export function AppointmentsPage() {
               <label className="beauty-availability-all-day"><input type="checkbox" checked={availabilityForm.allDay} onChange={(event) => setAvailabilityForm((current) => ({ ...current, allDay: event.target.checked }))} /><span><strong>Journée entière</strong><small>NCR bloque automatiquement la journée complète, même si les horaires changent.</small></span></label>
               <label className="beauty-availability-label">Motif / libellé<input maxLength={160} value={availabilityForm.label} onChange={(event) => setAvailabilityForm((current) => ({ ...current, label: event.target.value }))} placeholder={availabilityForm.kind === 'leave' ? 'Ex. Congés annuels' : availabilityForm.kind === 'closure' ? 'Ex. Fermeture exceptionnelle' : 'Ex. Formation, pause exceptionnelle…'} /></label>
             </div>
-            <div className="form-actions beauty-availability-actions"><button className="secondary-button" type="button" onClick={closeAvailabilityForm}>Annuler</button><button className="primary-button" type="submit" disabled={availabilitySaving}>{availabilitySaving ? 'Enregistrement…' : editingAvailabilityId ? 'Enregistrer' : 'Bloquer cette période'}</button></div>
+            <div className="form-actions beauty-availability-actions"><button className="secondary-button" type="button" onClick={closeAvailabilityForm}>Annuler</button><button className="primary-button" type="submit" disabled={availabilitySaving} aria-busy={availabilitySaving}>{availabilitySaving ? 'Enregistrement…' : editingAvailabilityId ? 'Enregistrer' : 'Bloquer cette période'}</button></div>
           </form>
         </section>
       )}
@@ -1371,7 +1371,7 @@ export function AppointmentsPage() {
             </label>
             <div className="form-actions appointment-form-actions">
               <button className="secondary-button" type="button" onClick={closeForm}>Annuler</button>
-              <button className="primary-button" type="submit" disabled={saving || clients.length === 0 || services.length === 0 || staff.length === 0}>
+              <button className="primary-button" type="submit" disabled={saving || clients.length === 0 || services.length === 0 || staff.length === 0} aria-busy={saving}>
                 {saving ? 'Enregistrement…' : editingId ? 'Enregistrer les modifications' : 'Créer le rendez-vous'}
               </button>
             </div>
@@ -1429,7 +1429,7 @@ export function AppointmentsPage() {
         </div>
 
         {loading ? (
-          <div className="list-state">Chargement du planning…</div>
+          <div className="list-state beauty-loading-state" aria-busy="true">Chargement du planning…</div>
         ) : viewMode === 'week' ? (
           <div className="beauty-week-planner-shell">
             <div className="beauty-week-planner-legend">
