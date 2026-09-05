@@ -55,3 +55,146 @@
 .appointment-client-search input:focus{border-color:#aeb9c6;background:#fff}
 .appointment-client-search small{font-size:8px;color:#8a939d;font-weight:650}
 @media(max-width:640px){.appointment-client-search small{font-size:9px}}
+
+
+/* NCR Suite · Coiffure agenda premium contrast V5 */
+
+/* Légende : plus lisible sans couleurs criardes */
+.beauty-week-planner-legend{
+  gap:8px;
+  padding:4px 2px 8px;
+}
+.beauty-week-planner-legend span{
+  min-height:24px;
+  padding:4px 7px;
+  border:1px solid #e7ebef;
+  border-radius:999px;
+  background:#fff;
+  color:#687481;
+  font-size:9px;
+  font-weight:800;
+  line-height:1;
+}
+.beauty-week-planner-legend i{
+  width:11px;
+  height:11px;
+  border-radius:4px;
+  flex:0 0 auto;
+}
+.beauty-week-planner-legend i.free{
+  background:#ffffff;
+  border-color:#cfdad4;
+  box-shadow:inset 0 0 0 2px #f5f8f6;
+}
+.beauty-week-planner-legend i.busy{
+  background:#e8eefc;
+  border-color:#bfcdec;
+  box-shadow:inset 0 0 0 1px rgba(75,101,164,.05);
+}
+.beauty-week-planner-legend i.blocked{
+  background:repeating-linear-gradient(-45deg,#f4e3c4,#f4e3c4 3px,#fff9ee 3px,#fff9ee 6px);
+  border-color:#dfc494;
+}
+.beauty-week-planner-legend i.closed{
+  background:repeating-linear-gradient(-45deg,#e9edf1,#e9edf1 3px,#f7f8f9 3px,#f7f8f9 6px);
+  border-color:#cfd5db;
+}
+
+/* Grille : contrastes métier doux mais immédiatement reconnaissables */
+.beauty-week-slot.free{
+  background:#fff;
+}
+.beauty-week-slot.busy{
+  background:linear-gradient(180deg,rgba(232,238,252,.62),rgba(245,247,252,.72));
+}
+.beauty-week-slot.blocked{
+  background:repeating-linear-gradient(
+    -45deg,
+    rgba(225,194,139,.17),
+    rgba(225,194,139,.17) 6px,
+    rgba(255,249,239,.30) 6px,
+    rgba(255,249,239,.30) 12px
+  );
+}
+.beauty-week-slot.closed{
+  background:repeating-linear-gradient(
+    -45deg,
+    #eef1f4,
+    #eef1f4 7px,
+    #f6f7f8 7px,
+    #f6f7f8 14px
+  );
+}
+.beauty-week-day-column.today{
+  box-shadow:
+    inset 2px 0 0 color-mix(in srgb,var(--business-accent,#2997ff) 25%,transparent),
+    inset -1px 0 0 color-mix(in srgb,var(--business-accent,#2997ff) 12%,transparent);
+}
+.beauty-week-unavailability{
+  border-color:#dec79f;
+  background:rgba(255,247,231,.96);
+  box-shadow:0 2px 7px rgba(96,74,34,.06);
+}
+.beauty-week-unavailability.kind-leave{
+  background:rgba(244,239,255,.96);
+  border-color:#cfc2e7;
+  color:#685582;
+}
+.beauty-week-unavailability.kind-closure{
+  background:rgba(235,239,243,.97);
+  border-color:#cbd2da;
+  color:#515c68;
+}
+.beauty-week-appointment{
+  border-left-width:4px;
+  background:color-mix(in srgb,var(--appointment-color,#8b5cf6) 16%,#fff);
+  box-shadow:0 3px 10px rgba(32,39,47,.10);
+}
+.beauty-week-appointment.status-pending{
+  border-left-style:dashed;
+  box-shadow:0 0 0 1px rgba(185,138,48,.12),0 3px 10px rgba(32,39,47,.08);
+}
+.beauty-week-appointment.status-completed{
+  opacity:.82;
+  filter:saturate(.72);
+}
+.beauty-week-appointment.status-cancelled{
+  opacity:.50;
+  background:#f5f6f7;
+}
+.beauty-week-appointment.status-no_show{
+  background:#fff0f0;
+  border-left-color:#9f4242;
+  box-shadow:0 0 0 1px rgba(159,66,66,.10),0 3px 10px rgba(32,39,47,.07);
+}
+
+@media(max-width:900px){
+  .beauty-week-planner-legend{
+    gap:6px;
+  }
+  .beauty-week-planner-legend span{
+    min-height:23px;
+    padding:4px 6px;
+    font-size:9px;
+  }
+  .beauty-week-planner-legend i{
+    width:10px;
+    height:10px;
+  }
+}
+
+@media(max-width:640px){
+  .beauty-week-planner-legend{
+    padding-inline:4px;
+    overflow-x:auto;
+    flex-wrap:nowrap;
+    scrollbar-width:none;
+  }
+  .beauty-week-planner-legend::-webkit-scrollbar{
+    display:none;
+  }
+  .beauty-week-planner-legend span{
+    flex:0 0 auto;
+    font-size:9px;
+  }
+}
