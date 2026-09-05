@@ -123,7 +123,7 @@ const statusLabels: Record<AppointmentStatus, string> = {
   confirmed: 'Confirmé',
   completed: 'Terminé',
   cancelled: 'Annulé',
-  no_show: 'Absent'
+  no_show: 'Pas venu'
 };
 
 const availabilityKindLabels: Record<AvailabilityBlockKind, string> = {
