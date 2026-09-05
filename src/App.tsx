@@ -27,6 +27,7 @@ const BeautyStockPage = lazy(() => import('./pages/BeautyStockPage').then((modul
 const BeautyHistoryPage = lazy(() => import('./pages/BeautyHistoryPage').then((module) => ({ default: module.BeautyHistoryPage })));
 const BeautyPilotagePage = lazy(() => import('./pages/BeautyPilotagePage').then((module) => ({ default: module.BeautyPilotagePage })));
 const BeautyCrmSegmentsPage = lazy(() => import('./pages/BeautyCrmSegmentsPage').then((module) => ({ default: module.BeautyCrmSegmentsPage })));
+const BeautyAccountingPage = lazy(() => import('./pages/BeautyAccountingPage').then((module) => ({ default: module.BeautyAccountingPage })));
 const StaffPage = lazy(() => import('./pages/StaffPage').then((module) => ({ default: module.StaffPage })));
 const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage').then((module) => ({ default: module.AppointmentsPage })));
 const PublicBookingPage = lazy(() => import('./pages/PublicBookingPage').then((module) => ({ default: module.PublicBookingPage })));
@@ -264,6 +265,15 @@ function BeautyCrmSegmentsArea() {
   return <BeautyCrmSegmentsPage />;
 }
 
+function BeautyAccountingArea() {
+  const { organization } = useOrganization();
+  const allowed = organization?.business_type === 'coiffure'
+    && organization.plan === 'metier'
+    && ['owner', 'admin', 'manager'].includes(organization.role ?? 'viewer');
+  if (!allowed) return <Navigate to="/" replace />;
+  return <BeautyAccountingPage />;
+}
+
 function StockArea() {
   const { organization } = useOrganization();
   if (organization?.business_type === 'coiffure' && organization.plan === 'metier') return <ModuleAccessGuard moduleKey="stock"><BeautyStockPage /></ModuleAccessGuard>;
@@ -417,6 +427,7 @@ export default function App() {
         <Route path="ressources" element={<BeautyResourcesArea />} />
         <Route path="pilotage" element={<BeautyPilotageArea />} />
         <Route path="crm" element={<BeautyCrmSegmentsArea />} />
+        <Route path="comptabilite" element={<BeautyAccountingArea />} />
         <Route path="historique" element={<BeautyHistoryArea />} />
         <Route path="fidelite" element={<LoyaltyPage />} />
         <Route path="equipe" element={<StaffArea />} />
