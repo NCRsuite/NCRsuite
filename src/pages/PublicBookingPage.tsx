@@ -372,7 +372,7 @@ export function PublicBookingPage() {
       location: result.site_address || pageData.organization.address || result.site_name || pageData.organization.name
     };
     return (
-      <div className="public-booking-page" style={publicStyle}>
+      <div className="public-booking-page coiffure-public-booking-premium" style={publicStyle}>
         <header className="public-booking-brand">
           <div className="public-business-mark">{pageData.organization.logo_url ? <img src={pageData.organization.logo_url} alt="" /> : pageData.organization.name.slice(0, 1).toUpperCase()}</div>
           <div><strong>{pageData.organization.name}</strong><span>Réservation en ligne</span></div>
@@ -416,22 +416,38 @@ export function PublicBookingPage() {
   }
 
   return (
-    <div className="public-booking-page" style={publicStyle}>
-      <header className="public-booking-brand">
-        <div className="public-business-mark">{pageData.organization.logo_url ? <img src={pageData.organization.logo_url} alt="" /> : pageData.organization.name.slice(0, 1).toUpperCase()}</div>
-        <div><strong>{pageData.organization.name}</strong><span>Réservation en ligne</span></div>
+    <div className="public-booking-page coiffure-public-booking-premium" style={publicStyle}>
+      <header className="public-booking-brand coiffure-public-booking-nav">
+        <div className="coiffure-public-booking-nav-inner">
+          <div className="coiffure-public-booking-brand">
+            <div className="public-business-mark">{pageData.organization.logo_url ? <img src={pageData.organization.logo_url} alt="" /> : pageData.organization.name.slice(0, 1).toUpperCase()}</div>
+            <div><strong>{pageData.organization.name}</strong><span>Coiffure & beauté</span></div>
+          </div>
+          <div className="coiffure-public-booking-nav-actions">
+            <Link className="coiffure-public-client-link" to="/espace-client-coiffure"><Icon name="users" size={16}/> Mon espace</Link>
+            <a className="coiffure-public-book-link" href="#reservation"><Icon name="calendar" size={16}/> Prendre rendez-vous</a>
+          </div>
+        </div>
       </header>
 
       <main className="public-booking-container">
-        <section className={`public-booking-hero ${pageData.organization.banner_url ? 'with-banner' : ''}`}>
+        <section className={`public-booking-hero coiffure-public-booking-hero ${pageData.organization.banner_url ? 'with-banner' : ''}`}>
           {pageData.organization.banner_url && (
             <span className="public-booking-hero-media" aria-hidden="true">
               <img src={pageData.organization.banner_url} alt="" />
             </span>
           )}
-          <p className="eyebrow">PRENEZ RENDEZ-VOUS</p>
-          <h1>{pageData.organization.tagline || 'Choisissez le créneau qui vous convient'}</h1>
-          <p>{pageData.settings.welcome_text || 'Sélectionnez une prestation, un professionnel et une disponibilité. Aucun compte client n’est nécessaire.'}</p>
+          <div className="coiffure-public-hero-badges">
+            <span>Coiffure & beauté</span>
+            <span className="available"><i/> Réservation en ligne</span>
+          </div>
+          <h1>{pageData.organization.name}</h1>
+          <p className="coiffure-public-tagline">{pageData.organization.tagline || 'Votre moment beauté, simplement.'}</p>
+          <p className="coiffure-public-welcome">{pageData.settings.welcome_text || 'Sélectionnez une prestation, un professionnel et une disponibilité. Aucun compte client n’est nécessaire.'}</p>
+          <div className="coiffure-public-hero-actions">
+            <a className="coiffure-public-hero-primary" href="#reservation"><Icon name="calendar" size={17}/> Réserver maintenant</a>
+            <Link className="coiffure-public-hero-secondary" to="/espace-client-coiffure"><Icon name="users" size={17}/> Mon espace client</Link>
+          </div>
         </section>
 
         {(selectedSite?.address || pageData.organization.address || pageData.organization.hours_text || pageData.organization.practical_info) && (
@@ -442,7 +458,20 @@ export function PublicBookingPage() {
           </section>
         )}
 
-        <div className="public-booking-grid">
+        <section className="coiffure-public-booking-intro" id="reservation">
+          <div>
+            <p className="eyebrow">RÉSERVATION</p>
+            <h2>Choisissez votre rendez-vous</h2>
+            <p>Un parcours simple, étape par étape.</p>
+          </div>
+          <div className="coiffure-public-step-meter" aria-label="Parcours de réservation">
+            <span className={serviceId ? "done" : "active"}>1</span><i className={serviceId ? "done" : ""}/>
+            <span className={serviceId ? (selectedSlot ? "done" : "active") : ""}>2</span><i className={selectedSlot ? "done" : ""}/>
+            <span className={selectedSlot ? "active" : ""}>3</span>
+          </div>
+        </section>
+
+        <div className="public-booking-grid coiffure-public-booking-grid">
           {hasSiteChoice && (
             <section className="public-booking-panel public-site-panel">
               <div className="public-step-heading"><span>1</span><div><h2>Votre établissement</h2><p>Choisissez le site dans lequel vous souhaitez être reçu.</p></div></div>
