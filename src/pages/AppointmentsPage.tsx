@@ -629,6 +629,21 @@ export function AppointmentsPage() {
       : emptyAvailabilityForm(defaultBeautySiteId));
   }, [beautyMode, selectedEnseigneId, defaultBeautySiteId, beautySites]);
 
+  const appointmentClientOptions = useMemo(() => {
+    if (!coiffureUiMode) return clients;
+    const needle = clientSearch.trim().toLocaleLowerCase('fr-FR');
+    if (needle.length < 2) return clients;
+    return clients.filter((client) => {
+      const haystack = [
+        client.first_name,
+        client.last_name,
+        client.email ?? '',
+        client.phone ?? ''
+      ].join(' ').toLocaleLowerCase('fr-FR');
+      return haystack.includes(needle);
+    });
+  }, [clients, clientSearch, coiffureUiMode]);
+
   const clientById = useMemo(() => new Map(clients.map((row) => [row.id, row])), [clients]);
   const serviceById = useMemo(() => new Map(services.map((row) => [row.id, row])), [services]);
   const staffById = useMemo(() => new Map(staff.map((row) => [row.id, row])), [staff]);
@@ -1327,7 +1342,7 @@ export function AppointmentsPage() {
             )}
             <label className="appointment-client-field">
               Client <span aria-hidden="true">*</span>
-              {beautyMode && <span className="appointment-client-search">
+              {coiffureUiMode && <span className="appointment-client-search">
                 <input
                   type="search"
                   value={clientSearch}
@@ -1335,11 +1350,11 @@ export function AppointmentsPage() {
                   placeholder="Rechercher par nom, e-mail ou téléphone…"
                   autoComplete="off"
                 />
-                <small>{clientSearchBusy ? 'Recherche…' : clientSearch.trim().length > 0 && clientSearch.trim().length < 2 ? 'Saisissez au moins 2 caractères' : '100 clientes récentes + résultats de recherche'}</small>
+                <small>{clientSearchBusy ? 'Recherche…' : clientSearch.trim().length > 0 && clientSearch.trim().length < 2 ? 'Saisissez au moins 2 caractères' : 'Recherchez par nom, e-mail ou téléphone'}</small>
               </span>}
               <select value={form.clientId} onChange={(event) => setForm((current) => ({ ...current, clientId: event.target.value }))} required>
                 <option value="">Sélectionner un client</option>
-                {clients.map((client) => <option key={client.id} value={client.id}>{fullClientName(client)}{client.phone ? ` · ${client.phone}` : ''}</option>)}
+                {appointmentClientOptions.map((client) => <option key={client.id} value={client.id}>{fullClientName(client)}{client.phone ? ` · ${client.phone}` : ''}</option>)}
               </select>
             </label>
             <label>
