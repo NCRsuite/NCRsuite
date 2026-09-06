@@ -38,6 +38,7 @@ interface SubscriptionContract {
   monthlyPriceCents: number;
   signerEmail?: string | null;
   signedAt?: string | null;
+  paymentProvider?: 'stripe' | 'qonto';
 }
 
 export function OnboardingPage() {
@@ -47,6 +48,7 @@ export function OnboardingPage() {
   const accessRequestMessage = String(user?.user_metadata?.access_request_message ?? '');
   const trialRequested = user?.user_metadata?.trial_requested === true
     || accessRequestMessage.toLocaleLowerCase('fr-FR').startsWith('demande d’essai gratuit de 7 jours.');
+  const paymentProvider: 'stripe' | 'qonto' = user?.user_metadata?.payment_provider === 'qonto' ? 'qonto' : 'stripe';
   const initialBusinessType = availableBusinessTypeOptions.some((option) => option.id === requestedBusinessType)
     ? requestedBusinessType as BusinessType
     : 'coiffure';
@@ -72,6 +74,7 @@ export function OnboardingPage() {
   const [contractOrganizationId, setContractOrganizationId] = useState('');
   const [contract, setContract] = useState<SubscriptionContract | null>(null);
   const [contractPreviewUrl, setContractPreviewUrl] = useState('');
+  const [bankTransferRequestReference, setBankTransferRequestReference] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [signerName, setSignerName] = useState(String(user?.user_metadata?.full_name ?? ''));
@@ -191,13 +194,26 @@ export function OnboardingPage() {
     window.location.assign(String(data.url));
   }
 
+  async function submitBankTransferActivation(contractId: string) {
+    if (!supabase || !contractOrganizationId) return;
+    const { data, error: requestError } = await supabase.rpc('submit_bank_transfer_subscription_activation', {
+      p_organization_id: contractOrganizationId,
+      p_contract_id: contractId
+    });
+    if (requestError) throw requestError;
+    const payload = (data ?? {}) as { reference?: string };
+    setBankTransferRequestReference(String(payload.reference ?? ''));
+    setContract((current) => current ? { ...current, status: 'payment_pending', paymentProvider: 'qonto' } : current);
+  }
+
   async function signAndPay() {
     if (!supabase || !contract || !contractOrganizationId) return;
     setPending(true);
     setError('');
     try {
       if (contract.status === 'signed' || contract.status === 'payment_pending') {
-        await openStripeCheckout(contract.id);
+        if (paymentProvider === 'qonto') await submitBankTransferActivation(contract.id);
+        else await openStripeCheckout(contract.id);
         return;
       }
       const { data, error: signatureError } = await supabase.functions.invoke('subscription-contract', {
@@ -217,9 +233,11 @@ export function OnboardingPage() {
       if (signatureError || data?.error || !data?.contract) {
         throw new Error(data?.error ?? signatureError?.message ?? 'La signature n’a pas pu être finalisée.');
       }
-      setContract(data.contract as SubscriptionContract);
+      const signedContract = data.contract as SubscriptionContract;
+      setContract(signedContract);
       setContractPreviewUrl(String(data.downloadUrl ?? contractPreviewUrl));
-      await openStripeCheckout(contract.id);
+      if (paymentProvider === 'qonto') await submitBankTransferActivation(signedContract.id);
+      else await openStripeCheckout(signedContract.id);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'La signature n’a pas pu être finalisée.');
     } finally {
@@ -266,7 +284,7 @@ export function OnboardingPage() {
             <div>
               <span className="saas-step-chip">Étape {step}/5</span>
               <h2>{step === 1 ? 'Quel est ton métier ?' : step === 2 ? 'Présente ton entreprise' : step === 3 ? 'Quelle formule t’intéresse ?' : step === 4 ? 'Finalise ton identité' : 'Signe ton contrat d’abonnement'}</h2>
-              <p>{step === 1 ? 'Le métier détermine l’architecture et les outils disponibles.' : step === 2 ? 'Ces informations seront reprises dans l’administration NCR et tes documents.' : step === 3 ? 'Cette formule sera réglée sur une page de paiement sécurisée avant l’ouverture de l’espace.' : step === 4 ? 'Choisis ton identité visuelle et vérifie le récapitulatif avant la préparation du contrat.' : 'Consulte le document exact, valide chaque annexe et confirme ta signature avec le code reçu par e-mail.'}</p>
+              <p>{step === 1 ? 'Le métier détermine l’architecture et les outils disponibles.' : step === 2 ? 'Ces informations seront reprises dans l’administration NCR et tes documents.' : step === 3 ? (paymentProvider === 'qonto' ? 'Cette formule sera facturée chaque mois via Qonto et réglée par virement bancaire.' : 'Cette formule sera réglée sur une page de paiement sécurisée avant l’ouverture de l’espace.') : step === 4 ? 'Choisis ton identité visuelle et vérifie le récapitulatif avant la préparation du contrat.' : 'Consulte le document exact, valide chaque annexe et confirme ta signature avec le code reçu par e-mail.'}</p>
             </div>
           </div>
 
@@ -360,7 +378,11 @@ export function OnboardingPage() {
                 <div className="saas-onboarding-assurance"><Icon name="shield" size={18} /><span><strong>{trialRequested ? 'Essai Professionnel, sans paiement.' : 'Aucune fonction métier ne sera mélangée.'}</strong><small>{trialRequested ? 'Aucune carte bancaire ni signature de contrat d’abonnement n’est demandée pour commencer les 7 jours.' : 'Chaque espace conserve ses données, ses droits et son abonnement séparés.'}</small></span></div>
                 <label className="public-privacy-check">
                   <input type="checkbox" checked={termsAccepted} onChange={(event) => setTermsAccepted(event.target.checked)} required />
-                  <span>{trialRequested ? <>Je confirme le démarrage de mon <strong>essai gratuit de 7 jours sur la formule Professionnelle</strong>. Je pourrai choisir un abonnement uniquement si je souhaite continuer.</> : <>J’accepte la souscription de la formule <strong>{selectedPlan.label}</strong>. L’espace restera verrouillé jusqu’à la confirmation du paiement.</>}</span>
+                  <span>{trialRequested
+                    ? <>Je confirme le démarrage de mon <strong>essai gratuit de 7 jours sur la formule Professionnelle</strong>. Je pourrai choisir un abonnement uniquement si je souhaite continuer.</>
+                    : paymentProvider === 'qonto'
+                      ? <>J’accepte la souscription de la formule <strong>{selectedPlan.label}</strong> avec facturation mensuelle Qonto et règlement par virement bancaire. L’espace sera activé après signature du contrat et vérification du premier règlement.</>
+                      : <>J’accepte la souscription de la formule <strong>{selectedPlan.label}</strong>. L’espace restera verrouillé jusqu’à la confirmation du paiement Stripe.</>}</span>
                 </label>
               </div>
             </section>
@@ -374,6 +396,7 @@ export function OnboardingPage() {
                   <p className="eyebrow">DOCUMENT CONTRACTUEL</p>
                   <h3>{contract.reference}</h3>
                   <p>Formule <strong>{contract.planLabel}</strong> · {money(contract.monthlyPriceCents)} HT / mois</p>
+                  <p><strong>{paymentProvider === 'qonto' ? 'Virement bancaire · facturation Qonto' : 'Paiement sécurisé Stripe'}</strong></p>
                   <small>Le PDF est archivé dans un espace privé. Son empreinte numérique sera jointe à la preuve de signature.</small>
                 </div>
                 <button type="button" className="secondary-button" onClick={() => contractPreviewUrl && window.open(contractPreviewUrl, '_blank', 'noopener,noreferrer')} disabled={!contractPreviewUrl}>
@@ -384,7 +407,14 @@ export function OnboardingPage() {
               {contract.status === 'signed' || contract.status === 'payment_pending' ? (
                 <div className="saas-contract-signed">
                   <Icon name="check" size={22} />
-                  <div><strong>Contrat signé et scellé</strong><span>Tu peux maintenant reprendre le paiement sécurisé.</span></div>
+                  <div>
+                    <strong>Contrat signé et scellé</strong>
+                    <span>{paymentProvider === 'qonto'
+                      ? bankTransferRequestReference
+                        ? `Demande ${bankTransferRequestReference} transmise à NCR. Le premier virement sera vérifié avant activation.`
+                        : 'Le contrat est prêt. Transmets maintenant la demande de vérification du premier virement.'
+                      : 'Tu peux maintenant reprendre le paiement sécurisé.'}</span>
+                  </div>
                 </div>
               ) : (
                 <div className="saas-contract-signature-form">
@@ -409,6 +439,11 @@ export function OnboardingPage() {
               )}
 
               <div className="saas-contract-proof"><Icon name="shield" size={18} /><span><strong>Preuve horodatée</strong><small>Le document signé conservera le signataire, l’e-mail vérifié, l’heure, les consentements et les empreintes SHA-256.</small></span></div>
+              {paymentProvider === 'qonto' && (
+                <div className="info-message">
+                  <strong>Règlement par virement bancaire.</strong> NCR Suite n’effectue aucun prélèvement. La facture électronique mensuelle sera émise via Qonto et le premier règlement devra être vérifié par NCR avant l’ouverture des fonctions métier.
+                </div>
+              )}
             </section>
           )}
 
@@ -426,8 +461,19 @@ export function OnboardingPage() {
                 <Icon name={trialRequested ? 'sparkles' : 'file'} size={17} />
               </button>
             ) : (
-              <button type="button" className="primary-button" onClick={() => void signAndPay()} disabled={pending || (contract?.status === 'awaiting_signature' && (!otpSent || otpCode.length !== 6 || !signerName.trim() || !signerTitle.trim() || !acceptedContract || !acceptedCgv || !acceptedCgu || !acceptedPrivacyDpa))}>
-                {pending ? 'Vérification en cours…' : contract?.status === 'signed' || contract?.status === 'payment_pending' ? 'Reprendre le paiement' : 'Signer et passer au paiement'} <Icon name="creditCard" size={17} />
+              <button type="button" className="primary-button" onClick={() => void signAndPay()} disabled={pending || Boolean(bankTransferRequestReference) || (contract?.status === 'awaiting_signature' && (!otpSent || otpCode.length !== 6 || !signerName.trim() || !signerTitle.trim() || !acceptedContract || !acceptedCgv || !acceptedCgu || !acceptedPrivacyDpa))}>
+                {pending
+                  ? 'Vérification en cours…'
+                  : paymentProvider === 'qonto'
+                    ? bankTransferRequestReference
+                      ? 'Demande transmise à NCR'
+                      : contract?.status === 'signed' || contract?.status === 'payment_pending'
+                        ? 'Transmettre pour vérification'
+                        : 'Signer et transmettre à NCR'
+                    : contract?.status === 'signed' || contract?.status === 'payment_pending'
+                      ? 'Reprendre le paiement'
+                      : 'Signer et passer au paiement'}
+                <Icon name={paymentProvider === 'qonto' ? 'check' : 'creditCard'} size={17} />
               </button>
             )}
           </footer>
