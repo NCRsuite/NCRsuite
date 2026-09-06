@@ -84,6 +84,23 @@ interface SubscriptionRequest {
   effective_at?: string | null;
 }
 
+interface BankTransferSubscription {
+  organization_id: string;
+  organization_name: string;
+  business_type: BusinessType;
+  plan_key: Plan;
+  monthly_price_cents: number;
+  organization_status: string;
+  subscription_status: 'trialing' | 'active' | 'past_due' | 'paused' | 'canceled';
+  payment_confirmed_at: string | null;
+  current_period_end: string | null;
+  provider_payment_reference: string | null;
+  contract_id: string | null;
+  contract_reference: string | null;
+  contract_status: string | null;
+  owner_email: string | null;
+}
+
 interface SecurityAddonLink {
   addon_key: string;
   display_name: string;
@@ -179,6 +196,9 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
   const [trialDaysDraft, setTrialDaysDraft] = useState(7);
   const [activeTrials, setActiveTrials] = useState<ActiveTrialOrganization[]>([]);
   const [requests, setRequests] = useState<SubscriptionRequest[]>([]);
+  const [bankTransferSubscriptions, setBankTransferSubscriptions] = useState<BankTransferSubscription[]>([]);
+  const [bankTransferReferences, setBankTransferReferences] = useState<Record<string, string>>({});
+  const [bankTransferNotes, setBankTransferNotes] = useState<Record<string, string>>({});
   const [securityAddonConfiguration, setSecurityAddonConfiguration] = useState<SecurityAddonConfiguration>({ addons: [] });
   const [securityAddonRequests, setSecurityAddonRequests] = useState<SecurityAddonRequest[]>([]);
   const [trainingModuleConfiguration, setTrainingModuleConfiguration] = useState<TrainingModuleConfiguration>({ modules: [] });
@@ -206,7 +226,16 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
     [trainingModuleRequests]
   );
 
-  const pendingOperations = openRequests.length + openSecurityAddonRequests.length + openTrainingModuleRequests.length;
+  const bankTransferAttentionCount = useMemo(
+    () => bankTransferSubscriptions.filter((item) => {
+      if (item.subscription_status !== 'active') return item.subscription_status !== 'canceled';
+      if (!item.current_period_end) return false;
+      return new Date(item.current_period_end).getTime() <= Date.now();
+    }).length,
+    [bankTransferSubscriptions]
+  );
+
+  const pendingOperations = openRequests.length + openSecurityAddonRequests.length + openTrainingModuleRequests.length + bankTransferAttentionCount;
 
   const visiblePlans = useMemo(
     () => (configuration?.plans ?? [])
@@ -222,6 +251,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
     const [
       configurationResult,
       requestsResult,
+      bankTransferResult,
       addonConfigurationResult,
       addonRequestsResult,
       trainingConfigurationResult,
@@ -231,6 +261,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
     ] = await Promise.all([
       supabase.rpc('admin_billing_configuration'),
       supabase.rpc('admin_list_subscription_requests', { p_status: null }),
+      supabase.rpc('admin_list_bank_transfer_subscriptions'),
       supabase.rpc('admin_security_addon_configuration'),
       supabase.rpc('admin_list_security_addon_requests', { p_status: null }),
       supabase.rpc('admin_training_module_configuration'),
@@ -248,6 +279,12 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
     }
     if (requestsResult.error) setError(requestsResult.error.message);
     else setRequests((requestsResult.data ?? []) as SubscriptionRequest[]);
+    if (bankTransferResult.error) {
+      const message = bankTransferResult.error.message ?? '';
+      if (!/admin_list_bank_transfer_subscriptions|schema cache|function/i.test(message)) setError(message);
+    } else {
+      setBankTransferSubscriptions((bankTransferResult.data ?? []) as BankTransferSubscription[]);
+    }
     if (addonConfigurationResult.error) setError(addonConfigurationResult.error.message);
     else setSecurityAddonConfiguration((addonConfigurationResult.data ?? { addons: [] }) as SecurityAddonConfiguration);
     if (addonRequestsResult.error) setError(addonRequestsResult.error.message);
@@ -363,6 +400,45 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
       await load();
       onChanged?.();
     }
+  }
+
+  async function manageBankTransferSubscription(
+    item: BankTransferSubscription,
+    action: 'mark_paid' | 'suspend' | 'reactivate' | 'cancel'
+  ) {
+    if (!supabase || !canManage) return;
+    if (action === 'mark_paid' && !(bankTransferReferences[item.organization_id]?.trim())) {
+      setError('Ajoute la référence du virement ou de la facture Qonto avant de confirmer le règlement.');
+      return;
+    }
+    if (action === 'cancel' && !window.confirm(`Résilier l’abonnement par virement de ${item.organization_name} ? L’espace métier sera suspendu mais les données seront conservées.`)) return;
+
+    setSaving(`bank-${item.organization_id}-${action}`);
+    setError('');
+    setMessage('');
+    const { error: requestError } = await supabase.rpc('admin_manage_bank_transfer_subscription', {
+      p_organization_id: item.organization_id,
+      p_action: action,
+      p_payment_reference: bankTransferReferences[item.organization_id]?.trim() || null,
+      p_note: bankTransferNotes[item.organization_id]?.trim() || null
+    });
+    setSaving('');
+    if (requestError) {
+      setError(requestError.message);
+      return;
+    }
+
+    const actionLabel = action === 'mark_paid'
+      ? 'Le règlement a été confirmé'
+      : action === 'suspend'
+        ? 'L’abonnement a été suspendu'
+        : action === 'reactivate'
+          ? 'L’abonnement a été réactivé'
+          : 'L’abonnement a été résilié';
+    setMessage(`${actionLabel} pour ${item.organization_name}.`);
+    setBankTransferReferences((current) => ({ ...current, [item.organization_id]: '' }));
+    await load();
+    onChanged?.();
   }
 
   function updateSecurityAddonLocal(addonKey: string, updates: Partial<SecurityAddonLink>) {
@@ -499,13 +575,17 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
                   <div className="billing-request-route"><b>{planLabels[request.current_plan]}</b><Icon name="chevronRight" size={18} /><b>{planLabels[request.requested_plan]}</b></div>
                   <p>Référence <strong>{request.request_reference}</strong> · {request.provider === 'qonto' ? 'Qonto' : request.provider} · {dateLabel(request.created_at)}</p>
                   {request.status === 'payment_pending' && request.provider !== 'stripe' && (
-                    <label>Référence du paiement Qonto (facultatif)<input value={paymentReferences[request.id] ?? ''} onChange={(event) => setPaymentReferences((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Ex. identifiant visible dans Qonto" disabled={!canManage} /></label>
+                    <label>{request.provider === 'qonto' ? 'Référence du premier virement / facture Qonto' : 'Référence du paiement'}
+                      <input value={paymentReferences[request.id] ?? ''} onChange={(event) => setPaymentReferences((current) => ({ ...current, [request.id]: event.target.value }))} placeholder={request.provider === 'qonto' ? 'Ex. facture F-2026-001 ou référence du virement' : 'Référence du règlement'} disabled={!canManage} />
+                      {request.provider === 'qonto' && <small>Obligatoire : l’activation confirme que le contrat est signé et que le premier règlement a été vérifié.</small>}
+                    </label>
                   )}
                   <label>Note interne<textarea rows={2} value={reviewNotes[request.id] ?? ''} onChange={(event) => setReviewNotes((current) => ({ ...current, [request.id]: event.target.value }))} placeholder="Vérification, échange client…" disabled={!canManage} /></label>
                   {request.provider === 'stripe' && <div className="info-message">{request.effective_at ? `Application automatique le ${dateLabel(request.effective_at)}. Les données premium restent conservées.` : 'Stripe validera automatiquement cette demande après le paiement.'}</div>}
+                  {request.provider === 'qonto' && <div className="info-message"><strong>Parcours Qonto / virement.</strong> Le client a signé son contrat et demande la vérification du premier règlement avant activation.</div>}
                   {canManage && request.provider !== 'stripe' && (
                     <div className="billing-request-buttons">
-                      <button className="primary-button" type="button" onClick={() => reviewRequest(request, 'approve')} disabled={saving === `request-${request.id}`}>{saving === `request-${request.id}` ? 'Traitement…' : 'Valider et activer'}</button>
+                      <button className="primary-button" type="button" onClick={() => reviewRequest(request, 'approve')} disabled={saving === `request-${request.id}` || (request.provider === 'qonto' && !paymentReferences[request.id]?.trim())}>{saving === `request-${request.id}` ? 'Traitement…' : request.provider === 'qonto' ? 'Confirmer le virement et activer' : 'Valider et activer'}</button>
                       <button className="secondary-button danger" type="button" onClick={() => reviewRequest(request, 'reject')} disabled={saving === `request-${request.id}`}>Refuser</button>
                     </div>
                   )}
@@ -536,6 +616,73 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
               </div>
             ))}
           </div>
+        </article>
+      </div>
+
+      <div className={`billing-admin-grid bank-transfer-admin-grid${billingView !== 'operations' ? ' billing-view-hidden' : ''}`}>
+        <article className="panel billing-requests-panel bank-transfer-panel">
+          <div className="panel-header">
+            <div><p className="eyebrow">QONTO · VIREMENTS</p><h3>Abonnements par virement bancaire</h3><p>Factures émises via Qonto, règlements contrôlés par NCR Suite.</p></div>
+            <span>{bankTransferSubscriptions.length}</span>
+          </div>
+          {bankTransferSubscriptions.length === 0 ? (
+            <div className="admin-empty-state">Aucun abonnement par virement bancaire pour le moment.</div>
+          ) : (
+            <div className="billing-request-list">
+              {bankTransferSubscriptions.map((item) => {
+                const due = item.current_period_end ? new Date(item.current_period_end).getTime() <= Date.now() : false;
+                const busyPrefix = `bank-${item.organization_id}-`;
+                return (
+                  <article key={item.organization_id} className="billing-request-card bank-transfer-card">
+                    <div className="billing-request-top">
+                      <span className="admin-company-avatar"><Icon name="building" size={19} /></span>
+                      <div><strong>{item.organization_name}</strong><small>{item.owner_email || 'E-mail propriétaire non disponible'}</small></div>
+                      <span className={`admin-status-pill ${item.subscription_status === 'active' && !due ? 'positive' : item.subscription_status === 'canceled' ? '' : 'warning'}`}>
+                        {item.subscription_status === 'active' ? due ? 'Échéance à vérifier' : 'À jour' : item.subscription_status === 'paused' ? 'Suspendu' : item.subscription_status === 'canceled' ? 'Résilié' : item.subscription_status}
+                      </span>
+                    </div>
+                    <div className="billing-request-route">
+                      <b>{planLabels[item.plan_key]}</b><Icon name="chevronRight" size={18} /><b>{money(item.monthly_price_cents)} HT / mois</b>
+                    </div>
+                    <p>
+                      Contrat <strong>{item.contract_reference || 'non lié'}</strong>
+                      {' · '}
+                      {item.payment_confirmed_at ? `Dernier règlement ${dateLabel(item.payment_confirmed_at)}` : 'Aucun règlement confirmé'}
+                      {item.current_period_end ? ` · prochaine échéance ${dateLabel(item.current_period_end)}` : ''}
+                    </p>
+                    {item.subscription_status !== 'canceled' && (
+                      <>
+                        <label>Référence du règlement
+                          <input value={bankTransferReferences[item.organization_id] ?? ''} onChange={(event) => setBankTransferReferences((current) => ({ ...current, [item.organization_id]: event.target.value }))} placeholder="Facture Qonto ou référence du virement" disabled={!canManage} />
+                        </label>
+                        <label>Note interne
+                          <textarea rows={2} value={bankTransferNotes[item.organization_id] ?? ''} onChange={(event) => setBankTransferNotes((current) => ({ ...current, [item.organization_id]: event.target.value }))} placeholder="Ex. virement reçu sur Qonto, échange client…" disabled={!canManage} />
+                        </label>
+                      </>
+                    )}
+                    {canManage && (
+                      <div className="billing-request-buttons">
+                        {item.subscription_status !== 'canceled' && (
+                          <button className="primary-button" type="button" onClick={() => void manageBankTransferSubscription(item, 'mark_paid')} disabled={saving.startsWith(busyPrefix) || !bankTransferReferences[item.organization_id]?.trim()}>
+                            <Icon name="check" size={16} /> {saving === `${busyPrefix}mark_paid` ? 'Confirmation…' : 'Marquer comme payé'}
+                          </button>
+                        )}
+                        {item.subscription_status === 'active' && (
+                          <button className="secondary-button" type="button" onClick={() => void manageBankTransferSubscription(item, 'suspend')} disabled={saving.startsWith(busyPrefix)}>Suspendre</button>
+                        )}
+                        {item.subscription_status === 'paused' && (
+                          <button className="secondary-button" type="button" onClick={() => void manageBankTransferSubscription(item, 'reactivate')} disabled={saving.startsWith(busyPrefix)}>Réactiver</button>
+                        )}
+                        {item.subscription_status !== 'canceled' && (
+                          <button className="secondary-button danger" type="button" onClick={() => void manageBankTransferSubscription(item, 'cancel')} disabled={saving.startsWith(busyPrefix)}>Résilier</button>
+                        )}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
         </article>
       </div>
 
