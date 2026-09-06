@@ -713,7 +713,7 @@ begin
   end if;
   if p_action not in ('mark_paid','suspend','reactivate','cancel') then raise exception 'Action invalide.'; end if;
 
-  select s.*,o.plan
+  select s,o.plan
   into v_subscription,v_plan
   from public.organization_subscriptions s
   join public.organizations o on o.id=s.organization_id
@@ -808,20 +808,6 @@ revoke all on function public.admin_list_bank_transfer_subscriptions() from publ
 revoke all on function public.admin_manage_bank_transfer_subscription(uuid,text,text,text) from public,anon;
 grant execute on function public.admin_list_bank_transfer_subscriptions() to authenticated;
 grant execute on function public.admin_manage_bank_transfer_subscription(uuid,text,text,text) to authenticated;
-
-insert into public.platform_release_state(
-  singleton,database_version,expected_frontend_version,expected_pwa_cache,
-  installed_at,installed_by,notes
-) values (
-  true,'2.29.25-qonto-transfer','2.29.25','ncr-suite-shell-v2.29.25-training-test-sandbox',
-  now(),auth.uid(),
-  'Qonto/virement : choix admin, contrat dedie, signature obligatoire, verification du premier virement et pilotage manuel sans dependance Stripe.'
-)
-on conflict(singleton) do update set
-  database_version=excluded.database_version,
-  installed_at=excluded.installed_at,
-  installed_by=excluded.installed_by,
-  notes=excluded.notes;
 
 commit;
 
