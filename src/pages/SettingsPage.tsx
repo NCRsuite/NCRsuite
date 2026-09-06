@@ -516,7 +516,7 @@ export function SettingsPage() {
               </div>
               <div className="metier-public-qr-actions">
                 <button type="button" className="secondary-button" onClick={downloadPublicQrCode}>
-                  <Icon name="download" size={16} /> Télécharger le QR code
+                  <Icon name="file" size={16} /> Télécharger le QR code
                 </button>
               </div>
             </div>
