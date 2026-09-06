@@ -240,10 +240,13 @@ export function BookingDashboardPage() {
             : centerMode
               ? 'Pilotez toutes les activités de votre centre depuis un seul espace, tout en gardant chaque entreprise indépendante.'
               : 'Votre activité, vos rendez-vous et les réglages essentiels au même endroit.'}</p>
-          {!isPersonalView && organization.plan === 'metier' && (
+          {!isPersonalView && (
             <div className="beauty-mode-pill">
               <span className="beauty-mode-icon"><Icon name={centerMode ? 'building' : 'scissors'} size={18} /></span>
-              <span><strong>{centerMode ? 'Centre multi-entreprises' : 'Salon / activité indépendante'}</strong><br />{centerMode ? `${companies.length} entreprises dans cet espace` : 'Parcours simplifié Coiffure & Beauté'}</span>
+              <span>
+                <strong>{centerMode ? 'Centre multi-entreprises' : 'Salon Coiffure & Beauté'}</strong><br />
+                {centerMode ? `${companies.length} entreprises dans cet espace` : 'Espace professionnel NCR Suite'}
+              </span>
             </div>
           )}
         </div>
@@ -254,7 +257,9 @@ export function BookingDashboardPage() {
             ? <Link className="secondary-button" to="/?metier=reception"><Icon name="calendar" size={17} /> Accueil partagé</Link>
             : canConfigure && organization.plan === 'metier'
               ? <Link className="secondary-button" to="/offre-metier"><Icon name="settings" size={17} /> Paramétrer</Link>
-              : null}
+              : canConfigure
+                ? <Link className="secondary-button" to="/parametres"><Icon name="settings" size={17} /> Paramètres</Link>
+                : null}
         </div>
       </header>
 
