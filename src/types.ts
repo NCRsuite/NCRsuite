@@ -35,6 +35,12 @@ export interface Organization {
   public_name?: string | null;
   booking_tagline?: string | null;
   booking_banner_url?: string | null;
+  booking_banner_position_x?: number;
+  booking_banner_position_y?: number;
+  booking_banner_landscape_zoom?: number;
+  booking_banner_portrait_position_x?: number;
+  booking_banner_portrait_position_y?: number;
+  booking_banner_portrait_zoom?: number;
   booking_address?: string | null;
   booking_hours_text?: string | null;
   booking_practical_info?: string | null;
