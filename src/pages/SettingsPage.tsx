@@ -8,8 +8,50 @@ import {
 } from "../config/planEntitlements";
 import { getDomainPlan } from "../config/domainPlans";
 import { businessUiTheme } from "../config/businessTheme";
+import { supabase } from "../lib/supabase";
 
 const slotOptions = [5, 10, 15, 20, 30, 45, 60];
+
+function publicBannerExtension(file: File) {
+  if (file.type === "image/png") return "png";
+  if (file.type === "image/webp") return "webp";
+  return "jpg";
+}
+
+async function normalizePublicBanner(file: File) {
+  if (!["image/heic", "image/heif"].includes(file.type)) return file;
+  const sourceUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () =>
+        reject(
+          new Error(
+            "Cette photo HEIC ne peut pas être convertie sur cet appareil. Utilisez une image JPG, PNG ou WebP.",
+          ),
+        );
+      element.src = sourceUrl;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Conversion de l’image impossible.");
+    context.drawImage(image, 0, 0);
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.9),
+    );
+    if (!blob) throw new Error("Conversion de l’image impossible.");
+    return new File(
+      [blob],
+      file.name.replace(/\.(heic|heif)$/i, ".jpg"),
+      { type: "image/jpeg" },
+    );
+  } finally {
+    URL.revokeObjectURL(sourceUrl);
+  }
+}
 
 export function SettingsPage() {
   const {
@@ -18,6 +60,7 @@ export function SettingsPage() {
     updateBookingSettings,
     updateEmailNotificationSettings,
     updateClientExperienceSettings,
+    refreshOrganizations,
   } = useOrganization();
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
@@ -26,6 +69,15 @@ export function SettingsPage() {
   const [savingBooking, setSavingBooking] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingClientExperience, setSavingClientExperience] = useState(false);
+  const [savingPublicBanner, setSavingPublicBanner] = useState(false);
+  const [publicBannerUrl, setPublicBannerUrl] = useState<string | null>(null);
+  const [publicBannerFile, setPublicBannerFile] = useState<File | null>(null);
+  const [bannerLandscapeX, setBannerLandscapeX] = useState(50);
+  const [bannerLandscapeY, setBannerLandscapeY] = useState(50);
+  const [bannerLandscapeZoom, setBannerLandscapeZoom] = useState(100);
+  const [bannerPortraitX, setBannerPortraitX] = useState(50);
+  const [bannerPortraitY, setBannerPortraitY] = useState(50);
+  const [bannerPortraitZoom, setBannerPortraitZoom] = useState(100);
   const [bookingEnabled, setBookingEnabled] = useState(false);
   const [confirmationMode, setConfirmationMode] = useState<
     "automatic" | "manual"
@@ -58,6 +110,14 @@ export function SettingsPage() {
     setMaxDaysAhead(organization.booking_max_days_ahead ?? 60);
     setCancelNoticeHours(organization.booking_cancel_notice_hours ?? 12);
     setWelcomeText(organization.booking_welcome_text ?? "");
+    setPublicBannerUrl(organization.booking_banner_url ?? null);
+    setPublicBannerFile(null);
+    setBannerLandscapeX(organization.booking_banner_position_x ?? 50);
+    setBannerLandscapeY(organization.booking_banner_position_y ?? 50);
+    setBannerLandscapeZoom(organization.booking_banner_landscape_zoom ?? 100);
+    setBannerPortraitX(organization.booking_banner_portrait_position_x ?? 50);
+    setBannerPortraitY(organization.booking_banner_portrait_position_y ?? 50);
+    setBannerPortraitZoom(organization.booking_banner_portrait_zoom ?? 100);
     setEmailNotificationsEnabled(
       organization.email_notifications_enabled ?? true,
     );
@@ -80,6 +140,17 @@ export function SettingsPage() {
       ? `${window.location.origin}/r/${organization.slug}/reserver`
       : `${window.location.origin}/reserver/${organization.slug}`;
   }, [organization]);
+
+  const publicBannerPreview = useMemo(
+    () => publicBannerFile ? URL.createObjectURL(publicBannerFile) : publicBannerUrl,
+    [publicBannerFile, publicBannerUrl],
+  );
+
+  useEffect(() => () => {
+    if (publicBannerFile && publicBannerPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(publicBannerPreview);
+    }
+  }, [publicBannerFile, publicBannerPreview]);
 
   if (!organization) return null;
 
@@ -288,6 +359,73 @@ export function SettingsPage() {
     await navigator.clipboard.writeText(bookingUrl);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2200);
+  }
+
+  function selectPublicBanner(file: File | undefined) {
+    if (!file) return;
+    setError("");
+    if (!file.type.startsWith("image/")) {
+      setError("Choisissez une image compatible.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError("La photo de couverture ne doit pas dépasser 8 Mo.");
+      return;
+    }
+    setPublicBannerFile(file);
+  }
+
+  async function savePublicBanner() {
+    if (!organization || !isHairBusiness || !canManage || !supabase) return;
+    setSavingPublicBanner(true);
+    setError("");
+    setMessage("");
+    try {
+      let nextUrl = publicBannerUrl;
+      if (publicBannerFile) {
+        const normalized = await normalizePublicBanner(publicBannerFile);
+        const path = `${organization.id}/public-booking-banner-${Date.now()}.${publicBannerExtension(normalized)}`;
+        const { error: uploadError } = await supabase.storage
+          .from("organization-branding")
+          .upload(path, normalized, {
+            contentType: normalized.type,
+            cacheControl: "3600",
+            upsert: false,
+          });
+        if (uploadError) throw uploadError;
+        nextUrl = supabase.storage
+          .from("organization-branding")
+          .getPublicUrl(path).data.publicUrl;
+      }
+
+      const { error: bannerError } = await supabase.rpc(
+        "update_coiffure_public_banner",
+        {
+          p_organization_id: organization.id,
+          p_banner_url: nextUrl,
+          p_landscape_x: bannerLandscapeX,
+          p_landscape_y: bannerLandscapeY,
+          p_landscape_zoom: bannerLandscapeZoom,
+          p_portrait_x: bannerPortraitX,
+          p_portrait_y: bannerPortraitY,
+          p_portrait_zoom: bannerPortraitZoom,
+        },
+      );
+      if (bannerError) throw bannerError;
+
+      setPublicBannerUrl(nextUrl);
+      setPublicBannerFile(null);
+      refreshOrganizations();
+      setMessage("La photo et les cadrages paysage / portrait ont été enregistrés.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Impossible d’enregistrer la photo de couverture.",
+      );
+    } finally {
+      setSavingPublicBanner(false);
+    }
   }
 
   return (
@@ -731,8 +869,8 @@ export function SettingsPage() {
                     <strong>Personnalisation complète</strong>
                     <small>
                       {planHasFeature(organization.plan, "commercial_branding")
-                        ? "Logo, bannière et identité publique"
-                        : "À partir de l’offre Professionnelle"}
+                        ? "Logo, identité commerciale et lien personnalisé"
+                        : "Nom commercial, logo et lien personnalisé à partir de l’offre Professionnelle"}
                     </small>
                   </span>
                 </article>
@@ -845,6 +983,99 @@ export function SettingsPage() {
                 Ouvrir
               </a>
             </div>
+
+            {isHairBusiness && organization.plan !== "metier" && (
+              <div className="metier-public-media-field metier-public-cover-field settings-public-cover-editor">
+                <div className="metier-public-media-copy">
+                  <strong>Photo de couverture</strong>
+                  <small>
+                    Une seule photo source avec un cadrage et un zoom indépendants pour le paysage et le portrait.
+                  </small>
+                </div>
+
+                {publicBannerPreview ? (
+                  <div className="metier-public-cover-editor">
+                    <div className="metier-public-cover-mode-grid">
+                      <section className="metier-public-cover-mode landscape">
+                        <div className="metier-public-cover-mode-head">
+                          <div><strong>Paysage</strong><small>Ordinateur & tablette horizontale</small></div>
+                          <button type="button" onClick={() => {
+                            setBannerLandscapeX(50);
+                            setBannerLandscapeY(50);
+                            setBannerLandscapeZoom(100);
+                          }}>Réinitialiser</button>
+                        </div>
+                        <figure className="desktop">
+                          <img
+                            src={publicBannerPreview}
+                            alt=""
+                            style={{
+                              objectPosition: `${bannerLandscapeX}% ${bannerLandscapeY}%`,
+                              transform: `scale(${bannerLandscapeZoom / 100})`,
+                              transformOrigin: `${bannerLandscapeX}% ${bannerLandscapeY}%`,
+                            }}
+                          />
+                        </figure>
+                        <div className="metier-public-cover-controls">
+                          <label>Horizontal <b>{bannerLandscapeX}%</b><input type="range" min="0" max="100" step="1" value={bannerLandscapeX} onChange={(event) => setBannerLandscapeX(Number(event.target.value))} disabled={!canManage} /></label>
+                          <label>Vertical <b>{bannerLandscapeY}%</b><input type="range" min="0" max="100" step="1" value={bannerLandscapeY} onChange={(event) => setBannerLandscapeY(Number(event.target.value))} disabled={!canManage} /></label>
+                          <label>Zoom <b>{bannerLandscapeZoom}%</b><input type="range" min="100" max="250" step="5" value={bannerLandscapeZoom} onChange={(event) => setBannerLandscapeZoom(Number(event.target.value))} disabled={!canManage} /></label>
+                        </div>
+                      </section>
+
+                      <section className="metier-public-cover-mode portrait">
+                        <div className="metier-public-cover-mode-head">
+                          <div><strong>Portrait</strong><small>Téléphone & écran vertical</small></div>
+                          <button type="button" onClick={() => {
+                            setBannerPortraitX(50);
+                            setBannerPortraitY(50);
+                            setBannerPortraitZoom(100);
+                          }}>Réinitialiser</button>
+                        </div>
+                        <figure className="mobile">
+                          <img
+                            src={publicBannerPreview}
+                            alt=""
+                            style={{
+                              objectPosition: `${bannerPortraitX}% ${bannerPortraitY}%`,
+                              transform: `scale(${bannerPortraitZoom / 100})`,
+                              transformOrigin: `${bannerPortraitX}% ${bannerPortraitY}%`,
+                            }}
+                          />
+                        </figure>
+                        <div className="metier-public-cover-controls">
+                          <label>Horizontal <b>{bannerPortraitX}%</b><input type="range" min="0" max="100" step="1" value={bannerPortraitX} onChange={(event) => setBannerPortraitX(Number(event.target.value))} disabled={!canManage} /></label>
+                          <label>Vertical <b>{bannerPortraitY}%</b><input type="range" min="0" max="100" step="1" value={bannerPortraitY} onChange={(event) => setBannerPortraitY(Number(event.target.value))} disabled={!canManage} /></label>
+                          <label>Zoom <b>{bannerPortraitZoom}%</b><input type="range" min="100" max="250" step="5" value={bannerPortraitZoom} onChange={(event) => setBannerPortraitZoom(Number(event.target.value))} disabled={!canManage} /></label>
+                        </div>
+                      </section>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="metier-public-media-preview banner">
+                    <span><Icon name="camera" size={18} /> Aucune photo de couverture</span>
+                  </div>
+                )}
+
+                <div className="metier-public-media-actions">
+                  <label className="secondary-button compact-button">
+                    <Icon name="camera" size={15} /> {publicBannerPreview ? "Remplacer la photo" : "Importer une photo"}
+                    <input hidden type="file" accept="image/*" onChange={(event) => selectPublicBanner(event.target.files?.[0])} disabled={!canManage} />
+                  </label>
+                  {publicBannerPreview && (
+                    <button type="button" className="danger-text-button" onClick={() => {
+                      setPublicBannerFile(null);
+                      setPublicBannerUrl(null);
+                    }} disabled={!canManage}>
+                      Retirer
+                    </button>
+                  )}
+                  <button type="button" className="primary-button compact-button" onClick={() => void savePublicBanner()} disabled={!canManage || savingPublicBanner}>
+                    {savingPublicBanner ? "Enregistrement…" : "Enregistrer la photo et les cadrages"}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {isRestaurantBusiness ? (
               <>
