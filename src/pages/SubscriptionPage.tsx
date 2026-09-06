@@ -626,7 +626,7 @@ export function SubscriptionPage() {
               <div className="subscription-dates">
                 {data.subscription.subscription_status === 'trialing' && <span>Fin de l’essai <strong>{dateLabel(data.subscription.trial_ends_at)}</strong></span>}
                 {data.subscription.current_period_end && <span>Prochaine échéance <strong>{dateLabel(data.subscription.current_period_end)}</strong></span>}
-                <span>Mode de paiement <strong>{data.subscription.provider === 'stripe' ? 'Paiement en ligne' : 'Gestion manuelle'}</strong></span>
+                <span>Mode de paiement <strong>{data.subscription.provider === 'stripe' ? 'Paiement en ligne Stripe' : data.subscription.provider === 'qonto' ? 'Virement bancaire · Qonto' : 'Gestion manuelle'}</strong></span>
                 <span>Conservation des données <strong>Garantie</strong></span>
               </div>
               {data.subscription.provider === 'stripe' && canManage && (
@@ -692,6 +692,17 @@ export function SubscriptionPage() {
                 <p>À l’échéance, les droits seront retirés. Les données resteront stockées et seront retrouvées après une réactivation.</p>
               </div>
               {canManage && <button className="secondary-button" type="button" onClick={() => void openStripePortal()} disabled={openingPortal}>Gérer mon abonnement</button>}
+            </section>
+          )}
+
+          {data.subscription.provider === 'qonto' && data.subscription.access_allowed && (
+            <section className="panel subscription-request-banner">
+              <span className="subscription-request-icon"><Icon name="building" size={22} /></span>
+              <div>
+                <p className="eyebrow">RÈGLEMENT PAR VIREMENT</p>
+                <h2>Facturation mensuelle via Qonto</h2>
+                <p>Ton abonnement NCR Suite est réglé par virement bancaire. Les factures sont émises séparément via Qonto et les règlements sont suivis par NCR.</p>
+              </div>
             </section>
           )}
 
