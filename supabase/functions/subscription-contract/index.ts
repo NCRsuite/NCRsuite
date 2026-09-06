@@ -28,6 +28,7 @@ type ContractRow = {
   otp_requested_at: string | null;
   signed_at: string | null;
   payment_status: string;
+  payment_provider: 'stripe' | 'qonto';
   created_at: string;
 };
 
@@ -181,7 +182,26 @@ async function buildContractPdf(contract: {
   monthlyPriceCents: number;
   memberLimit: number;
   planDetail: string;
+  paymentProvider: 'stripe' | 'qonto';
 }) {
+  const bankTransfer = contract.paymentProvider === 'qonto';
+  const paymentModeLabel = bankTransfer ? 'Virement bancaire · facturation Qonto' : 'Paiement en ligne Stripe';
+  const billingParagraph = bankTransfer
+    ? 'Facturation mensuelle. Les factures sont emises electroniquement et le reglement est effectue par virement bancaire sur les coordonnees indiquees sur la facture. Le Client peut mettre en place un virement permanent aupres de sa banque.'
+    : 'Facturation mensuelle par Stripe. Les taxes eventuellement applicables sont ajoutees selon la situation fiscale.';
+  const activationParagraph = bankTransfer
+    ? 'Le service est active apres signature du present contrat et verification par NCR Suite du premier reglement. Les echeances suivantes restent dues chaque mois jusqu a resiliation.'
+    : 'Le service est active apres signature du present contrat et confirmation du premier paiement. Le renouvellement est ensuite automatique chaque mois jusqu a resiliation.';
+  const cancellationParagraph = bankTransfer
+    ? 'Le contrat prend effet apres signature et verification du premier reglement. Il est conclu pour une duree mensuelle avec renouvellement automatique. La resiliation est traitee selon les conditions contractuelles et les sommes deja dues restent exigibles.'
+    : 'Le contrat prend effet apres signature et paiement. Il est conclu pour une duree mensuelle avec renouvellement automatique. Le Client peut gerer sa resiliation depuis le portail de paiement. La resiliation produit ses effets selon la date indiquee par Stripe.';
+  const paymentParagraph = bankTransfer
+    ? `Le prix de base est de ${money(contract.monthlyPriceCents)}. Le reglement est effectue par virement bancaire. Les factures electroniques sont emises via Qonto. En cas de retard ou d absence de reglement, NCR Suite peut appliquer un delai de regularisation puis suspendre les fonctions payantes, sans supprimer automatiquement les donnees.`
+    : `Le prix de base est de ${money(contract.monthlyPriceCents)}. Le paiement est realise par Stripe. Un echec de paiement peut entrainer un delai de grace puis la suspension des fonctions payantes. Les frais exceptionnels, prestations sur devis et developpements sur mesure sont factures separement.`;
+  const proofParagraph = bankTransfer
+    ? 'Les journaux techniques, horodatages, empreintes SHA-256, validation par code e-mail, contrat signe et validations administratives de reglement constituent des elements de preuve. Le procede mis en oeuvre est une signature electronique simple documentee, et non une signature qualifiee.'
+    : 'Les journaux techniques, horodatages, empreintes SHA-256, validation par code e-mail et traces Stripe constituent des elements de preuve. Le procede mis en oeuvre est une signature electronique simple documentee, et non une signature qualifiee.';
+
   const document = await PDFDocument.create();
   document.setTitle(`Contrat d'abonnement NCR Suite ${contract.reference}`);
   document.setAuthor('N.C.R Solutions - NCR Suite');
@@ -268,16 +288,17 @@ async function buildContractPdf(contract: {
   labeledValue('Univers metier', contract.businessLabel);
   labeledValue('Formule', contract.planLabel);
   labeledValue('Prix mensuel', money(contract.monthlyPriceCents));
+  labeledValue('Mode de reglement', paymentModeLabel);
   labeledValue('Utilisateurs inclus', contract.memberLimit > 0 ? String(contract.memberLimit) : 'Selon configuration contractuelle');
   labeledValue('Description', contract.planDetail);
-  paragraph('Facturation mensuelle par Stripe. Les taxes eventuellement applicables sont ajoutees selon la situation fiscale. Les options payantes commandees ulterieurement font l objet d une validation distincte.', { gap: 16 });
-  paragraph('Le service est active apres signature du present contrat et confirmation du premier paiement. Le renouvellement est ensuite automatique chaque mois jusqu a resiliation.', { bold: true, gap: 18 });
+  paragraph(billingParagraph + ' Les options payantes commandees ulterieurement font l objet d une validation distincte.', { gap: 16 });
+  paragraph(activationParagraph, { bold: true, gap: 18 });
 
   const sections = [
     ['1. Objet', 'Le present contrat encadre l acces du Client a NCR Suite, plateforme SaaS de gestion metier. Il comprend le bon de commande, les conditions commerciales, les conditions d utilisation, les regles de confidentialite et l annexe relative au traitement des donnees.'],
     ['2. Perimetre du service', 'Les fonctions accessibles dependent de l univers metier, de la formule et des modules actifs. Les fonctions verrouillees restent visibles a titre informatif mais ne sont pas utilisables sans droit correspondant.'],
-    ['3. Duree et renouvellement', 'Le contrat prend effet apres signature et paiement. Il est conclu pour une duree mensuelle avec renouvellement automatique. Le Client peut gerer sa resiliation depuis le portail de paiement. La resiliation produit ses effets selon la date indiquee par Stripe.'],
-    ['4. Prix et paiement', `Le prix de base est de ${money(contract.monthlyPriceCents)}. Le paiement est realise par Stripe. Un echec de paiement peut entrainer un delai de grace puis la suspension des fonctions payantes. Les frais exceptionnels, prestations sur devis et developpements sur mesure sont factures separement.`],
+    ['3. Duree et renouvellement', cancellationParagraph],
+    ['4. Prix et paiement', paymentParagraph],
     ['5. Changement de formule', 'Une montee en gamme peut prendre effet immediatement selon les regles affichees lors de la commande. Une retrogradation est normalement appliquee a la fin de la periode en cours. Les droits premium sont alors retires sans suppression automatique des donnees existantes.'],
     ['6. Conservation des donnees', 'En cas de retrogradation, suspension ou resiliation, NCR Suite conserve les donnees selon la politique de conservation en vigueur afin de permettre une reprise ulterieure. Certaines donnees peuvent devenir inaccessibles tant que la formule ne les autorise plus. Une suppression definitive explicite reste soumise aux obligations legales et aux sauvegardes techniques.'],
     ['7. Compte et securite', 'Le Client est responsable de ses comptes, habilitations, mots de passe et appareils. Il doit signaler rapidement tout acces suspect. Les droits doivent etre attribues selon le besoin reel de chaque utilisateur.'],
@@ -288,7 +309,7 @@ async function buildContractPdf(contract: {
     ['12. Responsabilite', 'Chaque partie repond de ses obligations dans les limites du droit applicable. NCR Suite ne garantit pas qu un document produit automatiquement soit adapte a toutes les situations sans verification du Client. Les pertes indirectes, pertes d opportunite ou consequences d une mauvaise saisie restent exclues dans la mesure permise.'],
     ['13. Support', 'Le support est accessible par les canaux proposes dans l application. Les demandes doivent decrire le contexte, le compte concerne et les etapes permettant de reproduire le probleme, sans transmettre inutilement de donnees sensibles.'],
     ['14. Fin du contrat', 'A la fin du contrat, les acces payants peuvent etre suspendus. Le Client peut demander l export des donnees disponibles et, lorsque cela est applicable, leur suppression. Les sommes deja dues restent exigibles.'],
-    ['15. Preuve et signature', 'Les journaux techniques, horodatages, empreintes SHA-256, validation par code e-mail et traces Stripe constituent des elements de preuve. Le procede mis en oeuvre est une signature electronique simple documentee, et non une signature qualifiee.'],
+    ['15. Preuve et signature', proofParagraph],
     ['16. Droit applicable et litiges', 'Le contrat est soumis au droit francais. Les parties recherchent d abord une solution amiable. Les regles imperatives de competence et de mediation applicables demeurent reservees.'],
   ];
 
@@ -299,9 +320,13 @@ async function buildContractPdf(contract: {
 
   addPage();
   heading('Annexe A - Conditions generales de vente', 17);
-  paragraph('La commande est constituee par le bon de commande, la signature et la confirmation de paiement. Les prix sont indiques hors taxes. Les factures et justificatifs Stripe sont accessibles par les moyens proposes. Toute contestation doit etre adressee sans delai avec les references utiles.');
+  paragraph(bankTransfer
+    ? 'La commande est constituee par le bon de commande, la signature et la verification du premier reglement. Les prix sont indiques hors taxes. Les factures electroniques sont emises via Qonto et les references de virement servent au rapprochement des paiements. Toute contestation doit etre adressee sans delai avec les references utiles.'
+    : 'La commande est constituee par le bon de commande, la signature et la confirmation de paiement. Les prix sont indiques hors taxes. Les factures et justificatifs Stripe sont accessibles par les moyens proposes. Toute contestation doit etre adressee sans delai avec les references utiles.');
   paragraph('Les modules, prestations d installation, parametrages, reprises de donnees et developpements sur mesure peuvent faire l objet d une commande et d un prix distincts. Leur activation depend de leur paiement ou de leur validation contractuelle.');
-  paragraph('La resiliation, le paiement echoue, la retrogradation et la suppression de moyens de paiement sont traites selon le cycle Stripe et les regles affichees dans NCR Suite.');
+  paragraph(bankTransfer
+    ? 'La resiliation, les retards de reglement et la suspension sont traites selon les conditions du contrat, les factures emises et les validations enregistrees dans NCR Suite.'
+    : 'La resiliation, le paiement echoue, la retrogradation et la suppression de moyens de paiement sont traites selon le cycle Stripe et les regles affichees dans NCR Suite.');
 
   heading('Annexe B - Conditions generales d utilisation', 17);
   paragraph('Le Client autorise uniquement les personnes habilitees a utiliser son espace. Il ne doit pas contourner les protections, extraire massivement des donnees, perturber le service, introduire un contenu illicite ou utiliser NCR Suite pour porter atteinte a autrui.');
@@ -482,6 +507,7 @@ function publicContract(row: ContractRow) {
     signerTitle: row.signer_title,
     signedAt: row.signed_at,
     paymentStatus: row.payment_status,
+    paymentProvider: row.payment_provider,
     createdAt: row.created_at,
   };
 }
@@ -516,12 +542,21 @@ Deno.serve(async (request) => {
       if (!['decouverte', 'essentielle', 'professionnelle', 'metier'].includes(planKey)) {
         return jsonResponse(request, 400, { error: 'Formule invalide.' });
       }
+      const { data: subscription, error: subscriptionError } = await service
+        .from('organization_subscriptions')
+        .select('provider')
+        .eq('organization_id', organizationId)
+        .maybeSingle();
+      if (subscriptionError || !subscription) throw new Error('Abonnement NCR Suite introuvable.');
+      const paymentProvider: 'stripe' | 'qonto' = subscription.provider === 'qonto' ? 'qonto' : 'stripe';
+
       const { data: existing } = await service
         .from('subscription_contracts')
         .select('*')
         .eq('organization_id', organizationId)
         .eq('contract_kind', 'initial_subscription')
         .eq('plan_key', planKey)
+        .eq('payment_provider', paymentProvider)
         .in('status', ['awaiting_signature', 'signed', 'payment_pending'])
         .order('created_at', { ascending: false })
         .limit(1)
@@ -579,6 +614,7 @@ Deno.serve(async (request) => {
         monthlyPriceCents: Number(plan.monthly_price_cents),
         memberLimit: Number(plan.member_limit),
         planDetail: text(plan.short_description),
+        paymentProvider,
       });
       const documentHash = await sha256(original);
       const documentPath = `${organizationId}/contracts/${id}/contrat-${reference}.pdf`;
@@ -606,7 +642,9 @@ Deno.serve(async (request) => {
         features: plan.features,
         billing_cycle: 'monthly',
         renewal: 'automatic',
-        payment_provider: 'stripe',
+        payment_provider: paymentProvider,
+        payment_method: paymentProvider === 'qonto' ? 'bank_transfer' : 'online',
+        invoice_provider: paymentProvider === 'qonto' ? 'qonto' : 'stripe',
         data_retention_on_downgrade: 'preserve',
       };
       const { data: created, error: insertError } = await service
@@ -622,6 +660,7 @@ Deno.serve(async (request) => {
           plan_key: planKey,
           plan_label: plan.display_name,
           monthly_price_cents: plan.monthly_price_cents,
+          payment_provider: paymentProvider,
           client_snapshot: clientSnapshot,
           offer_snapshot: offerSnapshot,
           document_path: documentPath,
@@ -641,6 +680,7 @@ Deno.serve(async (request) => {
         contract_version: CONTRACT_VERSION,
         document_sha256: documentHash,
         plan_key: planKey,
+        payment_provider: paymentProvider,
       });
       return jsonResponse(request, 200, {
         contract: publicContract(row),
