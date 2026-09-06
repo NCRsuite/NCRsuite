@@ -340,6 +340,7 @@ export function AppointmentsPage() {
 
   const canEditAppointments = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
   const canChangeStatus = ['owner', 'admin', 'manager', 'employee'].includes(organization?.role ?? 'viewer');
+  const coiffureUiMode = organization?.business_type === 'coiffure';
   const personalView = ['employee', 'viewer'].includes(organization?.role ?? 'viewer');
   const formOpen = canEditAppointments && (searchParams.get('new') === '1' || editingId !== null);
   const beautySites = useMemo(() => {
@@ -1264,7 +1265,7 @@ export function AppointmentsPage() {
               <option value="pending">En attente</option>
               <option value="confirmed">Confirmé</option>
               <option value="completed">Terminé</option>
-              <option value="no_show">Absent</option>
+              <option value="no_show">Pas venu</option>
               <option value="cancelled">Annulé</option>
             </select>
           </div>
@@ -1609,7 +1610,7 @@ export function AppointmentsPage() {
         {viewMode === 'day' && <div className="planning-mobile-agenda appointment-mobile-agenda"><div className="planning-mobile-agenda-heading"><p className="eyebrow">AGENDA DU JOUR</p><strong>{fullDateFormatter.format(selectedDate)}</strong></div>{selectedDayAvailabilityBlocks.length > 0 && <div className="availability-day-list compact">{selectedDayAvailabilityBlocks.map(availabilityBlockCard)}</div>}{selectedDayAppointments.length === 0 ? <div className="planning-empty-state compact"><Icon name="calendar" size={26}/><strong>Aucun rendez-vous</strong><span>{selectedDayAvailabilityBlocks.length > 0 ? 'Les périodes bloquées sont affichées ci-dessus.' : 'La journée est libre pour les filtres choisis.'}</span></div> : <div className="day-appointment-list">{selectedDayAppointments.map(appointmentCard)}</div>}</div>}
       </section>
 
-      {beautyMode && viewMode === 'week' && weekQuickAppointment && (
+      {coiffureUiMode && viewMode === 'week' && weekQuickAppointment && (
         <div className="beauty-week-quick-backdrop" role="presentation" onClick={() => setWeekQuickAppointmentId(null)}>
           <section
             className="beauty-week-quick-sheet"
