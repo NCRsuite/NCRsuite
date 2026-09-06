@@ -105,6 +105,8 @@ const ORGANIZATION_FIELDS = [
   'booking_enabled','booking_confirmation_mode','booking_slot_interval','booking_min_notice_hours','booking_max_days_ahead',
   'booking_cancel_notice_hours','booking_welcome_text','email_notifications_enabled','booking_contact_email','booking_contact_phone',
   'booking_reminder_hours','booking_cancellation_policy','booking_privacy_notice','public_name','booking_tagline','booking_banner_url',
+  'booking_banner_position_x','booking_banner_position_y','booking_banner_landscape_zoom',
+  'booking_banner_portrait_position_x','booking_banner_portrait_position_y','booking_banner_portrait_zoom',
   'booking_address','booking_hours_text','booking_practical_info','show_ncr_branding','security_billing_address','security_billing_postal_code',
   'security_billing_city','security_billing_siret','security_billing_vat_number','security_billing_email','security_billing_phone',
   'security_default_vat_rate','security_payment_terms_days','security_late_penalty_text','security_tax_exemption_text','security_bank_account_holder','security_bank_name','security_bank_iban','security_bank_bic','security_quote_validity_days','metier_setup_fee_cents','metier_member_limit',
