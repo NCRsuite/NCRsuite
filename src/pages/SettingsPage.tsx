@@ -310,6 +310,41 @@ export function SettingsPage() {
         </div>
       </header>
 
+      {isHairBusiness && organization.plan !== "metier" && (
+        <section className="panel settings-public-page-shortcut" aria-label="Page publique de réservation">
+          <div className="settings-section-heading">
+            <div>
+              <p className="eyebrow">PAGE PUBLIQUE</p>
+              <h2>Page publique de réservation</h2>
+              <p className="muted">
+                Retrouvez ici le lien client et tous les réglages de réservation disponibles avec votre formule.
+              </p>
+            </div>
+            <span className={bookingEnabled ? "status-chip confirmed" : "status-chip pending"}>
+              {bookingEnabled ? "Publiée" : "Désactivée"}
+            </span>
+          </div>
+          <div className="booking-link-box">
+            <div className="booking-link-icon"><Icon name="eye" size={22} /></div>
+            <div>
+              <span>Lien public de réservation</span>
+              <strong>{bookingUrl}</strong>
+            </div>
+            <button type="button" className="secondary-button compact-button" onClick={copyBookingUrl}>
+              {copied ? "Copié" : "Copier"}
+            </button>
+            <a className="secondary-button compact-button" href={bookingUrl} target="_blank" rel="noreferrer">
+              Ouvrir
+            </a>
+          </div>
+          <div className="form-actions">
+            <a className="primary-button" href="#page-reservation">
+              <Icon name="settings" size={17} /> Paramétrer la page publique
+            </a>
+          </div>
+        </section>
+      )}
+
       {!canManage && (
         <div className="info-message page-message" role="status">
           Votre rôle permet de consulter ces paramètres, mais pas de les
@@ -760,13 +795,14 @@ export function SettingsPage() {
 
         {isBookingBusiness && (
           <form
+            id={isHairBusiness ? "page-reservation" : undefined}
             className="panel settings-form booking-settings-form"
             onSubmit={submitBooking}
           >
             <div className="settings-section-heading">
               <div>
                 <p className="eyebrow">RÉSERVATION PUBLIQUE</p>
-                <h2>{isRestaurantBusiness ? "Réservations en ligne" : "Prise de rendez-vous en ligne"}</h2>
+                <h2>{isRestaurantBusiness ? "Réservations en ligne" : "Page publique de réservation"}</h2>
                 <p className="muted">
                   {isRestaurantBusiness
                     ? "Les clients réservent depuis votre page publique et seules les tables réellement disponibles sont proposées."
