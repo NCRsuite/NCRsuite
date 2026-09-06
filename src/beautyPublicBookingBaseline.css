@@ -1,0 +1,92 @@
+/* NCR Suite · Coiffure public booking baseline
+   La photo de couverture et son cadrage sont communs à toutes les offres. */
+
+.public-booking-page .public-booking-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.public-booking-page .public-booking-hero.with-banner {
+  background-image: none !important;
+  background-color: #17191d;
+}
+
+.public-booking-page .public-booking-hero.with-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(7, 9, 12, .88), rgba(7, 9, 12, .36));
+}
+
+.public-booking-page .public-booking-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.public-booking-page .public-booking-hero-media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position:
+    var(--public-banner-landscape-x, 50%)
+    var(--public-banner-landscape-y, 50%);
+  transform: scale(var(--public-banner-landscape-zoom, 1));
+  transform-origin:
+    var(--public-banner-landscape-x, 50%)
+    var(--public-banner-landscape-y, 50%);
+}
+
+.public-booking-page .public-booking-hero > :not(.public-booking-hero-media) {
+  position: relative;
+  z-index: 1;
+}
+
+.settings-public-cover-editor {
+  margin-top: 4px;
+}
+
+.settings-public-cover-editor .metier-public-cover-editor {
+  min-width: 0;
+}
+
+.settings-public-cover-editor .metier-public-media-actions {
+  align-self: end;
+}
+
+.settings-public-cover-editor .metier-public-media-actions .primary-button {
+  margin-left: auto;
+}
+
+@media (max-width: 720px) {
+  .public-booking-page .public-booking-hero.with-banner::after {
+    background: linear-gradient(180deg, rgba(7, 9, 12, .72), rgba(7, 9, 12, .66));
+  }
+
+  .public-booking-page .public-booking-hero-media img {
+    object-position:
+      var(--public-banner-portrait-x, 50%)
+      var(--public-banner-portrait-y, 50%);
+    transform: scale(var(--public-banner-portrait-zoom, 1));
+    transform-origin:
+      var(--public-banner-portrait-x, 50%)
+      var(--public-banner-portrait-y, 50%);
+  }
+
+  .settings-public-cover-editor .metier-public-media-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .settings-public-cover-editor .metier-public-media-actions > * {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0 !important;
+  }
+}
