@@ -702,8 +702,8 @@ security definer
 set search_path=public,pg_catalog
 as $$
 declare
-  v_subscription public.organization_subscriptions%rowtype;
   v_plan text;
+  v_current_contract_id uuid;
   v_reference text:=nullif(trim(coalesce(p_payment_reference,'')),'');
   v_note text:=nullif(trim(coalesce(p_note,'')),'');
   v_next_due timestamptz;
@@ -713,14 +713,14 @@ begin
   end if;
   if p_action not in ('mark_paid','suspend','reactivate','cancel') then raise exception 'Action invalide.'; end if;
 
-  select s,o.plan
-  into v_subscription,v_plan
+  select s.current_contract_id,o.plan
+  into v_current_contract_id,v_plan
   from public.organization_subscriptions s
   join public.organizations o on o.id=s.organization_id
   where s.organization_id=p_organization_id and s.provider='qonto'
   for update of s;
 
-  if v_subscription.organization_id is null then raise exception 'Abonnement Qonto introuvable.'; end if;
+  if not found then raise exception 'Abonnement Qonto introuvable.'; end if;
 
   if p_action='mark_paid' then
     if v_reference is null then raise exception 'Une reference de virement ou de facture est requise.'; end if;
@@ -744,7 +744,7 @@ begin
     update public.organizations set status='active',updated_at=now() where id=p_organization_id;
     update public.subscription_contracts
     set status='active',payment_status='paid',payment_confirmed_at=now(),updated_at=now()
-    where id=v_subscription.current_contract_id and signed_at is not null;
+    where id=v_current_contract_id and signed_at is not null;
   elsif p_action='suspend' then
     update public.organization_subscriptions
     set status='paused',
@@ -782,7 +782,7 @@ begin
     where id=p_organization_id and status<>'closed';
     update public.subscription_contracts
     set status='canceled',updated_at=now()
-    where id=v_subscription.current_contract_id and signed_at is not null;
+    where id=v_current_contract_id and signed_at is not null;
   end if;
 
   insert into public.subscription_events(
