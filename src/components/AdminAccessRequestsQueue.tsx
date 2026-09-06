@@ -33,6 +33,7 @@ interface AccessRequest {
   acquisition_content: string | null;
   landing_path: string | null;
   referrer_url: string | null;
+  payment_provider: 'stripe' | 'qonto';
 }
 
 const statusLabels: Record<AccessRequestStatus, string> = {
@@ -106,6 +107,7 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
   const [statusFilter, setStatusFilter] = useState<'all' | AccessRequestStatus>('pending');
   const [search, setSearch] = useState('');
   const [decisionNote, setDecisionNote] = useState('');
+  const [paymentProvider, setPaymentProvider] = useState<'stripe' | 'qonto'>('stripe');
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<'approve' | 'reject' | 'resend' | 'revoke' | null>(null);
   const [error, setError] = useState('');
@@ -118,7 +120,7 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
 
     let query = supabase
       .from('platform_access_requests')
-      .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,trial_requested,team_size,message,status,submitted_at,reviewed_at,decision_note,invited_user_id,organization_id,invitation_sent_at,invitation_count,last_invitation_error,acquisition_source,acquisition_medium,acquisition_campaign,acquisition_content,landing_path,referrer_url')
+      .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,trial_requested,team_size,message,status,submitted_at,reviewed_at,decision_note,invited_user_id,organization_id,invitation_sent_at,invitation_count,last_invitation_error,acquisition_source,acquisition_medium,acquisition_campaign,acquisition_content,landing_path,referrer_url,payment_provider')
       .order('submitted_at', { ascending: false })
       .limit(250);
 
@@ -134,7 +136,10 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
       if (preserveSelection && selected) {
         const next = rows.find((request) => request.id === selected.id) ?? null;
         setSelected(next);
-        if (next) setDecisionNote(next.decision_note ?? '');
+        if (next) {
+          setDecisionNote(next.decision_note ?? '');
+          setPaymentProvider(next.payment_provider === 'qonto' ? 'qonto' : 'stripe');
+        }
       }
     }
     if (!silent) setLoading(false);
@@ -180,6 +185,7 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
   function selectRequest(request: AccessRequest) {
     setSelected(request);
     setDecisionNote(request.decision_note ?? '');
+    setPaymentProvider(request.payment_provider === 'qonto' ? 'qonto' : 'stripe');
     setError('');
     setMessage('');
   }
@@ -204,7 +210,8 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
     const body = {
       requestId: selected.id,
       action,
-      decisionNote: decisionNote.trim() || null
+      decisionNote: decisionNote.trim() || null,
+      paymentProvider: selected.trial_requested ? 'stripe' : paymentProvider
     };
 
     try {
@@ -349,6 +356,25 @@ export function AdminAccessRequestsQueue({ canReview }: { canReview: boolean }) 
                 <strong>Besoin exprimé</strong>
                 <p>{selected.message || 'Aucune précision supplémentaire.'}</p>
               </section>
+
+              {selected.status === 'pending' && !selected.trial_requested && (
+                <label className="admin-access-note">
+                  Mode de règlement de l’abonnement
+                  <select value={paymentProvider} onChange={(event) => setPaymentProvider(event.target.value as 'stripe' | 'qonto')} disabled={!canReview}>
+                    <option value="stripe">Stripe · paiement en ligne automatique</option>
+                    <option value="qonto">Qonto · virement bancaire récurrent</option>
+                  </select>
+                  <small>{paymentProvider === 'qonto'
+                    ? 'Le client signera un contrat adapté au virement. NCR vérifiera le premier règlement avant d’activer l’espace.'
+                    : 'Après signature du contrat, Stripe confirme le paiement et active automatiquement l’espace.'}</small>
+                </label>
+              )}
+
+              {selected.status === 'approved' && !selected.trial_requested && (
+                <div className="info-message">
+                  Mode de règlement autorisé : <strong>{selected.payment_provider === 'qonto' ? 'Qonto · virement bancaire' : 'Stripe'}</strong>.
+                </div>
+              )}
 
               <label className="admin-access-note">
                 Note interne de décision
