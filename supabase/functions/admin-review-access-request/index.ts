@@ -14,6 +14,7 @@ type AccessRequest = {
   message: string | null;
   status: 'pending' | 'approved' | 'rejected';
   invitation_count: number;
+  payment_provider: 'stripe' | 'qonto';
 };
 
 function allowedOrigins() {
@@ -125,7 +126,7 @@ Deno.serve(async (request) => {
     .maybeSingle();
   if (!admin) return jsonResponse(request, 403, { error: 'Seul le super-administrateur peut traiter cette demande.' });
 
-  let payload: { requestId?: string; action?: string; decisionNote?: string | null };
+  let payload: { requestId?: string; action?: string; decisionNote?: string | null; paymentProvider?: string | null };
   try {
     payload = await request.json();
   } catch {
@@ -140,11 +141,20 @@ Deno.serve(async (request) => {
 
   const { data: accessRequest, error: accessError } = await service
     .from('platform_access_requests')
-    .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,trial_requested,team_size,message,status,invitation_count')
+    .select('id,reference,full_name,email,phone,company_name,business_type,requested_plan,trial_requested,team_size,message,status,invitation_count,payment_provider')
     .eq('id', requestId)
     .maybeSingle();
   if (accessError || !accessRequest) return jsonResponse(request, 404, { error: 'Demande introuvable.' });
   const row = accessRequest as AccessRequest;
+
+  const requestedPaymentProvider = row.trial_requested
+    ? 'stripe'
+    : action === 'approve'
+      ? String(payload.paymentProvider ?? 'stripe').trim().toLocaleLowerCase('fr-FR')
+      : row.payment_provider;
+  if (!['stripe', 'qonto'].includes(requestedPaymentProvider)) {
+    return jsonResponse(request, 400, { error: 'Mode de règlement invalide.' });
+  }
 
   if (action === 'reject') {
     if (row.status !== 'pending') return jsonResponse(request, 409, { error: 'Seule une demande en attente peut être refusée.' });
@@ -203,6 +213,8 @@ Deno.serve(async (request) => {
     access_request_message: row.message,
     access_request_id: row.id,
     access_request_reference: row.reference,
+    payment_provider: requestedPaymentProvider,
+    payment_method: requestedPaymentProvider === 'qonto' ? 'bank_transfer' : 'online',
     account_source: 'platform_access_request',
   };
   // Premier lien technique : crée/retrouve le compte sans être envoyé au client.
@@ -263,7 +275,9 @@ Deno.serve(async (request) => {
         `Bonjour ${escapeHtml(row.full_name)}, votre demande pour <strong>${escapeHtml(row.company_name)}</strong> a été acceptée par l’équipe NCR Suite.`,
         row.trial_requested
           ? '<p style="margin:0;color:#52616c;font-size:14px;line-height:1.65"><strong>Votre essai inclut la formule Professionnelle pendant 7 jours.</strong><br>Aucune carte bancaire, aucun paiement et aucun contrat d’abonnement ne sont demandés pour commencer. Définissez votre mot de passe, complétez votre entreprise puis accédez directement à votre espace.</p>'
-          : '<p style="margin:0;color:#52616c;font-size:14px;line-height:1.65">Définissez votre mot de passe puis complétez les informations de votre entreprise. Ce lien personnel expire automatiquement.</p>',
+          : requestedPaymentProvider === 'qonto'
+            ? '<p style="margin:0;color:#52616c;font-size:14px;line-height:1.65">Définissez votre mot de passe puis complétez votre entreprise. Votre contrat NCR Suite précisera un règlement mensuel par virement bancaire. Après signature, l’espace sera activé par NCR dès vérification du premier règlement.</p>'
+            : '<p style="margin:0;color:#52616c;font-size:14px;line-height:1.65">Définissez votre mot de passe puis complétez les informations de votre entreprise. Après signature du contrat, le paiement sécurisé Stripe permettra l’activation automatique.</p>',
         { label: row.trial_requested ? 'Démarrer mon essai' : 'Activer mon accès', url: activationUrl },
       ),
     });
@@ -279,6 +293,7 @@ Deno.serve(async (request) => {
     reviewed_at: action === 'approve' ? now : undefined,
     reviewed_by: action === 'approve' ? adminUser.id : undefined,
     decision_note: decisionNote ?? undefined,
+    payment_provider: requestedPaymentProvider,
     invited_user_id: invitedUserId,
     invitation_sent_at: now,
     invitation_count: Number(row.invitation_count || 0) + 1,
@@ -292,7 +307,12 @@ Deno.serve(async (request) => {
     action: action === 'approve' ? 'platform.access_request_approved' : 'platform.access_invitation_resent',
     entity_type: 'platform_access_request',
     entity_id: row.id,
-    metadata: { reference: row.reference, company_name: row.company_name, invited_user_id: invitedUserId },
+    metadata: {
+      reference: row.reference,
+      company_name: row.company_name,
+      invited_user_id: invitedUserId,
+      payment_provider: requestedPaymentProvider
+    },
   });
 
   return jsonResponse(request, 200, {
