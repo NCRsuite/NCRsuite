@@ -11,6 +11,12 @@ interface PublicOrganization {
   primary_color: string;
   logo_url: string | null;
   banner_url: string | null;
+  banner_position_x: number;
+  banner_position_y: number;
+  banner_landscape_zoom: number;
+  banner_portrait_position_x: number;
+  banner_portrait_position_y: number;
+  banner_portrait_zoom: number;
   tagline: string | null;
   address: string | null;
   hours_text: string | null;
@@ -343,7 +349,15 @@ export function PublicBookingPage() {
     );
   }
 
-  const publicStyle = { '--accent': pageData.organization.primary_color } as CSSProperties;
+  const publicStyle = {
+    '--accent': pageData.organization.primary_color,
+    '--public-banner-landscape-x': `${pageData.organization.banner_position_x ?? 50}%`,
+    '--public-banner-landscape-y': `${pageData.organization.banner_position_y ?? 50}%`,
+    '--public-banner-landscape-zoom': String((pageData.organization.banner_landscape_zoom ?? 100) / 100),
+    '--public-banner-portrait-x': `${pageData.organization.banner_portrait_position_x ?? 50}%`,
+    '--public-banner-portrait-y': `${pageData.organization.banner_portrait_position_y ?? 50}%`,
+    '--public-banner-portrait-zoom': String((pageData.organization.banner_portrait_zoom ?? 100) / 100),
+  } as CSSProperties;
   const selectedSite = pageData.sites.find((site) => site.id === siteId) ?? null;
   const hasSiteChoice = pageData.sites.length > 1;
   const stepOffset = hasSiteChoice ? 1 : 0;
@@ -409,10 +423,12 @@ export function PublicBookingPage() {
       </header>
 
       <main className="public-booking-container">
-        <section
-          className={`public-booking-hero ${pageData.organization.banner_url ? 'with-banner' : ''}`}
-          style={pageData.organization.banner_url ? { backgroundImage: `linear-gradient(90deg, rgba(7,9,12,.88), rgba(7,9,12,.35)), url(${pageData.organization.banner_url})` } : undefined}
-        >
+        <section className={`public-booking-hero ${pageData.organization.banner_url ? 'with-banner' : ''}`}>
+          {pageData.organization.banner_url && (
+            <span className="public-booking-hero-media" aria-hidden="true">
+              <img src={pageData.organization.banner_url} alt="" />
+            </span>
+          )}
           <p className="eyebrow">PRENEZ RENDEZ-VOUS</p>
           <h1>{pageData.organization.tagline || 'Choisissez le créneau qui vous convient'}</h1>
           <p>{pageData.settings.welcome_text || 'Sélectionnez une prestation, un professionnel et une disponibilité. Aucun compte client n’est nécessaire.'}</p>
