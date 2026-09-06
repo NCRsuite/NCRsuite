@@ -547,7 +547,7 @@ export function BillingAdminPanel({ canManage, onChanged, onOpenOrganization }: 
   return (
     <section className="billing-admin-section">
       <div className="billing-admin-heading">
-        <div><p className="eyebrow">ABONNEMENTS & STRIPE</p><h2>Pilotage commercial</h2><p>Traite d’abord ce qui demande une action. Les réglages Stripe et les paramètres avancés restent disponibles sans encombrer la vue quotidienne.</p></div>
+        <div><p className="eyebrow">ABONNEMENTS & PAIEMENTS</p><h2>Pilotage commercial</h2><p>Traite d’abord ce qui demande une action. Les abonnements Stripe et les règlements par virement Qonto restent suivis séparément et sans ambiguïté.</p></div>
         <button className="secondary-button" type="button" onClick={load}>Actualiser</button>
       </div>
 
