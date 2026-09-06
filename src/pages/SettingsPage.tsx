@@ -381,14 +381,124 @@ export function SettingsPage() {
     window.setTimeout(() => setCopied(false), 2200);
   }
 
-  function downloadPublicQrCode() {
+  function publicQrBlob() {
+    if (!publicQrDataUrl) throw new Error("QR code indisponible.");
+    const [header, payload] = publicQrDataUrl.split(",");
+    if (!header || !payload) throw new Error("QR code invalide.");
+    const mime = header.match(/data:([^;]+)/)?.[1] || "image/png";
+    const binary = atob(payload);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return new Blob([bytes], { type: mime });
+  }
+
+  function publicQrFile() {
+    if (!organization) throw new Error("Entreprise introuvable.");
+    const filename = `qr-reservation-${organization.slug}.png`;
+    return new File([publicQrBlob()], filename, { type: "image/png" });
+  }
+
+  function isIosLikeDevice() {
+    if (typeof navigator === "undefined") return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent)
+      || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+
+  async function downloadPublicQrCode() {
     if (!publicQrDataUrl || !organization) return;
-    const link = document.createElement("a");
-    link.href = publicQrDataUrl;
-    link.download = `qr-reservation-${organization.slug}.png`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    setError("");
+    setMessage("");
+    try {
+      const file = publicQrFile();
+
+      // Sur iOS/PWA, Safari ignore souvent download=... sur les URLs data/blob.
+      // La feuille native permet réellement "Enregistrer dans Fichiers" / "Enregistrer l’image".
+      if (isIosLikeDevice() && navigator.share && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `QR de réservation — ${organization.name}`,
+            text: "Choisissez « Enregistrer dans Fichiers » ou « Enregistrer l’image » pour conserver le QR.",
+          });
+          setMessage("QR prêt à être enregistré.");
+          return;
+        } catch (shareError) {
+          if (shareError instanceof DOMException && shareError.name === "AbortError") return;
+        }
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = file.name;
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 2500);
+      setMessage("Téléchargement du QR lancé.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Impossible de télécharger le QR code.",
+      );
+    }
+  }
+
+  async function sharePublicQrCode() {
+    if (!publicQrDataUrl || !organization) return;
+    setError("");
+    setMessage("");
+    try {
+      const file = publicQrFile();
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `QR de réservation — ${organization.name}`,
+            text: `Scannez ce QR code pour réserver chez ${organization.name}.`,
+          });
+          setMessage("QR partagé.");
+          return;
+        } catch (shareError) {
+          if (shareError instanceof DOMException && shareError.name === "AbortError") return;
+          throw shareError;
+        }
+      }
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Réserver chez ${organization.name}`,
+            text: `Réservez directement chez ${organization.name}.`,
+            url: bookingUrl,
+          });
+          setMessage("Lien de réservation partagé.");
+          return;
+        } catch (shareError) {
+          if (shareError instanceof DOMException && shareError.name === "AbortError") return;
+          throw shareError;
+        }
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      const opened = window.open(objectUrl, "_blank", "noopener,noreferrer");
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 120000);
+      if (!opened) {
+        throw new Error("Le navigateur bloque le partage. Autorisez les fenêtres contextuelles puis réessayez.");
+      }
+      setMessage("Le QR a été ouvert : utilisez le menu de partage de votre navigateur.");
+    } catch (caught) {
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Impossible de partager le QR code.",
+      );
+    }
   }
 
   function selectPublicBanner(file: File | undefined) {
@@ -515,8 +625,11 @@ export function SettingsPage() {
                 <small>À imprimer, afficher au comptoir ou envoyer directement à vos clients.</small>
               </div>
               <div className="metier-public-qr-actions">
-                <button type="button" className="secondary-button" onClick={downloadPublicQrCode}>
-                  <Icon name="file" size={16} /> Télécharger le QR code
+                <button type="button" className="secondary-button" onClick={() => void downloadPublicQrCode()}>
+                  <Icon name="file" size={16} /> Télécharger
+                </button>
+                <button type="button" className="secondary-button" onClick={() => void sharePublicQrCode()}>
+                  <Icon name="message" size={16} /> Partager
                 </button>
               </div>
             </div>
