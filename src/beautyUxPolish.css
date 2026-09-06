@@ -1,7 +1,7 @@
 /* NCR Suite · Beauty UX polish
    Couche finale : feedback, loaders, boutons et micro-interactions cohérents. */
 
-html[data-beauty-metier="true"] .app-shell .page-message{
+html[data-beauty-ui="true"] .app-shell .page-message{
   position:relative;
   overflow:hidden;
   border-radius:14px;
@@ -12,7 +12,7 @@ html[data-beauty-metier="true"] .app-shell .page-message{
   animation:beauty-feedback-in .18s ease-out;
 }
 
-html[data-beauty-metier="true"] .app-shell .page-message::before{
+html[data-beauty-ui="true"] .app-shell .page-message::before{
   content:"";
   position:absolute;
   left:14px;
@@ -25,40 +25,40 @@ html[data-beauty-metier="true"] .app-shell .page-message::before{
   box-shadow:0 0 0 4px rgba(141,152,165,.10);
 }
 
-html[data-beauty-metier="true"] .app-shell .success-message.page-message{
+html[data-beauty-ui="true"] .app-shell .success-message.page-message{
   border-color:#cae8d5;
   background:#f5fbf7;
   color:#315f42;
 }
 
-html[data-beauty-metier="true"] .app-shell .success-message.page-message::before{
+html[data-beauty-ui="true"] .app-shell .success-message.page-message::before{
   background:#35a55e;
   box-shadow:0 0 0 4px rgba(53,165,94,.10);
 }
 
-html[data-beauty-metier="true"] .app-shell .error-message.page-message{
+html[data-beauty-ui="true"] .app-shell .error-message.page-message{
   border-color:#f0d1cd;
   background:#fff7f6;
   color:#8d342c;
 }
 
-html[data-beauty-metier="true"] .app-shell .error-message.page-message::before{
+html[data-beauty-ui="true"] .app-shell .error-message.page-message::before{
   background:#d9574c;
   box-shadow:0 0 0 4px rgba(217,87,76,.10);
 }
 
-html[data-beauty-metier="true"] .app-shell .info-message.page-message{
+html[data-beauty-ui="true"] .app-shell .info-message.page-message{
   border-color:#d8e3ed;
   background:#f7fafc;
   color:#4e6274;
 }
 
-html[data-beauty-metier="true"] .app-shell .info-message.page-message::before{
+html[data-beauty-ui="true"] .app-shell .info-message.page-message::before{
   background:#5f88ae;
   box-shadow:0 0 0 4px rgba(95,136,174,.10);
 }
 
-html[data-beauty-metier="true"] .beauty-loading-state{
+html[data-beauty-ui="true"] .beauty-loading-state{
   min-height:84px;
   display:flex !important;
   align-items:center;
@@ -69,7 +69,7 @@ html[data-beauty-metier="true"] .beauty-loading-state{
   font-weight:750;
 }
 
-html[data-beauty-metier="true"] .beauty-loading-state::before{
+html[data-beauty-ui="true"] .beauty-loading-state::before{
   content:"";
   width:17px;
   height:17px;
@@ -80,7 +80,7 @@ html[data-beauty-metier="true"] .beauty-loading-state::before{
   animation:beauty-spinner .72s linear infinite;
 }
 
-html[data-beauty-metier="true"] .app-shell :where(
+html[data-beauty-ui="true"] .app-shell :where(
   .primary-button,
   .secondary-button,
   .danger-button,
@@ -96,7 +96,7 @@ html[data-beauty-metier="true"] .app-shell :where(
     opacity .16s ease;
 }
 
-html[data-beauty-metier="true"] .app-shell :where(
+html[data-beauty-ui="true"] .app-shell :where(
   .primary-button,
   .secondary-button,
   .danger-button,
@@ -107,12 +107,12 @@ html[data-beauty-metier="true"] .app-shell :where(
   transform:translateY(1px) scale(.99);
 }
 
-html[data-beauty-metier="true"] .app-shell :where(button,[role="button"],a,input,select,textarea):focus-visible{
+html[data-beauty-ui="true"] .app-shell :where(button,[role="button"],a,input,select,textarea):focus-visible{
   outline:2px solid color-mix(in srgb,var(--business-accent,#2997ff) 55%,#fff);
   outline-offset:2px;
 }
 
-html[data-beauty-metier="true"] .app-shell :where(
+html[data-beauty-ui="true"] .app-shell :where(
   .primary-button,
   .secondary-button,
   .danger-button,
@@ -126,12 +126,12 @@ html[data-beauty-metier="true"] .app-shell :where(
   box-shadow:none !important;
 }
 
-html[data-beauty-metier="true"] .app-shell button[aria-busy="true"]{
+html[data-beauty-ui="true"] .app-shell button[aria-busy="true"]{
   cursor:progress;
   pointer-events:none;
 }
 
-html[data-beauty-metier="true"] .app-shell button[aria-busy="true"]::after{
+html[data-beauty-ui="true"] .app-shell button[aria-busy="true"]::after{
   content:"";
   width:12px;
   height:12px;
@@ -142,17 +142,17 @@ html[data-beauty-metier="true"] .app-shell button[aria-busy="true"]::after{
   animation:beauty-spinner .7s linear infinite;
 }
 
-html[data-beauty-metier="true"] .app-shell :where(input,select,textarea){
+html[data-beauty-ui="true"] .app-shell :where(input,select,textarea){
   transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;
 }
 
-html[data-beauty-metier="true"] .app-shell :where(input,select,textarea):disabled{
+html[data-beauty-ui="true"] .app-shell :where(input,select,textarea):disabled{
   cursor:not-allowed;
   opacity:.64;
   background:#f4f6f8;
 }
 
-html[data-beauty-metier="true"] .app-shell :where(
+html[data-beauty-ui="true"] .app-shell :where(
   .empty-client-state,
   .empty-service-state,
   .empty-staff-state,
@@ -162,7 +162,7 @@ html[data-beauty-metier="true"] .app-shell :where(
   border-radius:16px;
 }
 
-html[data-beauty-metier="true"] .app-shell :where(
+html[data-beauty-ui="true"] .app-shell :where(
   .empty-client-state,
   .empty-service-state,
   .empty-staff-state,
@@ -178,15 +178,15 @@ html[data-beauty-metier="true"] .app-shell :where(
   color:color-mix(in srgb,var(--business-accent,#2997ff) 70%,#41505e);
 }
 
-html[data-beauty-metier="true"] .app-shell .list-state{
+html[data-beauty-ui="true"] .app-shell .list-state{
   color:#75808b;
 }
 
-html[data-beauty-metier="true"] .app-shell .list-state h3{
+html[data-beauty-ui="true"] .app-shell .list-state h3{
   color:#313d49;
 }
 
-html[data-beauty-metier="true"] .app-shell .list-state p{
+html[data-beauty-ui="true"] .app-shell .list-state p{
   color:#7b8691;
   line-height:1.5;
 }
@@ -198,32 +198,32 @@ html[data-beauty-metier="true"] .app-shell .list-state p{
 }
 
 @media(max-width:640px){
-  html[data-beauty-metier="true"] .app-shell .page-message{
+  html[data-beauty-ui="true"] .app-shell .page-message{
     padding:11px 12px 11px 32px;
     font-size:12px;
   }
 
-  html[data-beauty-metier="true"] .app-shell .page-message::before{
+  html[data-beauty-ui="true"] .app-shell .page-message::before{
     left:13px;
   }
 
-  html[data-beauty-metier="true"] .beauty-loading-state{
+  html[data-beauty-ui="true"] .beauty-loading-state{
     min-height:76px;
     font-size:11px;
   }
 }
 
 @media(prefers-reduced-motion:reduce){
-  html[data-beauty-metier="true"] .app-shell .page-message,
-  html[data-beauty-metier="true"] .app-shell :where(
+  html[data-beauty-ui="true"] .app-shell .page-message,
+  html[data-beauty-ui="true"] .app-shell :where(
     .primary-button,.secondary-button,.danger-button,.icon-text-button,.compact-button,.icon-nav-button
   ){
     animation:none;
     transition:none;
   }
 
-  html[data-beauty-metier="true"] .beauty-loading-state::before,
-  html[data-beauty-metier="true"] .app-shell button[aria-busy="true"]::after{
+  html[data-beauty-ui="true"] .beauty-loading-state::before,
+  html[data-beauty-ui="true"] .app-shell button[aria-busy="true"]::after{
     animation-duration:1.4s;
   }
 }
