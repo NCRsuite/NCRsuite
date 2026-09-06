@@ -296,16 +296,21 @@ export function AppShell() {
   useEffect(() => {
     const root = document.documentElement;
     const businessTheme = organization?.business_type;
+    const beautyUiActive = businessTheme === 'coiffure';
 
     if (!businessTheme) {
       delete root.dataset.businessTheme;
+      delete root.dataset.beautyUi;
       return;
     }
 
     root.dataset.businessTheme = businessTheme;
+    if (beautyUiActive) root.dataset.beautyUi = 'true';
+    else delete root.dataset.beautyUi;
 
     return () => {
       if (root.dataset.businessTheme === businessTheme) delete root.dataset.businessTheme;
+      if (beautyUiActive && root.dataset.beautyUi === 'true') delete root.dataset.beautyUi;
     };
   }, [organization?.business_type]);
 
