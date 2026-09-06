@@ -9,6 +9,7 @@ import {
 import { getDomainPlan } from "../config/domainPlans";
 import { businessUiTheme } from "../config/businessTheme";
 import { supabase } from "../lib/supabase";
+import QRCode from "qrcode";
 
 const slotOptions = [5, 10, 15, 20, 30, 45, 60];
 
@@ -88,6 +89,7 @@ export function SettingsPage() {
   const [cancelNoticeHours, setCancelNoticeHours] = useState(12);
   const [welcomeText, setWelcomeText] = useState("");
   const [copied, setCopied] = useState(false);
+  const [publicQrDataUrl, setPublicQrDataUrl] = useState("");
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] =
     useState(true);
   const [contactEmail, setContactEmail] = useState("");
@@ -145,6 +147,24 @@ export function SettingsPage() {
     () => publicBannerFile ? URL.createObjectURL(publicBannerFile) : publicBannerUrl,
     [publicBannerFile, publicBannerUrl],
   );
+
+  useEffect(() => {
+    let active = true;
+    if (!bookingUrl || !organization || organization.business_type !== "coiffure") {
+      setPublicQrDataUrl("");
+      return () => { active = false; };
+    }
+    void QRCode.toDataURL(bookingUrl, {
+      width: 720,
+      margin: 3,
+      errorCorrectionLevel: "H",
+    }).then((dataUrl) => {
+      if (active) setPublicQrDataUrl(dataUrl);
+    }).catch(() => {
+      if (active) setPublicQrDataUrl("");
+    });
+    return () => { active = false; };
+  }, [bookingUrl, organization]);
 
   useEffect(() => () => {
     if (publicBannerFile && publicBannerPreview?.startsWith("blob:")) {
@@ -361,6 +381,16 @@ export function SettingsPage() {
     window.setTimeout(() => setCopied(false), 2200);
   }
 
+  function downloadPublicQrCode() {
+    if (!publicQrDataUrl || !organization) return;
+    const link = document.createElement("a");
+    link.href = publicQrDataUrl;
+    link.download = `qr-reservation-${organization.slug}.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
   function selectPublicBanner(file: File | undefined) {
     if (!file) return;
     setError("");
@@ -475,6 +505,23 @@ export function SettingsPage() {
               Ouvrir
             </a>
           </div>
+          {publicQrDataUrl && (
+            <div className="metier-public-qr-card settings-public-qr-card">
+              <div className="metier-public-qr-preview">
+                <img src={publicQrDataUrl} alt={`QR code vers la page de réservation de ${organization.name}`} />
+              </div>
+              <div>
+                <strong>QR code de réservation</strong>
+                <small>À imprimer, afficher au comptoir ou envoyer directement à vos clients.</small>
+              </div>
+              <div className="metier-public-qr-actions">
+                <button type="button" className="secondary-button" onClick={downloadPublicQrCode}>
+                  <Icon name="download" size={16} /> Télécharger le QR code
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="form-actions">
             <a className="primary-button" href="#page-reservation">
               <Icon name="settings" size={17} /> Paramétrer la page publique
