@@ -1568,3 +1568,78 @@
   }
 }
 
+/* NCR Suite · Coiffure date alignment V6
+   Affichage visuel indépendant du rendu natif iOS du champ date. */
+
+.coiffure-public-booking-premium .public-date-control {
+  position: relative;
+  grid-template-columns: 20px minmax(0,1fr);
+  min-height: 56px;
+  height: 56px;
+  align-items: center;
+}
+
+.coiffure-public-booking-premium .public-date-control > svg {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  justify-self: center;
+  flex: none;
+}
+
+.coiffure-public-booking-premium .public-date-value {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  color: #16191e;
+  font-size: 16px;
+  font-weight: 820;
+  line-height: 1;
+  letter-spacing: -.012em;
+  text-transform: none;
+  pointer-events: none;
+}
+
+.coiffure-public-booking-premium .public-date-value::first-letter {
+  text-transform: uppercase;
+}
+
+.coiffure-public-booking-premium .public-date-control input[type="date"] {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.coiffure-public-booking-premium .public-date-control:has(input:disabled) {
+  opacity: .55;
+}
+
+@media (max-width: 760px) {
+  .coiffure-public-booking-premium .public-date-control {
+    min-height: 56px;
+    height: 56px;
+    padding: 0 15px;
+    grid-template-columns: 20px minmax(0,1fr);
+    gap: 11px;
+  }
+
+  .coiffure-public-booking-premium .public-date-value {
+    height: 100%;
+    font-size: 16px;
+    line-height: 1;
+  }
+}
+
