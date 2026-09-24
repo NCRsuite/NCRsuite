@@ -452,9 +452,24 @@ export function PublicBookingPage() {
 
         {(selectedSite?.address || pageData.organization.address || pageData.organization.hours_text || pageData.organization.practical_info) && (
           <section className="public-business-information">
-            {(selectedSite?.address || pageData.organization.address) && <div><span>Adresse</span><strong>{selectedSite?.address || pageData.organization.address}</strong></div>}
-            {pageData.organization.hours_text && <div><span>Horaires</span><strong>{pageData.organization.hours_text}</strong></div>}
-            {pageData.organization.practical_info && <div><span>Informations pratiques</span><strong>{pageData.organization.practical_info}</strong></div>}
+            {(selectedSite?.address || pageData.organization.address) && (
+              <div className="public-business-info-item">
+                <span className="public-business-info-icon"><Icon name="map" size={18} /></span>
+                <div><span>Adresse</span><strong>{selectedSite?.address || pageData.organization.address}</strong></div>
+              </div>
+            )}
+            {pageData.organization.hours_text && (
+              <div className="public-business-info-item">
+                <span className="public-business-info-icon"><Icon name="clock" size={18} /></span>
+                <div><span>Horaires</span><strong>{pageData.organization.hours_text}</strong></div>
+              </div>
+            )}
+            {pageData.organization.practical_info && (
+              <div className="public-business-info-item">
+                <span className="public-business-info-icon"><Icon name="info" size={18} /></span>
+                <div><span>Informations pratiques</span><strong>{pageData.organization.practical_info}</strong></div>
+              </div>
+            )}
           </section>
         )}
 
@@ -520,7 +535,13 @@ export function PublicBookingPage() {
 
           <section className={`public-booking-panel ${!serviceId ? 'disabled-panel' : ''}`}>
             <div className="public-step-heading"><span>{3 + stepOffset}</span><div><h2>Date et heure</h2><p>Seuls les créneaux réellement disponibles sont proposés.</p></div></div>
-            <label className="public-date-field">Date souhaitée<input type="date" min={minDate} max={maxDate} value={date} onChange={(event) => setDate(event.target.value)} disabled={!serviceId} /></label>
+            <label className="public-date-field">
+              <span className="public-date-label">Date souhaitée</span>
+              <span className="public-date-control">
+                <Icon name="calendar" size={18} />
+                <input type="date" min={minDate} max={maxDate} value={date} onChange={(event) => setDate(event.target.value)} disabled={!serviceId} />
+              </span>
+            </label>
             <div className="public-slots">
               {loadingSlots && <div className="public-slots-state">Recherche des disponibilités…</div>}
               {!loadingSlots && serviceId && displayedSlots.length === 0 && <div className="public-slots-state">Aucun créneau disponible ce jour-là. Essayez une autre date.</div>}
