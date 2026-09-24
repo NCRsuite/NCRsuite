@@ -539,7 +539,10 @@ export function PublicBookingPage() {
               <span className="public-date-label">Date souhaitée</span>
               <span className="public-date-control">
                 <Icon name="calendar" size={18} />
-                <input type="date" min={minDate} max={maxDate} value={date} onChange={(event) => setDate(event.target.value)} disabled={!serviceId} />
+                <span className="public-date-value" aria-hidden="true">
+                  {new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${date}T12:00:00`))}
+                </span>
+                <input aria-label="Date souhaitée" type="date" min={minDate} max={maxDate} value={date} onChange={(event) => setDate(event.target.value)} disabled={!serviceId} />
               </span>
             </label>
             <div className="public-slots">
