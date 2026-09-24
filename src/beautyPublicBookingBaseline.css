@@ -605,73 +605,379 @@
 }
 
 
-/* NCR Suite · Coiffure public booking final mobile polish V3
-   iOS date containment + compact premium public header. */
+/* NCR Suite · Coiffure public booking ultra-premium polish V4
+   Finition mobile + desktop : header, hero, cartes, date, créneaux et micro-interactions. */
+
+.coiffure-public-booking-premium {
+  --public-ink: #15171b;
+  --public-muted: #737b87;
+  --public-line: rgba(25, 30, 38, .09);
+  --public-soft-shadow: 0 1px 2px rgba(15, 23, 42, .025), 0 14px 42px rgba(15, 23, 42, .065);
+  --public-lift-shadow: 0 2px 5px rgba(15, 23, 42, .035), 0 18px 48px rgba(15, 23, 42, .09);
+  background:
+    radial-gradient(circle at 8% -4%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 27%),
+    radial-gradient(circle at 100% 24%, rgba(255,255,255,.9), transparent 32%),
+    #f5f6f8;
+}
+
+.coiffure-public-booking-premium .coiffure-public-booking-nav {
+  background: rgba(247,248,250,.84);
+  border-bottom: 0;
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
+.coiffure-public-booking-premium .coiffure-public-booking-nav-inner {
+  border: 1px solid rgba(20,24,31,.075);
+  background: rgba(255,255,255,.93);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 12px 36px rgba(20,24,31,.065);
+}
+
+.coiffure-public-booking-premium .coiffure-public-booking-brand .public-business-mark {
+  border-color: rgba(20,24,31,.08);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 8px 22px rgba(20,24,31,.07);
+}
+
+.coiffure-public-booking-premium .coiffure-public-booking-brand strong {
+  color: var(--public-ink);
+  letter-spacing: -.018em;
+}
+
+.coiffure-public-booking-premium .coiffure-public-booking-brand span {
+  color: #858c97;
+  font-weight: 700;
+}
+
+.coiffure-public-booking-premium .coiffure-public-client-link,
+.coiffure-public-booking-premium .coiffure-public-book-link,
+.coiffure-public-booking-premium .coiffure-public-hero-primary,
+.coiffure-public-booking-premium .coiffure-public-hero-secondary {
+  transition:
+    transform .18s cubic-bezier(.2,.8,.2,1),
+    box-shadow .18s ease,
+    border-color .18s ease,
+    background .18s ease;
+}
+
+.coiffure-public-booking-premium .coiffure-public-client-link:hover,
+.coiffure-public-booking-premium .coiffure-public-book-link:hover,
+.coiffure-public-booking-premium .coiffure-public-hero-primary:hover,
+.coiffure-public-booking-premium .coiffure-public-hero-secondary:hover {
+  transform: translateY(-1px);
+}
+
+.coiffure-public-booking-premium .coiffure-public-book-link {
+  box-shadow: 0 9px 24px rgba(15,18,24,.15);
+}
+
+.coiffure-public-booking-premium .coiffure-public-booking-hero {
+  isolation: isolate;
+  border-color: rgba(255,255,255,.18);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.12) inset,
+    0 24px 64px rgba(17,22,30,.15);
+}
+
+.coiffure-public-booking-premium .coiffure-public-booking-hero.with-banner::after {
+  background:
+    linear-gradient(90deg, rgba(8,10,14,.88) 0%, rgba(8,10,14,.67) 48%, rgba(8,10,14,.28) 100%),
+    linear-gradient(180deg, rgba(8,10,14,.02), rgba(8,10,14,.24));
+}
+
+.coiffure-public-booking-premium .coiffure-public-booking-hero h1 {
+  text-wrap: balance;
+  text-shadow: 0 2px 24px rgba(0,0,0,.18);
+}
+
+.coiffure-public-booking-premium .coiffure-public-hero-badges > span {
+  border-color: rgba(255,255,255,.19);
+  background: rgba(255,255,255,.105);
+  box-shadow: 0 1px 0 rgba(255,255,255,.09) inset;
+  backdrop-filter: blur(14px) saturate(145%);
+  -webkit-backdrop-filter: blur(14px) saturate(145%);
+}
+
+.coiffure-public-booking-premium .coiffure-public-tagline {
+  text-wrap: balance;
+  letter-spacing: -.022em;
+}
+
+.coiffure-public-booking-premium .coiffure-public-welcome {
+  max-width: 640px;
+  color: rgba(255,255,255,.78);
+}
+
+.coiffure-public-booking-premium .coiffure-public-hero-primary {
+  box-shadow: 0 10px 26px rgba(0,0,0,.16);
+}
+
+.coiffure-public-booking-premium .coiffure-public-hero-secondary {
+  background: rgba(22,24,29,.34);
+  border-color: rgba(255,255,255,.22);
+  box-shadow: 0 1px 0 rgba(255,255,255,.08) inset;
+}
+
+.coiffure-public-booking-premium .public-business-information {
+  padding: 20px 22px;
+  border: 1px solid var(--public-line);
+  border-radius: 22px;
+  background: rgba(255,255,255,.94);
+  box-shadow: var(--public-soft-shadow);
+}
+
+.coiffure-public-booking-premium .public-business-information > div {
+  min-width: 0;
+}
+
+.coiffure-public-booking-premium .public-business-information span {
+  color: color-mix(in srgb, var(--accent) 88%, #1b2736);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.coiffure-public-booking-premium .public-business-information strong {
+  color: var(--public-ink);
+  line-height: 1.45;
+  letter-spacing: -.012em;
+}
+
+.coiffure-public-booking-premium .coiffure-public-booking-intro {
+  border-color: var(--public-line);
+  background: rgba(255,255,255,.95);
+  box-shadow: var(--public-soft-shadow);
+}
+
+.coiffure-public-booking-premium .coiffure-public-booking-intro h2 {
+  color: var(--public-ink);
+  letter-spacing: -.045em;
+}
+
+.coiffure-public-booking-premium .public-booking-panel {
+  border: 1px solid var(--public-line);
+  background: rgba(255,255,255,.965);
+  box-shadow: var(--public-soft-shadow);
+}
+
+.coiffure-public-booking-premium .public-booking-panel.disabled-panel {
+  opacity: .54;
+  filter: saturate(.72);
+}
+
+.coiffure-public-booking-premium .public-step-heading {
+  align-items: flex-start;
+}
+
+.coiffure-public-booking-premium .public-step-heading > span {
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--accent) 10%, #f8fbff);
+  border-color: color-mix(in srgb, var(--accent) 18%, #e8eef5);
+  box-shadow: 0 1px 0 rgba(255,255,255,.85) inset;
+}
+
+.coiffure-public-booking-premium .public-step-heading h2 {
+  color: var(--public-ink);
+  letter-spacing: -.035em;
+}
+
+.coiffure-public-booking-premium .public-step-heading p {
+  color: #7a828e;
+  line-height: 1.45;
+}
+
+.coiffure-public-booking-premium .public-service-choice,
+.coiffure-public-booking-premium .public-staff-choice,
+.coiffure-public-booking-premium .public-site-choice {
+  border-color: rgba(25,30,38,.10);
+  background: linear-gradient(180deg, #fff 0%, #fdfdfe 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset;
+}
+
+.coiffure-public-booking-premium .public-service-choice:hover:not(:disabled),
+.coiffure-public-booking-premium .public-staff-choice:hover:not(:disabled),
+.coiffure-public-booking-premium .public-site-choice:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 30%, #dfe4ea);
+  box-shadow: 0 12px 30px rgba(20,24,31,.075);
+}
+
+.coiffure-public-booking-premium .public-service-choice.selected,
+.coiffure-public-booking-premium .public-staff-choice.selected,
+.coiffure-public-booking-premium .public-site-choice.selected {
+  border-color: color-mix(in srgb, var(--accent) 72%, #b9c8d8);
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--accent) 8%, #fff),
+      color-mix(in srgb, var(--accent) 3%, #fff));
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 8%, transparent),
+    0 12px 28px color-mix(in srgb, var(--accent) 8%, rgba(20,24,31,.05));
+}
+
+.coiffure-public-booking-premium .public-staff-avatar,
+.coiffure-public-booking-premium .public-service-icon {
+  box-shadow:
+    inset 0 0 0 1px rgba(20,24,31,.055),
+    0 6px 16px rgba(20,24,31,.055);
+}
+
+.coiffure-public-booking-premium .public-date-field {
+  position: relative;
+  display: grid;
+  gap: 9px;
+  color: #20242a;
+  font-weight: 850;
+}
+
+.coiffure-public-booking-premium .public-date-field input[type="date"] {
+  min-height: 54px;
+  width: 100%;
+  border: 1px solid rgba(25,30,38,.11);
+  border-radius: 16px;
+  padding: 0 16px;
+  color: #15181d;
+  background: linear-gradient(180deg, #fff, #fdfdfe);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.95) inset,
+    0 7px 20px rgba(20,24,31,.04);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -.012em;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.coiffure-public-booking-premium .public-date-field input[type="date"]:focus {
+  border-color: color-mix(in srgb, var(--accent) 65%, #b8c5d4);
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent),
+    0 10px 24px rgba(20,24,31,.055);
+}
+
+.coiffure-public-booking-premium .public-date-field input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
+}
+
+.coiffure-public-booking-premium .public-date-field input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: .62;
+  cursor: pointer;
+}
+
+.coiffure-public-booking-premium .public-slots {
+  gap: 10px;
+}
+
+.coiffure-public-booking-premium .public-slots button {
+  min-height: 62px;
+  border: 1px solid rgba(25,30,38,.10);
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fff, #fdfdfe);
+  box-shadow: 0 1px 0 rgba(255,255,255,.95) inset;
+}
+
+.coiffure-public-booking-premium .public-slots button strong {
+  color: #15181d;
+  font-size: 17px;
+  letter-spacing: -.018em;
+}
+
+.coiffure-public-booking-premium .public-slots button small {
+  color: #8a919c;
+  margin-top: 3px;
+}
+
+.coiffure-public-booking-premium .public-slots button.selected {
+  border-color: color-mix(in srgb, var(--accent) 72%, #b9c8d8);
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--accent) 9%, #fff),
+      color-mix(in srgb, var(--accent) 3%, #fff));
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 8%, transparent),
+    0 10px 24px color-mix(in srgb, var(--accent) 8%, rgba(20,24,31,.04));
+}
+
+.coiffure-public-booking-premium .public-slots button.selected strong {
+  color: var(--accent);
+}
+
+.coiffure-public-booking-premium a:focus-visible,
+.coiffure-public-booking-premium button:focus-visible,
+.coiffure-public-booking-premium input:focus-visible,
+.coiffure-public-booking-premium textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  outline-offset: 2px;
+}
+
 @media (max-width: 760px) {
   .coiffure-public-booking-premium .coiffure-public-booking-nav {
     position: sticky;
     top: 0;
-    padding: 10px 0 6px;
-    border-bottom: 0;
-    background: rgba(245, 247, 250, .88);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
+    padding: max(8px, env(safe-area-inset-top)) 0 5px;
+    background: linear-gradient(180deg, rgba(245,247,250,.97), rgba(245,247,250,.84));
   }
 
   .coiffure-public-booking-premium .coiffure-public-booking-nav-inner {
     width: calc(100% - 24px);
     min-height: 0;
-    padding: 11px;
-    border: 1px solid rgba(20, 24, 31, .08);
-    border-radius: 20px;
+    margin: 0 auto;
+    padding: 10px;
+    border-radius: 22px;
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-    background: rgba(255,255,255,.96);
-    box-shadow: 0 10px 30px rgba(20,24,31,.08);
+    grid-template-columns: minmax(0, 1fr) 44px;
+    grid-template-rows: auto 48px;
+    gap: 9px 10px;
+    align-items: center;
   }
 
   .coiffure-public-booking-premium .coiffure-public-booking-brand {
+    grid-column: 1;
+    grid-row: 1;
     width: 100%;
+    min-width: 0;
     gap: 11px;
   }
 
   .coiffure-public-booking-premium .coiffure-public-booking-brand .public-business-mark {
-    width: 44px;
-    height: 44px;
-    flex: 0 0 44px;
+    width: 45px;
+    height: 45px;
+    flex: 0 0 45px;
     border-radius: 14px;
-    box-shadow: none;
   }
 
   .coiffure-public-booking-premium .coiffure-public-booking-brand strong {
-    font-size: 15px;
-    line-height: 1.2;
+    display: block;
+    max-width: 100%;
+    font-size: 16px;
+    line-height: 1.12;
   }
 
   .coiffure-public-booking-premium .coiffure-public-booking-brand span {
     display: block;
-    margin-top: 2px;
-    color: #8a9099;
+    margin-top: 3px;
     font-size: 10px;
     line-height: 1.2;
   }
 
   .coiffure-public-booking-premium .coiffure-public-booking-nav-actions {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 46px minmax(0, 1fr);
-    gap: 8px;
+    display: contents;
   }
 
   .coiffure-public-booking-premium .coiffure-public-client-link {
-    width: 46px;
-    min-width: 46px;
-    min-height: 46px;
+    grid-column: 2;
+    grid-row: 1;
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    height: 44px;
     padding: 0;
     border-radius: 14px;
     font-size: 0;
-    background: #fff;
+    color: #343941;
+    background: #f8f9fa;
+    border-color: rgba(25,30,38,.09);
+    box-shadow: none;
   }
 
   .coiffure-public-booking-premium .coiffure-public-client-link svg {
@@ -680,26 +986,214 @@
   }
 
   .coiffure-public-booking-premium .coiffure-public-book-link {
+    grid-column: 1 / -1;
+    grid-row: 2;
     width: 100%;
     min-width: 0;
-    min-height: 46px;
-    padding: 0 15px;
-    border-radius: 14px;
+    min-height: 48px;
+    height: 48px;
+    padding: 0 16px;
+    border-radius: 15px;
     font-size: 12px;
+    letter-spacing: -.005em;
     white-space: nowrap;
     box-sizing: border-box;
   }
 
-  .coiffure-public-booking-premium .public-booking-panel,
-  .coiffure-public-booking-premium .public-date-field {
+  .coiffure-public-booking-premium .public-booking-container {
+    width: calc(100% - 24px);
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-booking-hero {
+    min-height: 470px;
+    margin: 14px 0 18px;
+    padding: 24px 20px 20px;
+    border-radius: 28px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.13) inset,
+      0 22px 50px rgba(17,22,30,.16);
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-booking-hero.with-banner::after {
+    background:
+      linear-gradient(180deg,
+        rgba(7,9,12,.19) 0%,
+        rgba(7,9,12,.27) 26%,
+        rgba(7,9,12,.70) 65%,
+        rgba(7,9,12,.93) 100%);
+  }
+
+  .coiffure-public-booking-premium .public-booking-hero-media img {
+    filter: saturate(.96) contrast(1.02);
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-hero-badges {
+    margin-bottom: 14px;
+    gap: 7px;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-hero-badges > span {
+    min-height: 29px;
+    padding: 0 10px;
+    font-size: 9px;
+    letter-spacing: .055em;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-booking-hero h1 {
+    font-size: clamp(40px, 12vw, 52px);
+    line-height: .96;
+    letter-spacing: -.06em;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-tagline {
+    margin-top: 15px;
+    font-size: clamp(20px, 6vw, 25px);
+    line-height: 1.17;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-welcome {
+    margin-top: 11px;
+    font-size: 13px;
+    line-height: 1.56;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-hero-actions {
+    margin-top: 19px;
+    gap: 8px;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-hero-primary,
+  .coiffure-public-booking-premium .coiffure-public-hero-secondary {
+    min-height: 50px;
+    border-radius: 15px;
+    font-size: 12px;
+  }
+
+  .coiffure-public-booking-premium .public-business-information {
+    margin-bottom: 17px;
+    padding: 19px 20px;
+    border-radius: 22px;
+  }
+
+  .coiffure-public-booking-premium .public-business-information {
+    display: grid;
+    gap: 16px;
+  }
+
+  .coiffure-public-booking-premium .public-business-information > div {
+    display: grid;
+    gap: 6px;
+  }
+
+  .coiffure-public-booking-premium .public-business-information > div + div {
+    padding-top: 15px;
+    border-top: 1px solid rgba(25,30,38,.075);
+  }
+
+  .coiffure-public-booking-premium .public-business-information strong {
+    font-size: 14px;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-booking-intro {
+    margin: 18px 0 13px;
+    padding: 18px;
+    border-radius: 22px;
+    gap: 17px;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-booking-intro h2 {
+    font-size: 26px;
+    line-height: 1.04;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-booking-intro p:last-child {
+    margin-top: 7px;
+    line-height: 1.45;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-step-meter span {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-booking-grid {
+    gap: 13px;
+    padding-bottom: calc(36px + env(safe-area-inset-bottom));
+  }
+
+  .coiffure-public-booking-premium .public-booking-panel {
     min-width: 0;
     max-width: 100%;
-    box-sizing: border-box;
+    padding: 18px;
+    border-radius: 23px;
+  }
+
+  .coiffure-public-booking-premium .public-step-heading {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .coiffure-public-booking-premium .public-step-heading > span {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 13px;
+    font-size: 14px;
+  }
+
+  .coiffure-public-booking-premium .public-step-heading h2 {
+    font-size: 24px;
+    line-height: 1.08;
+  }
+
+  .coiffure-public-booking-premium .public-step-heading p {
+    margin-top: 5px;
+    font-size: 13px;
+  }
+
+  .coiffure-public-booking-premium .public-service-grid,
+  .coiffure-public-booking-premium .public-staff-grid,
+  .coiffure-public-booking-premium .public-site-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .coiffure-public-booking-premium .public-service-choice,
+  .coiffure-public-booking-premium .public-staff-choice,
+  .coiffure-public-booking-premium .public-site-choice {
+    min-height: 82px;
+    border-radius: 19px;
+    padding: 14px;
+  }
+
+  .coiffure-public-booking-premium .public-staff-choice {
+    gap: 13px;
+  }
+
+  .coiffure-public-booking-premium .public-staff-avatar {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+  }
+
+  .coiffure-public-booking-premium .public-staff-choice strong {
+    font-size: 16px;
+    letter-spacing: -.02em;
+  }
+
+  .coiffure-public-booking-premium .public-staff-choice small {
+    margin-top: 3px;
+    font-size: 11px;
+    color: #858d98;
   }
 
   .coiffure-public-booking-premium .public-date-field {
     width: 100%;
-    overflow: hidden;
+    min-width: 0;
+    max-width: 100%;
+    overflow: visible;
+    gap: 10px;
   }
 
   .coiffure-public-booking-premium .public-date-field input[type="date"] {
@@ -710,27 +1204,104 @@
     min-width: 0 !important;
     max-inline-size: 100% !important;
     max-width: 100% !important;
+    height: 54px;
     margin: 0 !important;
-    padding-inline: 14px !important;
+    padding: 0 15px !important;
     box-sizing: border-box !important;
     font-size: 16px;
-    text-align: center;
+    text-align: left;
     overflow: hidden;
+  }
+
+  .coiffure-public-booking-premium .public-date-field input[type="date"]::-webkit-date-and-time-value {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .coiffure-public-booking-premium .public-slots {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px;
+    margin-top: 12px;
+  }
+
+  .coiffure-public-booking-premium .public-slots button {
+    min-width: 0;
+    min-height: 68px;
+    padding: 10px 8px;
+    border-radius: 17px;
+  }
+
+  .coiffure-public-booking-premium .public-slots button strong {
+    font-size: 18px;
+  }
+
+  .coiffure-public-booking-premium .public-selection-summary {
+    border-radius: 18px;
   }
 }
 
 @media (max-width: 390px) {
-  .coiffure-public-booking-premium .coiffure-public-booking-nav-inner {
+  .coiffure-public-booking-premium .coiffure-public-booking-nav-inner,
+  .coiffure-public-booking-premium .public-booking-container {
     width: calc(100% - 20px);
-    padding: 10px;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-booking-nav-inner {
+    grid-template-columns: minmax(0,1fr) 42px;
+    padding: 9px;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-booking-brand .public-business-mark,
+  .coiffure-public-booking-premium .coiffure-public-client-link {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    flex-basis: 42px;
+  }
+
+  .coiffure-public-booking-premium .coiffure-public-booking-brand strong {
+    font-size: 15px;
   }
 
   .coiffure-public-booking-premium .coiffure-public-book-link {
-    padding-inline: 10px;
-    font-size: 11px;
+    padding-inline: 12px;
+    font-size: 11.5px;
   }
 
-  .coiffure-public-booking-premium .public-date-field input[type="date"] {
-    padding-inline: 10px !important;
+  .coiffure-public-booking-premium .coiffure-public-booking-hero {
+    min-height: 455px;
+    padding-inline: 18px;
+    border-radius: 25px;
+  }
+
+  .coiffure-public-booking-premium .public-booking-panel {
+    padding: 16px;
+  }
+
+  .coiffure-public-booking-premium .public-step-heading > span {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .coiffure-public-booking-premium .public-step-heading h2 {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 350px) {
+  .coiffure-public-booking-premium .public-slots {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coiffure-public-booking-premium *,
+  .coiffure-public-booking-premium *::before,
+  .coiffure-public-booking-premium *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
