@@ -345,7 +345,7 @@ html[data-ncr-ui-2026="true"] .training-commercial-page .training-crm-column > d
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-crm-column article {
   min-width: 0;
   border: 1px solid var(--ncr26-border);
-  border-radius: 13px;
+  border-radius: 14px;
   background: #fff;
   box-shadow: 0 3px 12px rgba(15,23,42,.035);
   overflow: hidden;
@@ -1039,7 +1039,7 @@ html[data-ncr-ui-2026="true"] .training-documents-page .training-document-catego
 
 html[data-ncr-ui-2026="true"] .training-documents-page .training-document-category-group {
   border: 1px solid var(--ncr26-border);
-  border-radius: 14px;
+  border-radius: 13px;
   background: #fff;
   overflow: hidden;
 }
