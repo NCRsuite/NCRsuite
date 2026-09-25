@@ -1047,6 +1047,117 @@
   }
 }
 
+/* Administration Coiffure : responsive premium. */
+@media (max-width:900px){
+  html[data-beauty-ui="true"] .app-shell :is(
+    .settings-page>.page-header,
+    .notification-page>.page-header
+  ){
+    align-items:flex-start;
+    padding:19px 17px 17px;
+    margin-bottom:10px;
+    border-radius:18px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell :is(
+    .settings-page>.page-header,
+    .notification-page>.page-header
+  )::before{
+    left:17px;
+    width:58px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell :is(
+    .settings-page>.page-header,
+    .notification-page>.page-header
+  ) h1{
+    font-size:clamp(1.85rem,8vw,2.2rem);
+  }
+
+  html[data-beauty-ui="true"] .app-shell .settings-page .settings-layout,
+  html[data-beauty-ui="true"] .app-shell .notification-page .notification-grid{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .settings-page :is(
+    .settings-form,
+    .settings-public-page-shortcut
+  ),
+  html[data-beauty-ui="true"] .app-shell .notification-page :is(
+    .push-activation-card,
+    .notification-preferences-card,
+    .notification-inbox
+  ){
+    padding:14px;
+    border-radius:16px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .settings-page .plan-overview-heading,
+  html[data-beauty-ui="true"] .app-shell .settings-page .settings-section-heading{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .settings-page .plan-price-badge{
+    max-width:100%;
+    text-align:left;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .settings-page .settings-business-theme-card{
+    grid-template-columns:42px minmax(0,1fr) auto;
+    gap:11px;
+    padding:12px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .settings-page .settings-summary{
+    padding:13px;
+    gap:8px 12px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .settings-page .booking-link-box{
+    grid-template-columns:38px minmax(0,1fr);
+    gap:10px;
+    padding:12px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .settings-page .booking-link-box>:is(button,a){
+    width:100%;
+    min-height:42px;
+    justify-content:center;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .notification-page .notification-grid{
+    margin-bottom:10px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .notification-page .push-device-state{
+    padding:13px;
+    gap:11px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .notification-page .notification-preference-row{
+    min-height:64px;
+    padding:11px 12px;
+    gap:12px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .notification-page .notification-event{
+    grid-template-columns:38px minmax(0,1fr) auto;
+    gap:10px;
+    padding:12px;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .notification-page .notification-event>i{
+    position:absolute;
+  }
+
+  html[data-beauty-ui="true"] .app-shell .notification-page .notification-event-content p{
+    line-height:1.4;
+  }
+}
+
 @media (max-width:430px){
   html[data-beauty-ui="true"] .beauty-week-appointment-service{
     display:block;
