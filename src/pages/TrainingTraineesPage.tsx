@@ -145,7 +145,7 @@ export function TrainingTraineesPage() {
   if (!organization) return null;
 
   return (
-    <div className="page training-page">
+    <div className="page training-page training-trainees-page">
       <header className="page-header">
         <div><p className="eyebrow">PACK FORMATION</p><h1>Stagiaires</h1><p>Centralisez les coordonnées et les informations utiles de vos stagiaires.</p></div>
         {canManage && <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Ajouter un stagiaire</button>}
