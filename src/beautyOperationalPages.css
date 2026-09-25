@@ -472,8 +472,13 @@ html[data-beauty-metier="true"] .empty-staff-state .empty-icon{
   html[data-beauty-metier="true"] .services-page>.page-header,
   html[data-beauty-metier="true"] .staff-page>.page-header{
     align-items:stretch;
-    padding:20px 17px;
-    border-radius:21px;
+    padding:19px 17px 17px;
+    border-radius:18px;
+  }
+  html[data-beauty-metier="true"] .services-page>.page-header:after,
+  html[data-beauty-metier="true"] .staff-page>.page-header:after{
+    left:17px;
+    width:58px;
   }
   html[data-beauty-metier="true"] .services-page>.page-header>.primary-button,
   html[data-beauty-metier="true"] .staff-page>.page-header>.primary-button{width:100%;justify-content:center}
@@ -486,7 +491,7 @@ html[data-beauty-metier="true"] .empty-staff-state .empty-icon{
   html[data-beauty-metier="true"] .services-list-panel,
   html[data-beauty-metier="true"] .staff-list-panel,
   html[data-beauty-metier="true"] .service-form-panel,
-  html[data-beauty-metier="true"] .staff-form-panel{padding:15px;border-radius:19px}
+  html[data-beauty-metier="true"] .staff-form-panel{padding:14px;border-radius:16px}
   html[data-beauty-metier="true"] .services-toolbar,
   html[data-beauty-metier="true"] .staff-toolbar{align-items:stretch;flex-direction:column}
   html[data-beauty-metier="true"] .services-filters,
