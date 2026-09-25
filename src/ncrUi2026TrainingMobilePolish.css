@@ -1230,8 +1230,23 @@
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav > :where(a, button) > span:not(.mobile-create-action) {
+    max-width: 72px;
+    overflow: hidden;
     font-size: .64rem;
     line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav .mobile-create-action > span {
+    transform: translateY(-2px) scale(.92);
+    transform-origin: center;
+    box-shadow: 0 7px 18px rgba(18,103,234,.20), inset 0 1px rgba(255,255,255,.2);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav .mobile-create-action > small {
+    margin-top: -2px;
+    font-size: .63rem;
   }
 }
 
