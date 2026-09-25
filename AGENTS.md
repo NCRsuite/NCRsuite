@@ -457,3 +457,71 @@ Une modification est réussie si :
 Si un écran est déjà très bon, ne le refais pas pour le principe.
 
 **La qualité du résultat compte davantage que la quantité de code modifié.**
+
+
+## Règles spécifiques à l’architecture UI actuelle du dépôt
+
+Le dépôt possède déjà un socle visuel global dans `src/ncrUi2026.css`. Ce fichier et ses tokens doivent servir de référence principale pour toute nouvelle harmonisation transversale.
+
+### Ne plus empiler des couches de patchs
+
+Plusieurs fichiers Beauty/Coiffure contiennent actuellement des couches successives de corrections visuelles ou des sections versionnées ajoutées en fin de fichier.
+
+À partir de maintenant :
+
+- ne pas ajouter de nouvelles sections du type V8 / V9 / V10 en bas d’un fichier pour corriger une version précédente ;
+- ne pas créer un nouveau fichier CSS uniquement pour surcharger trois règles existantes ;
+- modifier ou consolider la règle source lorsque cela est raisonnablement sûr ;
+- supprimer les doublons uniquement lorsqu’ils sont clairement identifiés et couverts par une vérification ;
+- garder les sélecteurs les plus simples possibles ;
+- éviter `!important` sauf contrainte héritée impossible à résoudre proprement dans le lot courant.
+
+Le but est de réduire progressivement la cascade de surcharges sans provoquer de régression fonctionnelle.
+
+### Source de vérité visuelle
+
+Pour les éléments communs, privilégier les tokens existants :
+
+- `--ncr26-brand` et variantes ;
+- `--ncr26-bg` / surfaces ;
+- `--ncr26-text` / text-soft / text-muted ;
+- `--ncr26-border` ;
+- `--ncr26-radius-*` ;
+- `--ncr26-shadow-*` ;
+- `--ncr26-space-*` ;
+- `--ncr26-fast`, `--ncr26-ui`, `--ncr26-ease`.
+
+L’accent métier peut continuer à utiliser `--business-accent` ou `--accent` lorsqu’il représente réellement la marque ou l’enseigne.
+
+Évite les nouvelles valeurs arbitraires si un token existant convient.
+
+### Beauty / Coiffure
+
+Les fichiers Beauty doivent tendre vers une même grammaire visuelle que NCR UI 2026 tout en conservant l’identité métier.
+
+Ne transforme pas la branche Beauty en deuxième design system indépendant.
+
+Les offres Essentiel, Professionnel et Métier doivent partager les mêmes composants et la même qualité de rendu lorsque les fonctions sont communes.
+
+### Agenda mobile
+
+La lisibilité prime sur l’obligation de faire tenir sept jours simultanément dans la largeur d’un téléphone.
+
+Ne réduis jamais les textes métier à des tailles minuscules pour conserver les sept colonnes à l’écran.
+
+Pour la vue semaine mobile :
+
+- conserver une taille de texte réellement lisible ;
+- conserver des zones tactiles utilisables ;
+- autoriser un scroll horizontal maîtrisé si nécessaire ;
+- garder l’heure, le client/service et le statut identifiables ;
+- mettre aujourd’hui en évidence ;
+- éviter toute densité qui transforme l’agenda en miniature.
+
+### Pas de nouvelle bibliothèque UI sans justification
+
+Le projet fonctionne actuellement avec React + CSS maison.
+
+N’introduis pas Tailwind, Material UI, Chakra, Ant Design ou une autre bibliothèque pour la seule refonte visuelle.
+
+Le design premium doit être obtenu en consolidant le système existant.
