@@ -5,9 +5,9 @@
 
 html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline {
   position: relative;
-  gap: 14px;
-  margin-top: 10px;
-  padding-top: 24px;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 20px;
   border-top: 1px solid color-mix(in srgb, var(--ncr26-border) 86%, transparent);
 }
 
@@ -15,19 +15,19 @@ html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workf
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 42px minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   min-width: 0;
-  min-height: 94px;
-  padding: 15px 16px;
+  min-height: 82px;
+  padding: 12px 13px;
   border: 1px solid color-mix(in srgb, var(--ncr26-border) 95%, transparent);
-  border-radius: 17px;
+  border-radius: 15px;
   background:
-    linear-gradient(145deg, rgba(255,255,255,.995), rgba(249,251,254,.97));
+    linear-gradient(145deg, rgba(255,255,255,.995), rgba(250,251,253,.97));
   box-shadow:
-    0 1px 2px rgba(15,23,42,.035),
-    0 8px 24px rgba(15,23,42,.028);
+    0 1px 2px rgba(15,23,42,.025),
+    0 5px 16px rgba(15,23,42,.024);
   overflow: visible;
   transition:
     transform var(--ncr26-ui) var(--ncr26-ease),
@@ -64,10 +64,10 @@ html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workf
   position: absolute;
   z-index: 4;
   top: 50%;
-  right: -19px;
+  right: -15px;
   display: grid;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   place-items: center;
   transform: translateY(-50%);
   border: 1px solid var(--ncr26-border);
@@ -84,11 +84,11 @@ html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workf
 html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > span {
   position: relative;
   display: grid;
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--ncr26-brand) 17%, var(--ncr26-border));
-  border-radius: 15px;
+  border-radius: 13px;
   color: var(--ncr26-brand-strong);
   background:
     linear-gradient(145deg, #fff, color-mix(in srgb, var(--ncr26-brand-soft) 72%, #fff));
@@ -103,8 +103,8 @@ html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workf
 html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > span::after {
   content: "";
   position: absolute;
-  right: 6px;
-  bottom: 6px;
+  right: 5px;
+  bottom: 5px;
   width: 5px;
   height: 5px;
   border-radius: 999px;
@@ -116,7 +116,7 @@ html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workf
 html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > div {
   position: relative;
   min-width: 0;
-  padding-top: 15px;
+  padding-top: 14px;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline article > div::before {
@@ -141,7 +141,7 @@ html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workf
 html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline strong {
   display: block;
   color: var(--ncr26-text);
-  font-size: clamp(1.38rem, 1.7vw, 1.68rem);
+  font-size: clamp(1.28rem, 1.55vw, 1.52rem);
   line-height: .95;
   font-weight: 750;
   letter-spacing: -.045em;
@@ -150,9 +150,9 @@ html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workf
 
 html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline small {
   display: block;
-  margin-top: 7px;
+  margin-top: 6px;
   color: var(--ncr26-text-soft);
-  font-size: .7rem;
+  font-size: .68rem;
   line-height: 1.3;
   font-weight: 570;
   text-wrap: balance;
