@@ -105,9 +105,9 @@ html[data-ncr-ui-2026="true"] .training-dossier-metrics article {
 }
 
 html[data-ncr-ui-2026="true"] .training-dossier-metrics article > span {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
   background: var(--ncr26-brand-soft);
   color: var(--ncr26-brand);
 }
@@ -426,21 +426,25 @@ html[data-ncr-ui-2026="true"] .training-dossier-shortcuts a:hover {
    ========================================================= */
 html[data-ncr-ui-2026="true"] .training-quality-compliance-page {
   display: grid;
-  gap: 22px;
+  gap: 20px;
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-header {
-  padding: 24px 26px;
-  border: 1px solid var(--ncr26-border);
+  position: relative;
+  overflow: hidden;
+  padding: 26px 28px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 10%, var(--ncr26-border));
   border-radius: 22px;
   background:
-    radial-gradient(circle at 90% 0%, rgba(22,132,91,.08), transparent 24rem),
-    linear-gradient(180deg, #fff, #f9fbfa);
-  box-shadow: var(--ncr26-shadow-sm);
+    radial-gradient(circle at 94% 4%, rgba(18,103,234,.07), transparent 20rem),
+    linear-gradient(145deg, #fff, #f8fbfa);
+  box-shadow: 0 1px 2px rgba(15,23,42,.03), 0 14px 38px rgba(15,23,42,.04);
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-header h1 {
-  letter-spacing: -.035em;
+  font-size: clamp(1.9rem, 3vw, 2.65rem);
+  line-height: 1.02;
+  letter-spacing: -.045em;
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-header .header-actions {
@@ -453,17 +457,17 @@ html[data-ncr-ui-2026="true"] .training-compliance-header .header-actions {
 html[data-ncr-ui-2026="true"] .training-compliance-metrics {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-metrics article {
   min-width: 0;
-  min-height: 104px;
-  padding: 16px;
+  min-height: 92px;
+  padding: 14px;
   border: 1px solid var(--ncr26-border);
-  border-radius: 17px;
+  border-radius: 15px;
   background: #fff;
-  box-shadow: var(--ncr26-shadow-xs);
+  box-shadow: 0 3px 12px rgba(15,23,42,.026);
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-metrics article > span {
@@ -493,10 +497,10 @@ html[data-ncr-ui-2026="true"] .training-compliance-tabs {
   display: inline-flex;
   width: fit-content;
   max-width: 100%;
-  gap: 4px;
-  padding: 5px;
+  gap: 3px;
+  padding: 4px;
   border: 1px solid var(--ncr26-border);
-  border-radius: 14px;
+  border-radius: 13px;
   background: var(--ncr26-surface-soft);
 }
 
@@ -517,27 +521,44 @@ html[data-ncr-ui-2026="true"] .training-compliance-tabs button.active {
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-workspace {
-  gap: 16px;
+  gap: 14px;
 }
 
 html[data-ncr-ui-2026="true"] :is(.training-compliance-list, .training-compliance-editor, .training-compliance-evidence-panel, .training-compliance-audits-panel, .training-compliance-audit-readiness) {
   border-color: var(--ncr26-border);
-  border-radius: 20px;
-  box-shadow: var(--ncr26-shadow-sm);
+  border-radius: 18px;
+  box-shadow: 0 8px 26px rgba(15,23,42,.035);
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-toolbar {
-  gap: 9px;
-  padding: 12px;
+  gap: 8px;
+  padding: 11px;
   border-bottom: 1px solid var(--ncr26-border);
-  background: var(--ncr26-surface-soft);
+  background: color-mix(in srgb, var(--ncr26-surface-soft) 72%, #fff);
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-toolbar :is(input, select) {
-  min-height: 42px;
-  border: 1px solid var(--ncr26-border);
+  min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-border-strong) 90%, transparent);
   border-radius: 11px;
-  background: #fff;
+  background-color: #fff;
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.018);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-toolbar select,
+html[data-ncr-ui-2026="true"] .training-compliance-editor select,
+html[data-ncr-ui-2026="true"] .training-compliance-modal select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 36px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ncr26-text-muted) 50%),
+    linear-gradient(135deg, var(--ncr26-text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 50%,
+    calc(100% - 11px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-control-list {
@@ -546,10 +567,10 @@ html[data-ncr-ui-2026="true"] .training-compliance-control-list {
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-control {
-  min-height: 68px;
-  padding: 10px 11px;
+  min-height: 64px;
+  padding: 9px 10px;
   border: 1px solid transparent;
-  border-radius: 13px;
+  border-radius: 12px;
   background: transparent;
   transition: background var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), transform var(--ncr26-fast) var(--ncr26-ease);
 }
@@ -580,15 +601,18 @@ html[data-ncr-ui-2026="true"] .training-compliance-editor {
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-editor > header {
-  padding: 18px;
+  padding: 17px 18px;
   border-bottom: 1px solid var(--ncr26-border);
-  background: linear-gradient(180deg, #fff, #fbfcfe);
+  background:
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--ncr26-brand) 4%, transparent), transparent 13rem),
+    linear-gradient(180deg, #fff, #fbfcfe);
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-editor > form {
   display: grid;
   gap: 14px;
   padding: 18px;
+  background: color-mix(in srgb, var(--ncr26-surface-soft) 48%, #fff);
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-editor label {
@@ -596,9 +620,16 @@ html[data-ncr-ui-2026="true"] .training-compliance-editor label {
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-editor :is(input, select, textarea) {
-  border-color: var(--ncr26-border);
+  min-height: 44px;
+  border-color: color-mix(in srgb, var(--ncr26-border-strong) 90%, transparent);
   border-radius: 11px;
-  background: var(--ncr26-surface-soft);
+  background-color: #fff;
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.018);
+}
+
+html[data-ncr-ui-2026="true"] .training-compliance-editor textarea {
+  min-height: 110px;
+  line-height: 1.55;
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-linked-evidence {
@@ -653,15 +684,15 @@ html[data-ncr-ui-2026="true"] .training-compliance-audit .audit-date {
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-audit-readiness {
-  padding: 22px;
+  padding: 20px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(22,132,91,.1), transparent 16rem),
-    linear-gradient(180deg, #fff, #f8fcfa);
+    radial-gradient(circle at 100% 0%, rgba(22,132,91,.085), transparent 16rem),
+    linear-gradient(145deg, #fff, #f8fcfa);
 }
 
 html[data-ncr-ui-2026="true"] .training-compliance-audit-readiness > strong {
   color: var(--ncr26-success);
-  font-size: 2.4rem;
+  font-size: 2.15rem;
   letter-spacing: -.05em;
 }
 
