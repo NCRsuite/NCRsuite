@@ -2,13 +2,17 @@
 
 /* ===== Page rhythm ===== */
 html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage > .page {
+  width: 100%;
+  max-width: var(--ncr26-content-max);
+  margin-inline: auto;
   color: var(--ncr26-text);
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .page-header {
   position: relative;
+  align-items: flex-start;
   gap: clamp(18px, 2.5vw, 34px);
-  margin-bottom: clamp(22px, 3vw, 34px);
+  margin-bottom: clamp(24px, 3vw, 36px);
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .page-header > div:first-child {
@@ -41,6 +45,10 @@ html[data-ncr-ui-2026="true"] .app-shell .page-header > div:first-child > p:not(
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 10px;
 }
 
@@ -49,9 +57,30 @@ html[data-ncr-ui-2026="true"] .app-shell .page-message,
 html[data-ncr-ui-2026="true"] .app-shell .error-message,
 html[data-ncr-ui-2026="true"] .app-shell .success-message,
 html[data-ncr-ui-2026="true"] .app-shell .warning-message {
+  padding: 12px 14px;
   border-radius: var(--ncr26-radius-md);
   border-width: 1px;
   box-shadow: var(--ncr26-shadow-xs);
+  font-size: .84rem;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .error-message {
+  border-color: color-mix(in srgb, var(--ncr26-danger) 24%, var(--ncr26-border));
+  color: color-mix(in srgb, var(--ncr26-danger) 82%, var(--ncr26-text));
+  background: color-mix(in srgb, var(--ncr26-danger) 5%, var(--ncr26-surface));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .success-message {
+  border-color: color-mix(in srgb, var(--ncr26-success) 24%, var(--ncr26-border));
+  color: color-mix(in srgb, var(--ncr26-success) 82%, var(--ncr26-text));
+  background: color-mix(in srgb, var(--ncr26-success) 5%, var(--ncr26-surface));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .warning-message {
+  border-color: color-mix(in srgb, var(--ncr26-warning) 25%, var(--ncr26-border));
+  color: color-mix(in srgb, var(--ncr26-warning) 84%, var(--ncr26-text));
+  background: color-mix(in srgb, var(--ncr26-warning) 5%, var(--ncr26-surface));
 }
 
 /* ===== KPI / stat system ===== */
@@ -233,7 +262,22 @@ html[data-ncr-ui-2026="true"] .app-shell :where(.empty-state, .empty-panel, .emp
   border-color: var(--ncr26-border);
   border-radius: var(--ncr26-radius-lg);
   color: var(--ncr26-text-muted);
-  background: var(--ncr26-surface-soft);
+  background: linear-gradient(180deg, var(--ncr26-surface), var(--ncr26-surface-soft));
+}
+
+html[data-ncr-ui-2026="true"] .app-shell :where(.empty-state, .empty-panel) {
+  min-height: 150px;
+  padding: clamp(24px, 4vw, 40px);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell :where(.empty-state, .empty-panel) :where(h2, h3, strong) {
+  color: var(--ncr26-text);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell :where(.empty-state, .empty-panel) p {
+  max-width: 56ch;
+  color: var(--ncr26-text-muted);
+  line-height: 1.55;
 }
 
 /* ===== Quality health ===== */
@@ -259,11 +303,27 @@ html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(a[class*="c
 /* ===== Mobile page density ===== */
 @media (max-width: 700px) {
   html[data-ncr-ui-2026="true"] .app-shell .page-header {
-    margin-bottom: 20px;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 22px;
   }
 
   html[data-ncr-ui-2026="true"] .app-shell .page-header h1 {
-    font-size: clamp(1.45rem, 7vw, 1.85rem);
+    font-size: clamp(1.5rem, 7vw, 1.9rem);
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .page-header > div:first-child > p:not(.eyebrow) {
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .header-actions {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"] .app-shell .header-actions > :where(.primary-button, .secondary-button, button, a) {
+    min-height: var(--ncr26-control-h);
   }
 
   html[data-ncr-ui-2026="true"] .app-shell .training-quality-overview {
