@@ -62,6 +62,8 @@ import './beautyCenterSwitcher.css';
 import './beautyAvailabilityBlocks.css';
 import './beautyClientCrm.css';
 import './beautyGrowth.css';
+import './beautyUniverse.css';
+import './beautyAppointmentWeekPlanner.css';
 import './beautyMobileResponsive.css';
 import './beautyConfirmDialog.css';
 import './beautyUxPolish.css';
