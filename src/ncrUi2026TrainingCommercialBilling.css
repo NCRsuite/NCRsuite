@@ -22,13 +22,13 @@ html[data-ncr-ui-2026="true"] .training-documents-page > .page-header {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: clamp(24px, 3vw, 38px);
-  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 13%, var(--ncr26-border));
-  border-radius: 26px;
+  padding: clamp(24px, 2.6vw, 30px);
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 11%, var(--ncr26-border));
+  border-radius: 22px;
   background:
-    radial-gradient(circle at 92% 4%, rgba(18, 103, 234, .12), transparent 22rem),
-    linear-gradient(135deg, rgba(255,255,255,.99), rgba(246,250,255,.98));
-  box-shadow: 0 18px 46px rgba(15, 23, 42, .07);
+    radial-gradient(circle at 94% 4%, rgba(18, 103, 234, .08), transparent 20rem),
+    linear-gradient(145deg, rgba(255,255,255,.995), rgba(248,250,253,.97));
+  box-shadow: 0 1px 2px rgba(15,23,42,.03), 0 14px 38px rgba(15, 23, 42, .04);
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page > .page-header::before,
@@ -39,8 +39,8 @@ html[data-ncr-ui-2026="true"] .training-documents-page > .page-header::before {
   z-index: -1;
   top: 0;
   left: clamp(24px, 3vw, 38px);
-  width: 92px;
-  height: 4px;
+  width: 88px;
+  height: 3px;
   border-radius: 0 0 999px 999px;
   background: linear-gradient(90deg, var(--ncr26-brand), #58a6ff);
 }
@@ -56,8 +56,8 @@ html[data-ncr-ui-2026="true"] .training-billing-page > .page-header h1,
 html[data-ncr-ui-2026="true"] .training-documents-page > .page-header h1 {
   margin-top: 5px;
   color: var(--ncr26-finance-ink);
-  font-size: clamp(2rem, 3.2vw, 3.35rem);
-  line-height: .98;
+  font-size: clamp(1.9rem, 3vw, 2.65rem);
+  line-height: 1.02;
   letter-spacing: -.045em;
 }
 
@@ -65,10 +65,10 @@ html[data-ncr-ui-2026="true"] .training-commercial-page > .page-header p:last-ch
 html[data-ncr-ui-2026="true"] .training-billing-page > .page-header p:last-child,
 html[data-ncr-ui-2026="true"] .training-documents-page > .page-header p:last-child {
   max-width: 680px;
-  margin-top: 14px;
+  margin-top: 10px;
   color: var(--ncr26-text-soft);
-  font-size: .98rem;
-  line-height: 1.65;
+  font-size: .94rem;
+  line-height: 1.55;
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page > .page-header > .primary-button,
@@ -88,10 +88,10 @@ html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-tabs {
   gap: 5px;
   width: fit-content;
   max-width: 100%;
-  margin: 18px 0 20px;
-  padding: 5px;
+  margin: 14px 0 16px;
+  padding: 4px;
   border: 1px solid var(--ncr26-border);
-  border-radius: 15px;
+  border-radius: 13px;
   background: rgba(255,255,255,.86);
   box-shadow: var(--ncr26-shadow-xs);
   overflow-x: auto;
@@ -107,9 +107,9 @@ html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-tab
 html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-tabs button {
   flex: 0 0 auto;
   min-height: 38px;
-  padding: 8px 13px;
+  padding: 8px 12px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 9px;
   background: transparent;
   color: var(--ncr26-text-soft);
   font-weight: 720;
@@ -136,8 +136,8 @@ html[data-ncr-ui-2026="true"] .training-commercial-page .training-crm-metrics,
 html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-  gap: 12px;
-  margin: 18px 0;
+  gap: 8px;
+  margin: 14px 0;
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-metrics > article,
@@ -145,12 +145,12 @@ html[data-ncr-ui-2026="true"] .training-commercial-page .training-crm-metrics > 
 html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-metrics > article {
   position: relative;
   min-width: 0;
-  min-height: 112px;
-  padding: 18px;
+  min-height: 94px;
+  padding: 14px;
   border: 1px solid var(--ncr26-border);
-  border-radius: 18px;
-  background: linear-gradient(180deg, #fff, #fbfcfe);
-  box-shadow: 0 7px 22px rgba(15, 23, 42, .045);
+  border-radius: 15px;
+  background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--ncr26-surface-soft) 52%, #fff));
+  box-shadow: 0 3px 12px rgba(15,23,42,.026);
   overflow: hidden;
 }
 
@@ -176,9 +176,9 @@ html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-metrics >
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
   background: var(--ncr26-brand-soft);
   color: var(--ncr26-brand);
 }
@@ -226,12 +226,12 @@ html[data-ncr-ui-2026="true"] .training-commercial-page .training-crm-toolbar {
   display: grid;
   grid-template-columns: auto minmax(220px, 1fr) auto;
   align-items: center;
-  gap: 10px;
-  padding: 12px;
+  gap: 9px;
+  padding: 10px;
   border: 1px solid var(--ncr26-border);
-  border-radius: 17px;
-  background: rgba(255,255,255,.82);
-  box-shadow: var(--ncr26-shadow-xs);
+  border-radius: 15px;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 4px 16px rgba(15,23,42,.028);
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-crm-view-toggle {
@@ -520,7 +520,14 @@ html[data-ncr-ui-2026="true"] .training-commercial-page .training-crm-detail-gri
 
 /* ===== Commercial lists / entities ===== */
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-list,
-html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-list,
+html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-list {
+  padding: 22px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(15,23,42,.04);
+}
+
 html[data-ncr-ui-2026="true"] .training-documents-page .training-list-panel {
   padding: clamp(18px, 2.4vw, 26px);
   border: 1px solid var(--ncr26-border);
@@ -530,7 +537,16 @@ html[data-ncr-ui-2026="true"] .training-documents-page .training-list-panel {
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-list .training-toolbar,
-html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-list .training-toolbar,
+html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-list .training-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--ncr26-border);
+}
+
 html[data-ncr-ui-2026="true"] .training-documents-page .training-document-toolbar {
   display: flex;
   align-items: flex-end;
@@ -542,7 +558,14 @@ html[data-ncr-ui-2026="true"] .training-documents-page .training-document-toolba
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-list .search-field,
-html[data-ncr-ui-2026="true"] .training-billing-page .training-search,
+html[data-ncr-ui-2026="true"] .training-billing-page .training-search {
+  min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-border-strong) 90%, transparent);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.018);
+}
+
 html[data-ncr-ui-2026="true"] .training-documents-page .search-field {
   min-height: 42px;
   border: 1px solid var(--ncr26-border);
@@ -560,7 +583,7 @@ html[data-ncr-ui-2026="true"] .training-documents-page .search-field:focus-withi
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-document-list,
 html[data-ncr-ui-2026="true"] .training-billing-page .training-invoice-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-document-list > article,
@@ -571,13 +594,13 @@ html[data-ncr-ui-2026="true"] .training-billing-page .training-invoice-list > ar
     "icon main value"
     "icon main actions";
   align-items: start;
-  gap: 8px 14px;
+  gap: 8px 13px;
   min-width: 0;
-  padding: 16px;
+  padding: 14px 15px;
   border: 1px solid var(--ncr26-border);
-  border-radius: 17px;
+  border-radius: 15px;
   background: #fff;
-  box-shadow: 0 4px 16px rgba(15,23,42,.035);
+  box-shadow: 0 3px 12px rgba(15,23,42,.026);
   transition: border-color var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease), transform var(--ncr26-fast) var(--ncr26-ease);
 }
 
@@ -599,10 +622,10 @@ html[data-ncr-ui-2026="true"] .training-billing-page .training-invoice-kind {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  border: 1px solid #dce8fb;
-  border-radius: 14px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 13%, var(--ncr26-border));
+  border-radius: 12px;
   background: var(--ncr26-brand-soft);
   color: var(--ncr26-brand);
 }
@@ -694,20 +717,20 @@ html[data-ncr-ui-2026="true"] .training-billing-page .training-invoice-actions s
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-entity-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-entity-grid > article {
   position: relative;
   display: grid;
   grid-template-columns: 44px minmax(0,1fr);
-  gap: 12px;
+  gap: 11px;
   min-width: 0;
-  padding: 16px;
+  padding: 14px;
   border: 1px solid var(--ncr26-border);
-  border-radius: 16px;
-  background: linear-gradient(180deg, #fff, #fbfcfe);
-  box-shadow: 0 4px 15px rgba(15,23,42,.035);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff, color-mix(in srgb, var(--ncr26-surface-soft) 45%, #fff));
+  box-shadow: 0 3px 12px rgba(15,23,42,.026);
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-entity-grid > article > span {
@@ -757,6 +780,31 @@ html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-edi
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-crm-editor,
 html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-editor,
 html[data-ncr-ui-2026="true"] .training-billing-page .training-payment-editor,
+html[data-ncr-ui-2026="true"] .training-billing-page .training-billing-settings {
+  margin: 14px 0 18px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--ncr26-border-strong) 82%, transparent);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--ncr26-surface-soft) 72%, #fff);
+  box-shadow: 0 10px 30px rgba(15,23,42,.04);
+  overflow: hidden;
+}
+
+html[data-ncr-ui-2026="true"] .training-commercial-page :is(.training-commercial-editor, .training-crm-editor) > .panel-header,
+html[data-ncr-ui-2026="true"] .training-billing-page :is(.training-billing-editor, .training-payment-editor, .training-billing-settings) > .panel-header {
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--ncr26-border);
+  background:
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--ncr26-brand) 5%, transparent), transparent 16rem),
+    linear-gradient(145deg, #fff, color-mix(in srgb, var(--ncr26-surface-soft) 72%, #fff));
+}
+
+html[data-ncr-ui-2026="true"] .training-commercial-page :is(.training-commercial-editor, .training-crm-editor) > form,
+html[data-ncr-ui-2026="true"] .training-billing-page :is(.training-billing-editor, .training-payment-editor, .training-billing-settings) > form {
+  gap: 16px 18px;
+  padding: 20px 22px 22px;
+}
+
 html[data-ncr-ui-2026="true"] .training-documents-page .training-document-form-panel {
   margin: 16px 0 20px;
   padding: clamp(18px, 2.4vw, 28px);
@@ -769,9 +817,10 @@ html[data-ncr-ui-2026="true"] .training-documents-page .training-document-form-p
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-form-grid label,
 html[data-ncr-ui-2026="true"] .training-billing-page .training-form-grid label,
 html[data-ncr-ui-2026="true"] .training-documents-page .training-form-grid label {
+  gap: 8px;
   color: var(--ncr26-text-soft);
-  font-size: .76rem;
-  font-weight: 720;
+  font-size: .78rem;
+  font-weight: 640;
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-form-grid input,
@@ -783,18 +832,19 @@ html[data-ncr-ui-2026="true"] .training-billing-page .training-form-grid textare
 html[data-ncr-ui-2026="true"] .training-documents-page .training-form-grid input,
 html[data-ncr-ui-2026="true"] .training-documents-page .training-form-grid select,
 html[data-ncr-ui-2026="true"] .training-documents-page .training-form-grid textarea {
-  min-height: 43px;
-  border: 1px solid var(--ncr26-border-strong);
-  border-radius: 11px;
-  background: #fff;
+  min-height: 46px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-border-strong) 92%, transparent);
+  border-radius: 12px;
+  background-color: #fff;
   color: var(--ncr26-text);
-  box-shadow: inset 0 1px 2px rgba(15,23,42,.025);
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.018);
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-form-grid textarea,
 html[data-ncr-ui-2026="true"] .training-billing-page .training-form-grid textarea,
 html[data-ncr-ui-2026="true"] .training-documents-page .training-form-grid textarea {
-  min-height: 86px;
+  min-height: 104px;
+  line-height: 1.55;
 }
 
 html[data-ncr-ui-2026="true"] .training-commercial-page .training-form-grid input:focus,
@@ -809,6 +859,123 @@ html[data-ncr-ui-2026="true"] .training-documents-page .training-form-grid texta
   border-color: color-mix(in srgb, var(--ncr26-brand) 48%, var(--ncr26-border));
   outline: 0;
   box-shadow: 0 0 0 3px var(--ncr26-ring);
+}
+
+html[data-ncr-ui-2026="true"] .training-commercial-page .training-form-grid select,
+html[data-ncr-ui-2026="true"] .training-billing-page .training-form-grid select,
+html[data-ncr-ui-2026="true"] .training-commercial-page .training-commercial-document-actions select,
+html[data-ncr-ui-2026="true"] .training-billing-page .training-invoice-actions select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 36px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ncr26-text-muted) 50%),
+    linear-gradient(135deg, var(--ncr26-text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 50%,
+    calc(100% - 11px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page input[type="number"],
+html[data-ncr-ui-2026="true"] .training-commercial-page input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page input[type="number"]::-webkit-inner-spin-button,
+html[data-ncr-ui-2026="true"] .training-billing-page input[type="number"]::-webkit-outer-spin-button,
+html[data-ncr-ui-2026="true"] .training-commercial-page input[type="number"]::-webkit-inner-spin-button,
+html[data-ncr-ui-2026="true"] .training-commercial-page input[type="number"]::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-toggle-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 4px 12px;
+  padding: 14px 15px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 15%, var(--ncr26-border));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ncr26-brand-pale) 72%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-toggle-field > input {
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  margin-top: 2px;
+  accent-color: var(--ncr26-brand);
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-toggle-field > span {
+  display: grid;
+  gap: 3px;
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-toggle-field strong {
+  color: var(--ncr26-text);
+  font-size: .82rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-toggle-field small {
+  color: var(--ncr26-text-muted);
+  font-size: .72rem;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-payment-list {
+  display: grid;
+  gap: 8px;
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-payment-list > article {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 68px;
+  padding: 12px 14px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(15,23,42,.026);
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-payment-list > article > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--ncr26-success);
+  background: color-mix(in srgb, var(--ncr26-success) 9%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-payment-list > article > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-payment-list strong {
+  color: var(--ncr26-text);
+  font-size: .86rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-payment-list :is(p, small) {
+  margin: 0;
+  color: var(--ncr26-text-muted);
+  font-size: .71rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-billing-page .training-payment-list > article > b {
+  color: var(--ncr26-text);
+  font-size: .92rem;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ===== Billing ===== */
