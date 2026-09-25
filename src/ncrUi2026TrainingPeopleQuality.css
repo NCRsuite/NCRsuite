@@ -1435,27 +1435,18 @@ html[data-ncr-ui-2026="true"] .app-shell .evaluation-response-result small {
 }
 
 @media (max-width: 820px) {
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) > .page-header,
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) > .page-header,
   html[data-ncr-ui-2026="true"] .app-shell .training-attendance-page > .page-header,
   html[data-ncr-ui-2026="true"] .app-shell .training-evaluation-page-header {
     padding: 24px;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) .training-record-card {
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) .training-record-card {
     grid-template-columns: 48px minmax(0, 1fr) auto;
   }
 
   html[data-ncr-ui-2026="true"] .app-shell .training-trainers-page .training-trainer-bpf-relationship,
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) .training-record-card > .compact-button {
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) .training-record-card > .compact-button {
     grid-column: 2 / -1;
     justify-self: start;
   }
@@ -1474,20 +1465,14 @@ html[data-ncr-ui-2026="true"] .app-shell .evaluation-response-result small {
 }
 
 @media (max-width: 700px) {
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ),
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page),
   html[data-ncr-ui-2026="true"] .app-shell .training-attendance-page,
   html[data-ncr-ui-2026="true"] .app-shell .training-evaluations-page {
     gap: 18px;
     padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) > .page-header,
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) > .page-header,
   html[data-ncr-ui-2026="true"] .app-shell .training-attendance-page > .page-header,
   html[data-ncr-ui-2026="true"] .app-shell .training-evaluation-page-header {
     display: grid;
@@ -1496,78 +1481,51 @@ html[data-ncr-ui-2026="true"] .app-shell .evaluation-response-result small {
     border-radius: 21px;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) > .page-header h1,
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) > .page-header h1,
   html[data-ncr-ui-2026="true"] .app-shell .training-attendance-page > .page-header h1,
   html[data-ncr-ui-2026="true"] .app-shell .training-evaluation-page-header h1 {
     font-size: clamp(1.85rem, 10vw, 2.55rem);
     line-height: 1.03;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) > .page-header > .primary-button {
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) > .page-header > .primary-button {
     width: 100%;
     justify-content: center;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) > :is(.training-form-panel, .training-list-panel),
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) > :is(.training-form-panel, .training-list-panel),
   html[data-ncr-ui-2026="true"] .app-shell :is(.attendance-controls-panel, .attendance-roster-panel, .evaluation-automation-workspace, .evaluation-filter-panel, .evaluation-responses-panel) {
     padding: 17px;
     border-radius: 19px;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) .training-list-panel > .training-toolbar {
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) .training-list-panel > .training-toolbar {
     display: grid;
     align-items: stretch;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) .training-list-panel .search-field {
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) .training-list-panel .search-field {
     width: 100%;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) .training-record-card {
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) .training-record-card {
     grid-template-columns: 46px minmax(0, 1fr);
     gap: 10px 12px;
     padding: 14px;
     border-radius: 16px;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) .training-record-card > :is(.training-status-pill, .compact-button),
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) .training-record-card > :is(.training-status-pill, .compact-button),
   html[data-ncr-ui-2026="true"] .app-shell .training-trainers-page .training-trainer-bpf-relationship {
     grid-column: 2;
     justify-self: stretch;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) .training-record-card > .training-status-pill {
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) .training-record-card > .training-status-pill {
     justify-self: start;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell :is(
-    .training-trainers-page,
-    .training-page:has(.training-card-list .training-record-card > .training-status-pill.active):not(:has(.training-trainer-bpf-relationship))
-  ) .training-record-card > .compact-button {
+  html[data-ncr-ui-2026="true"] .app-shell :is(.training-trainees-page, .training-trainers-page) .training-record-card > .compact-button {
     width: 100%;
     justify-content: center;
   }
