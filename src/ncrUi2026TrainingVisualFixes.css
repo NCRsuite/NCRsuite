@@ -11,9 +11,11 @@
    ========================================================= */
 @container (min-width: 860px) {
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header {
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 250px);
+    grid-template-columns: minmax(0, 1fr) minmax(216px, 238px);
     grid-template-rows: auto auto;
     align-items: start;
+    gap: 20px 28px;
+    padding: 28px 30px 24px;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header > div:first-child {
@@ -28,7 +30,7 @@
     justify-content: flex-start;
     justify-self: start;
     max-width: none;
-    margin-top: 4px;
+    margin-top: 0;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header .ncr-dashboard-clock {
@@ -41,10 +43,10 @@
     z-index: 2;
     display: grid;
     justify-items: stretch;
-    width: min(100%, 250px);
-    min-width: 222px;
-    max-width: 250px;
-    padding: 15px 16px 14px;
+    width: min(100%, 238px);
+    min-width: 216px;
+    max-width: 238px;
+    padding: 14px 15px 13px;
     border: 1px solid color-mix(in srgb, var(--ncr26-brand) 13%, var(--ncr26-border));
     border-radius: 18px;
     background:
