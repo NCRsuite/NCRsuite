@@ -311,9 +311,11 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
-    width: 100%;
+    width: calc(100% - 20px);
+    max-width: 100%;
     min-width: 0;
-    margin: 0;
+    margin: 0 auto;
+    box-sizing: border-box;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-actions :where(a, button),
@@ -1228,6 +1230,8 @@
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-actions,
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-actions {
     grid-template-columns: 1fr;
+    width: calc(100% - 24px);
+    margin-inline: auto;
   }
 }
 
