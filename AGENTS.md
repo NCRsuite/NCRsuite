@@ -586,3 +586,83 @@ Avant les polish spécifiques par métier, commencer par le socle transversal :
 Ensuite seulement traiter les particularités métier.
 
 Formation sert de référence, mais elle doit également bénéficier du polish final transversal si des incohérences globales subsistent.
+
+
+## Niveau d'ambition visuelle final — priorité maximale
+
+L'objectif final n'est pas simplement d'obtenir une interface "propre" ou "premium".
+
+NCR Suite doit viser le **meilleur niveau visuel raisonnablement atteignable avec son architecture actuelle**, au niveau d'un SaaS commercial haut de gamme capable d'être présenté comme produit vitrine.
+
+Cela concerne **tous les métiers sans exception**, y compris Formation.
+
+Formation est aujourd'hui la référence interne la plus avancée, mais elle ne doit pas être considérée comme terminée.
+
+Elle doit elle aussi être repolie, modernisée et améliorée lorsque cela apporte un vrai gain perceptible.
+
+Le niveau attendu doit inclure :
+
+- une composition de page extrêmement maîtrisée ;
+- une hiérarchie visuelle immédiatement compréhensible ;
+- une typographie élégante et constante ;
+- des espacements précis et réguliers ;
+- des proportions cohérentes ;
+- des surfaces et cartes parfaitement calibrées ;
+- des formulaires haut de gamme ;
+- des tableaux et listes lisibles et élégants ;
+- des états vides réellement travaillés ;
+- des loaders/skeletons cohérents ;
+- des modales et drawers soignés ;
+- une navigation desktop et mobile de qualité produit ;
+- des micro-interactions discrètes et fluides ;
+- un responsive excellent ;
+- une sensation de finition jusque dans les détails secondaires.
+
+### Exigence de qualité
+
+Quand plusieurs solutions UI sont possibles, privilégier celle qui donne le meilleur équilibre entre :
+
+1. clarté ;
+2. élégance ;
+3. densité maîtrisée ;
+4. cohérence ;
+5. rapidité de compréhension ;
+6. qualité perçue ;
+7. maintenabilité.
+
+Ne conserver un écran tel quel que s'il est réellement au niveau du standard final.
+
+Un écran déjà bon peut encore être amélioré si un gain visuel clair est possible sans dette technique disproportionnée.
+
+### Référence de niveau, pas de copie
+
+La cible est celle d'un excellent SaaS contemporain : finition rigoureuse, sobriété, densité maîtrisée, composants cohérents et impression de produit mature.
+
+Ne pas copier servilement une marque ou un produit externe.
+
+Le but est que NCR Suite possède sa propre identité tout en atteignant un niveau de qualité comparable aux meilleurs produits SaaS modernes.
+
+### Formation
+
+Le module Formation doit faire l'objet d'un vrai passage final dédié.
+
+Même s'il sert de référence interne aujourd'hui, vérifier et améliorer si nécessaire :
+
+- dashboard ;
+- catalogue formations ;
+- parcours ;
+- sessions ;
+- stagiaires ;
+- formateurs ;
+- documents ;
+- émargements ;
+- évaluations ;
+- commercial ;
+- facturation ;
+- qualité ;
+- BPF ;
+- dossiers ;
+- paramètres ;
+- responsive mobile.
+
+Ne pas limiter les améliorations de Formation aux seuls composants communs si certaines pages métier peuvent encore gagner nettement en qualité visuelle.
