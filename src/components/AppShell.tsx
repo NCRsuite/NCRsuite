@@ -431,6 +431,9 @@ export function AppShell() {
   const primaryMobileItem = navigation.find((item) => ['securite', 'nettoyage', 'restauration'].includes(organization.business_type) && restrictedRole ? item.path === '/terrain' : ['/rendez-vous', '/planning'].includes(item.path))
     ?? navigation.find((item) => item.path !== '/')
     ?? navigation[0];
+  const primaryMobileLabel = organization.business_type === 'formation' && primaryMobileItem?.path === '/parcours-formation'
+    ? 'Parcours'
+    : primaryMobileItem?.label;
   const quickAction = !restrictedRole ? pack.quickActions[0] : null;
 
   function closeMobileLayers() {
@@ -964,7 +967,7 @@ export function AppShell() {
         {primaryMobileItem && (
           <NavLink to={primaryMobileItem.path}>
             <Icon name={primaryMobileItem.icon} size={21} />
-            <span>{primaryMobileItem.label}</span>
+            <span>{primaryMobileLabel}</span>
           </NavLink>
         )}
         {quickAction ? (
