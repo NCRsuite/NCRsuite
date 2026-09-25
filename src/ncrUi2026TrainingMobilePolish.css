@@ -1,77 +1,1110 @@
 /*
- * NCR UI 2026 — Mobile polish Formation
- * Corrige les actions de hero et restaure une navigation basse plus légère.
- * Couche visuelle uniquement, inactive si NCR_UI_2026_ENABLED = false.
+ * NCR UI 2026 — Formation / responsive final
+ * Couche de composition tablette + mobile chargée après les autres feuilles Formation.
+ * Aucun comportement métier, aucune donnée et aucun appel externe ne sont modifiés.
  */
+
+@media (max-width: 1020px) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-quality-grid,
+    .training-workflow-layout,
+    .training-calendar-workspace
+  ) {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-quality-side,
+    .training-workflow-session-panel,
+    .training-calendar-agenda
+  ) {
+    position: static;
+    top: auto;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-side {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-complete-form .training-form-grid,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-session-form-panel .training-form-grid,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-editor,
+    .training-crm-editor,
+    .training-billing-editor,
+    .training-payment-editor,
+    .training-billing-settings
+  ) .training-form-grid,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-form .training-form-grid,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-bpf-form-grid {
+    column-gap: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .training-profile-aside {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
 
 @media (max-width: 700px) {
   /* =======================================================
-     HERO ACTIONS — boutons complets, centrés dans le cadre
+     CADRE MOBILE / PWA
      ======================================================= */
-  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions,
-  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage {
+    min-width: 0;
+    padding-bottom: calc(118px + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(118px + env(safe-area-inset-bottom));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-quality-dashboard,
+    .training-programs-v215,
+    .training-workflow-page,
+    .training-planning-premium,
+    .training-trainees-page,
+    .training-trainers-page,
+    .training-attendance-page,
+    .training-evaluations-page,
+    .training-commercial-page,
+    .training-billing-page,
+    .training-documents-page,
+    .training-dossier-page,
+    .training-quality-compliance-page,
+    .training-bpf-page,
+    .training-profile-page,
+    .training-portal-admin-page
+  ) {
+    min-width: 0;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-quality-header,
+    .training-program-hero,
+    .training-workflow-hero,
+    .training-planning-hero,
+    .training-trainees-page > .page-header,
+    .training-trainers-page > .page-header,
+    .training-attendance-page > .page-header,
+    .training-evaluation-page-header,
+    .training-commercial-page > .page-header,
+    .training-billing-page > .page-header,
+    .training-documents-page > .page-header,
+    .training-dossier-hero,
+    .training-compliance-header,
+    .training-bpf-header,
+    .training-profile-hero,
+    .training-portal-admin-header
+  ) {
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-quality-header,
+    .training-program-hero,
+    .training-workflow-hero,
+    .training-planning-hero
+  )::after {
+    opacity: .45;
+    transform: scale(.78);
+    transform-origin: right bottom;
+  }
+
+  /* =======================================================
+     DASHBOARD / SMART COCKPIT
+     ======================================================= */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 16px;
+    margin-bottom: 14px;
+    padding: 19px 17px 17px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header::before {
+    left: 18px;
+    width: 64px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header h1 {
+    max-width: 100%;
+    font-size: clamp(1.78rem, 8.4vw, 2.18rem);
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-header > div:first-child > p:not(.eyebrow) {
+    margin-top: 9px;
+    font-size: .88rem;
+    line-height: 1.48;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+    max-width: none;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-period-segmented {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    width: 100%;
+    min-height: 46px;
+    padding: 4px 5px 4px 11px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-period-segmented > div {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-period-segmented button {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 7px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-export-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-export-actions .secondary-button,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-actions > .primary-button {
+    width: 100%;
+    justify-content: center;
+    min-height: 46px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-overview,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-overview {
+    padding: 5px;
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-overview-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    min-height: 88px;
+    gap: 9px;
+    padding: 12px 10px;
+    border-radius: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-overview-card > :last-child {
+    grid-column: 2;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-stats .stat-card {
+    min-height: 92px;
+    padding: 13px;
+    border-radius: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-stats .stat-card strong,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-stats .stat-card .stat-value {
+    font-size: 1.5rem;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-grid {
+    gap: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-alerts-panel,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(.training-quality-trend-panel, .training-quality-score-panel) {
+    border-radius: 17px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-alerts-panel .training-quality-panel-header {
+    display: grid;
+    gap: 10px;
+    padding: 17px 16px 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-health {
+    justify-self: start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-filter-tabs {
+    width: calc(100% - 32px);
+    margin: 0 16px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-filter-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-side {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-chart {
+    min-height: 184px;
+    margin-inline: 11px;
+    padding-top: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-score-panel {
+    padding: 19px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .ncr-smart-cockpit {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  /* =======================================================
+     FORMATIONS / ÉDITEUR
+     ======================================================= */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero {
+    grid-template-columns: 1fr;
+    row-gap: 15px;
+    margin-bottom: 16px;
+    padding: 18px 16px 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero::before,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero::before {
+    left: 18px;
+    width: 64px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-copy,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-main {
+    gap: 11px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-icon,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-main > span {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-copy h1,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-main h1 {
+    font-size: clamp(1.72rem, 8.2vw, 2.08rem);
+    line-height: 1.02;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-actions,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-actions {
     position: relative;
     z-index: 3;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 10px;
-    width: auto;
-    min-width: 0;
-    margin: 8px 16px 18px;
-    padding: 0;
-    box-sizing: border-box;
-    overflow: visible;
-  }
-
-  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions :where(a, button),
-  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions :where(a, button) {
-    position: relative;
+    gap: 8px;
     width: 100%;
     min-width: 0;
-    min-height: 48px;
     margin: 0;
-    padding: 11px 16px;
-    box-sizing: border-box;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-actions :where(a, button),
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-actions :where(a, button) {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
     justify-content: center;
-    border-radius: 15px !important;
-    overflow: hidden;
+    border-radius: 12px !important;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions .secondary-button,
-  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions .secondary-button {
-    border: 1px solid color-mix(in srgb, var(--ncr26-border-strong) 88%, transparent);
-    background: rgba(255, 255, 255, .96);
-    box-shadow: 0 2px 8px rgba(15, 23, 42, .035);
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin: 0;
+    padding-top: 14px;
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions .primary-button,
-  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions .primary-button {
-    border: 1px solid color-mix(in srgb, var(--ncr26-brand-strong) 34%, var(--ncr26-brand));
-    box-shadow: 0 7px 18px rgba(18, 103, 234, .16);
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-metrics::before,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline::before {
+    display: none;
   }
 
-  /* Séparation du bloc suivant : plus basse et indépendante des boutons. */
-  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics,
-  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline {
-    margin-top: 8px;
-    padding-top: 18px;
-    border-top: 0;
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-metrics article {
+    grid-template-columns: 32px minmax(0, 1fr);
+    min-height: 74px;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--ncr26-border);
+    border-radius: 12px;
+    background: rgba(255,255,255,.82);
   }
 
-  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-metrics::before,
-  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-pipeline::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 16px;
-    right: 16px;
-    height: 1px;
-    background: color-mix(in srgb, var(--ncr26-border) 74%, transparent);
-    pointer-events: none;
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-metrics article:nth-child(n) {
+    border-right: 1px solid var(--ncr26-border);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-metrics article > span {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-editor {
+    margin-bottom: 14px;
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-editor > .panel-header {
+    padding: 17px 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-complete-form {
+    gap: 9px;
+    padding: 9px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-complete-form fieldset {
+    padding: 16px 14px 17px;
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 1px var(--ncr26-border);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-complete-form legend {
+    gap: 9px;
+    margin-bottom: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-complete-form .training-form-grid,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-convert-panel .training-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-complete-form .full-field,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-convert-panel .full-field {
+    grid-column: auto;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-form-footer,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-convert-panel > form > footer {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-inline: 0;
+    padding: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-form-footer .primary-button,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-convert-panel > form > footer :where(button, a) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-top: 0;
+    padding-top: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline article {
+    grid-template-columns: 36px minmax(0, 1fr);
+    min-height: 82px;
+    gap: 8px;
+    padding: 10px 9px;
+    border-radius: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline article::after {
+    display: none !important;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline article > span {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-layout {
+    gap: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-session-panel,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-cockpit {
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-cockpit-head {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 17px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-cockpit-score {
+    justify-self: start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-next-action {
+    grid-template-columns: auto minmax(0, 1fr);
+    margin: 12px;
+    padding: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-next-action > :last-child {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0 12px 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-steps {
+    grid-template-columns: 1fr;
+    padding: 0 12px 12px;
   }
 
   /* =======================================================
-     NAVIGATION BASSE — rendu flottant conservé
+     SESSIONS / CALENDRIER
+     ======================================================= */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-planning-premium .training-planning-hero {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 18px 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-planning-premium .training-session-hero-actions,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-planning-premium .training-session-hero-actions .primary-button {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-planning-premium .training-session-hero-actions .primary-button {
+    min-height: 46px;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-session-form-panel,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(.training-calendar-main, .training-calendar-agenda) {
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-session-form-panel > .panel-header,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-session-form-panel > form {
+    padding: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-session-form-panel .training-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-session-form-panel .full-field {
+    grid-column: auto;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-session-form-panel .form-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-session-form-panel .form-actions button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-session-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .planning-toolbar-filters,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .planning-toolbar-filters .segmented-control {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .planning-toolbar-filters .segmented-control {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-calendar-navigation {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    gap: 7px;
+    padding: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-calendar-navigation > div:last-child {
+    grid-column: 1 / -1;
+    margin-left: 0;
+    padding-top: 4px;
+    text-align: left;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-month-calendar {
+    padding: 9px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(.planning-month-weekdays, .planning-month-grid) {
+    min-width: 630px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .planning-month-grid > button {
+    min-height: 76px;
+    padding: 7px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-calendar-agenda {
+    padding: 15px;
+  }
+
+  /* =======================================================
+     PERSONNES / ÉMARGEMENT / ÉVALUATIONS
+     ======================================================= */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-trainees-page > .page-header,
+    .training-trainers-page > .page-header,
+    .training-attendance-page > .page-header,
+    .training-evaluation-page-header
+  ) {
+    display: grid;
+    gap: 14px;
+    padding: 19px 17px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-trainees-page > .page-header,
+    .training-trainers-page > .page-header,
+    .training-attendance-page > .page-header,
+    .training-evaluation-page-header
+  ) h1 {
+    font-size: clamp(1.72rem, 8.2vw, 2.08rem);
+    line-height: 1.02;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-trainees-page,
+    .training-trainers-page
+  ) > .page-header > .primary-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-trainees-page,
+    .training-trainers-page
+  ) > :is(.training-form-panel, .training-list-panel) {
+    padding: 15px;
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-trainees-page,
+    .training-trainers-page
+  ) .training-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-trainees-page,
+    .training-trainers-page
+  ) .training-record-card {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 9px 11px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-trainees-page,
+    .training-trainers-page
+  ) .training-record-card > :is(.training-status-pill, .compact-button),
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-trainers-page .training-trainer-bpf-relationship {
+    grid-column: 2;
+  }
+
+  /* =======================================================
+     COMMERCIAL / FACTURATION / DOCUMENTS
+     ======================================================= */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-page,
+    .training-billing-page,
+    .training-documents-page
+  ) > .page-header {
+    display: grid;
+    gap: 14px;
+    padding: 19px 17px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-page,
+    .training-billing-page,
+    .training-documents-page
+  ) > .page-header h1 {
+    font-size: clamp(1.72rem, 8.2vw, 2.08rem);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-page,
+    .training-billing-page,
+    .training-documents-page
+  ) > .page-header > .primary-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-tabs,
+    .training-billing-tabs
+  ) {
+    width: 100%;
+    max-width: 100%;
+    margin-block: 12px 14px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-tabs,
+    .training-billing-tabs
+  )::-webkit-scrollbar {
+    display: none;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-tabs,
+    .training-billing-tabs
+  ) > button {
+    scroll-snap-align: start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-metrics,
+    .training-crm-metrics,
+    .training-billing-metrics
+  ) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-block: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-metrics,
+    .training-crm-metrics,
+    .training-billing-metrics
+  ) > article {
+    min-height: 88px;
+    padding: 12px;
+    border-radius: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-editor,
+    .training-crm-editor,
+    .training-billing-editor,
+    .training-payment-editor,
+    .training-billing-settings
+  ) {
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-editor,
+    .training-crm-editor,
+    .training-billing-editor,
+    .training-payment-editor,
+    .training-billing-settings
+  ) > .panel-header {
+    padding: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-editor,
+    .training-crm-editor,
+    .training-billing-editor,
+    .training-payment-editor,
+    .training-billing-settings
+  ) > form {
+    grid-template-columns: 1fr !important;
+    gap: 13px;
+    padding: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-editor,
+    .training-crm-editor,
+    .training-billing-editor,
+    .training-payment-editor,
+    .training-billing-settings
+  ) .full-field {
+    grid-column: auto;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-editor,
+    .training-crm-editor,
+    .training-billing-editor,
+    .training-payment-editor,
+    .training-billing-settings
+  ) .form-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-editor,
+    .training-crm-editor,
+    .training-billing-editor,
+    .training-payment-editor,
+    .training-billing-settings
+  ) .form-actions :where(button, a) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-list,
+    .training-billing-list,
+    .training-list-panel
+  ) {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-list .training-toolbar,
+    .training-billing-list .training-toolbar,
+    .training-document-toolbar
+  ) {
+    display: grid;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-list .search-field,
+    .training-billing-list .training-search,
+    .training-document-toolbar .search-field
+  ) {
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-commercial-document-list > article,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-invoice-list > article {
+    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-areas:
+      "icon main"
+      "value value"
+      "actions actions";
+    padding: 12px;
+    border-radius: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-document-value,
+    .training-invoice-value
+  ) {
+    justify-items: start;
+    min-width: 0;
+    padding-top: 8px;
+    border-top: 1px solid var(--ncr26-border);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-document-actions,
+    .training-invoice-actions
+  ) {
+    justify-content: flex-start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-commercial-document-actions,
+    .training-invoice-actions
+  ) :where(button, label, select) {
+    flex: 1 1 128px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-payment-list > article {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-payment-list > article > b {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  /* =======================================================
+     DOSSIERS / QUALITÉ / BPF / PROFIL
+     ======================================================= */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-dossier-hero,
+    .training-compliance-header,
+    .training-bpf-header,
+    .training-profile-hero,
+    .training-portal-admin-header
+  ) {
+    padding: 19px 17px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-dossier-hero,
+    .training-compliance-header,
+    .training-bpf-header,
+    .training-profile-hero,
+    .training-portal-admin-header
+  ) h1 {
+    font-size: clamp(1.72rem, 8.2vw, 2.08rem);
+    line-height: 1.02;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-profile-hero {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-profile-score {
+    width: 100%;
+    min-width: 0;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-dossier-metrics,
+    .training-compliance-metrics,
+    .training-bpf-metrics,
+    .training-portal-admin-metrics
+  ) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-dossier-metrics,
+    .training-compliance-metrics,
+    .training-bpf-metrics,
+    .training-portal-admin-metrics
+  ) article {
+    min-height: 78px;
+    padding: 11px;
+    border-radius: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-dossier-tabs,
+    .training-compliance-tabs,
+    .training-bpf-tabs,
+    .training-portal-admin-tabs
+  ) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 4px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-dossier-tabs,
+    .training-compliance-tabs,
+    .training-bpf-tabs,
+    .training-portal-admin-tabs
+  ) button {
+    min-width: 0;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-dossier-commandbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-dossier-search {
+    width: 100%;
+    min-width: 0;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-dossier-workspace,
+    .training-compliance-workspace,
+    .training-compliance-audits-grid,
+    .training-bpf-overview-grid,
+    .training-portal-admin-workspace
+  ) {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-dossier-list-panel {
+    max-height: 330px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-dossier-detail-header,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-dossier-detail-grid {
+    padding: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-dossier-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-dossier-check {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 9px;
+    padding: 11px 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-dossier-check-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-bpf-mode-switch {
+    gap: 5px;
+    padding: 5px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-bpf-mode-switch button {
+    min-height: 52px;
+    padding: 9px 10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-bpf-assistant-hero {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 11px;
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-bpf-assistant-progress {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-bpf-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-bpf-form-grid .full-field {
+    grid-column: auto;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-bpf-data-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-bpf-data-table > div {
+    min-width: 640px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-bpf-savebar {
+    bottom: calc(86px + env(safe-area-inset-bottom));
+    padding: 11px 12px;
+    border-radius: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-profile-form {
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-profile-form > section {
+    padding: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-profile-form .training-form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-profile-form .full-field {
+    grid-column: auto;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-document-assets {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-profile-submit {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 11px;
+    padding: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-profile-submit .primary-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-profile-aside {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  /* =======================================================
+     RÉGLAGES / ADMINISTRATION FORMATION
+     ======================================================= */
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .settings-page > .page-header,
+    .notification-page > .page-header,
+    .commercial-branding-page > .page-header,
+    .subscription-page > .page-header,
+    .metier-workspace-page > .page-header,
+    .launch-center-hero,
+    .support-center-hero
+  ) {
+    padding: 19px 17px;
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .settings-page .settings-layout,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .commercial-branding-page .commercial-branding-layout,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .support-center-page .support-workspace,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .launch-center-page .launch-center-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .settings-page .settings-form {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .settings-page .plan-overview-card {
+    padding: 17px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .settings-page .plan-overview-heading {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .settings-page .plan-entitlement-grid {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  /* =======================================================
+     NAVIGATION BASSE
      ======================================================= */
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
     min-height: 68px;
@@ -79,14 +1112,14 @@
     padding-bottom: 6px;
     border: 1px solid color-mix(in srgb, var(--ncr26-border-strong) 88%, transparent);
     border-radius: 28px;
-    background: rgba(255, 255, 255, .94);
-    box-shadow: 0 12px 34px rgba(15, 23, 42, .11), 0 2px 8px rgba(15, 23, 42, .04);
+    background: rgba(255,255,255,.94);
+    box-shadow: 0 12px 34px rgba(15,23,42,.11), 0 2px 8px rgba(15,23,42,.04);
     overflow: visible;
   }
 
   @supports (backdrop-filter: blur(18px)) {
     html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
-      background: rgba(255, 255, 255, .88);
+      background: rgba(255,255,255,.88);
       backdrop-filter: saturate(135%) blur(18px);
       -webkit-backdrop-filter: saturate(135%) blur(18px);
     }
@@ -95,29 +1128,113 @@
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav > :where(a, button) {
     min-height: 48px;
     gap: 3px;
-    padding-top: 3px;
-    padding-bottom: 3px;
+    padding-block: 3px;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav > :where(a, button) > span:not(.mobile-create-action) {
     font-size: .64rem;
     line-height: 1.1;
   }
+}
 
-  /* On garde l'espace de scroll sous le contenu sans agrandir visuellement la barre. */
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .premium-route-stage {
-    padding-bottom: calc(118px + env(safe-area-inset-bottom));
-    scroll-padding-bottom: calc(118px + env(safe-area-inset-bottom));
+@media (max-width: 420px) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-quality-overview,
+    .training-quality-stats,
+    .training-commercial-metrics,
+    .training-crm-metrics,
+    .training-billing-metrics,
+    .training-dossier-metrics,
+    .training-compliance-metrics,
+    .training-bpf-metrics,
+    .training-portal-admin-metrics,
+    .training-dossier-facts
+  ) {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-quality-overview-card,
+    .training-quality-stats .stat-card,
+    .training-commercial-metrics > article,
+    .training-crm-metrics > article,
+    .training-billing-metrics > article,
+    .training-dossier-metrics article,
+    .training-compliance-metrics article,
+    .training-bpf-metrics article,
+    .training-portal-admin-metrics article
+  ) {
+    min-height: 72px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-dossier-tabs,
+    .training-compliance-tabs,
+    .training-bpf-tabs,
+    .training-portal-admin-tabs
+  ) {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-quality-export-actions {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-bpf-assistant-steps {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 380px) {
-  html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-hero-actions,
-  html[data-ncr-ui-2026="true"] .app-shell .training-workflow-page .training-workflow-hero-actions {
-    margin-inline: 12px;
+@media (max-width: 360px) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-quality-header,
+    .training-program-hero,
+    .training-workflow-hero,
+    .training-planning-hero,
+    .training-trainees-page > .page-header,
+    .training-trainers-page > .page-header,
+    .training-commercial-page > .page-header,
+    .training-billing-page > .page-header,
+    .training-documents-page > .page-header,
+    .training-dossier-hero,
+    .training-compliance-header,
+    .training-bpf-header,
+    .training-profile-hero
+  ) {
+    padding-inline: 14px;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
     border-radius: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell :is(
+    .training-quality-dashboard,
+    .training-programs-v215,
+    .training-workflow-page,
+    .training-planning-premium,
+    .training-trainees-page,
+    .training-trainers-page,
+    .training-attendance-page,
+    .training-evaluations-page,
+    .training-commercial-page,
+    .training-billing-page,
+    .training-documents-page,
+    .training-dossier-page,
+    .training-quality-compliance-page,
+    .training-bpf-page,
+    .training-profile-page,
+    .training-portal-admin-page
+  ) * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
