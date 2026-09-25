@@ -141,7 +141,7 @@ export function TrainingTrainersPage() {
   if (!organization) return null;
 
   return (
-    <div className="page training-page">
+    <div className="page training-page training-trainers-page">
       <header className="page-header">
         <div><p className="eyebrow">PACK FORMATION</p><h1>Formateurs</h1><p>Gérez les intervenants et leurs domaines de spécialité.</p></div>
         {canManage && <button className="primary-button" type="button" onClick={() => setSearchParams({ new: '1' })}><Icon name="plus" size={18} />Ajouter un formateur</button>}
