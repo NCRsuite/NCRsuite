@@ -309,10 +309,10 @@
     position: relative;
     z-index: 3;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-    width: calc(100% - 20px);
-    max-width: 100%;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 8px;
+    width: 100%;
     min-width: 0;
     margin: 0 auto;
     box-sizing: border-box;
@@ -320,12 +320,16 @@
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-actions :where(a, button),
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-actions :where(a, button) {
-    width: 100%;
+    width: calc(100% - 28px);
+    max-width: 520px;
     min-width: 0;
     min-height: 44px;
-    padding-inline: 10px;
+    margin: 0 auto;
+    padding-inline: 12px;
+    justify-self: center;
     justify-content: center;
     border-radius: 12px !important;
+    box-sizing: border-box;
     font-size: .8rem;
   }
 
@@ -1230,8 +1234,13 @@
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-actions,
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-actions {
     grid-template-columns: 1fr;
-    width: calc(100% - 24px);
+    width: 100%;
     margin-inline: auto;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-actions :where(a, button),
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-actions :where(a, button) {
+    width: calc(100% - 24px);
   }
 }
 
