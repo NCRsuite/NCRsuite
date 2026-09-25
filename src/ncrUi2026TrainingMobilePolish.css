@@ -275,9 +275,9 @@
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero,
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero {
     grid-template-columns: 1fr;
-    row-gap: 15px;
-    margin-bottom: 16px;
-    padding: 18px 16px 16px;
+    row-gap: 13px;
+    margin-bottom: 15px;
+    padding: 17px 16px 15px;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero::before,
@@ -309,8 +309,8 @@
     position: relative;
     z-index: 3;
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
     width: 100%;
     min-width: 0;
     margin: 0;
@@ -320,9 +320,11 @@
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-actions :where(a, button) {
     width: 100%;
     min-width: 0;
-    min-height: 46px;
+    min-height: 44px;
+    padding-inline: 10px;
     justify-content: center;
     border-radius: 12px !important;
+    font-size: .8rem;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-metrics {
@@ -339,9 +341,9 @@
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-metrics article {
     grid-template-columns: 32px minmax(0, 1fr);
-    min-height: 74px;
+    min-height: 68px;
     gap: 8px;
-    padding: 10px;
+    padding: 9px 10px;
     border: 1px solid var(--ncr26-border);
     border-radius: 12px;
     background: rgba(255,255,255,.82);
@@ -355,6 +357,17 @@
     width: 32px;
     height: 32px;
     border-radius: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-metrics strong {
+    font-size: 1.22rem;
+    line-height: 1;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-metrics small {
+    margin-top: 4px;
+    font-size: .7rem;
+    line-height: 1.22;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-editor {
@@ -417,9 +430,9 @@
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline article {
     grid-template-columns: 36px minmax(0, 1fr);
-    min-height: 82px;
+    min-height: 76px;
     gap: 8px;
-    padding: 10px 9px;
+    padding: 9px;
     border-radius: 12px;
   }
 
@@ -431,6 +444,25 @@
     width: 36px;
     height: 36px;
     border-radius: 11px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline article > div {
+    padding-top: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline article > div::before {
+    font-size: .58rem;
+    letter-spacing: .09em;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline strong {
+    font-size: 1.16rem;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-pipeline small {
+    margin-top: 4px;
+    font-size: .7rem;
+    line-height: 1.24;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-layout {
@@ -472,6 +504,61 @@
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-steps {
     grid-template-columns: 1fr;
     padding: 0 12px 12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-card {
+    gap: 11px;
+    padding: 14px;
+    border-radius: 15px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-card > header {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 9px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-card > header > span {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-card > header small {
+    font-size: .67rem;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-card > header strong {
+    font-size: .96rem;
+    line-height: 1.24;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-card > header em {
+    padding: 5px 7px;
+    font-size: .66rem;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-card > p {
+    min-height: 0;
+    font-size: .8rem;
+    line-height: 1.5;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-facts {
+    gap: 6px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-facts > span {
+    padding: 5px 7px;
+    font-size: .69rem;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-v215-trainers {
+    font-size: .72rem;
   }
 
   /* =======================================================
@@ -1134,6 +1221,13 @@
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav > :where(a, button) > span:not(.mobile-create-action) {
     font-size: .64rem;
     line-height: 1.1;
+  }
+}
+
+@media (max-width: 390px) {
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-actions,
+  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-actions {
+    grid-template-columns: 1fr;
   }
 }
 
