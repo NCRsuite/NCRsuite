@@ -525,3 +525,64 @@ Le projet fonctionne actuellement avec React + CSS maison.
 N’introduis pas Tailwind, Material UI, Chakra, Ant Design ou une autre bibliothèque pour la seule refonte visuelle.
 
 Le design premium doit être obtenu en consolidant le système existant.
+
+
+## Référence visuelle interne : module Formation
+
+À l'heure actuelle, la branche **Formation** est la partie la plus aboutie visuellement de NCR Suite.
+
+Elle doit servir de **référence interne de qualité** pour la refonte globale, notamment pour :
+
+- la structure des héros de page ;
+- la hiérarchie typographique ;
+- les espacements ;
+- les KPI et cartes de synthèse ;
+- les formulaires complexes ;
+- les toolbars ;
+- les états et feedbacks ;
+- le responsive mobile ;
+- la sidebar et la navigation ;
+- la cohérence avec les tokens `--ncr26-*`.
+
+Les principaux fichiers de référence comprennent notamment :
+
+- `src/ncrUi2026TrainingDashboard.css` ;
+- `src/ncrUi2026TrainingOperations.css` ;
+- `src/ncrUi2026TrainingSpacing.css` ;
+- `src/ncrUi2026TrainingMobilePolish.css` ;
+- `src/ncrUi2026TrainingSidebarPolish.css`.
+
+Important : ne copie pas littéralement les composants Formation dans les autres métiers si leur usage métier est différent.
+
+Il faut extraire et généraliser les **principes visuels réutilisables**, puis adapter chaque métier à ses propres besoins fonctionnels.
+
+Le résultat final doit donner l'impression qu'il existe **un seul produit NCR Suite**, avec cinq univers métier cohérents et également premium :
+
+- Formation ;
+- Coiffure / Beauté ;
+- Sécurité ;
+- Nettoyage ;
+- Restauration.
+
+La qualité perçue ne doit jamais dépendre du métier choisi.
+
+### Priorité de refonte globale
+
+Avant les polish spécifiques par métier, commencer par le socle transversal :
+
+1. design tokens NCR UI 2026 ;
+2. AppShell ;
+3. sidebar et navigation ;
+4. header mobile / bottom navigation ;
+5. boutons ;
+6. champs de formulaire ;
+7. cartes et panneaux ;
+8. titres et headers de page ;
+9. tableaux / listes ;
+10. modales / drawers ;
+11. messages, loaders, empty states ;
+12. spacing et responsive communs.
+
+Ensuite seulement traiter les particularités métier.
+
+Formation sert de référence, mais elle doit également bénéficier du polish final transversal si des incohérences globales subsistent.
