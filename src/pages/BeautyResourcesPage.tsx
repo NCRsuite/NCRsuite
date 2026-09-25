@@ -5,7 +5,6 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
 import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import { supabase } from '../lib/supabase';
-import '../beautyResources.css';
 
 type ResourceKind = 'chair' | 'cabin' | 'machine' | 'station' | 'room' | 'other';
 
