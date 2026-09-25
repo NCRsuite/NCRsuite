@@ -1,6 +1,6 @@
 html[data-beauty-metier="true"] .services-page,
 html[data-beauty-metier="true"] .staff-page{
-  --beauty-op-accent:var(--tenant-brand-color,var(--ncr26-brand,#8b5cf6));
+  --beauty-op-accent:var(--business-accent,var(--ncr26-brand,#5C194B));
   --beauty-op-ink:#172033;
   --beauty-op-muted:#7c899b;
   --beauty-op-line:#e7ecf3;
@@ -16,23 +16,23 @@ html[data-beauty-metier="true"] .staff-page>.page-header{
   overflow:hidden;
   align-items:flex-end;
   gap:24px;
-  padding:26px 28px;
-  margin-bottom:16px;
-  border:1px solid color-mix(in srgb,var(--beauty-op-accent) 14%,var(--beauty-op-line));
-  border-radius:26px;
-  background:linear-gradient(135deg,color-mix(in srgb,var(--beauty-op-accent) 9%,#fff),#fff 48%,color-mix(in srgb,var(--beauty-op-accent) 4%,#fff));
-  box-shadow:0 18px 46px rgba(30,41,59,.06);
+  padding:25px 28px 24px;
+  margin-bottom:14px;
+  border:1px solid color-mix(in srgb,var(--beauty-op-accent) 10%,var(--beauty-op-line));
+  border-radius:22px;
+  background:radial-gradient(circle at 96% 0%,color-mix(in srgb,var(--beauty-op-accent) 7%,transparent),transparent 22rem),linear-gradient(145deg,#fff,color-mix(in srgb,var(--ncr26-surface-soft,#f8fafc) 76%,#fff));
+  box-shadow:0 10px 30px rgba(15,23,42,.035);
 }
 html[data-beauty-metier="true"] .services-page>.page-header:after,
 html[data-beauty-metier="true"] .staff-page>.page-header:after{
   content:"";
   position:absolute;
-  width:220px;
-  height:220px;
-  right:-80px;
-  top:-145px;
-  border-radius:50%;
-  background:color-mix(in srgb,var(--beauty-op-accent) 10%,transparent);
+  left:28px;
+  top:0;
+  width:78px;
+  height:3px;
+  border-radius:0 0 999px 999px;
+  background:var(--beauty-op-accent);
   pointer-events:none;
 }
 html[data-beauty-metier="true"] .services-page>.page-header>div,
@@ -81,12 +81,12 @@ html[data-beauty-metier="true"] .service-summary-card,
 html[data-beauty-metier="true"] .staff-summary-card{
   position:relative;
   overflow:hidden;
-  min-height:116px;
-  padding:18px 19px;
+  min-height:104px;
+  padding:16px 17px;
   border:1px solid var(--beauty-op-line);
-  border-radius:20px;
+  border-radius:16px;
   background:#fff;
-  box-shadow:0 9px 26px rgba(30,41,59,.045);
+  box-shadow:0 3px 12px rgba(15,23,42,.026);
 }
 html[data-beauty-metier="true"] .service-summary-card:before,
 html[data-beauty-metier="true"] .staff-summary-card:before{
@@ -122,11 +122,11 @@ html[data-beauty-metier="true"] .staff-summary-card>small{
 
 html[data-beauty-metier="true"] .services-list-panel,
 html[data-beauty-metier="true"] .staff-list-panel{
-  padding:20px;
+  padding:19px;
   border:1px solid var(--beauty-op-line);
-  border-radius:24px;
+  border-radius:18px;
   background:#fff;
-  box-shadow:0 13px 34px rgba(30,41,59,.05);
+  box-shadow:0 7px 24px rgba(15,23,42,.03);
 }
 html[data-beauty-metier="true"] .services-toolbar,
 html[data-beauty-metier="true"] .staff-toolbar{
@@ -175,17 +175,17 @@ html[data-beauty-metier="true"] .services-grid{
 }
 html[data-beauty-metier="true"] .service-card{
   min-width:0;
-  padding:17px;
+  padding:16px;
   border:1px solid var(--beauty-op-line);
-  border-radius:20px;
+  border-radius:16px;
   background:linear-gradient(180deg,#fff,#fcfdff);
-  box-shadow:0 7px 20px rgba(30,41,59,.035);
-  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  box-shadow:0 4px 16px rgba(15,23,42,.028);
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
 }
 html[data-beauty-metier="true"] .service-card:hover{
-  transform:translateY(-2px);
-  border-color:color-mix(in srgb,var(--beauty-op-accent) 27%,var(--beauty-op-line));
-  box-shadow:0 14px 28px rgba(30,41,59,.065);
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb,var(--beauty-op-accent) 24%,var(--beauty-op-line));
+  box-shadow:0 9px 22px rgba(15,23,42,.045);
 }
 html[data-beauty-metier="true"] .service-card.inactive{
   opacity:.62;
@@ -265,17 +265,17 @@ html[data-beauty-metier="true"] .staff-grid{
 }
 html[data-beauty-metier="true"] .staff-card{
   min-width:0;
-  padding:17px;
+  padding:16px;
   border:1px solid var(--beauty-op-line);
-  border-radius:20px;
+  border-radius:16px;
   background:#fff;
-  box-shadow:0 7px 20px rgba(30,41,59,.035);
-  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+  box-shadow:0 4px 16px rgba(15,23,42,.028);
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
 }
 html[data-beauty-metier="true"] .staff-card:hover{
-  transform:translateY(-2px);
-  border-color:color-mix(in srgb,var(--beauty-op-accent) 26%,var(--beauty-op-line));
-  box-shadow:0 14px 28px rgba(30,41,59,.065);
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb,var(--beauty-op-accent) 24%,var(--beauty-op-line));
+  box-shadow:0 9px 22px rgba(15,23,42,.045);
 }
 html[data-beauty-metier="true"] .staff-card.inactive{opacity:.62;background:#fafbfc}
 html[data-beauty-metier="true"] .staff-card-header{
@@ -365,11 +365,11 @@ html[data-beauty-metier="true"] .staff-form-panel{
   position:relative;
   overflow:hidden;
   margin-bottom:16px;
-  padding:20px;
-  border:1px solid color-mix(in srgb,var(--beauty-op-accent) 18%,var(--beauty-op-line));
-  border-radius:24px;
+  padding:19px;
+  border:1px solid color-mix(in srgb,var(--beauty-op-accent) 16%,var(--beauty-op-line));
+  border-radius:18px;
   background:linear-gradient(180deg,#fff,#fcfdff);
-  box-shadow:0 16px 38px rgba(30,41,59,.055);
+  box-shadow:0 8px 26px rgba(15,23,42,.035);
 }
 html[data-beauty-metier="true"] .service-form-panel:before,
 html[data-beauty-metier="true"] .staff-form-panel:before{
