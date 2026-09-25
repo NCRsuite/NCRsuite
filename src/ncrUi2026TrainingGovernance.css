@@ -745,6 +745,17 @@ html[data-ncr-ui-2026="true"] .training-bpf-header {
   box-shadow: 0 1px 2px rgba(15,23,42,.03), 0 14px 38px rgba(15,23,42,.04);
 }
 
+html[data-ncr-ui-2026="true"] .training-bpf-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 28px;
+  width: 88px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(90deg, var(--ncr26-brand), color-mix(in srgb, var(--ncr26-brand) 38%, #72b4ff));
+}
+
 html[data-ncr-ui-2026="true"] .training-bpf-header h1 {
   font-size: clamp(1.9rem, 3vw, 2.65rem);
   line-height: 1.02;
@@ -1184,6 +1195,17 @@ html[data-ncr-ui-2026="true"] .training-profile-hero {
     radial-gradient(circle at 94% 4%, rgba(18,103,234,.08), transparent 20rem),
     linear-gradient(145deg, #fff, #f8faff);
   box-shadow: 0 1px 2px rgba(15,23,42,.03), 0 14px 38px rgba(15,23,42,.04);
+}
+
+html[data-ncr-ui-2026="true"] .training-profile-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 28px;
+  width: 88px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(90deg, var(--ncr26-brand), color-mix(in srgb, var(--ncr26-brand) 38%, #72b4ff));
 }
 
 html[data-ncr-ui-2026="true"] .training-profile-hero > div:first-child > span {
