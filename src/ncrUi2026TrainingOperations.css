@@ -161,74 +161,113 @@ html[data-ncr-ui-2026="true"] .app-shell .training-program-metrics small {
 /* Formation editor */
 html[data-ncr-ui-2026="true"] .app-shell .training-program-editor {
   margin-bottom: 20px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-border-strong) 82%, transparent);
   border-radius: 22px;
-  box-shadow: 0 12px 40px rgba(15,23,42,.055);
+  background: var(--ncr26-surface-soft);
+  box-shadow: 0 14px 42px rgba(15,23,42,.055);
   overflow: hidden;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-editor > .panel-header {
   padding: 22px 24px;
-  background: linear-gradient(180deg, #fff, var(--ncr26-surface-soft));
+  border-bottom: 1px solid color-mix(in srgb, var(--ncr26-border) 86%, transparent);
+  background:
+    radial-gradient(circle at 96% 0%, color-mix(in srgb, var(--ncr26-brand) 5%, transparent), transparent 18rem),
+    linear-gradient(180deg, #fff, color-mix(in srgb, var(--ncr26-surface-soft) 72%, #fff));
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form {
-  padding: 0;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  background: color-mix(in srgb, var(--ncr26-surface-soft) 82%, #fff);
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form fieldset {
+  position: relative;
   margin: 0;
   padding: 24px;
   border: 0;
-  border-bottom: 1px solid var(--ncr26-border);
+  border-radius: 18px;
   background: #fff;
+  box-shadow:
+    inset 0 0 0 1px var(--ncr26-border),
+    0 7px 22px rgba(15,23,42,.028);
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form fieldset:nth-of-type(even) {
-  background: color-mix(in srgb, var(--ncr26-surface-soft) 58%, #fff);
+  background: #fff;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form legend {
   display: inline-flex;
+  width: 100%;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: 11px;
+  margin: 0 0 20px;
+  padding: 0;
   color: var(--ncr26-text);
-  font-size: .94rem;
-  font-weight: 680;
-  letter-spacing: -.012em;
+  font-size: .95rem;
+  font-weight: 710;
+  letter-spacing: -.016em;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form legend > span {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
   place-items: center;
-  border-radius: 9px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 13%, var(--ncr26-border));
+  border-radius: 10px;
   color: var(--ncr26-brand-strong);
-  background: var(--ncr26-brand-soft);
-  font-size: .72rem;
-  font-weight: 760;
+  background: linear-gradient(145deg, #fff, var(--ncr26-brand-soft));
+  box-shadow: 0 3px 10px rgba(18,103,234,.055);
+  font-size: .7rem;
+  font-weight: 780;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form .training-form-grid {
-  gap: 15px;
+  gap: 16px;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form label {
-  gap: 7px;
+  gap: 8px;
   color: var(--ncr26-text-soft);
-  font-size: .77rem;
-  font-weight: 610;
+  font-size: .78rem;
+  font-weight: 640;
+  letter-spacing: -.005em;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form :where(input, select, textarea) {
-  border-radius: 11px;
-  background: #fff;
+  border-color: color-mix(in srgb, var(--ncr26-border-strong) 92%, transparent);
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.018);
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form select {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 38px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ncr26-text-muted) 50%),
+    linear-gradient(135deg, var(--ncr26-text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 50%,
+    calc(100% - 12px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form textarea {
-  line-height: 1.55;
+  min-height: 116px;
+  line-height: 1.58;
   resize: vertical;
+}
+
+html[data-ncr-ui-2026="true"] .app-shell .training-program-complete-form textarea[rows="8"] {
+  min-height: 220px;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-trainer-picker {
@@ -290,9 +329,13 @@ html[data-ncr-ui-2026="true"] .app-shell .training-program-form-footer {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  padding: 18px 24px;
-  border-top: 0;
-  background: linear-gradient(135deg, var(--ncr26-brand-pale), #fff 58%);
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--ncr26-brand) 10%, var(--ncr26-border));
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 0% 100%, color-mix(in srgb, var(--ncr26-brand) 5%, transparent), transparent 15rem),
+    linear-gradient(135deg, var(--ncr26-brand-pale), #fff 58%);
+  box-shadow: 0 6px 18px rgba(15,23,42,.025);
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-program-form-footer > div:first-child {
