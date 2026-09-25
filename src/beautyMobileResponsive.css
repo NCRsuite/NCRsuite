@@ -71,68 +71,151 @@
     justify-content: center;
   }
 
-  /* Agenda semaine : 7 jours restent visibles, mais avec texte réellement lisible. */
+  /* Agenda semaine : priorité à la lisibilité, avec défilement horizontal assumé. */
   .beauty-week-planner-shell {
-    margin-inline: -8px;
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+    margin-inline: 0;
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
   }
 
   .beauty-week-planner {
-    grid-template-columns: 36px repeat(7, minmax(0, 1fr));
+    grid-template-columns: 54px repeat(7, 122px);
+    width: max-content;
+    min-width: 908px;
+    border-radius: 15px;
   }
 
   .beauty-week-day-header {
-    min-height: 58px;
+    min-height: 62px;
     touch-action: manipulation;
   }
 
   .beauty-week-day-header > span {
-    font-size: 7px;
+    font-size: 9px;
   }
 
   .beauty-week-day-header > strong {
-    font-size: 15px;
+    font-size: 18px;
   }
 
   .beauty-week-day-header.today > strong {
-    width: 25px;
-    height: 25px;
+    width: 28px;
+    height: 28px;
   }
 
   .beauty-week-day-header > small {
-    display: none;
+    display: block;
+    font-size: 8px;
   }
 
   .beauty-week-time-axis > span {
-    right: 4px;
-    font-size: 6px;
+    right: 5px;
+    font-size: 8px;
   }
 
   .beauty-week-day-column {
-    touch-action: pan-y pinch-zoom;
+    touch-action: pan-x pan-y pinch-zoom;
   }
 
   .beauty-week-appointment {
-    min-height: 28px;
-    padding: 3px;
+    min-height: 30px;
+    padding: 4px 5px;
+    border-radius: 8px;
   }
 
   .beauty-week-appointment-time {
-    font-size: 6px;
+    font-size: 9px;
   }
 
   .beauty-week-appointment > strong {
-    font-size: 7px;
-    line-height: 1.1;
+    font-size: 10px;
+    line-height: 1.15;
   }
 
   .beauty-week-appointment-service {
-    font-size: 6px;
+    font-size: 9px;
+  }
+
+  .beauty-week-appointment > small {
+    display: block;
+    font-size: 8px;
   }
 
   .beauty-week-unavailability > span {
-    font-size: 6px;
+    font-size: 8px;
+  }
+
+  /* Dashboard Coiffure : composition mobile premium et lisible. */
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-hero {
+    gap: 15px;
+    padding: 19px 17px 17px;
+    border-radius: 18px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-hero h1 {
+    margin-top: 12px;
+    font-size: clamp(1.75rem, 8.2vw, 2.1rem);
+    line-height: 1.02;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-hero p {
+    font-size: .88rem;
+    line-height: 1.5;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-hero-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-hero-actions > a {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-hero-actions > a:first-child:last-child,
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-hero-actions > a:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-kpi {
+    min-height: 92px;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-kpi strong {
+    margin-top: 7px;
+    font-size: 1.38rem;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-kpi :is(small, em) {
+    font-size: .68rem;
+    line-height: 1.25;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-main-grid {
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  html[data-beauty-metier="true"] .beauty-universe-page .beauty-card {
+    padding: 14px;
+    border-radius: 16px;
   }
 
   /* Fiche client CRM : vraie feuille plein écran PWA. */
