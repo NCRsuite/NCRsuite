@@ -84,6 +84,77 @@ html[data-ncr-ui-2026="true"] {
   }
 }
 
+/* ===== Business accent bridge =====
+ * Les offres standards utilisent toujours la couleur UI de leur métier.
+ * Une offre Métier en marque blanche peut fournir --tenant-brand-color :
+ * cette valeur devient alors automatiquement la couleur d'interface.
+ * Les couleurs sémantiques succès / alerte / danger restent indépendantes.
+ */
+html[data-ncr-ui-2026="true"][data-business-theme="formation"] {
+  --business-accent: var(--tenant-brand-color, #3370EC);
+  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 76%, #000);
+  --accent: var(--tenant-brand-color, #3370EC);
+  --primary-action: var(--tenant-brand-color, #3370EC);
+  --ncr26-brand: var(--tenant-brand-color, #3370EC);
+  --ncr26-brand-hover: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 86%, #000);
+  --ncr26-brand-strong: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 72%, #000);
+  --ncr26-brand-soft: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 22%, transparent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] {
+  --business-accent: var(--tenant-brand-color, #44946E);
+  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #44946E) 76%, #000);
+  --accent: var(--tenant-brand-color, #44946E);
+  --primary-action: var(--tenant-brand-color, #44946E);
+  --ncr26-brand: var(--tenant-brand-color, #44946E);
+  --ncr26-brand-hover: color-mix(in srgb, var(--tenant-brand-color, #44946E) 86%, #000);
+  --ncr26-brand-strong: color-mix(in srgb, var(--tenant-brand-color, #44946E) 72%, #000);
+  --ncr26-brand-soft: color-mix(in srgb, var(--tenant-brand-color, #44946E) 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, var(--tenant-brand-color, #44946E) 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #44946E) 22%, transparent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] {
+  --business-accent: var(--tenant-brand-color, #9B1C1C);
+  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 76%, #000);
+  --accent: var(--tenant-brand-color, #9B1C1C);
+  --primary-action: var(--tenant-brand-color, #9B1C1C);
+  --ncr26-brand: var(--tenant-brand-color, #9B1C1C);
+  --ncr26-brand-hover: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 86%, #000);
+  --ncr26-brand-strong: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 72%, #000);
+  --ncr26-brand-soft: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 22%, transparent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="coiffure"] {
+  --business-accent: var(--tenant-brand-color, #5C194B);
+  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 76%, #000);
+  --accent: var(--tenant-brand-color, #5C194B);
+  --primary-action: var(--tenant-brand-color, #5C194B);
+  --ncr26-brand: var(--tenant-brand-color, #5C194B);
+  --ncr26-brand-hover: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 86%, #000);
+  --ncr26-brand-strong: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 72%, #000);
+  --ncr26-brand-soft: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 22%, transparent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="restauration"] {
+  --business-accent: var(--tenant-brand-color, #B78324);
+  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #B78324) 76%, #000);
+  --accent: var(--tenant-brand-color, #B78324);
+  --primary-action: var(--tenant-brand-color, #B78324);
+  --ncr26-brand: var(--tenant-brand-color, #B78324);
+  --ncr26-brand-hover: color-mix(in srgb, var(--tenant-brand-color, #B78324) 86%, #000);
+  --ncr26-brand-strong: color-mix(in srgb, var(--tenant-brand-color, #B78324) 72%, #000);
+  --ncr26-brand-soft: color-mix(in srgb, var(--tenant-brand-color, #B78324) 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, var(--tenant-brand-color, #B78324) 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #B78324) 22%, transparent);
+}
+
 /* ===== App foundation ===== */
 html[data-ncr-ui-2026="true"] body {
   background:
