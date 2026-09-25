@@ -76,7 +76,7 @@ html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-progr
 
 html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-editor > .panel-header {
   gap: var(--ncr26-training-gap-lg);
-  padding: 26px 28px;
+  padding: 24px 26px;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-editor > .panel-header > div:first-child > p:last-child {
@@ -89,17 +89,17 @@ html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-progr
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-complete-form fieldset {
-  padding: 30px 28px 32px;
+  padding: 26px 26px 28px;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-complete-form legend {
-  gap: 12px;
-  margin-bottom: 24px;
+  gap: 11px;
+  margin-bottom: 20px;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-complete-form .training-form-grid {
   column-gap: 18px;
-  row-gap: 20px;
+  row-gap: 18px;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-complete-form label {
@@ -108,7 +108,7 @@ html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-progr
 
 html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-complete-form :where(input, select) {
   min-height: 46px;
-  padding-inline: 13px;
+  padding-inline: 14px;
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .training-programs-v215 .training-program-complete-form textarea {
