@@ -299,7 +299,7 @@ export function CoiffureClientPortalPage() {
   const pastRewards = useMemo(() => dashboard?.rewards.filter((reward) => reward.status !== 'available') ?? [], [dashboard]);
   const loyaltyHistory = useMemo(() => dashboard?.history ?? [], [dashboard]);
   const selectedAccount = accounts.find((account) => account.account_id === selectedAccountId);
-  const accent = dashboard?.organization.primary_color || selectedAccount?.organization_primary_color || '#2997ff';
+  const accent = dashboard?.organization.primary_color || selectedAccount?.organization_primary_color || '#5C194B';
   const style = { '--beauty-client-accent': accent } as CSSProperties;
   const bookingPath = dashboard?.organization.slug ? `/salon/${dashboard.organization.slug}#reserver` : '/reserver/';
   const publicPagePath = dashboard?.organization.slug ? `/salon/${dashboard.organization.slug}` : '/';
