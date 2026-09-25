@@ -310,15 +310,17 @@
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-workflow-hero-actions {
     position: relative;
     z-index: 3;
+    left: 50%;
     display: grid;
     grid-template-columns: 1fr;
     align-self: center;
     gap: 8px;
     width: calc(100% - 28px);
     min-width: 0;
-    margin: 0 auto;
+    margin: 0;
     padding: 0;
     box-sizing: border-box;
+    transform: translateX(-50%);
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .training-program-hero-actions :where(a, button),
