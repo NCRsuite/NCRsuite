@@ -64,6 +64,8 @@ import './beautyClientCrm.css';
 import './beautyGrowth.css';
 import './beautyUniverse.css';
 import './beautyAppointmentWeekPlanner.css';
+import './beautyResources.css';
+import './beautyServiceImages.css';
 import './beautyConfirmDialog.css';
 import './beautyUxPolish.css';
 import './beautyPublicBookingBaseline.css';
