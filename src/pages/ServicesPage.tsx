@@ -6,7 +6,6 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
 import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import { supabase } from '../lib/supabase';
-import '../beautyServiceImages.css';
 
 interface ServiceRecord {
   id: string;
