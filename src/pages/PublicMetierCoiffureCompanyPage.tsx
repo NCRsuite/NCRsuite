@@ -5,7 +5,6 @@ import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import '../beautyVerifiedReviews.css';
-import '../beautyServiceImages.css';
 import '../beautyMultiServiceBooking.css';
 
 interface PublicCompany {
