@@ -200,9 +200,9 @@
 
 .coiffure-public-book-link {
   color: #fff;
-  background: #18191d;
-  border: 1px solid #18191d;
-  box-shadow: 0 8px 22px rgba(20,24,31,.12);
+  background: color-mix(in srgb, var(--accent) 84%, #11151b);
+  border: 1px solid color-mix(in srgb, var(--accent) 84%, #11151b);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .coiffure-public-booking-premium .public-booking-container {
