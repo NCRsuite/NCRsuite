@@ -587,7 +587,39 @@ export function CoiffureClientPortalPage() {
         <div className="beauty-client-section-head"><div><p className="beauty-client-eyebrow">PROFIL</p><h1>Mes informations</h1></div></div>
         <div className="beauty-client-profile-grid">
           <article className="beauty-client-card"><h2>Coordonnées</h2><div className="beauty-client-profile-lines"><div><span>Nom</span><strong>{dashboard.client.first_name} {dashboard.client.last_name || ''}</strong></div><div><span>E-mail</span><strong>{dashboard.client.email || user.email || 'Non renseigné'}</strong></div><div><span>Téléphone</span><strong>{dashboard.client.phone || 'Non renseigné'}</strong></div></div><p className="beauty-client-message">Pour modifier ces coordonnées, contactez directement {dashboard.organization.name}.</p></article>
-          <form className="beauty-client-card beauty-client-profile-form" onSubmit={saveProfile}><h2>Préférences</h2>{dashboard.settings.allow_client_birthdate_edit ? <label>Date de naissance<input type="date" value={birthDate} onChange={(event) => setBirthDate(event.target.value)}/></label> : <div className="beauty-client-profile-lines"><div><span>Date de naissance</span><strong>{birthDate ? shortDate(birthDate) : 'Non renseignée'}</strong></div></div>}{dashboard.settings.birthday_enabled && <label className="beauty-client-check"><input type="checkbox" checked={birthdayConsent} onChange={(event) => setBirthdayConsent(event.target.checked)}/><span><strong>Avantage anniversaire</strong><small>Autoriser l’enseigne à utiliser ma date uniquement pour cet avantage.</small></span></label>}<label className="beauty-client-check"><input type="checkbox" checked={marketingOptIn} onChange={(event) => setMarketingOptIn(event.target.checked)}/><span><strong>Actualités de l’enseigne</strong><small>Recevoir ses nouveautés et offres commerciales.</small></span></label><button className="beauty-client-login-button" disabled={pending}>{pending ? 'Enregistrement…' : 'Enregistrer mes préférences'}</button></form>
+          <form className="beauty-client-card beauty-client-profile-form" onSubmit={saveProfile}>
+            <div className="beauty-client-profile-form-head">
+              <div>
+                <span className="beauty-client-profile-form-icon"><Icon name="settings" size={18}/></span>
+                <div><small>PERSONNALISATION</small><h2>Préférences</h2></div>
+              </div>
+              <p>Gérez uniquement les informations que vous souhaitez partager avec l’enseigne.</p>
+            </div>
+            {dashboard.settings.allow_client_birthdate_edit ? (
+              <label className="beauty-client-birth-field">
+                <span className="beauty-client-birth-label"><Icon name="calendar" size={16}/> Date de naissance</span>
+                <span className="beauty-client-birth-control">
+                  <input type="date" value={birthDate} onChange={(event) => setBirthDate(event.target.value)}/>
+                </span>
+                <small>Utilisée uniquement selon vos préférences ci-dessous.</small>
+              </label>
+            ) : (
+              <div className="beauty-client-profile-lines"><div><span>Date de naissance</span><strong>{birthDate ? shortDate(birthDate) : 'Non renseignée'}</strong></div></div>
+            )}
+            <div className="beauty-client-preference-list">
+              {dashboard.settings.birthday_enabled && (
+                <label className="beauty-client-check">
+                  <input type="checkbox" checked={birthdayConsent} onChange={(event) => setBirthdayConsent(event.target.checked)}/>
+                  <span><strong>Avantage anniversaire</strong><small>Autoriser l’enseigne à utiliser ma date uniquement pour cet avantage.</small></span>
+                </label>
+              )}
+              <label className="beauty-client-check">
+                <input type="checkbox" checked={marketingOptIn} onChange={(event) => setMarketingOptIn(event.target.checked)}/>
+                <span><strong>Actualités de l’enseigne</strong><small>Recevoir ses nouveautés et offres commerciales.</small></span>
+              </label>
+            </div>
+            <button className="beauty-client-login-button beauty-client-preferences-save" disabled={pending}>{pending ? 'Enregistrement…' : 'Enregistrer mes préférences'}</button>
+          </form>
         </div>
         <article className="beauty-client-card beauty-client-contact"><div><strong>Contacter {dashboard.organization.name}</strong><p>{dashboard.organization.address || 'Retrouvez toutes les informations sur sa page publique.'}</p></div><div className="beauty-client-contact-links">{dashboard.organization.email && <a href={`mailto:${dashboard.organization.email}`}><Icon name="message" size={14}/> E-mail</a>}{dashboard.organization.phone && <a href={`tel:${dashboard.organization.phone.replace(/\s+/g, '')}`}><Icon name="phone" size={14}/> Appeler</a>}<Link to={publicPagePath}><Icon name="eye" size={14}/> Page publique</Link></div></article>
       </section>}
