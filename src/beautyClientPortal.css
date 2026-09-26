@@ -2,15 +2,15 @@
 .beauty-client-profile-form-head{display:grid;gap:8px;padding-bottom:14px;border-bottom:1px solid #eceef1}
 .beauty-client-profile-form-head>div{display:flex;align-items:center;gap:11px}
 .beauty-client-profile-form-icon{width:38px;height:38px;display:grid;place-items:center;flex:0 0 38px;border-radius:12px;background:color-mix(in srgb,var(--beauty-client-accent) 9%,#fff);color:var(--beauty-client-accent)}
-.beauty-client-profile-form-head small{display:block;color:var(--beauty-client-accent);font-size:9px;font-weight:900;letter-spacing:.11em}
+.beauty-client-profile-form-head small{display:block;color:color-mix(in srgb,var(--beauty-client-accent) 58%,#3a2a38);font-size:9px;font-weight:900;letter-spacing:.11em}
 .beauty-client-profile-form-head h2{margin:2px 0 0;font-size:19px;letter-spacing:-.025em}
 .beauty-client-profile-form-head p{margin:0;color:#7d8590;font-size:11px;line-height:1.45}
-.beauty-client-birth-field{display:grid!important;gap:9px!important;padding:14px;border:1px solid color-mix(in srgb,var(--beauty-client-accent) 12%,#e3e6eb);border-radius:15px;background:color-mix(in srgb,var(--beauty-client-accent) 3.5%,#fff);text-transform:none!important;letter-spacing:normal!important}
-.beauty-client-birth-label{display:flex;align-items:center;gap:7px;color:#48515e;font-size:10px;font-weight:900;letter-spacing:.055em;text-transform:uppercase}
-.beauty-client-birth-control{position:relative;display:block}
-.beauty-client-birth-control input[type="date"]{min-height:52px!important;padding:11px 14px!important;border-color:color-mix(in srgb,var(--beauty-client-accent) 17%,#dfe3e8)!important;border-radius:13px!important;background:#fff!important;color:#1d2430;font-size:16px!important;font-weight:800;line-height:1.2;color-scheme:light}
+.beauty-client-birth-field{display:grid!important;grid-template-columns:minmax(0,1fr);gap:8px!important;padding:12px!important;overflow:hidden;border:1px solid color-mix(in srgb,var(--beauty-client-accent) 12%,#e3e6eb);border-radius:14px;background:color-mix(in srgb,var(--beauty-client-accent) 3.5%,#fff);text-transform:none!important;letter-spacing:normal!important}
+.beauty-client-birth-label{display:flex;align-items:center;gap:7px;min-width:0;color:#48515e;font-size:10px;font-weight:900;letter-spacing:.05em;text-transform:uppercase}
+.beauty-client-birth-control{position:relative;display:block;width:100%;max-width:100%;min-width:0;overflow:hidden;padding-inline:2px;box-sizing:border-box}
+.beauty-client-birth-control input[type="date"]{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;inline-size:100%!important;max-inline-size:100%!important;min-inline-size:0!important;box-sizing:border-box!important;min-height:46px!important;padding:10px 12px!important;border-color:color-mix(in srgb,var(--beauty-client-accent) 17%,#dfe3e8)!important;border-radius:12px!important;background:#fff!important;color:#1d2430;font-size:15px!important;font-weight:750;line-height:1.2;color-scheme:light}
 .beauty-client-birth-control input[type="date"]::-webkit-calendar-picker-indicator{opacity:.72;cursor:pointer}
-.beauty-client-birth-field>small{color:#8a919b;font-size:9px;line-height:1.4}
+.beauty-client-birth-field>small{color:#7f8791;font-size:9px;line-height:1.35}
 .beauty-client-preference-list{display:grid;gap:8px}
 .beauty-client-check{min-height:62px;padding:11px 12px;border:1px solid #e7e9ed;border-radius:13px;background:#fff;transition:border-color .16s ease,background .16s ease}
 .beauty-client-check:has(input:checked){border-color:color-mix(in srgb,var(--beauty-client-accent) 22%,#e1e5ea);background:color-mix(in srgb,var(--beauty-client-accent) 4%,#fff)}
