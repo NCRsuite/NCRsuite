@@ -486,6 +486,55 @@ html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .app-shell .notification-pa
   }
 }
 
+/* Coiffure · Centre de démarrage : contraste du hero */
+html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .launch-center-page .launch-center-hero-copy h1{
+  color:#fff;
+  text-shadow:0 2px 18px rgba(8,12,20,.24);
+}
+
+html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .launch-center-page .launch-center-hero-copy>p{
+  color:rgba(255,255,255,.78);
+}
+
+html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .launch-center-page .launch-center-kicker{
+  color:rgba(255,255,255,.92);
+}
+
+html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .launch-center-page .launch-center-hero{
+  background:
+    radial-gradient(circle at 80% 90%,rgba(255,255,255,.09),transparent 30rem),
+    linear-gradient(135deg,color-mix(in srgb,var(--business-accent,#5C194B) 86%,#171827),#171827 100%);
+}
+
+html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .launch-center-page .launch-progress-card{
+  border-color:rgba(255,255,255,.3);
+  background:rgba(255,255,255,.11);
+  color:#fff;
+  backdrop-filter:blur(10px);
+}
+
+html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .launch-center-page .launch-progress-card :is(small,span){
+  color:rgba(255,255,255,.72);
+}
+
+html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .launch-center-page .launch-progress-card strong{
+  color:#fff;
+}
+
+@media(max-width:700px){
+  html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .launch-center-page .launch-center-hero-copy h1{
+    font-size:clamp(2.25rem,10vw,3.1rem);
+    line-height:.98;
+    letter-spacing:-.05em;
+    text-wrap:balance;
+  }
+
+  html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .launch-center-page .launch-center-hero-copy>p{
+    font-size:1rem;
+    line-height:1.5;
+  }
+}
+
 @keyframes beauty-spinner{to{transform:rotate(360deg)}}
 @keyframes beauty-feedback-in{
   from{opacity:0;transform:translateY(-3px)}
