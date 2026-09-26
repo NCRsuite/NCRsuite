@@ -331,7 +331,6 @@ export function CoiffureClientPortalPage() {
   const availableRewards = useMemo(() => dashboard?.rewards.filter((reward) => reward.status === 'available') ?? [], [dashboard]);
   const pastRewards = useMemo(() => dashboard?.rewards.filter((reward) => reward.status !== 'available') ?? [], [dashboard]);
   const loyaltyHistory = useMemo(() => dashboard?.history ?? [], [dashboard]);
-  const selectedAccount = accounts.find((account) => account.account_id === selectedAccountId);
   const accent = runtimeBrandAccent || '#5C194B';
   const style = { '--beauty-client-accent': accent } as CSSProperties;
   const bookingPath = dashboard?.organization.slug ? `/salon/${dashboard.organization.slug}#reserver` : '/reserver/';
