@@ -202,6 +202,7 @@ export function CoiffureClientPortalPage() {
   const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [loyaltyCardOpen, setLoyaltyCardOpen] = useState(false);
   const [completedAppointmentCount, setCompletedAppointmentCount] = useState(0);
+  const [runtimeBrandAccent, setRuntimeBrandAccent] = useState<string | null>(null);
 
   const loadAccounts = useCallback(async () => {
     if (!user || !supabase) {
@@ -285,6 +286,38 @@ export function CoiffureClientPortalPage() {
   useEffect(() => { void loadAccounts(); }, [loadAccounts]);
   useEffect(() => { void loadDashboard(); void loadReviewState(); void loadGrowthState(); }, [loadDashboard, loadReviewState, loadGrowthState]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function resolvePortalBrandAccent() {
+      if (!supabase) {
+        if (active) setRuntimeBrandAccent(null);
+        return;
+      }
+
+      const { data, error: brandError } = await supabase.rpc('resolve_public_metier_brand_host', {
+        p_host: window.location.hostname.toLowerCase()
+      });
+      if (!active) return;
+
+      if (brandError || !data || typeof data !== 'object') {
+        setRuntimeBrandAccent(null);
+        return;
+      }
+
+      const row = data as Record<string, unknown>;
+      const whiteLabelEnabled = row.white_label_enabled === true;
+      const primaryColor = typeof row.primary_color === 'string' && row.primary_color.trim()
+        ? row.primary_color.trim()
+        : null;
+
+      setRuntimeBrandAccent(whiteLabelEnabled ? primaryColor : null);
+    }
+
+    void resolvePortalBrandAccent();
+    return () => { active = false; };
+  }, []);
+
   const upcoming = useMemo(() => dashboard?.appointments
     .filter((appointment) => ['pending', 'confirmed'].includes(appointment.status) && new Date(appointment.starts_at).getTime() >= Date.now())
     .sort((a, b) => a.starts_at.localeCompare(b.starts_at)) ?? [], [dashboard]);
@@ -299,14 +332,7 @@ export function CoiffureClientPortalPage() {
   const pastRewards = useMemo(() => dashboard?.rewards.filter((reward) => reward.status !== 'available') ?? [], [dashboard]);
   const loyaltyHistory = useMemo(() => dashboard?.history ?? [], [dashboard]);
   const selectedAccount = accounts.find((account) => account.account_id === selectedAccountId);
-  const isMetierCompanyScope = Boolean(
-    dashboard
-    && selectedAccount
-    && dashboard.organization.id !== selectedAccount.organization_id
-  );
-  const accent = isMetierCompanyScope
-    ? (dashboard?.organization.primary_color || selectedAccount?.organization_primary_color || '#5C194B')
-    : '#5C194B';
+  const accent = runtimeBrandAccent || '#5C194B';
   const style = { '--beauty-client-accent': accent } as CSSProperties;
   const bookingPath = dashboard?.organization.slug ? `/salon/${dashboard.organization.slug}#reserver` : '/reserver/';
   const publicPagePath = dashboard?.organization.slug ? `/salon/${dashboard.organization.slug}` : '/';
