@@ -117,16 +117,16 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] {
 }
 
 html[data-ncr-ui-2026="true"][data-business-theme="securite"] {
-  --business-accent: var(--tenant-brand-color, #9B1C1C);
-  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 76%, #000);
-  --accent: var(--tenant-brand-color, #9B1C1C);
-  --primary-action: var(--tenant-brand-color, #9B1C1C);
-  --ncr26-brand: var(--tenant-brand-color, #9B1C1C);
-  --ncr26-brand-hover: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 86%, #000);
-  --ncr26-brand-strong: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 72%, #000);
-  --ncr26-brand-soft: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 11%, #fff);
-  --ncr26-brand-pale: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 5%, #fff);
-  --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #9B1C1C) 22%, transparent);
+  --business-accent: #9B1C1C;
+  --business-accent-strong: #7F1414;
+  --accent: #9B1C1C;
+  --primary-action: #9B1C1C;
+  --ncr26-brand: #9B1C1C;
+  --ncr26-brand-hover: #871717;
+  --ncr26-brand-strong: #7F1414;
+  --ncr26-brand-soft: color-mix(in srgb, #9B1C1C 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, #9B1C1C 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, #9B1C1C 22%, transparent);
 }
 
 html[data-ncr-ui-2026="true"][data-business-theme="coiffure"] {
