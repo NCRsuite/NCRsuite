@@ -1407,6 +1407,726 @@ html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .securi
   font-weight:500;
 }
 
+
+/* Shared operational pages: Agents, Sites, Main courante, Rondes */
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-list-panel{
+  padding:20px;
+  border-radius:18px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:14px;
+  padding-bottom:13px;
+  border-bottom:1px solid var(--security-line);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-toolbar h2{
+  margin:3px 0 0;
+  font-size:1.1rem;
+  letter-spacing:-.025em;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-toolbar>input[type="search"]{
+  width:min(360px,42vw);
+  min-height:42px;
+  border-radius:11px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-card-list{
+  display:grid;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-card{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto auto auto;
+  align-items:center;
+  gap:11px;
+  min-width:0;
+  padding:12px 13px;
+  border:1px solid var(--security-line);
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 2px 10px rgba(15,23,42,.022);
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,background .16s ease;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-card:hover{
+  transform:translateY(-1px);
+  border-color:color-mix(in srgb,var(--security-accent) 22%,var(--security-line));
+  background:var(--security-accent-pale);
+  box-shadow:0 7px 18px rgba(15,23,42,.04);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-icon{
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  flex:0 0 40px;
+  border-radius:12px;
+  color:var(--security-accent);
+  background:var(--security-accent-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-main{
+  min-width:0;
+  display:grid;
+  gap:3px;
+  color:inherit;
+  text-decoration:none;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-main strong{
+  overflow:hidden;
+  color:var(--ncr26-text);
+  font-size:.8rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-main span{
+  overflow:hidden;
+  color:var(--ncr26-text-soft);
+  font-size:.69rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-main small{
+  overflow:hidden;
+  color:var(--ncr26-text-muted);
+  font-size:.64rem;
+  line-height:1.35;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-status-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:26px;
+  padding:0 9px;
+  border:1px solid color-mix(in srgb,var(--security-accent) 18%,var(--security-line));
+  border-radius:999px;
+  color:var(--security-accent);
+  background:var(--security-accent-pale);
+  font-size:.61rem;
+  font-weight:820;
+  letter-spacing:.025em;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-status-pill.completed{
+  color:color-mix(in srgb,var(--ncr26-success) 82%,#183327);
+  border-color:color-mix(in srgb,var(--ncr26-success) 22%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-success) 8%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-status-pill.canceled{
+  color:var(--ncr26-danger);
+  border-color:color-mix(in srgb,var(--ncr26-danger) 20%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-danger) 5%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-clickable-card .security-agent-card-link{
+  align-self:stretch;
+  justify-content:center;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-premium-card{
+  display:block;
+  padding:0;
+  overflow:hidden;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-premium-main{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto auto;
+  align-items:center;
+  gap:12px;
+  padding:13px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-rate{
+  display:grid;
+  gap:2px;
+  text-align:right;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-rate strong{
+  font-size:.82rem;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-rate small{
+  color:var(--ncr26-text-muted);
+  font-size:.61rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-money-input{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-money-input input{
+  padding-right:48px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-money-input>span{
+  position:absolute;
+  right:12px;
+  color:var(--ncr26-text-muted);
+  font-size:.72rem;
+  font-weight:700;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-color-input{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-height:44px;
+  padding:6px 10px;
+  border:1px solid var(--ncr26-border-strong);
+  border-radius:11px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-color-input input[type="color"]{
+  width:32px;
+  height:32px;
+  min-height:32px;
+  padding:0;
+  overflow:hidden;
+  border:0;
+  border-radius:9px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-color-input span{
+  color:var(--ncr26-text-soft);
+  font-size:.7rem;
+  font-weight:700;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-settings{
+  margin:0;
+  padding:14px;
+  border:1px solid color-mix(in srgb,var(--security-accent) 12%,var(--security-line));
+  border-radius:14px;
+  background:var(--security-accent-pale);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-settings>legend{
+  padding:0 7px;
+  color:var(--security-accent);
+  font-size:.72rem;
+  font-weight:800;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-settings>p{
+  margin:0 0 10px;
+  color:var(--ncr26-text-muted);
+  font-size:.68rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-settings>div{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-settings label{
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px 10px;
+  border:1px solid var(--security-line);
+  border-radius:10px;
+  background:#fff;
+  color:var(--ncr26-text-soft);
+  font-size:.67rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-settings input{
+  width:17px;
+  height:17px;
+  min-height:17px;
+  accent-color:var(--security-accent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-details{
+  border-top:1px solid var(--security-line);
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-details>summary{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:11px 13px;
+  color:var(--ncr26-text-soft);
+  font-size:.7rem;
+  font-weight:720;
+  cursor:pointer;
+  list-style:none;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-details>summary::-webkit-details-marker{
+  display:none;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-details>summary svg{
+  color:var(--security-accent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-details>div{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+  padding:0 13px 13px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-details label{
+  min-height:38px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 9px;
+  border:1px solid var(--security-line);
+  border-radius:9px;
+  background:#fff;
+  color:var(--ncr26-text-soft);
+  font-size:.64rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-details input{
+  accent-color:var(--security-accent);
+}
+
+/* Main courante */
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-filters{
+  margin-bottom:12px;
+  padding:14px;
+  border-radius:15px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-logbook-layout{
+  display:grid;
+  grid-template-columns:minmax(270px,.72fr) minmax(0,1.55fr);
+  gap:12px;
+  align-items:start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-list{
+  padding:14px;
+  border-radius:16px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-list-scroll{
+  display:grid;
+  gap:7px;
+  max-height:680px;
+  overflow:auto;
+  padding-right:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-card{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--security-line);
+  border-radius:12px;
+  background:#fff;
+  transition:border-color .16s ease,background .16s ease,box-shadow .16s ease;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-card::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  background:var(--site-color,var(--security-accent));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-card.active{
+  border-color:color-mix(in srgb,var(--site-color,var(--security-accent)) 34%,var(--security-line));
+  background:color-mix(in srgb,var(--site-color,var(--security-accent)) 5%,#fff);
+  box-shadow:0 5px 14px rgba(15,23,42,.04);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-select{
+  width:100%;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:9px;
+  padding:11px 12px 11px 14px;
+  border:0;
+  background:transparent;
+  color:inherit;
+  text-align:left;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-color{
+  width:8px;
+  min-height:36px;
+  border-radius:999px;
+  background:var(--site-color,var(--security-accent));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-select>div{
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-select strong{
+  overflow:hidden;
+  font-size:.75rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-select :is(span,small){
+  overflow:hidden;
+  color:var(--ncr26-text-muted);
+  font-size:.63rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-detail{
+  display:grid;
+  gap:12px;
+  min-width:0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-summary{
+  position:relative;
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:8px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  padding:16px;
+  border-radius:16px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-summary-color{
+  align-self:stretch;
+  border-radius:999px;
+  background:var(--site-color,var(--security-accent));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-summary h2{
+  margin:3px 0;
+  font-size:1.05rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-summary p:last-child{
+  margin:0;
+  color:var(--ncr26-text-muted);
+  font-size:.7rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-summary-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:6px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-form-presets{
+  display:flex!important;
+  flex-wrap:wrap;
+  gap:6px!important;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-form-presets>button{
+  min-height:34px;
+  padding:0 10px;
+  border:1px solid var(--security-line);
+  border-radius:999px;
+  background:var(--ncr26-surface-soft);
+  color:var(--ncr26-text-soft);
+  font-size:.65rem;
+  font-weight:700;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-form-presets>button.active{
+  color:var(--security-accent);
+  border-color:color-mix(in srgb,var(--security-accent) 24%,var(--security-line));
+  background:var(--security-accent-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-list{
+  display:grid;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-card{
+  position:relative;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:11px;
+  align-items:start;
+  overflow:hidden;
+  padding:13px;
+  border:1px solid var(--security-line);
+  border-radius:13px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-card::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  background:var(--security-accent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-card.attention::before{
+  background:var(--ncr26-warning);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-card.urgent::before{
+  background:var(--ncr26-danger);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-time{
+  min-width:52px;
+  color:var(--ncr26-text-muted);
+  font-size:.66rem;
+  font-weight:760;
+  font-variant-numeric:tabular-nums;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-photo-gallery{
+  grid-column:2/-1;
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-photo-gallery img{
+  width:68px;
+  height:68px;
+  border-radius:10px;
+  object-fit:cover;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-photo-unavailable{
+  min-height:54px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:0 10px;
+  border:1px dashed var(--security-line);
+  border-radius:10px;
+  color:var(--ncr26-text-muted);
+  font-size:.65rem;
+}
+
+/* Rondes QR */
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-patrol-layout{
+  display:grid;
+  grid-template-columns:minmax(300px,.85fr) minmax(0,1.15fr);
+  gap:12px;
+  align-items:start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-patrol-action,.security-patrol-layout>.security-list-panel){
+  padding:18px;
+  border-radius:17px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-field-label{
+  display:grid;
+  gap:6px;
+  margin-bottom:10px;
+  color:var(--ncr26-text-soft);
+  font-size:.72rem;
+  font-weight:700;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-patrol-progress{
+  display:grid;
+  place-items:center;
+  min-height:110px;
+  margin:8px 0 12px;
+  padding:15px;
+  border:1px solid color-mix(in srgb,var(--security-accent) 16%,var(--security-line));
+  border-radius:15px;
+  background:var(--security-accent-pale);
+  text-align:center;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-patrol-progress strong{
+  color:var(--security-accent);
+  font-size:2rem;
+  line-height:1;
+  letter-spacing:-.05em;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-patrol-progress span{
+  margin-top:5px;
+  color:var(--ncr26-text-muted);
+  font-size:.7rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-point-checklist{
+  display:grid;
+  gap:7px;
+  margin-bottom:10px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-point-checklist>article{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  min-height:58px;
+  padding:10px 11px;
+  border:1px solid var(--security-line);
+  border-radius:12px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-point-checklist>article>span{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  color:var(--security-accent);
+  background:var(--security-accent-soft);
+  font-size:.7rem;
+  font-weight:850;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-point-checklist>article>div{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-point-checklist strong{
+  font-size:.75rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-point-checklist small{
+  color:var(--ncr26-text-muted);
+  font-size:.64rem;
+  line-height:1.35;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-point-checklist>article.done{
+  border-color:color-mix(in srgb,var(--ncr26-success) 22%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-success) 4%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-point-checklist>article.done>span,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-point-checklist>article.done>svg{
+  color:var(--ncr26-success);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-scan-button{
+  width:100%;
+  justify-content:center;
+  margin-top:7px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-scan-button input,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-photo-fallback input{
+  display:none;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-manual-scan{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:7px;
+  margin:7px 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-qr-preview{
+  display:grid;
+  place-items:center;
+  margin-bottom:12px;
+  padding:22px;
+  text-align:center;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-qr-preview>div{
+  width:min(420px,100%);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-qr-preview img{
+  width:190px;
+  max-width:70vw;
+  margin:14px auto;
+  padding:10px;
+  border:1px solid var(--security-line);
+  border-radius:14px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-qr-preview code{
+  display:block;
+  overflow-wrap:anywhere;
+  color:var(--ncr26-text-muted);
+  font-size:.66rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-scanner-overlay{
+  position:fixed;
+  z-index:3000;
+  inset:0;
+  display:grid;
+  place-items:center;
+  padding:18px;
+  background:rgba(15,23,42,.68);
+  backdrop-filter:blur(8px);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-scanner{
+  width:min(560px,100%);
+  max-height:min(760px,92dvh);
+  overflow:auto;
+  padding:16px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 24px 70px rgba(15,23,42,.28);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-camera-stage{
+  position:relative;
+  overflow:hidden;
+  aspect-ratio:4/3;
+  margin:12px 0;
+  border-radius:14px;
+  background:#0f172a;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-camera-stage video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-camera-guide{
+  position:absolute;
+  inset:16% 18%;
+  border:2px solid rgba(255,255,255,.88);
+  border-radius:16px;
+  box-shadow:0 0 0 999px rgba(15,23,42,.18);
+}
+
 /* Mobile / tablet */
 @media(max-width:980px){
   html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-page>.page-header{
@@ -1658,6 +2378,143 @@ html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .securi
 
   html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-grid{
     min-width:1225px;
+  }
+}
+
+
+@media(max-width:700px){
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-list-panel{
+    padding:14px;
+    border-radius:16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-toolbar{
+    align-items:stretch;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:11px;
+    padding-bottom:10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-toolbar>input[type="search"]{
+    width:100%;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-card{
+    grid-template-columns:auto minmax(0,1fr);
+    gap:9px;
+    padding:11px;
+    border-radius:13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-card>.security-status-pill{
+    grid-column:2;
+    justify-self:start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-card>:is(.secondary-button,.danger-text-button){
+    grid-column:2;
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-premium-main{
+    grid-template-columns:auto minmax(0,1fr);
+    gap:9px;
+    padding:12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-premium-main>.security-rate{
+    grid-column:2;
+    justify-self:start;
+    text-align:left;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-premium-main>.secondary-button{
+    grid-column:2;
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-settings>div,
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-details>div{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-logbook-layout{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-list{
+    padding:12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-list-scroll{
+    max-height:320px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-summary{
+    grid-template-columns:7px minmax(0,1fr);
+    padding:13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-summary-actions{
+    grid-column:2;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    justify-content:stretch;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-mission-summary-actions>*{
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-card{
+    grid-template-columns:48px minmax(0,1fr);
+    gap:9px;
+    padding:11px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-card>.security-status-pill{
+    grid-column:2;
+    justify-self:start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-logbook-photo-gallery{
+    grid-column:2;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-patrol-layout{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-patrol-action,.security-patrol-layout>.security-list-panel){
+    padding:14px;
+    border-radius:16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-manual-scan{
+    grid-template-columns:1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-manual-scan>button{
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-scanner-overlay{
+    padding:10px;
+    align-items:end;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-scanner{
+    width:100%;
+    max-height:92dvh;
+    padding:13px;
+    border-radius:18px 18px 12px 12px;
   }
 }
 
