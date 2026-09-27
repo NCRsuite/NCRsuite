@@ -46,6 +46,7 @@ export function SecurityClientPortalPage() {
   const [accountsChecked, setAccountsChecked] = useState(false);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  const [runtimeBrandAccent, setRuntimeBrandAccent] = useState<string | null>(null);
 
   const selectedAccount = useMemo(() => accounts.find((account) => account.account_id === accountId) ?? accounts[0] ?? null, [accounts, accountId]);
   const agentOrganization = useMemo(
@@ -86,6 +87,39 @@ export function SecurityClientPortalPage() {
     if (organization?.id !== agentOrganization.id) selectOrganization(agentOrganization.id);
   }, [user, accountsChecked, accounts.length, agentOrganization?.id, organization?.id, selectOrganization]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function resolvePortalBrandAccent() {
+      if (!supabase) {
+        if (active) setRuntimeBrandAccent(null);
+        return;
+      }
+
+      const { data, error: brandError } = await supabase.rpc('resolve_public_metier_brand_host', {
+        p_host: window.location.hostname.toLowerCase()
+      });
+      if (!active) return;
+
+      if (brandError || !data || typeof data !== 'object') {
+        setRuntimeBrandAccent(null);
+        return;
+      }
+
+      const row = data as Record<string, unknown>;
+      const primaryColor = typeof row.primary_color === 'string' && row.primary_color.trim()
+        ? row.primary_color.trim()
+        : null;
+      setRuntimeBrandAccent(row.white_label_enabled === true ? primaryColor : null);
+    }
+
+    void resolvePortalBrandAccent();
+    return () => { active = false; };
+  }, []);
+
+  const portalAccent = runtimeBrandAccent || '#9B1C1C';
+  const portalStyle = { '--portal-accent': portalAccent } as React.CSSProperties;
+
   async function login(event: FormEvent) {
     event.preventDefault();
     setBusy('login'); setError('');
@@ -114,7 +148,7 @@ export function SecurityClientPortalPage() {
 
   if (authLoading) return <div className="security-client-loading-screen"><img src="/brand/ncr-suite-icon.png" alt=""/><span>Ouverture de l’espace…</span></div>;
 
-  if (!user) return <div className="security-client-public-shell">
+  if (!user) return <div className="security-client-public-shell" style={portalStyle}>
     <div className="security-client-public-glow" />
     <section className="security-client-login-card">
       <div className="security-client-public-brand"><span><Icon name="shield" size={27}/></span><div><strong>Espace Sécurité</strong><small>Clients et agents</small></div></div>
@@ -136,7 +170,7 @@ export function SecurityClientPortalPage() {
     return <Navigate to="/terrain" replace />;
   }
 
-  if (accountsChecked && accounts.length === 0) return <div className="security-client-public-shell">
+  if (accountsChecked && accounts.length === 0) return <div className="security-client-public-shell" style={portalStyle}>
     <section className="security-client-login-card security-client-no-access">
       <span className="security-client-no-access-icon"><Icon name="lock" size={30}/></span>
       <p className="eyebrow">ESPACE SÉCURITÉ</p><h1>Aucun accès actif</h1><p>Cette adresse n’est rattachée à aucun accès client ou agent actif. Utilise le lien d’invitation qui t’a été transmis.</p>
@@ -145,7 +179,7 @@ export function SecurityClientPortalPage() {
     </section>
   </div>;
 
-  const accent = dashboard?.organization.primary_color || selectedAccount?.organization_primary_color || '#1d4ed8';
+  const accent = portalAccent;
   const permissions = dashboard?.account.permissions ?? selectedAccount?.permissions;
   const availableTabs: PortalTabItem[] = [
     { id: 'overview', label: 'Vue d’ensemble', icon: 'home', enabled: true },
@@ -157,7 +191,7 @@ export function SecurityClientPortalPage() {
   ];
   const tabs = availableTabs.filter((item) => item.enabled);
 
-  return <div className="security-client-portal" style={{ '--portal-accent': accent } as React.CSSProperties}>
+  return <div className="security-client-portal" style={portalStyle}>
     <header className="security-client-topbar">
       <div className="security-client-topbar-brand">{dashboard?.organization.logo_url || selectedAccount?.organization_logo_url ? <img src={dashboard?.organization.logo_url || selectedAccount?.organization_logo_url || ''} alt=""/> : <span><Icon name="shield" size={23}/></span>}<div><strong>{dashboard?.organization.name || selectedAccount?.organization_name || 'Portail Sécurité'}</strong><small>Espace client sécurisé</small></div></div>
       <div className="security-client-topbar-actions">
