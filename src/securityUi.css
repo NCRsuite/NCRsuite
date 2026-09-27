@@ -5292,7 +5292,10 @@ html[data-ncr-ui-2026="true"][data-business-theme="securite"] .launch-center-pag
 
   html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-card>:is(.secondary-button,.danger-text-button){
     grid-column:2;
-    width:100%;
+    width:auto;
+    min-width:148px;
+    min-height:44px;
+    justify-self:end;
     justify-content:center;
   }
 
@@ -5310,8 +5313,17 @@ html[data-ncr-ui-2026="true"][data-business-theme="securite"] .launch-center-pag
 
   html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-premium-main>.secondary-button{
     grid-column:2;
-    width:100%;
+    width:auto;
+    min-width:148px;
+    min-height:44px;
+    justify-self:end;
     justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-details>summary{
+    min-height:48px;
+    padding:10px 12px;
+    font-size:.68rem;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-proof-settings>div,
