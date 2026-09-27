@@ -2,6 +2,21 @@
    Couche visuelle métier dédiée.
    Fonctionnelle uniquement lorsque le thème Sécurité et NCR UI 2026 sont actifs. */
 
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell{
+  --security-accent:#9B1C1C;
+  --security-accent-strong:#7F1414;
+  --business-accent:#9B1C1C;
+  --business-accent-strong:#7F1414;
+  --accent:#9B1C1C;
+  --primary-action:#9B1C1C;
+  --ncr26-brand:#9B1C1C;
+  --ncr26-brand-hover:#871717;
+  --ncr26-brand-strong:#7F1414;
+  --ncr26-brand-soft:color-mix(in srgb,#9B1C1C 11%,#fff);
+  --ncr26-brand-pale:color-mix(in srgb,#9B1C1C 5%,#fff);
+  --ncr26-ring:color-mix(in srgb,#9B1C1C 22%,transparent);
+}
+
 html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-page{
   --security-accent:#9B1C1C;
   --security-accent-strong:#7F1414;
