@@ -2127,6 +2127,1110 @@ html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .securi
   box-shadow:0 0 0 999px rgba(15,23,42,.18);
 }
 
+
+/* Devis & facturation */
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-tabs{
+  display:inline-grid;
+  grid-template-columns:repeat(2,minmax(150px,1fr));
+  gap:4px;
+  margin-bottom:12px;
+  padding:4px;
+  border:1px solid var(--security-line);
+  border-radius:12px;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-tabs>button{
+  min-height:38px;
+  padding:0 13px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:var(--ncr26-text-muted);
+  font-size:.7rem;
+  font-weight:760;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-tabs>button.active{
+  color:var(--security-accent);
+  background:#fff;
+  box-shadow:0 1px 5px rgba(15,23,42,.07);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.48fr) minmax(280px,.62fr);
+  gap:12px;
+  align-items:start;
+  margin-bottom:14px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-billing-builder,.security-billing-rule,.security-email-panel,.security-quote-form-panel){
+  padding:20px;
+  border-radius:18px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-rule{
+  position:sticky;
+  top:16px;
+  border-color:color-mix(in srgb,var(--security-accent) 14%,var(--security-line));
+  background:linear-gradient(145deg,#fff,var(--security-accent-pale));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-rule>span{
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  margin-bottom:12px;
+  border-radius:13px;
+  color:var(--security-accent);
+  background:var(--security-accent-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-rule h2{
+  margin:4px 0 7px;
+  font-size:1.05rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-rule p{
+  color:var(--ncr26-text-muted);
+  font-size:.72rem;
+  line-height:1.5;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-preview{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px!important;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-preview>div{
+  padding:12px;
+  border:1px solid var(--security-line);
+  border-radius:12px;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-preview span{
+  display:block;
+  color:var(--ncr26-text-muted);
+  font-size:.64rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-preview strong{
+  display:block;
+  margin-top:5px;
+  font-size:1rem;
+  letter-spacing:-.03em;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-preview-lines,.security-completed-shifts){
+  display:grid!important;
+  gap:7px!important;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-preview-lines>div,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-completed-shifts>div:not(.security-completed-heading){
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:10px 11px;
+  border:1px solid var(--security-line);
+  border-radius:11px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-preview-lines>div.not-billable{
+  opacity:.58;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-preview-lines strong,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-completed-shifts strong{
+  font-size:.72rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-preview-lines small,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-completed-shifts small{
+  display:block;
+  margin-top:2px;
+  color:var(--ncr26-text-muted);
+  font-size:.62rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-completed-heading{
+  display:grid;
+  gap:3px;
+  margin-bottom:3px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-existing{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:9px!important;
+  align-items:center;
+  padding:11px!important;
+  border:1px solid color-mix(in srgb,var(--security-accent) 14%,var(--security-line));
+  border-radius:11px;
+  background:var(--security-accent-pale);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-invoice-list,.security-quote-list){
+  display:grid;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-invoice-card,.security-quote-card){
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:12px;
+  align-items:center;
+  padding:13px;
+  border:1px solid var(--security-line);
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 2px 10px rgba(15,23,42,.022);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-invoice-number{
+  min-width:0;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-invoice-number>span{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  flex:0 0 38px;
+  border-radius:11px;
+  color:var(--security-accent);
+  background:var(--security-accent-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-invoice-number>div{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-invoice-number strong{
+  font-size:.78rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-invoice-number small,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-email-state{
+  color:var(--ncr26-text-muted);
+  font-size:.63rem;
+  font-style:normal;
+  line-height:1.3;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-email-state.sent{
+  color:var(--ncr26-success);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-email-state.failed{
+  color:var(--ncr26-danger);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-invoice-total{
+  display:grid;
+  gap:2px;
+  text-align:right;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-invoice-total strong{
+  font-size:.9rem;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-invoice-total small{
+  color:var(--ncr26-text-muted);
+  font-size:.6rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-actions{
+  grid-column:1/-1;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:6px;
+  padding-top:10px;
+  border-top:1px solid var(--security-line);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-converted-label{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  min-height:32px;
+  padding:0 9px;
+  color:var(--ncr26-success);
+  font-size:.65rem;
+  font-weight:750;
+}
+
+/* Dossiers vacations */
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-summary{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:9px;
+  margin:12px 0 14px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-summary>.stat-card{
+  min-height:96px;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:10px;
+  align-items:center;
+  padding:13px;
+  border-radius:14px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-summary>.stat-card>span{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  color:var(--security-accent);
+  background:var(--security-accent-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-summary>.stat-card small,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-summary>.stat-card p{
+  margin:0;
+  color:var(--ncr26-text-muted);
+  font-size:.62rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-summary>.stat-card strong{
+  display:block;
+  margin:2px 0;
+  font-size:1.35rem;
+  line-height:1;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-panel{
+  padding:18px;
+  border-radius:18px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-tabs{
+  display:flex;
+  gap:5px;
+  overflow-x:auto;
+  margin-bottom:12px;
+  padding:4px;
+  border:1px solid var(--security-line);
+  border-radius:12px;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-tabs>button{
+  min-height:36px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:0 10px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:var(--ncr26-text-muted);
+  font-size:.67rem;
+  font-weight:730;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-tabs>button.active{
+  color:var(--security-accent);
+  background:#fff;
+  box-shadow:0 1px 5px rgba(15,23,42,.07);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-tabs b{
+  min-width:20px;
+  display:grid;
+  place-items:center;
+  height:20px;
+  padding:0 5px;
+  border-radius:999px;
+  background:var(--security-accent-soft);
+  font-size:.58rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-list{
+  display:grid;
+  gap:9px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-card{
+  padding:13px;
+  border:1px solid var(--security-line);
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 2px 10px rgba(15,23,42,.022);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-card-head{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-card-head>div{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-card-head strong{
+  font-size:.78rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-card-head :is(span,small){
+  color:var(--ncr26-text-muted);
+  font-size:.63rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-status{
+  min-height:26px;
+  display:inline-flex;
+  align-items:center;
+  padding:0 8px;
+  border:1px solid var(--security-line);
+  border-radius:999px;
+  color:var(--ncr26-text-muted);
+  background:var(--ncr26-surface-soft);
+  font-size:.59rem;
+  font-style:normal;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-status.ready{
+  color:var(--ncr26-success);
+  border-color:color-mix(in srgb,var(--ncr26-success) 22%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-success) 6%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-status.to_complete{
+  color:var(--ncr26-warning);
+  border-color:color-mix(in srgb,var(--ncr26-warning) 22%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-warning) 6%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-checks{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:11px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-checks>span{
+  min-height:27px;
+  display:inline-flex;
+  align-items:center;
+  padding:0 8px;
+  border-radius:999px;
+  color:var(--ncr26-text-muted);
+  background:var(--ncr26-surface-soft);
+  font-size:.59rem;
+  font-weight:700;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-checks>span.ok{
+  color:var(--ncr26-success);
+  background:color-mix(in srgb,var(--ncr26-success) 8%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-premium-proof,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-reasons,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-note{
+  margin-top:10px;
+  padding:10px;
+  border:1px solid var(--security-line);
+  border-radius:11px;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-proof-badges,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-reasons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-proof-badges :is(span,a),
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-reasons>span{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  min-height:28px;
+  padding:0 8px;
+  border:1px solid var(--security-line);
+  border-radius:999px;
+  background:#fff;
+  color:var(--ncr26-text-soft);
+  font-size:.61rem;
+  text-decoration:none;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-reasons>span{
+  color:var(--ncr26-warning);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:6px;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--security-line);
+}
+
+/* Consignes & alertes */
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-info-groups{
+  display:grid;
+  gap:11px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-info{
+  padding:18px;
+  border-radius:17px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-info>header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+  padding-bottom:11px;
+  border-bottom:1px solid var(--security-line);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-info>header>span{
+  width:8px;
+  height:42px;
+  border-radius:999px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-info>header h2{
+  margin:3px 0 0;
+  font-size:1rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-alert-card,.security-instruction-card){
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:10px;
+  align-items:start;
+  margin-top:7px;
+  padding:11px 12px;
+  border:1px solid var(--security-line);
+  border-radius:12px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-alert-card.critical{
+  border-color:color-mix(in srgb,var(--ncr26-danger) 26%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-danger) 4%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-alert-card.warning{
+  border-color:color-mix(in srgb,var(--ncr26-warning) 26%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-warning) 4%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-alert-card,.security-instruction-card)>div{
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-alert-card,.security-instruction-card) strong{
+  font-size:.76rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-alert-card,.security-instruction-card) :is(p,small){
+  margin:0;
+  color:var(--ncr26-text-muted);
+  font-size:.65rem;
+  line-height:1.4;
+}
+
+/* Supervision / géolocalisation */
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-supervision-grid{
+  grid-template-columns:minmax(0,1.45fr) minmax(300px,.7fr);
+  gap:12px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-supervision-shifts{
+  display:grid;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-supervision-shifts>article{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:11px;
+  align-items:center;
+  padding:11px 12px;
+  border:1px solid var(--security-line);
+  border-radius:12px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-supervision-shifts>article>div:nth-child(2){
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-supervision-shifts strong{
+  font-size:.76rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-supervision-shifts :is(span,small){
+  color:var(--ncr26-text-muted);
+  font-size:.63rem;
+  line-height:1.3;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-supervision-statuses{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:5px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .status-chip{
+  min-height:25px;
+  display:inline-flex;
+  align-items:center;
+  padding:0 8px;
+  border:1px solid var(--security-line);
+  border-radius:999px;
+  color:var(--ncr26-text-muted);
+  background:var(--ncr26-surface-soft);
+  font-size:.58rem;
+  font-weight:760;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .status-chip.active{
+  color:var(--ncr26-success);
+  border-color:color-mix(in srgb,var(--ncr26-success) 20%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-success) 7%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .status-chip.danger{
+  color:var(--ncr26-danger);
+  border-color:color-mix(in srgb,var(--ncr26-danger) 20%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-danger) 6%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-emergency-panel{
+  padding:18px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-emergency-list{
+  display:grid;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-emergency-list>article{
+  padding:12px;
+  border:1px solid color-mix(in srgb,var(--ncr26-danger) 22%,var(--security-line));
+  border-radius:12px;
+  background:color-mix(in srgb,var(--ncr26-danger) 4%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-emergency-title{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-emergency-title>span{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  color:var(--ncr26-danger);
+  background:color-mix(in srgb,var(--ncr26-danger) 9%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-inline-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:9px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-panel{
+  padding:18px;
+  border-radius:17px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-list{
+  display:grid;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-list>article{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto auto;
+  gap:11px;
+  align-items:center;
+  padding:11px 12px;
+  border:1px solid var(--security-line);
+  border-radius:12px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-list>article.live{
+  border-color:color-mix(in srgb,var(--ncr26-success) 22%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-success) 3%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-avatar{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  color:#fff;
+  background:var(--security-accent);
+  font-size:.78rem;
+  font-weight:850;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-main{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-main strong{
+  font-size:.76rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-main :is(span,small){
+  color:var(--ncr26-text-muted);
+  font-size:.63rem;
+}
+
+/* PTI / SOS */
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-protection-selector,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-vacation-mode-card,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-pwa-limits-card,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-pti-card,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-sos-panel{
+  padding:18px;
+  border-radius:17px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-shift-highlight{
+  margin-top:10px;
+  padding:11px 12px;
+  border:1px solid color-mix(in srgb,var(--security-accent) 14%,var(--security-line));
+  border-radius:11px;
+  background:var(--security-accent-pale);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-vacation-mode-card.active{
+  border-color:color-mix(in srgb,var(--ncr26-success) 22%,var(--security-line));
+  background:linear-gradient(145deg,#fff,color-mix(in srgb,var(--ncr26-success) 4%,#fff));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-vacation-mode-main{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:11px;
+  align-items:start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-live-dot{
+  width:14px;
+  height:14px;
+  margin-top:3px;
+  border:4px solid color-mix(in srgb,var(--ncr26-text-muted) 22%,transparent);
+  border-radius:999px;
+  background:var(--ncr26-text-muted);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-live-dot.active{
+  border-color:color-mix(in srgb,var(--ncr26-success) 20%,transparent);
+  background:var(--ncr26-success);
+  box-shadow:0 0 0 5px color-mix(in srgb,var(--ncr26-success) 8%,transparent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-runtime-statuses{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:11px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-runtime-statuses>span{
+  min-height:27px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  padding:0 8px;
+  border-radius:999px;
+  color:var(--ncr26-text-muted);
+  background:var(--ncr26-surface-soft);
+  font-size:.6rem;
+  font-weight:700;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-runtime-statuses>span.good{
+  color:var(--ncr26-success);
+  background:color-mix(in srgb,var(--ncr26-success) 7%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-runtime-statuses>span.warning{
+  color:var(--ncr26-warning);
+  background:color-mix(in srgb,var(--ncr26-warning) 7%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-runtime-statuses>span.danger{
+  color:var(--ncr26-danger);
+  background:color-mix(in srgb,var(--ncr26-danger) 7%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-professional-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:11px;
+  margin-top:12px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-pti-card.alerted{
+  border-color:color-mix(in srgb,var(--ncr26-danger) 24%,var(--security-line));
+  background:color-mix(in srgb,var(--ncr26-danger) 4%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-pti-countdown{
+  display:grid;
+  place-items:center;
+  min-height:132px;
+  margin:12px 0;
+  padding:15px;
+  border:1px solid color-mix(in srgb,var(--security-accent) 14%,var(--security-line));
+  border-radius:15px;
+  background:var(--security-accent-pale);
+  text-align:center;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-pti-countdown strong{
+  margin:5px 0;
+  color:var(--security-accent);
+  font-size:2.45rem;
+  line-height:1;
+  letter-spacing:-.055em;
+  font-variant-numeric:tabular-nums;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-pti-countdown :is(small,span){
+  color:var(--ncr26-text-muted);
+  font-size:.65rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-pti-countdown.late strong{
+  color:var(--ncr26-danger);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-sos-panel{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:16px;
+  align-items:center;
+  margin-top:12px;
+  border-color:color-mix(in srgb,var(--ncr26-danger) 20%,var(--security-line));
+  background:linear-gradient(145deg,#fff,color-mix(in srgb,var(--ncr26-danger) 4%,#fff));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-sos-panel p{
+  color:var(--ncr26-text-muted);
+  font-size:.72rem;
+  line-height:1.45;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-sos-button{
+  width:150px;
+  min-height:150px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:5px;
+  padding:16px;
+  border:1px solid color-mix(in srgb,var(--ncr26-danger) 82%,#000);
+  border-radius:999px;
+  color:#fff;
+  background:var(--ncr26-danger);
+  box-shadow:0 12px 28px color-mix(in srgb,var(--ncr26-danger) 20%,transparent);
+  text-align:center;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-sos-button strong{
+  font-size:.83rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-sos-button span{
+  font-size:.62rem;
+  opacity:.8;
+}
+
+/* Fiche agent */
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-identity-card{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:12px;
+  align-items:center;
+  margin-bottom:11px;
+  padding:17px;
+  border-radius:16px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-identity-card>div{
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-identity-card>div>strong{
+  font-size:.9rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-identity-card :is(span,small){
+  color:var(--ncr26-text-muted);
+  font-size:.66rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-period-panel{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:12px;
+  align-items:center;
+  padding:15px 17px;
+  border-radius:16px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-view-switch{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(80px,1fr));
+  gap:4px;
+  padding:4px;
+  border:1px solid var(--security-line);
+  border-radius:11px;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-view-switch>button{
+  min-height:34px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:var(--ncr26-text-muted);
+  font-size:.65rem;
+  font-weight:740;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-view-switch>button.active{
+  color:var(--security-accent);
+  background:#fff;
+  box-shadow:0 1px 4px rgba(15,23,42,.07);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-period-navigation{
+  display:flex;
+  gap:5px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-week-grid{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:8px;
+  margin:11px 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-card{
+  min-width:0;
+  padding:12px;
+  border-radius:14px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:10px;
+  padding-bottom:8px;
+  border-bottom:1px solid var(--security-line);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-heading strong{
+  display:block;
+  font-size:.68rem;
+  text-transform:capitalize;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-heading span,
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-empty{
+  color:var(--ncr26-text-muted);
+  font-size:.59rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-heading b{
+  font-size:.64rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-shift{
+  position:relative;
+  display:grid;
+  grid-template-columns:5px minmax(0,1fr);
+  gap:7px;
+  margin-top:6px;
+  padding:7px;
+  border-radius:9px;
+  background:color-mix(in srgb,var(--site-color,var(--security-accent)) 6%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-shift>i{
+  border-radius:999px;
+  background:var(--site-color,var(--security-accent));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-shift>div{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-shift strong{
+  overflow:hidden;
+  font-size:.62rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-shift span{
+  color:var(--ncr26-text-muted);
+  font-size:.56rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-day-shift>b{
+  grid-column:2;
+  font-size:.58rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-monthly-hours{
+  margin:11px 0;
+  padding:17px;
+  border-radius:16px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-month-table{
+  overflow-x:auto;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-month-row{
+  min-width:560px;
+  display:grid;
+  grid-template-columns:1.2fr repeat(3,1fr);
+  gap:10px;
+  padding:9px 10px;
+  border-top:1px solid var(--security-line);
+  font-size:.68rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-month-row.heading{
+  color:var(--ncr26-text-muted);
+  font-size:.61rem;
+  font-weight:750;
+  text-transform:uppercase;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-list{
+  display:grid;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-list>article{
+  display:grid;
+  grid-template-columns:7px minmax(0,1fr) auto auto;
+  gap:10px;
+  align-items:center;
+  padding:11px 12px;
+  border:1px solid var(--security-line);
+  border-radius:12px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-color{
+  align-self:stretch;
+  border-radius:999px;
+  background:var(--site-color,var(--security-accent));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-list>article>div:nth-child(2){
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-list>article>div:nth-child(2) strong{
+  font-size:.75rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-list>article>div:nth-child(2) :is(span,small),
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-hours small{
+  color:var(--ncr26-text-muted);
+  font-size:.62rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-hours{
+  display:grid;
+  gap:2px;
+  text-align:right;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-checks{
+  grid-column:2/-1;
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-checks>span{
+  min-height:25px;
+  display:inline-flex;
+  align-items:center;
+  padding:0 7px;
+  border-radius:999px;
+  color:var(--ncr26-text-muted);
+  background:var(--ncr26-surface-soft);
+  font-size:.57rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-checks>span.ok{
+  color:var(--ncr26-success);
+  background:color-mix(in srgb,var(--ncr26-success) 7%,#fff);
+}
+
 /* Mobile / tablet */
 @media(max-width:980px){
   html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-page>.page-header{
@@ -2515,6 +3619,196 @@ html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .securi
     max-height:92dvh;
     padding:13px;
     border-radius:18px 18px 12px 12px;
+  }
+}
+
+
+@media(max-width:980px){
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-grid,
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-supervision-grid{
+    grid-template-columns:1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-rule{
+    position:static;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-week-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+}
+
+@media(max-width:700px){
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-billing-tabs{
+    width:100%;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-billing-builder,.security-billing-rule,.security-email-panel,.security-quote-form-panel){
+    padding:14px;
+    border-radius:16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-preview{
+    grid-template-columns:1fr!important;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-invoice-card,.security-quote-card){
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:9px;
+    padding:11px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-invoice-number{
+    grid-column:1/-1;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-record-actions>*{
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-summary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    margin:10px 0;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-panel{
+    padding:14px;
+    border-radius:16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-card{
+    padding:11px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-card-head{
+    grid-template-columns:auto minmax(0,1fr);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-status{
+    grid-column:2;
+    justify-self:start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-dossier-actions>*{
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-site-info{
+    padding:14px;
+    border-radius:16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-alert-card,.security-instruction-card){
+    grid-template-columns:auto minmax(0,1fr);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell :is(.security-alert-card,.security-instruction-card)>.primary-button{
+    grid-column:2;
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-supervision-shifts>article{
+    grid-template-columns:auto minmax(0,1fr);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-supervision-statuses{
+    grid-column:2;
+    justify-content:flex-start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-panel{
+    padding:14px;
+    border-radius:16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-list>article{
+    grid-template-columns:auto minmax(0,1fr);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-list>article>.status-chip{
+    grid-column:2;
+    justify-self:start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-location-list>article>.secondary-button{
+    grid-column:2;
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-professional-grid{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-protection-selector,
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-vacation-mode-card,
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-pwa-limits-card,
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-pti-card,
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-sos-panel{
+    padding:14px;
+    border-radius:16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-sos-panel{
+    grid-template-columns:1fr;
+    text-align:left;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-sos-button{
+    width:132px;
+    min-height:132px;
+    justify-self:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-period-panel{
+    grid-template-columns:1fr;
+    padding:13px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-period-navigation{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr) auto;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-period-navigation>*{
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-week-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:7px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-list>article{
+    grid-template-columns:7px minmax(0,1fr);
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-hours,
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-list>article>.security-status-pill{
+    grid-column:2;
+    justify-self:start;
+    text-align:left;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-shift-checks{
+    grid-column:2;
   }
 }
 
