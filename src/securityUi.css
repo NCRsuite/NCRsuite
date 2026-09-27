@@ -3,10 +3,19 @@
    Fonctionnelle uniquement lorsque le thème Sécurité et NCR UI 2026 sont actifs. */
 
 html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-page{
-  --security-accent:var(--ncr26-brand,#9B1C1C);
+  --security-accent:#9B1C1C;
+  --security-accent-strong:#7F1414;
   --security-accent-soft:color-mix(in srgb,var(--security-accent) 9%,#fff);
   --security-accent-pale:color-mix(in srgb,var(--security-accent) 4%,#fff);
   --security-line:var(--ncr26-border,#e5e9ef);
+  --ncr26-brand:var(--security-accent);
+  --ncr26-brand-hover:color-mix(in srgb,var(--security-accent) 86%,#000);
+  --ncr26-brand-strong:var(--security-accent-strong);
+  --ncr26-brand-soft:color-mix(in srgb,var(--security-accent) 11%,#fff);
+  --ncr26-brand-pale:color-mix(in srgb,var(--security-accent) 5%,#fff);
+  --ncr26-ring:color-mix(in srgb,var(--security-accent) 22%,transparent);
+  --accent:var(--security-accent);
+  --primary-action:var(--security-accent);
   color:var(--ncr26-text,#172033);
 }
 
