@@ -451,6 +451,43 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .clean
   white-space:nowrap;
 }
 
+
+/* Polish métier Nettoyage */
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page .info-message.page-message{
+  border-color:color-mix(in srgb,var(--cleaning-accent) 24%,var(--cleaning-line));
+  background:color-mix(in srgb,var(--cleaning-accent) 7%,#fff);
+  color:var(--cleaning-accent-strong);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page>.page-header .primary-button{
+  gap:10px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page>.page-header .primary-button svg{
+  width:22px!important;
+  height:22px!important;
+  flex:0 0 22px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-list-panel>.cleaning-toolbar>input[type="search"],
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-filter-group input[type="search"]{
+  height:46px;
+  min-height:46px;
+  max-height:46px;
+  padding-block:0;
+  flex:0 1 320px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-site-card .cleaning-record-main,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page .cleaning-record-card .cleaning-record-main{
+  gap:5px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-site-card .cleaning-record-main>span,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page .cleaning-record-card .cleaning-record-main>span{
+  line-height:1.35;
+}
+
 /* Planning */
 html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-planning-hero{
   border-color:color-mix(in srgb,var(--cleaning-accent) 13%,var(--cleaning-line));
@@ -1965,8 +2002,8 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-pa
 
 @media(max-width:700px){
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page{
-    padding-bottom:calc(132px + env(safe-area-inset-bottom));
-    scroll-padding-bottom:calc(132px + env(safe-area-inset-bottom));
+    padding-bottom:calc(168px + env(safe-area-inset-bottom));
+    scroll-padding-bottom:calc(168px + env(safe-area-inset-bottom));
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page>.page-header{
@@ -1997,8 +2034,23 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-pa
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page>.page-header :is(.header-actions,.primary-button)>*,
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page>.page-header>.primary-button{
     width:100%;
-    min-height:46px;
+    min-height:54px;
     justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page>.page-header .primary-button{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:11px;
+    padding-inline:18px;
+    text-align:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page>.page-header .primary-button svg{
+    width:22px!important;
+    height:22px!important;
+    flex:0 0 22px;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-page>.stats-grid{
@@ -2031,6 +2083,19 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-pa
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-record-card>.cleaning-status-pill{
     grid-column:2;
     justify-self:start;
+    margin-top:2px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-record-card .cleaning-record-main>span{
+    display:-webkit-box;
+    overflow:hidden;
+    white-space:normal;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-record-card .cleaning-record-main>small{
+    line-height:1.4;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-record-card>:is(.secondary-button,.danger-text-button){
@@ -2056,6 +2121,17 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-pa
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-filter-group :is(select,input){
     width:100%;
     min-width:0;
+    flex:0 0 auto;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-filter-group input[type="search"],
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-list-panel>.cleaning-toolbar>input[type="search"]{
+    height:54px;
+    min-height:54px;
+    max-height:54px;
+    flex:0 0 54px;
+    padding:0 16px;
+    border-radius:16px;
   }
 
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-form-grid{
@@ -2190,7 +2266,7 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-pa
 
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .planning-mobile-agenda{
     display:block;
-    padding:12px;
+    padding:12px 12px calc(104px + env(safe-area-inset-bottom));
     background:#fff;
   }
 
