@@ -2033,6 +2033,15 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-pa
     justify-self:start;
   }
 
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-record-card>:is(.secondary-button,.danger-text-button){
+    grid-column:2;
+    width:auto;
+    min-width:148px;
+    min-height:44px;
+    justify-self:end;
+    justify-content:center;
+  }
+
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-toolbar{
     align-items:stretch;
     flex-direction:column;
