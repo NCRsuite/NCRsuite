@@ -54,6 +54,7 @@ import './ncrUi2026MetierWhiteLabel.css';
 import './metierStructure.css';
 import './metierSimpleExperience.css';
 import './metierReceptionOverlay.css';
+import './securityUi.css';
 import './metierCoiffurePublicPages.css';
 import './publicMetierCoiffureCompany.css';
 import './beautyMetierShell.css';
