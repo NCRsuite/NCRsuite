@@ -869,6 +869,952 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .clean
   color:var(--cleaning-accent);
 }
 
+
+/* Portail Agent terrain */
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-layout{
+  display:grid;
+  grid-template-columns:minmax(250px,.62fr) minmax(0,1.55fr);
+  gap:12px;
+  align-items:start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-list{
+  position:sticky;
+  top:14px;
+  display:grid;
+  gap:7px;
+  padding:14px;
+  border-radius:17px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-list>button{
+  width:100%;
+  display:grid;
+  gap:3px;
+  padding:11px 12px;
+  border:1px solid var(--cleaning-line);
+  border-radius:12px;
+  background:#fff;
+  color:inherit;
+  text-align:left;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-list>button.active{
+  border-color:color-mix(in srgb,var(--cleaning-accent) 28%,var(--cleaning-line));
+  background:var(--cleaning-accent-pale);
+  box-shadow:0 4px 12px rgba(15,23,42,.035);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-list strong{
+  font-size:.76rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-list span,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-list small{
+  color:var(--ncr26-text-muted);
+  font-size:.63rem;
+  line-height:1.35;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-mission{
+  min-width:0;
+  padding:18px;
+  border-radius:18px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-mission-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  padding-bottom:13px;
+  border-bottom:1px solid var(--cleaning-line);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-mission-header>div{
+  min-width:0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-mission-header h2{
+  margin:4px 0;
+  font-size:1.2rem;
+  letter-spacing:-.035em;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-mission-header p:last-child{
+  margin:0;
+  color:var(--ncr26-text-muted);
+  font-size:.69rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-mission-info{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:12px 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-mission-info>div{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:9px;
+  align-items:start;
+  padding:11px;
+  border:1px solid var(--cleaning-line);
+  border-radius:12px;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-mission-info svg{
+  color:var(--cleaning-accent-strong);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-mission-info span{
+  min-width:0;
+  color:var(--ncr26-text-muted);
+  font-size:.66rem;
+  line-height:1.4;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-mission-info strong{
+  display:block;
+  margin-bottom:2px;
+  color:var(--ncr26-text);
+  font-size:.67rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-instruction-box{
+  margin:12px 0;
+  padding:13px 14px;
+  border:1px solid color-mix(in srgb,var(--cleaning-accent) 15%,var(--cleaning-line));
+  border-radius:13px;
+  background:var(--cleaning-accent-pale);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-instruction-box p:last-child{
+  margin:5px 0 0;
+  color:var(--ncr26-text-soft);
+  font-size:.7rem;
+  line-height:1.5;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-checklist{
+  margin:12px 0;
+  padding:14px;
+  border:1px solid var(--cleaning-line);
+  border-radius:14px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-checklist-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-checklist-header h3{
+  margin:3px 0 0;
+  font-size:.86rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-checklist-header>span{
+  color:var(--cleaning-accent-strong);
+  font-size:.86rem;
+  font-weight:850;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-checklist-progress{
+  height:7px;
+  margin:11px 0;
+  overflow:hidden;
+  border-radius:999px;
+  background:#edf1f0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-checklist-progress>i{
+  display:block;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--cleaning-accent),var(--cleaning-accent-strong));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-task-list{
+  display:grid;
+  gap:7px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-task-list>label{
+  min-height:56px;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:9px;
+  align-items:center;
+  padding:10px 11px;
+  border:1px solid var(--cleaning-line);
+  border-radius:11px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-task-list>label.required{
+  border-color:color-mix(in srgb,var(--cleaning-accent) 18%,var(--cleaning-line));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-task-list>label.completed{
+  border-color:#c7ead8;
+  background:#f2fbf6;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-task-list input{
+  width:19px;
+  height:19px;
+  min-height:19px;
+  accent-color:var(--cleaning-accent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-task-list span{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-task-list strong{
+  font-size:.7rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-task-list small,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-checklist-hint{
+  color:var(--ncr26-text-muted);
+  font-size:.61rem;
+  line-height:1.35;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:12px 0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-capture{
+  overflow:hidden;
+  border:1px solid var(--cleaning-line);
+  border-radius:14px;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-capture.has-photo{
+  border-color:color-mix(in srgb,var(--cleaning-accent) 24%,var(--cleaning-line));
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:10px 11px;
+  border-bottom:1px solid var(--cleaning-line);
+  font-size:.62rem;
+  font-weight:850;
+  letter-spacing:.08em;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-heading em{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  color:var(--ncr26-success);
+  font-size:.58rem;
+  font-style:normal;
+  letter-spacing:0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-preview{
+  min-height:180px;
+  display:grid;
+  place-items:center;
+  align-content:center;
+  gap:7px;
+  overflow:hidden;
+  color:var(--ncr26-text-muted);
+  text-align:center;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-preview img{
+  width:100%;
+  height:220px;
+  object-fit:cover;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-preview svg{
+  color:var(--cleaning-accent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-preview strong{
+  font-size:.7rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-button{
+  width:calc(100% - 20px);
+  min-height:44px;
+  margin:10px;
+  justify-content:center;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-file-input{
+  display:none;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-large-action{
+  width:100%;
+  min-height:54px;
+  justify-content:center;
+  margin-top:10px;
+  font-size:.78rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-report-field{
+  display:grid;
+  gap:6px;
+  margin-top:12px;
+  color:var(--ncr26-text-soft);
+  font-size:.7rem;
+  font-weight:720;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-report-field textarea{
+  width:100%;
+  min-height:110px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-completed-summary{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:10px;
+  margin-top:12px;
+  padding:13px;
+  border:1px solid #c7ead8;
+  border-radius:12px;
+  background:#f2fbf6;
+  color:#027a48;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-completed-summary p{
+  margin:3px 0 0;
+  color:#47705d;
+  font-size:.65rem;
+  line-height:1.4;
+}
+
+/* Qualité, anomalies, stock, rapports */
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-record-icon.severity-critical,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-record-icon.severity-high{
+  color:var(--ncr26-danger);
+  background:color-mix(in srgb,var(--ncr26-danger) 8%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-record-icon.severity-medium{
+  color:var(--ncr26-warning);
+  background:color-mix(in srgb,var(--ncr26-warning) 9%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-record-card.low-stock{
+  border-color:color-mix(in srgb,var(--ncr26-warning) 24%,var(--cleaning-line));
+  background:color-mix(in srgb,var(--ncr26-warning) 3%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-status-pill.critical{
+  color:var(--ncr26-danger);
+  border-color:color-mix(in srgb,var(--ncr26-danger) 20%,var(--cleaning-line));
+  background:color-mix(in srgb,var(--ncr26-danger) 5%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-quality-score{
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:13px;
+  color:#fff;
+  background:var(--cleaning-accent);
+  font-size:.84rem;
+  font-weight:850;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-report-card{
+  align-items:flex-start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-report-task-summary{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:6px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-report-task-summary>span{
+  min-height:25px;
+  display:inline-flex;
+  align-items:center;
+  padding:0 7px;
+  border-radius:999px;
+  color:var(--cleaning-accent-strong);
+  background:var(--cleaning-accent-soft);
+  font-size:.58rem;
+  font-weight:700;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-report-thumbnails{
+  grid-column:2/-1;
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  margin-top:5px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-report-thumbnails img{
+  width:64px;
+  height:64px;
+  flex:0 0 64px;
+  border-radius:10px;
+  object-fit:cover;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-inline-actions{
+  grid-column:2/-1;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:6px;
+  margin-top:5px;
+}
+
+/* Protocoles */
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-protocol-layout{
+  display:grid;
+  grid-template-columns:minmax(280px,.7fr) minmax(0,1.3fr);
+  gap:12px;
+  align-items:start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-protocol-layout>.panel{
+  padding:16px;
+  border-radius:17px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-protocol-list,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-recurring-list{
+  display:grid;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-protocol-card,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-recurring-card{
+  padding:12px;
+  border:1px solid var(--cleaning-line);
+  border-radius:13px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-protocol-card-header{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-protocol-card-header>div{
+  min-width:0;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-protocol-card-header strong,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-recurring-card strong{
+  font-size:.75rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-protocol-card-header small,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-recurring-card :is(span,small){
+  color:var(--ncr26-text-muted);
+  font-size:.62rem;
+  line-height:1.35;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-task-editor{
+  padding:13px;
+  border:1px solid color-mix(in srgb,var(--cleaning-accent) 13%,var(--cleaning-line));
+  border-radius:13px;
+  background:var(--cleaning-accent-pale);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-task-editor-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:9px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-task-draft{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 110px auto;
+  gap:7px;
+  align-items:end;
+  margin-top:7px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-check-option{
+  display:flex!important;
+  align-items:center;
+  gap:7px!important;
+  min-height:42px;
+  padding:8px 9px;
+  border:1px solid var(--cleaning-line);
+  border-radius:10px;
+  background:#fff;
+  font-size:.64rem!important;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-check-option input{
+  width:17px;
+  height:17px;
+  min-height:17px;
+  accent-color:var(--cleaning-accent);
+}
+
+/* Rentabilité */
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-period-panel{
+  padding:16px 18px;
+  border-radius:16px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-period-fields{
+  display:flex;
+  align-items:end;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-period-fields>label{
+  display:grid;
+  gap:5px;
+  color:var(--ncr26-text-soft);
+  font-size:.66rem;
+  font-weight:700;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-profitability-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.4fr) minmax(280px,.7fr);
+  gap:12px;
+  align-items:start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-profitability-layout>.panel,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-consumables-panel{
+  padding:18px;
+  border-radius:17px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-list,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-cost-list,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-consumable-list{
+  display:grid;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-card{
+  padding:12px 13px;
+  border:1px solid var(--cleaning-line);
+  border-radius:13px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-card.healthy{
+  border-color:#c7ead8;
+  background:#f7fcf9;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-card.warning{
+  border-color:color-mix(in srgb,var(--ncr26-warning) 25%,var(--cleaning-line));
+  background:color-mix(in srgb,var(--ncr26-warning) 4%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-card.negative{
+  border-color:color-mix(in srgb,var(--ncr26-danger) 25%,var(--cleaning-line));
+  background:color-mix(in srgb,var(--ncr26-danger) 4%,#fff);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-card-head strong{
+  font-size:.76rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-card-head b{
+  color:var(--cleaning-accent-strong);
+  font-size:.8rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-breakdown{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:6px;
+  margin-top:9px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-breakdown>div{
+  padding:8px;
+  border-radius:9px;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-breakdown span{
+  display:block;
+  color:var(--ncr26-text-muted);
+  font-size:.57rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-breakdown strong{
+  display:block;
+  margin-top:2px;
+  font-size:.67rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-cost-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:center;
+  padding:9px 10px;
+  border:1px solid var(--cleaning-line);
+  border-radius:10px;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-cost-row strong{
+  font-size:.68rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-cost-row small,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-panel-intro{
+  color:var(--ncr26-text-muted);
+  font-size:.61rem;
+  line-height:1.4;
+}
+
+/* Portail client admin Nettoyage */
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-admin-layout{
+  display:grid;
+  grid-template-columns:minmax(250px,.58fr) minmax(0,1.72fr);
+  gap:12px;
+  align-items:start;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-list{
+  position:sticky;
+  top:14px;
+  padding:14px;
+  border-radius:17px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-button{
+  width:100%;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:9px;
+  align-items:center;
+  margin-top:6px;
+  padding:10px;
+  border:1px solid var(--cleaning-line);
+  border-radius:12px;
+  background:#fff;
+  color:inherit;
+  text-align:left;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-button>span{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  color:var(--cleaning-accent-strong);
+  background:var(--cleaning-accent-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-button>div{
+  min-width:0;
+  display:grid;
+  gap:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-button strong{
+  overflow:hidden;
+  font-size:.73rem;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-button small{
+  color:var(--ncr26-text-muted);
+  font-size:.61rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-button>b{
+  min-width:22px;
+  height:22px;
+  display:grid;
+  place-items:center;
+  padding:0 5px;
+  border-radius:999px;
+  color:#fff;
+  background:var(--cleaning-accent);
+  font-size:.58rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-button.active{
+  border-color:color-mix(in srgb,var(--cleaning-accent) 25%,var(--cleaning-line));
+  background:var(--cleaning-accent-pale);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-admin-main{
+  min-width:0;
+  display:grid;
+  gap:11px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell :is(.client-portal-client-hero,.client-portal-invite-panel,.client-portal-admin-main>.panel){
+  padding:18px;
+  border-radius:17px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-hero{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:14px;
+  align-items:center;
+  border-color:color-mix(in srgb,var(--cleaning-accent) 13%,var(--cleaning-line));
+  background:linear-gradient(145deg,#fff,var(--cleaning-accent-pale));
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-hero h2{
+  margin:3px 0 4px;
+  font-size:1.2rem;
+  letter-spacing:-.03em;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-hero p:last-child{
+  margin:0;
+  color:var(--ncr26-text-muted);
+  font-size:.67rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-hero-stats{
+  display:flex;
+  gap:7px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-hero-stats>span{
+  min-width:78px;
+  display:grid;
+  place-items:center;
+  gap:2px;
+  padding:9px;
+  border:1px solid var(--cleaning-line);
+  border-radius:10px;
+  background:#fff;
+  color:var(--ncr26-text-muted);
+  font-size:.58rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-hero-stats strong{
+  color:var(--cleaning-accent-strong);
+  font-size:1rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-invite-form{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-invite-form>label{
+  display:grid;
+  gap:5px;
+  color:var(--ncr26-text-soft);
+  font-size:.67rem;
+  font-weight:700;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-invite-form>fieldset{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+  padding:12px;
+  border:1px solid var(--cleaning-line);
+  border-radius:12px;
+  background:var(--ncr26-surface-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-check{
+  min-height:40px;
+  display:flex!important;
+  align-items:center;
+  gap:7px!important;
+  padding:8px 9px;
+  border:1px solid var(--cleaning-line);
+  border-radius:9px;
+  background:#fff;
+  font-size:.62rem!important;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-check input{
+  width:17px;
+  height:17px;
+  min-height:17px;
+  accent-color:var(--cleaning-accent);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-access-list,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-document-list{
+  display:grid;
+  gap:8px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-access-card{
+  padding:11px 12px;
+  border:1px solid var(--cleaning-line);
+  border-radius:12px;
+  background:#fff;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-access-head{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-access-head>span{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  flex:0 0 34px;
+  border-radius:10px;
+  color:var(--cleaning-accent-strong);
+  background:var(--cleaning-accent-soft);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-access-head>div{
+  min-width:0;
+  flex:1 1 auto;
+  display:grid;
+  gap:2px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-access-head strong{
+  font-size:.71rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-access-head small{
+  color:var(--ncr26-text-muted);
+  font-size:.6rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-permissions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:9px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-permissions>button{
+  min-height:29px;
+  padding:0 8px;
+  border:1px solid var(--cleaning-line);
+  border-radius:999px;
+  background:var(--ncr26-surface-soft);
+  color:var(--ncr26-text-muted);
+  font-size:.58rem;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-permissions>button.enabled{
+  color:var(--cleaning-accent-strong);
+  border-color:color-mix(in srgb,var(--cleaning-accent) 20%,var(--cleaning-line));
+  background:var(--cleaning-accent-pale);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-work-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:11px;
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell :is(.client-portal-message-panel,.client-portal-document-panel){
+  min-width:0;
+  padding:17px;
+  border-radius:16px;
+}
+
+/* Portail client externe Nettoyage */
+html[data-ncr-ui-2026="true"] .cleaning-client-public-shell{
+  --portal-accent:#44946E;
+}
+
+html[data-ncr-ui-2026="true"] .cleaning-client-portal{
+  --portal-accent:#44946E;
+}
+
+html[data-ncr-ui-2026="true"] .cleaning-client-portal .security-client-welcome,
+html[data-ncr-ui-2026="true"] .cleaning-client-portal .security-client-content-header{
+  border-color:color-mix(in srgb,var(--portal-accent) 12%,#e1e6ed);
+}
+
+html[data-ncr-ui-2026="true"] .cleaning-client-portal .cleaning-client-quality-grid>article{
+  border-color:color-mix(in srgb,var(--portal-accent) 10%,#e1e6ed);
+}
+
+html[data-ncr-ui-2026="true"] .cleaning-client-portal .cleaning-client-report-list>article{
+  border-color:color-mix(in srgb,var(--portal-accent) 9%,#edf0f4);
+}
+
+/* Centre de démarrage Nettoyage */
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-page .launch-center-hero{
+  background:
+    radial-gradient(circle at 82% 88%,rgba(255,255,255,.09),transparent 30rem),
+    linear-gradient(135deg,color-mix(in srgb,#44946E 88%,#17332A),#17332A 100%);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-page .launch-center-hero-copy h1{
+  color:#fff;
+  text-shadow:0 2px 18px rgba(8,12,20,.22);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-page .launch-center-hero-copy>p,
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-page .launch-center-kicker{
+  color:rgba(255,255,255,.82);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-page .launch-progress-card{
+  border-color:rgba(255,255,255,.3);
+  background:rgba(255,255,255,.11);
+  color:#fff;
+  backdrop-filter:blur(10px);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-page .launch-progress-card :is(small,span){
+  color:rgba(255,255,255,.73);
+}
+
+html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-page .launch-progress-card strong{
+  color:#fff;
+}
 @media(max-width:980px){
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-dashboard-grid{
     grid-template-columns:1fr;
@@ -884,6 +1830,136 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .clean
 
   html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .planning-toolbar-filters{
     flex-wrap:wrap;
+  }
+}
+
+@media(max-width:700px){
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-layout,
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-protocol-layout,
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-profitability-layout,
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-admin-layout{
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-list,
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-list{
+    position:static;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-list{
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    padding:10px;
+    scroll-snap-type:x proximity;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-list>button{
+    min-width:210px;
+    scroll-snap-align:start;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-mission{
+    padding:14px;
+    border-radius:16px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-agent-mission-header{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:9px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-mission-info{
+    grid-template-columns:1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-grid{
+    grid-template-columns:1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-preview{
+    min-height:150px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-photo-preview img{
+    height:200px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-inline-actions{
+    grid-column:2;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-inline-actions>*{
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-report-thumbnails{
+    grid-column:2;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-task-draft{
+    grid-template-columns:1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-period-fields{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-period-fields>button{
+    grid-column:1/-1;
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .cleaning-margin-breakdown{
+    grid-template-columns:1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-list{
+    display:grid;
+    grid-template-columns:1fr;
+    padding:12px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-hero{
+    grid-template-columns:1fr;
+    padding:14px;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-hero-stats{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-client-hero>.primary-button{
+    width:100%;
+    justify-content:center;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-invite-form{
+    grid-template-columns:1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-invite-form>fieldset{
+    grid-column:auto;
+    grid-template-columns:1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .app-shell .client-portal-work-grid{
+    grid-template-columns:1fr;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] .launch-center-page .launch-center-hero-copy h1{
+    color:#fff;
+    font-size:clamp(2.2rem,10vw,3rem);
+    line-height:.98;
+    letter-spacing:-.05em;
   }
 }
 
