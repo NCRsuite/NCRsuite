@@ -182,7 +182,7 @@ export function SecurityAgentDetailPage() {
         const total = dayShifts.reduce((sum, shift) => sum + securityShiftMinutes(shift), 0);
         return <article className="panel security-agent-day-card" key={key}>
           <div className="security-agent-day-heading"><div><strong>{new Intl.DateTimeFormat('fr-FR', { weekday: 'long' }).format(day)}</strong><span>{new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short' }).format(day)}</span></div><b>{formatSecurityDuration(total)}</b></div>
-          {dayShifts.length === 0 ? <small className="security-agent-day-empty">Aucune mission</small> : dayShifts.map((shift) => <div className="security-agent-day-shift" key={shift.id} style={{ '--site-color': shift.security_sites?.color_hex || '#0A84FF' } as CSSProperties}><i/><div><strong>{shift.security_sites?.name || 'Site'}</strong><span>{new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(shift.starts_at))} → {new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(shift.ends_at))}</span></div><b>{formatSecurityDuration(securityShiftMinutes(shift))}</b></div>)}
+          {dayShifts.length === 0 ? <small className="security-agent-day-empty">Aucune mission</small> : dayShifts.map((shift) => <div className="security-agent-day-shift" key={shift.id} style={{ '--site-color': shift.security_sites?.color_hex || '#9B1C1C' } as CSSProperties}><i/><div><strong>{shift.security_sites?.name || 'Site'}</strong><span>{new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(shift.starts_at))} → {new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date(shift.ends_at))}</span></div><b>{formatSecurityDuration(securityShiftMinutes(shift))}</b></div>)}
         </article>;
       })}
     </section>}
@@ -195,7 +195,7 @@ export function SecurityAgentDetailPage() {
       {loading ? <div className="security-empty">Chargement du planning…</div> : !agent ? <div className="security-empty"><strong>Agent introuvable</strong></div> : active.length === 0 ? <div className="security-empty"><Icon name="calendar" size={30}/><strong>Aucune mission sur cette période</strong><span>Change de semaine ou de mois, ou ajoute une vacation depuis le planning.</span></div> : <div className="security-agent-shift-list">{active.map((shift) => {
         const planned = securityShiftMinutes(shift);
         const billed = shift.billing_minutes_override ?? planned;
-        return <article key={shift.id} style={{ '--site-color': shift.security_sites?.color_hex || '#0A84FF' } as CSSProperties}>
+        return <article key={shift.id} style={{ '--site-color': shift.security_sites?.color_hex || '#9B1C1C' } as CSSProperties}>
           <span className="security-agent-shift-color"/>
           <div><strong>{shift.security_sites?.name || 'Site'}</strong><span>{shift.security_sites?.security_clients?.company_name || shift.title || 'Mission de sécurité'}</span><small>{formatSecurityDateTime(shift.starts_at)} → {new Intl.DateTimeFormat('fr-FR',{hour:'2-digit',minute:'2-digit'}).format(new Date(shift.ends_at))}</small></div>
           <div className="security-agent-shift-hours"><strong>{formatSecurityDuration(planned)}</strong><small>{shift.billing_minutes_override != null ? `Facturé ${formatSecurityDuration(billed)}` : 'Facturation sur planning'}</small></div>
