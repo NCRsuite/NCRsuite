@@ -222,6 +222,7 @@ export function CleaningClientPortalPage() {
   const [accountsChecked, setAccountsChecked] = useState(false);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  const [runtimeBrandAccent, setRuntimeBrandAccent] = useState<string | null>(null);
 
   const selectedAccount = useMemo(
     () => accounts.find((account) => account.account_id === accountId) ?? accounts[0] ?? null,
@@ -287,6 +288,39 @@ export function CleaningClientPortalPage() {
     if (organization?.id !== agentOrganization.id) selectOrganization(agentOrganization.id);
   }, [user, accountsChecked, accounts.length, agentOrganization?.id, organization?.id, selectOrganization]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function resolvePortalBrandAccent() {
+      if (!supabase) {
+        if (active) setRuntimeBrandAccent(null);
+        return;
+      }
+
+      const { data, error: brandError } = await supabase.rpc('resolve_public_metier_brand_host', {
+        p_host: window.location.hostname.toLowerCase()
+      });
+      if (!active) return;
+
+      if (brandError || !data || typeof data !== 'object') {
+        setRuntimeBrandAccent(null);
+        return;
+      }
+
+      const row = data as Record<string, unknown>;
+      const primaryColor = typeof row.primary_color === 'string' && row.primary_color.trim()
+        ? row.primary_color.trim()
+        : null;
+      setRuntimeBrandAccent(row.white_label_enabled === true ? primaryColor : null);
+    }
+
+    void resolvePortalBrandAccent();
+    return () => { active = false; };
+  }, []);
+
+  const portalAccent = runtimeBrandAccent || '#44946E';
+  const portalStyle = { '--portal-accent': portalAccent } as React.CSSProperties;
+
   async function login(event: FormEvent) {
     event.preventDefault();
     setBusy('login');
@@ -334,7 +368,7 @@ export function CleaningClientPortalPage() {
   }
 
   if (!user) {
-    return <div className="security-client-public-shell cleaning-client-public-shell">
+    return <div className="security-client-public-shell cleaning-client-public-shell" style={portalStyle}>
       <div className="security-client-public-glow" />
       <section className="security-client-login-card">
         <div className="security-client-public-brand"><span><Icon name="sparkles" size={27}/></span><div><strong>Espace Nettoyage</strong><small>Clients et agents</small></div></div>
@@ -362,7 +396,7 @@ export function CleaningClientPortalPage() {
   }
 
   if (accountsChecked && accounts.length === 0) {
-    return <div className="security-client-public-shell cleaning-client-public-shell">
+    return <div className="security-client-public-shell cleaning-client-public-shell" style={portalStyle}>
       <section className="security-client-login-card security-client-no-access">
         <span className="security-client-no-access-icon"><Icon name="lock" size={30}/></span>
         <p className="eyebrow">ESPACE NETTOYAGE</p><h1>Aucun accès actif</h1><p>Cette adresse n’est rattachée à aucun accès client ou agent actif. Utilisez le lien d’invitation qui vous a été transmis.</p>
@@ -372,7 +406,7 @@ export function CleaningClientPortalPage() {
     </div>;
   }
 
-  const accent = dashboard?.organization.primary_color || selectedAccount?.organization_primary_color || '#0f766e';
+  const accent = portalAccent;
   const permissions = dashboard?.account.permissions ?? selectedAccount?.permissions;
   const completedReports = dashboard?.interventions.filter((intervention) => intervention.status === 'completed') ?? [];
   const availableTabs: PortalTabItem[] = [
@@ -386,7 +420,7 @@ export function CleaningClientPortalPage() {
   ];
   const tabs = availableTabs.filter((item) => item.enabled);
 
-  return <div className="security-client-portal cleaning-client-portal" style={{ '--portal-accent': accent } as React.CSSProperties}>
+  return <div className="security-client-portal cleaning-client-portal" style={portalStyle}>
     <header className="security-client-topbar">
       <div className="security-client-topbar-brand">
         {dashboard?.organization.logo_url || selectedAccount?.organization_logo_url
