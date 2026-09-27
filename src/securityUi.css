@@ -5017,6 +5017,20 @@ html[data-ncr-ui-2026="true"][data-business-theme="securite"] .launch-center-pag
 }
 
 @media(max-width:700px){
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-page{
+    padding-bottom:calc(132px + env(safe-area-inset-bottom));
+    scroll-padding-bottom:calc(132px + env(safe-area-inset-bottom));
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-planning-page .security-planning-summary>article:last-child{
+    grid-column:1/-1;
+  }
+
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-detail-page>.page-header h1,
+  html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-agent-detail-page .security-agent-identity-card>div>strong{
+    text-transform:capitalize;
+  }
+
   html[data-ncr-ui-2026="true"][data-business-theme="securite"] .app-shell .security-page>.page-header{
     gap:16px;
     margin-bottom:10px;
