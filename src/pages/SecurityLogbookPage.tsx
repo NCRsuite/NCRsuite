@@ -484,7 +484,7 @@ export function SecurityLogbookPage() {
               {shifts.map((shift) => {
                 const missionEntries = entriesByShift.get(shift.id) ?? [];
                 const active = shift.id === selectedShiftId;
-                const color = shift.security_sites?.color_hex || '#2997ff';
+                const color = shift.security_sites?.color_hex || '#9B1C1C';
                 return (
                   <article className={`security-mission-card ${active ? 'active' : ''}`} style={{ '--site-color': color } as CSSProperties} key={shift.id}>
                     <button type="button" className="security-mission-select" onClick={() => setSelectedShiftId(shift.id)}>
@@ -508,7 +508,7 @@ export function SecurityLogbookPage() {
           <div className="security-mission-detail">
             {selectedShift && (
               <>
-                <section className="panel security-mission-summary" style={{ '--site-color': selectedShift.security_sites?.color_hex || '#2997ff' } as CSSProperties}>
+                <section className="panel security-mission-summary" style={{ '--site-color': selectedShift.security_sites?.color_hex || '#9B1C1C' } as CSSProperties}>
                   <span className="security-mission-summary-color" />
                   <div>
                     <p className="eyebrow">MAIN COURANTE DE VACATION</p>
