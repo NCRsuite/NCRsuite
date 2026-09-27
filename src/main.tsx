@@ -55,6 +55,7 @@ import './metierStructure.css';
 import './metierSimpleExperience.css';
 import './metierReceptionOverlay.css';
 import './securityUi.css';
+import './cleaningUi.css';
 import './metierCoiffurePublicPages.css';
 import './publicMetierCoiffureCompany.css';
 import './beautyMetierShell.css';
