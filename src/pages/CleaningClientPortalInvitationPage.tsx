@@ -28,6 +28,7 @@ export function CleaningClientPortalInvitationPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [runtimeBrandAccent, setRuntimeBrandAccent] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -51,6 +52,33 @@ export function CleaningClientPortalInvitationPage() {
     void load();
     return () => { active = false; };
   }, [token]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function resolveInvitationBrandAccent() {
+      if (!supabase) {
+        if (active) setRuntimeBrandAccent(null);
+        return;
+      }
+      const { data, error: brandError } = await supabase.rpc('resolve_public_metier_brand_host', {
+        p_host: window.location.hostname.toLowerCase()
+      });
+      if (!active) return;
+      if (brandError || !data || typeof data !== 'object') {
+        setRuntimeBrandAccent(null);
+        return;
+      }
+      const row = data as Record<string, unknown>;
+      const primaryColor = typeof row.primary_color === 'string' && row.primary_color.trim()
+        ? row.primary_color.trim()
+        : null;
+      setRuntimeBrandAccent(row.white_label_enabled === true ? primaryColor : null);
+    }
+
+    void resolveInvitationBrandAccent();
+    return () => { active = false; };
+  }, []);
 
   async function authenticate(event: FormEvent) {
     event.preventDefault();
@@ -104,7 +132,7 @@ export function CleaningClientPortalInvitationPage() {
 
   const emailMatches = Boolean(user?.email && details?.invited_email && user.email.toLowerCase() === details.invited_email.toLowerCase());
   const available = details?.invitation_status === 'pending';
-  const accent = details?.organization_primary_color || '#1d4ed8';
+  const accent = runtimeBrandAccent || '#44946E';
 
   return <div className="security-client-public-shell" style={{ '--portal-accent': accent } as React.CSSProperties}>
     <div className="security-client-public-glow" />
