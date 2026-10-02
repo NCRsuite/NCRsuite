@@ -316,9 +316,15 @@ export function TrainingPortalPage() {
   const documents = dashboard?.documents || [];
   const pendingSignatures = (dashboard?.signatures || []).filter((request) => request.status === 'pending');
   const signedSignatures = (dashboard?.signatures || []).filter((request) => request.status === 'signed');
+  const portalRole = activeAccount?.subject_kind || 'trainee';
+  const portalRoleLabel = activeAccount ? trainingPortalSubjectLabels[activeAccount.subject_kind] : 'Formation';
+  const upcomingSession = dashboard?.sessions.find((session) => new Date(session.ends_at).getTime() >= Date.now()) || dashboard?.sessions[0] || null;
+  const latestDocument = documents[0] || null;
+  const firstName = dashboard?.subject.name.trim().split(/\s+/)[0] || 'vous';
+
 
   return (
-    <main className="training-portal-public-shell training-portal-app" style={{ '--portal-accent': accent } as CSSProperties}>
+    <main className={`training-portal-public-shell training-portal-app training-portal-${portalRole}`} style={{ '--portal-accent': accent } as CSSProperties}>
       <header className="training-portal-topbar">
         <div className="training-portal-public-brand">
           {dashboard?.organization.logo_url
@@ -382,14 +388,53 @@ export function TrainingPortalPage() {
 
           {dashboard && tab === 'overview' && (
             <>
-              <header className="training-portal-page-heading">
-                <div><p className="eyebrow">BONJOUR {dashboard.subject.name.toUpperCase()}</p><h1>Votre espace Formation</h1><p>Les informations importantes de votre parcours sont réunies ici.</p></div>
+              <header className="training-portal-page-heading training-portal-overview-heading">
+                <div>
+                  <span className="training-portal-role-pill"><Icon name={portalRole === 'trainer' ? 'graduation' : 'users'} size={15} /> Espace {portalRoleLabel.toLowerCase()}</span>
+                  <p className="eyebrow">BONJOUR {dashboard.subject.name.toUpperCase()}</p>
+                  <h1>{portalRole === 'trainer' ? 'Votre espace Formateur' : 'Votre espace Formation'}</h1>
+                  <p>{portalRole === 'trainer'
+                    ? 'Vos sessions, documents, signatures et obligations de suivi réunis dans un espace clair.'
+                    : 'Suivez votre parcours, vos documents et les actions à réaliser en un coup d’œil.'}</p>
+                </div>
               </header>
+              <section className="training-portal-overview-hero">
+                <div className="training-portal-overview-hero-copy">
+                  <span className="training-portal-overview-kicker">{portalRole === 'trainer' ? 'VOTRE PROCHAINE PRIORITÉ' : 'VOTRE PARCOURS'}</span>
+                  <h2>{portalRole === 'trainer' ? `Bonjour ${firstName}, tout est prêt pour piloter vos interventions.` : `Bonjour ${firstName}, retrouvez l’essentiel de votre formation ici.`}</h2>
+                  <p>{pendingSignatures.length > 0
+                    ? `${pendingSignatures.length} document${pendingSignatures.length > 1 ? 's' : ''} attend${pendingSignatures.length > 1 ? 'ent' : ''} votre signature.`
+                    : upcomingSession
+                      ? `Votre prochaine session est prévue le ${humanDate(upcomingSession.starts_at)}.`
+                      : 'Aucune action urgente pour le moment. Votre espace se met à jour automatiquement.'}</p>
+                  <div className="training-portal-overview-actions">
+                    <button className="primary-button" onClick={() => setTab(upcomingSession ? 'sessions' : 'documents')}>
+                      <Icon name={upcomingSession ? 'calendar' : 'file'} size={16} />
+                      {upcomingSession ? 'Voir mon planning' : 'Voir mes documents'}
+                    </button>
+                    {pendingSignatures.length > 0 && (
+                      <button className="secondary-button" onClick={() => setTab('signatures')}>
+                        <Icon name="signature" size={16} /> Signer maintenant
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <div className="training-portal-overview-focus">
+                  <span className="training-portal-overview-focus-icon"><Icon name={upcomingSession ? 'calendar' : 'check'} size={22} /></span>
+                  <div>
+                    <small>{upcomingSession ? 'PROCHAINE SESSION' : 'SITUATION'}</small>
+                    <strong>{upcomingSession ? upcomingSession.title : 'Tout est à jour'}</strong>
+                    <p>{upcomingSession
+                      ? `${humanDate(upcomingSession.starts_at, true)} · ${upcomingSession.location || upcomingSession.modality || 'Lieu à confirmer'}`
+                      : 'Aucune session à venir n’est encore associée à cet espace.'}</p>
+                  </div>
+                </div>
+              </section>
               <div className="training-portal-metrics">
-                <article><span><Icon name="calendar" size={19} /></span><div><strong>{dashboard.summary.sessions}</strong><small>Sessions</small></div></article>
-                <article><span><Icon name="file" size={19} /></span><div><strong>{dashboard.summary.documents}</strong><small>Documents</small></div></article>
-                <article className={dashboard.summary.pending_signatures ? 'attention' : ''}><span><Icon name="signature" size={19} /></span><div><strong>{dashboard.summary.pending_signatures}</strong><small>À signer</small></div></article>
-                <article><span><Icon name="check" size={19} /></span><div><strong>{dashboard.summary.signed_documents}</strong><small>Preuves signées</small></div></article>
+                <article className="metric-sessions"><span><Icon name="calendar" size={19} /></span><div><strong>{dashboard.summary.sessions}</strong><small>Sessions</small><em>Votre planning</em></div></article>
+                <article className="metric-documents"><span><Icon name="file" size={19} /></span><div><strong>{dashboard.summary.documents}</strong><small>Documents</small><em>Dossier partagé</em></div></article>
+                <article className={`metric-signatures ${dashboard.summary.pending_signatures ? 'attention' : ''}`}><span><Icon name="signature" size={19} /></span><div><strong>{dashboard.summary.pending_signatures}</strong><small>À signer</small><em>{dashboard.summary.pending_signatures ? 'Action requise' : 'À jour'}</em></div></article>
+                <article className="metric-proofs"><span><Icon name="check" size={19} /></span><div><strong>{dashboard.summary.signed_documents}</strong><small>Preuves signées</small><em>Traçabilité</em></div></article>
               </div>
 
               {pendingSignatures.length > 0 && (
@@ -411,7 +456,7 @@ export function TrainingPortalPage() {
                 <div className="training-portal-overview-grid">
                   <section className="training-portal-section">
                     <header><div><h2>Évaluations</h2><p>Questionnaires liés à vos sessions.</p></div></header>
-                    {dashboard.evaluations.length === 0 ? <div className="training-portal-empty">Aucune évaluation disponible.</div> : (
+                    {dashboard.evaluations.length === 0 ? <div className="training-portal-empty training-portal-empty-rich"><span><Icon name="clipboard" size={22} /></span><div><strong>Aucune évaluation pour le moment</strong><p>Les questionnaires liés à vos prochaines sessions apparaîtront ici automatiquement.</p></div></div> : (
                       <div className="training-portal-list compact">
                         {dashboard.evaluations.slice(0, 4).map((evaluation) => (
                           <article key={evaluation.id}>
@@ -425,7 +470,7 @@ export function TrainingPortalPage() {
                   </section>
                   <section className="training-portal-section">
                     <header><div><h2>Émargements</h2><p>Présences et signatures enregistrées.</p></div></header>
-                    {dashboard.attendance.length === 0 ? <div className="training-portal-empty">Aucun émargement enregistré.</div> : (
+                    {dashboard.attendance.length === 0 ? <div className="training-portal-empty training-portal-empty-rich"><span><Icon name="check" size={22} /></span><div><strong>Aucun émargement enregistré</strong><p>Vos présences et signatures seront affichées ici après vos sessions.</p></div></div> : (
                       <div className="training-portal-list compact">
                         {dashboard.attendance.slice(0, 4).map((record) => (
                           <article key={record.id}>
@@ -439,6 +484,37 @@ export function TrainingPortalPage() {
                   </section>
                 </div>
               )}
+
+              {dashboard.account.subject_kind === 'trainer' && (
+                <div className="training-portal-overview-grid training-portal-trainer-grid">
+                  <section className="training-portal-section">
+                    <header><div><h2>Prochaine session</h2><p>Votre prochaine intervention à préparer.</p></div><button className="text-button" onClick={() => setTab('sessions')}>Planning</button></header>
+                    {upcomingSession ? (
+                      <article className="training-portal-trainer-session-card">
+                        <span className="training-portal-session-date"><strong>{new Date(upcomingSession.starts_at).getDate()}</strong><small>{new Date(upcomingSession.starts_at).toLocaleDateString('fr-FR', { month: 'short' })}</small></span>
+                        <div><span className={`training-portal-status ${upcomingSession.status}`}>{sessionStatus(upcomingSession.status)}</span><strong>{upcomingSession.title}</strong><small>{humanDate(upcomingSession.starts_at, true)} · {upcomingSession.location || upcomingSession.modality || 'Lieu à confirmer'}</small></div>
+                      </article>
+                    ) : (
+                      <div className="training-portal-empty training-portal-empty-rich"><span><Icon name="calendar" size={22} /></span><div><strong>Aucune intervention planifiée</strong><p>Votre planning se complétera automatiquement dès qu’une session vous sera affectée.</p></div></div>
+                    )}
+                  </section>
+                  <section className="training-portal-section">
+                    <header><div><h2>Dossier formateur</h2><p>Vos documents utiles et dernières pièces partagées.</p></div><button className="text-button" onClick={() => setTab('documents')}>Documents</button></header>
+                    {latestDocument ? (
+                      <div className="training-portal-list compact">
+                        <article>
+                          <span className="training-portal-list-icon"><Icon name="file" size={18} /></span>
+                          <div><strong>{latestDocument.title}</strong><small>{trainingPortalCategoryLabels[latestDocument.category] || latestDocument.category} · {humanDate(latestDocument.published_at)}</small></div>
+                          <button className="icon-button" onClick={() => void openStoredFile(latestDocument.storage_bucket, latestDocument.storage_path)} aria-label="Ouvrir" title="Ouvrir"><Icon name="eye" size={18} /></button>
+                        </article>
+                      </div>
+                    ) : (
+                      <div className="training-portal-empty training-portal-empty-rich"><span><Icon name="file" size={22} /></span><div><strong>Votre dossier est prêt</strong><p>Les supports, convocations et documents de session apparaîtront ici dès leur publication.</p></div></div>
+                    )}
+                  </section>
+                </div>
+              )}
+
             </>
           )}
 
@@ -446,7 +522,7 @@ export function TrainingPortalPage() {
             <>
               <header className="training-portal-page-heading"><div><p className="eyebrow">PLANNING</p><h1>Mes sessions</h1><p>Dates, lieux et intervenants de votre parcours.</p></div></header>
               <div className="training-portal-session-grid">
-                {dashboard.sessions.length === 0 ? <div className="training-portal-empty">Aucune session associée à cet espace.</div> : dashboard.sessions.map((session) => (
+                {dashboard.sessions.length === 0 ? <div className="training-portal-empty training-portal-empty-rich"><span><Icon name="calendar" size={22} /></span><div><strong>Aucune session planifiée</strong><p>Vos prochaines dates apparaîtront ici dès qu’elles seront programmées par l’organisme.</p></div></div> : dashboard.sessions.map((session) => (
                   <article key={session.id}>
                     <div className="training-portal-session-date"><strong>{new Date(session.starts_at).getDate()}</strong><small>{new Date(session.starts_at).toLocaleDateString('fr-FR', { month: 'short' })}</small></div>
                     <div><span className={`training-portal-status ${session.status}`}>{sessionStatus(session.status)}</span><h2>{session.title}</h2><p>{session.program_title || 'Programme de formation'}</p><small>{humanDate(session.starts_at, true)} au {humanDate(session.ends_at, true)}</small><small>{session.location || session.modality || 'Lieu à confirmer'}{session.trainer_name ? ` · ${session.trainer_name}` : ''}</small></div>
@@ -466,7 +542,7 @@ export function TrainingPortalPage() {
               <div className="training-portal-documents-layout">
                 <section className="training-portal-section">
                   <header><div><h2>Documents disponibles</h2><p>{documents.length} pièce{documents.length > 1 ? 's' : ''} dans votre dossier.</p></div></header>
-                  {documents.length === 0 ? <div className="training-portal-empty">Aucun document disponible.</div> : (
+                  {documents.length === 0 ? <div className="training-portal-empty training-portal-empty-rich"><span><Icon name="file" size={22} /></span><div><strong>Aucun document disponible</strong><p>Les convocations, supports et justificatifs partagés par l’organisme apparaîtront ici.</p></div></div> : (
                     <div className="training-portal-list">
                       {documents.map((document: TrainingPortalDocument) => (
                         <article key={`${document.source_kind || 'portal'}-${document.id}`}>
