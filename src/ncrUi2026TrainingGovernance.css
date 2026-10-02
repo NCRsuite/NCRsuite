@@ -1998,3 +1998,831 @@ html[data-ncr-ui-2026="true"] .training-portal-admin-signature-list details {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* =========================================================
+   PORTAIL FORMATEUR / STAGIAIRE — ULTRA PREMIUM V1
+   Finition publique : hiérarchie, profondeur, empty states,
+   navigation, responsive et différenciation des rôles.
+   ========================================================= */
+
+html[data-ncr-ui-2026="true"] .training-portal-app {
+  --portal-ink: #171a20;
+  --portal-muted: #717986;
+  --portal-line: rgba(20, 28, 40, .085);
+  --portal-surface: rgba(255,255,255,.96);
+  --portal-soft: #f6f8fb;
+  --portal-shadow-xs: 0 1px 2px rgba(17,24,39,.025), 0 7px 20px rgba(17,24,39,.045);
+  --portal-shadow-sm: 0 2px 5px rgba(17,24,39,.035), 0 16px 44px rgba(17,24,39,.07);
+  --portal-shadow-md: 0 4px 12px rgba(17,24,39,.05), 0 24px 70px rgba(17,24,39,.10);
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 13% -6%, color-mix(in srgb, var(--portal-accent) 9%, transparent), transparent 29rem),
+    radial-gradient(circle at 98% 8%, rgba(255,255,255,.96), transparent 25rem),
+    #f3f5f8;
+  color: var(--portal-ink);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app.training-portal-trainer {
+  --portal-role-tint: color-mix(in srgb, var(--portal-accent) 9%, #eef5ff);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app.training-portal-trainee {
+  --portal-role-tint: color-mix(in srgb, var(--portal-accent) 7%, #f5f8ff);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-topbar {
+  min-height: 74px;
+  padding: 11px 22px;
+  border-bottom: 1px solid rgba(20,28,40,.07);
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 1px 0 rgba(255,255,255,.8) inset;
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-public-brand {
+  gap: 12px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-public-brand > :is(span, img) {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid var(--portal-line);
+  background: #fff;
+  box-shadow: var(--portal-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-public-brand strong {
+  color: var(--portal-ink);
+  font-size: .94rem;
+  letter-spacing: -.02em;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-public-brand small {
+  margin-top: 2px;
+  color: var(--portal-muted);
+  font-size: .72rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-account-actions .icon-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--portal-line);
+  border-radius: 13px;
+  color: #58616e;
+  background: rgba(255,255,255,.9);
+  box-shadow: var(--portal-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-workspace {
+  display: grid;
+  grid-template-columns: 238px minmax(0,1fr);
+  min-height: calc(100dvh - 74px);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar {
+  position: sticky;
+  top: 74px;
+  align-self: start;
+  min-height: calc(100dvh - 74px);
+  padding: 18px 14px;
+  border-right: 1px solid rgba(20,28,40,.075);
+  background: rgba(250,251,253,.84);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-identity {
+  margin-bottom: 16px;
+  padding: 13px;
+  border: 1px solid var(--portal-line);
+  border-radius: 17px;
+  background: rgba(255,255,255,.88);
+  box-shadow: var(--portal-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-identity > span {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  color: var(--portal-accent);
+  background: color-mix(in srgb, var(--portal-accent) 9%, #fff);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--portal-accent) 16%, transparent);
+  font-size: .78rem;
+  font-weight: 850;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-identity strong {
+  color: var(--portal-ink);
+  font-size: .82rem;
+  letter-spacing: -.015em;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-identity small {
+  color: #88909c;
+  font-size: .65rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar nav {
+  display: grid;
+  gap: 5px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar nav button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  color: #616a77;
+  background: transparent;
+  font-weight: 720;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar nav button:hover {
+  color: var(--portal-ink);
+  background: rgba(255,255,255,.82);
+  border-color: var(--portal-line);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar nav button.active {
+  color: color-mix(in srgb, var(--portal-accent) 82%, #16334f);
+  background: color-mix(in srgb, var(--portal-accent) 9%, #fff);
+  border-color: color-mix(in srgb, var(--portal-accent) 16%, var(--portal-line));
+  box-shadow: inset 3px 0 0 var(--portal-accent), var(--portal-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar nav button b {
+  min-width: 21px;
+  height: 21px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--portal-accent);
+  font-size: .64rem;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--portal-accent) 22%, transparent);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-contact {
+  margin-top: auto;
+  padding: 13px;
+  border: 1px solid var(--portal-line);
+  border-radius: 15px;
+  background: rgba(255,255,255,.72);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-contact strong {
+  color: var(--portal-ink);
+  font-size: .72rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-contact a {
+  color: var(--portal-muted);
+  font-size: .64rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-content {
+  width: min(1320px, 100%);
+  margin: 0 auto;
+  padding: clamp(28px, 4vw, 54px) clamp(24px, 4vw, 60px) 70px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-page-heading {
+  margin-bottom: 22px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-page-heading .eyebrow {
+  margin: 12px 0 5px;
+  color: color-mix(in srgb, var(--portal-accent) 84%, #23384d);
+  font-size: .65rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-page-heading h1 {
+  margin: 0;
+  max-width: 820px;
+  color: var(--portal-ink);
+  font-size: clamp(2.25rem, 4.8vw, 4.2rem);
+  line-height: .98;
+  letter-spacing: -.058em;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-page-heading > div > p:last-child {
+  max-width: 720px;
+  margin: 10px 0 0;
+  color: var(--portal-muted);
+  font-size: .93rem;
+  line-height: 1.55;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-role-pill {
+  width: fit-content;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 17%, var(--portal-line));
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: color-mix(in srgb, var(--portal-accent) 80%, #26384b);
+  background: color-mix(in srgb, var(--portal-accent) 7%, #fff);
+  font-size: .68rem;
+  font-weight: 820;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-hero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0,1.35fr) minmax(260px,.65fr);
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 16px;
+  padding: clamp(24px, 3vw, 34px);
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 13%, var(--portal-line));
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--portal-accent) 14%, transparent), transparent 19rem),
+    linear-gradient(145deg, #fff, color-mix(in srgb, var(--portal-accent) 3%, #f8fafc));
+  box-shadow: var(--portal-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-hero::before {
+  content: "";
+  position: absolute;
+  width: 110px;
+  height: 4px;
+  left: 32px;
+  top: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--portal-accent), color-mix(in srgb, var(--portal-accent) 20%, transparent));
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-hero-copy {
+  align-self: center;
+  min-width: 0;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-kicker {
+  color: color-mix(in srgb, var(--portal-accent) 84%, #27394d);
+  font-size: .62rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-hero h2 {
+  max-width: 760px;
+  margin: 8px 0 9px;
+  color: var(--portal-ink);
+  font-size: clamp(1.55rem, 3vw, 2.45rem);
+  line-height: 1.05;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-hero-copy > p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--portal-muted);
+  font-size: .86rem;
+  line-height: 1.55;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 19px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-actions :is(.primary-button,.secondary-button) {
+  min-height: 43px;
+  border-radius: 12px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-focus {
+  display: grid;
+  grid-template-columns: 46px minmax(0,1fr);
+  align-content: center;
+  gap: 13px;
+  padding: 18px;
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 20px;
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 12px 28px rgba(17,24,39,.055);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-focus-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: var(--portal-accent);
+  background: color-mix(in srgb, var(--portal-accent) 9%, #fff);
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 16%, var(--portal-line));
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-focus small {
+  color: #8a919c;
+  font-size: .58rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-focus strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--portal-ink);
+  font-size: .95rem;
+  letter-spacing: -.02em;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-focus p {
+  margin: 5px 0 0;
+  color: var(--portal-muted);
+  font-size: .73rem;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics article {
+  position: relative;
+  min-width: 0;
+  min-height: 108px;
+  padding: 15px 16px;
+  border: 1px solid var(--portal-line);
+  border-radius: 18px;
+  display: grid;
+  grid-template-columns: 42px minmax(0,1fr);
+  align-items: center;
+  gap: 12px;
+  background: var(--portal-surface);
+  box-shadow: var(--portal-shadow-xs);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics article:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--portal-accent) 16%, var(--portal-line));
+  box-shadow: var(--portal-shadow-sm);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics article > span {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: var(--portal-accent);
+  background: color-mix(in srgb, var(--portal-accent) 8%, #f7faff);
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 14%, var(--portal-line));
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics strong {
+  color: var(--portal-ink);
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics small {
+  display: block;
+  margin-top: 4px;
+  color: #606977;
+  font-size: .72rem;
+  font-weight: 760;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics em {
+  display: block;
+  margin-top: 3px;
+  color: #9aa1ab;
+  font-size: .61rem;
+  font-style: normal;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics article.attention {
+  border-color: color-mix(in srgb, #f59e0b 27%, var(--portal-line));
+  background: linear-gradient(145deg, #fff, #fffaf0);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-section {
+  overflow: hidden;
+  border: 1px solid var(--portal-line);
+  border-radius: 21px;
+  background: var(--portal-surface);
+  box-shadow: var(--portal-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-section > header {
+  min-height: 76px;
+  padding: 17px 19px;
+  border-bottom: 1px solid rgba(20,28,40,.065);
+  background: linear-gradient(180deg, rgba(250,251,253,.82), rgba(255,255,255,.82));
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-section > header h2 {
+  margin: 0;
+  color: var(--portal-ink);
+  font-size: 1rem;
+  letter-spacing: -.025em;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-section > header p {
+  margin: 4px 0 0;
+  color: var(--portal-muted);
+  font-size: .72rem;
+  line-height: 1.4;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-grid {
+  gap: 12px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-list {
+  padding: 10px;
+  gap: 7px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-list > article,
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-signature-list > article {
+  min-width: 0;
+  min-height: 66px;
+  padding: 10px 11px;
+  border: 1px solid rgba(20,28,40,.07);
+  border-radius: 14px;
+  background: #fff;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-list > article:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--portal-accent) 17%, var(--portal-line));
+  background: color-mix(in srgb, var(--portal-accent) 1.8%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-list-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: var(--portal-accent);
+  background: color-mix(in srgb, var(--portal-accent) 7%, #f7f9fc);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-list strong {
+  color: var(--portal-ink);
+  font-size: .79rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-list small {
+  color: #89919c;
+  font-size: .67rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-empty {
+  min-height: 132px;
+  margin: 10px;
+  border: 1px dashed color-mix(in srgb, var(--portal-accent) 16%, #d9dfe7);
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  color: #939aa5;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--portal-accent) 5%, transparent), transparent 10rem),
+    #fafbfc;
+  font-size: .72rem;
+  text-align: center;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-empty-rich {
+  grid-template-columns: 46px minmax(0,1fr);
+  place-items: initial;
+  align-items: center;
+  gap: 13px;
+  padding: 18px;
+  text-align: left;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-empty-rich > span {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: var(--portal-accent);
+  background: color-mix(in srgb, var(--portal-accent) 8%, #fff);
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 15%, var(--portal-line));
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-empty-rich strong {
+  display: block;
+  color: var(--portal-ink);
+  font-size: .78rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-empty-rich p {
+  margin: 4px 0 0;
+  color: var(--portal-muted);
+  font-size: .68rem;
+  line-height: 1.45;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-session-grid {
+  display: grid;
+  gap: 10px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-session-grid > article {
+  padding: 16px;
+  border: 1px solid var(--portal-line);
+  border-radius: 19px;
+  background: #fff;
+  box-shadow: var(--portal-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-session-date {
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 16%, var(--portal-line));
+  border-radius: 14px;
+  color: var(--portal-accent);
+  background: color-mix(in srgb, var(--portal-accent) 7%, #fff);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-documents-layout {
+  gap: 14px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-deposit-panel {
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 12%, var(--portal-line));
+  border-radius: 21px;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--portal-accent) 8%, transparent), transparent 15rem),
+    #fff;
+  box-shadow: var(--portal-shadow-xs);
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-deposit-panel :is(input,select) {
+  border-color: var(--portal-line);
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-trainer-session-card {
+  display: grid;
+  grid-template-columns: 64px minmax(0,1fr);
+  align-items: center;
+  gap: 14px;
+  margin: 10px;
+  padding: 13px;
+  border: 1px solid var(--portal-line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-trainer-session-card > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-trainer-session-card > div > strong {
+  color: var(--portal-ink);
+  font-size: .83rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-trainer-session-card > div > small {
+  color: var(--portal-muted);
+  font-size: .68rem;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app :is(
+  .training-portal-section,
+  .training-portal-session-grid > article,
+  .training-portal-deposit-panel,
+  .training-portal-overview-hero
+) {
+  box-sizing: border-box;
+}
+
+html[data-ncr-ui-2026="true"] .training-portal-app :is(button,a,input,select):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--portal-accent) 18%, transparent);
+}
+
+@media (max-width: 1080px) {
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-workspace {
+    grid-template-columns: 210px minmax(0,1fr);
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-content {
+    padding-inline: 28px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-hero {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-topbar {
+    min-height: 64px;
+    padding: 9px 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-public-brand > :is(span,img) {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-workspace {
+    display: block;
+    min-height: calc(100dvh - 64px);
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar {
+    position: sticky;
+    top: 64px;
+    z-index: 20;
+    min-height: 0;
+    padding: 8px 10px;
+    border-right: 0;
+    border-bottom: 1px solid var(--portal-line);
+    background: rgba(248,250,252,.93);
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-identity,
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-contact {
+    display: none;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar nav {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(116px,1fr);
+    overflow-x: auto;
+    gap: 6px;
+    scrollbar-width: none;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar nav button {
+    min-height: 40px;
+    padding: 0 10px;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar nav button.active {
+    box-shadow: inset 0 -3px 0 var(--portal-accent), var(--portal-shadow-xs);
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-content {
+    padding: 22px 12px calc(42px + env(safe-area-inset-bottom));
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-page-heading {
+    margin-bottom: 17px;
+    padding-inline: 3px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-page-heading h1 {
+    font-size: clamp(2rem, 10vw, 2.65rem);
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-page-heading > div > p:last-child {
+    font-size: .82rem;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-hero {
+    gap: 16px;
+    padding: 21px 18px;
+    border-radius: 22px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-hero::before {
+    left: 20px;
+    width: 74px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-hero h2 {
+    font-size: 1.55rem;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-actions :is(.primary-button,.secondary-button) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics {
+    gap: 8px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics article {
+    min-height: 96px;
+    padding: 12px;
+    grid-template-columns: 38px minmax(0,1fr);
+    gap: 9px;
+    border-radius: 16px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics article > span {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics strong {
+    font-size: 1.3rem;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics em {
+    display: none;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-grid,
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-documents-layout {
+    grid-template-columns: 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-section {
+    border-radius: 18px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-section > header {
+    min-height: 0;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics article {
+    grid-template-columns: 1fr;
+    align-content: start;
+    min-height: 116px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-metrics article > span {
+    margin-bottom: 3px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-focus {
+    grid-template-columns: 40px minmax(0,1fr);
+    padding: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-overview-focus-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-empty-rich {
+    grid-template-columns: 40px minmax(0,1fr);
+    padding: 14px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-empty-rich > span {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ncr-ui-2026="true"] .training-portal-app *,
+  html[data-ncr-ui-2026="true"] .training-portal-app *::before,
+  html[data-ncr-ui-2026="true"] .training-portal-app *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
+
