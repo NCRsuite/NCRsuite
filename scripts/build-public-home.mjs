@@ -21,7 +21,10 @@ root.walkRules(rule => {
   });
 });
 root.append('@font-face { font-family:NCRHomeInter; src:url("/fonts/inter-variable.woff2") format("woff2"); font-weight:100 900; font-style:normal; font-display:swap; }');
-root.append(`${scope} { display:block; font-family:NCRHomeInter,ui-sans-serif,system-ui,sans-serif; line-height:1.5; color:#0b0d12; background:#f4f6fa; overflow-x:clip; }`);
+// Match the prototype's document scrolling only while this landing is mounted.
+// overflow:hidden on the SaaS ancestors otherwise captures position:sticky.
+root.append(`html:has(${scope}), body:has(${scope}), #root:has(${scope}) { overflow-x:clip; overflow-y:visible; }`);
+root.append(`${scope} { font-feature-settings:normal; display:block; font-family:NCRHomeInter,ui-sans-serif,system-ui,sans-serif; line-height:1.5; color:#0b0d12; background:#f4f6fa; overflow-x:clip; }`);
 await fs.writeFile(`${base}/styles.scoped.css`, root.toString());
 const result = await build({entryPoints:[`${base}/runtime.tsx`],bundle:true,format:'esm',platform:'browser',target:'es2020',jsx:'automatic',minify:true,write:false,define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'shared-app-react',setup(builder){
  builder.onResolve({filter:/^react(?:\/jsx-runtime)?$/},args=>({path:args.path,namespace:'shared-react'}));

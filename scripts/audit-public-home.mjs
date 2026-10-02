@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import postcss from 'postcss';
 const read = path => fs.readFileSync(path,'utf8');
@@ -19,7 +20,11 @@ const css=postcss.parse(read(`${base}/styles.scoped.css`));
 let rules=0;
 css.walkRules(rule=>{
  for(let p=rule.parent;p;p=p.parent) if(p.type==='rule' || (p.type==='atrule' && p.name.includes('keyframes'))) return;
- for(const selector of rule.selectors) assert.ok(selector.startsWith('#ncr-public-home'), `CSS escape: ${selector}`);
+ for(const selector of rule.selectors) {
+   if (['html:has(#ncr-public-home)', 'body:has(#ncr-public-home)', '#root:has(#ncr-public-home)'].includes(selector)) {
+     assert.deepEqual(rule.nodes.map(n => [n.prop, n.value]), [['overflow-x','clip'], ['overflow-y','visible']], 'Ancestor exception must only restore prototype scrolling');
+   } else assert.ok(selector.startsWith('#ncr-public-home'), `CSS escape: ${selector}`);
+ }
  rules++;
 });
 assert.ok(rules>100,'Full scoped design must be present');
@@ -39,4 +44,30 @@ assert.ok(!read('public/sw.js').includes('/public-home/'), 'Marketing runtime mu
 const url=read(`${base}/moduleUrl.ts`).match(/'([^']+)'/)?.[1];
 assert.ok(url && /^\/public-home\/runtime-[a-f0-9]{16}\.js$/.test(url));
 assert.ok(fs.statSync(`public${url}`).size>100000,'Generated runtime must exist');
+
+
+// Equivalent coverage for the former homepage's branding, showcase and offer checks.
+assert.ok(page.includes('/og/ncr-suite-og-v2221.webp'));
+for (const [file, markers] of Object.entries({
+  'components/Header.tsx': ['<Logo', 'LOGIN_URL', 'TRIAL_URL'],
+  'components/Story.tsx': ['<canvas', 'HeroText', 'StoryScene', 'CHAPTERS.map'],
+  'components/Offres.tsx': ['role="tablist"', 'role="tabpanel"', 'OFFERS.map', 'TRIAL_URL'],
+  'components/Metiers.tsx': ['metier-grid'],
+  'components/Produit.tsx': ['IntersectionObserver', 'translate3d', 'cancelAnimationFrame', 'removeEventListener'],
+})) for (const marker of markers) assert.ok(read(`${base}/${file}`).includes(marker), `${file}: ${marker}`);
+const sourceCss = read(`${base}/styles.source.css`);
+for (const marker of ['grid-column:2/span 2', 'grid-column:4/span 2', 'scroll-snap-type:x mandatory']) {
+  assert.ok(sourceCss.replaceAll(' ', '').includes(marker.replaceAll(' ', '')), `Prototype layout missing: ${marker}`);
+}
+for (const selector of ['html:has(#ncr-public-home)', 'body:has(#ncr-public-home)', '#root:has(#ncr-public-home)']) {
+  assert.ok(css.toString().includes(selector), `Sticky scroll ancestor missing: ${selector}`);
+}
+
+// Fingerprints originate from the final V3 source, not from the integrated scene.
+const prototype = JSON.parse(read('scripts/public-home-prototype.json'));
+for (const [file, expected] of Object.entries(prototype.files)) {
+  const source = read(`${base}/${file}`);
+  const canonical = file === 'three/ui.ts' ? source.replaceAll('NCRHomeInter', 'Inter') : source;
+  assert.equal(createHash('sha256').update(canonical).digest('hex'), expected, `Validated V3 differs: ${file}`);
+}
 console.log(`Public home isolation contract passed: ${rules} scoped CSS rules, routes, shared catalog, lazy runtime and cleanup.`);
