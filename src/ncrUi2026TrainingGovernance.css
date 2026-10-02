@@ -2881,3 +2881,70 @@ html[data-ncr-ui-2026="true"] .training-portal-app :is(button,a,input,select):fo
   }
 }
 
+/* =========================================================
+   PORTAIL FORMATION — DESKTOP APP SHELL FIXED V3
+   Safari-safe : topbar et sidebar réellement fixes.
+   Seule la colonne de contenu suit le scroll de la page.
+   ========================================================= */
+
+@media (min-width: 761px) {
+  html[data-ncr-ui-2026="true"] .training-portal-app {
+    --portal-topbar-height: 74px;
+    --portal-sidebar-width: 238px;
+    min-height: 100dvh;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-topbar {
+    position: fixed !important;
+    inset: 0 0 auto 0;
+    z-index: 100;
+    width: 100%;
+    height: var(--portal-topbar-height);
+    min-height: var(--portal-topbar-height);
+    box-sizing: border-box;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-workspace {
+    display: grid;
+    grid-template-columns: var(--portal-sidebar-width) minmax(0, 1fr);
+    align-items: start;
+    min-height: 100dvh;
+    padding-top: var(--portal-topbar-height);
+    box-sizing: border-box;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar {
+    position: fixed !important;
+    top: var(--portal-topbar-height);
+    bottom: 0;
+    left: 0;
+    z-index: 70;
+    width: var(--portal-sidebar-width);
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    align-self: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    box-sizing: border-box;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-content {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-contact {
+    margin-top: auto;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1080px) {
+  html[data-ncr-ui-2026="true"] .training-portal-app {
+    --portal-sidebar-width: 210px;
+  }
+}
+
