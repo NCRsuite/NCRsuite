@@ -55,7 +55,7 @@ export default function Final({ effects, views, onFail }: Props) {
       )}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-night via-night/70 to-transparent" />
 
-      <div className="relative mx-auto flex min-h-[100dvh] w-[min(92vw,900px)] flex-col items-center justify-center pb-16 pt-24 text-center">
+      <div className="relative mx-auto flex min-h-[100svh] w-[min(92vw,900px)] flex-col items-center justify-center pb-16 pt-24 text-center">
         <h2
           id="final-title"
           data-reveal

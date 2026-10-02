@@ -215,7 +215,7 @@ export default function Story({ activeVertical, onSelect, effects, views, images
   /* ---------- Version 3D immersive ---------- */
   return (
     <section id="plateforme" ref={secRef} aria-label="Présentation de la plateforme" className="relative" style={{ height: "calc(100dvh + 5 * 72dvh)" }}>
-      <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-gradient-to-b from-[#fbfcfe] via-[#f3f6fb] to-[#e9eef7]">
+      <div className="sticky top-0 h-[100svh] w-full overflow-hidden bg-gradient-to-b from-[#fbfcfe] via-[#f3f6fb] to-[#e9eef7]">
         <canvas
           ref={canvasRef}
           className="absolute inset-0 h-full w-full transition-opacity duration-[1400ms] ease-out"

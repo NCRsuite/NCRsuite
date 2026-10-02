@@ -78,7 +78,7 @@ const product = read(`${base}/components/Produit.tsx`);
 assert.ok(product.includes('(window.scrollY - g.top) / g.travel * 4'), 'Four product transitions must fill the exact sticky travel');
 assert.ok(product.includes('1 - distance * 0.45'), 'At least one product mockup must remain visible throughout the travel');
 assert.ok(read(`${base}/components/Faq.tsx`).includes('pb-16 pt-24 lg:pb-20 lg:pt-28'), 'FAQ exit spacing must stay compact');
-assert.ok(read(`${base}/components/Final.tsx`).includes('min-h-[100dvh]') && read(`${base}/components/Final.tsx`).includes('justify-center'), 'Final CTA must be visible when its section enters');
+assert.ok(read(`${base}/components/Final.tsx`).includes('min-h-[100svh]') && read(`${base}/components/Final.tsx`).includes('justify-center'), 'Final CTA must be visible when its section enters');
 
 // Fingerprints originate from the final V3 source, not from the integrated scene.
 const prototype = JSON.parse(read('scripts/public-home-prototype.json'));
@@ -89,7 +89,7 @@ for (const [file, expected] of Object.entries(prototype.files)) {
     .replace('        // Keep neighbouring chapters overlapped: at the midpoint both remain\n        // visible, so fast and slow scrolling can never expose an empty stage.\n        const op = i === 0 ? 1 - sstep(0.18, 0.68, s) : 1 - sstep(0.35, 0.75, Math.abs(s - i));', '        const op = i === 0 ? 1 - sstep(0.1, 0.4, s) : 1 - sstep(0.2, 0.42, Math.abs(s - i));')
     .replace('style={{ height: "calc(100dvh + 5 * 72dvh)" }}', 'style={{ height: `${100 + 5 * 95}svh` }}')
     .replace('h-[100dvh]', 'h-[100svh]');
-  if (file === 'components/Final.tsx') canonical = canonical.replace('min-h-[100dvh] w-[min(92vw,900px)] flex-col items-center justify-center pb-16 pt-24 text-center', 'min-h-[100svh] w-[min(92vw,900px)] flex-col items-center justify-end pb-20 pt-32 text-center lg:min-h-[108svh]');
+  if (file === 'components/Final.tsx') canonical = canonical.replace('min-h-[100svh] w-[min(92vw,900px)] flex-col items-center justify-center pb-16 pt-24 text-center', 'min-h-[100svh] w-[min(92vw,900px)] flex-col items-center justify-end pb-20 pt-32 text-center lg:min-h-[108svh]');
   assert.equal(createHash('sha256').update(canonical).digest('hex'), expected, `Validated V3 differs: ${file}`);
 }
 console.log(`Public home isolation contract passed: ${rules} scoped CSS rules, routes, shared catalog, lazy runtime and cleanup.`);
