@@ -2826,3 +2826,58 @@ html[data-ncr-ui-2026="true"] .training-portal-app :is(button,a,input,select):fo
   }
 }
 
+/* =========================================================
+   PORTAIL FORMATION — SIDEBAR STABLE V2
+   Desktop : topbar persistante + navigation gauche verrouillée.
+   Le contenu central reste le seul flux vertical principal.
+   ========================================================= */
+
+@media (min-width: 761px) {
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    width: 100%;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-workspace {
+    align-items: start;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar {
+    position: sticky;
+    top: 74px;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-self: start;
+    width: 100%;
+    height: calc(100dvh - 74px);
+    min-height: 0;
+    max-height: calc(100dvh - 74px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(115, 125, 140, .22) transparent;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-sidebar::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(115, 125, 140, .22);
+  }
+
+  html[data-ncr-ui-2026="true"] .training-portal-app .training-portal-contact {
+    margin-top: auto;
+  }
+}
+
