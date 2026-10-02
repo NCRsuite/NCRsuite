@@ -98,7 +98,9 @@ export default function Story({ activeVertical, onSelect, effects, views, images
       lastFrame = s;
       blocks.current.forEach((el, i) => {
         if (!el) return;
-        const op = i === 0 ? 1 - sstep(0.1, 0.4, s) : 1 - sstep(0.2, 0.42, Math.abs(s - i));
+        // Keep neighbouring chapters overlapped: at the midpoint both remain
+        // visible, so fast and slow scrolling can never expose an empty stage.
+        const op = i === 0 ? 1 - sstep(0.18, 0.68, s) : 1 - sstep(0.35, 0.75, Math.abs(s - i));
         const ty = i === 0 ? -s * 70 : (i - s) * 46;
         el.style.opacity = op.toFixed(3);
         el.style.transform = `translate3d(0,${ty.toFixed(1)}px,0)`;
@@ -212,8 +214,8 @@ export default function Story({ activeVertical, onSelect, effects, views, images
 
   /* ---------- Version 3D immersive ---------- */
   return (
-    <section id="plateforme" ref={secRef} aria-label="Présentation de la plateforme" className="relative" style={{ height: `${100 + 5 * 95}svh` }}>
-      <div className="sticky top-0 h-[100svh] w-full overflow-hidden bg-gradient-to-b from-[#fbfcfe] via-[#f3f6fb] to-[#e9eef7]">
+    <section id="plateforme" ref={secRef} aria-label="Présentation de la plateforme" className="relative" style={{ height: "calc(100dvh + 5 * 72dvh)" }}>
+      <div className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-gradient-to-b from-[#fbfcfe] via-[#f3f6fb] to-[#e9eef7]">
         <canvas
           ref={canvasRef}
           className="absolute inset-0 h-full w-full transition-opacity duration-[1400ms] ease-out"

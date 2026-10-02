@@ -7,7 +7,12 @@ import * as React from 'react';
 import * as jsx from 'react/jsx-runtime';
 const base = 'src/components/public-home';
 const scope = '#ncr-public-home';
-const root = postcss.parse((await fs.readFile(`${base}/styles.source.css`, 'utf8')).replaceAll('--tw-', '--ncr-home-tw-').replaceAll('Inter', 'NCRHomeInter'));
+const sourceCss = (await fs.readFile(`${base}/styles.source.css`, 'utf8'))
+  .replace('.product-carousel.is-pinned{height:360vh}', '.product-carousel.is-pinned{height:332dvh}')
+  .replace('.is-pinned .product-sticky{flex-direction:column;height:100svh', '.is-pinned .product-sticky{flex-direction:column;height:100dvh')
+  .replaceAll('--tw-', '--ncr-home-tw-')
+  .replaceAll('Inter', 'NCRHomeInter');
+const root = postcss.parse(sourceCss);
 root.walkAtRules('layer', rule => { if (rule.nodes) rule.replaceWith(...rule.nodes); else rule.remove(); });
 root.walkAtRules('font-face', rule => rule.remove()); // Existing Inter font, already served by NCR Suite.
 const animations = new Map();

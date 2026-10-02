@@ -8,7 +8,7 @@ export default function Faq() {
   useReveal(ref);
   const [business, setBusiness] = useState(BUSINESS_FAQ[0].key);
   return (
-    <section id="faq" ref={ref} aria-labelledby="faq-title" className="bg-white py-24 lg:py-32">
+    <section id="faq" ref={ref} aria-labelledby="faq-title" className="bg-white pb-16 pt-24 lg:pb-20 lg:pt-28">
       <div className="mx-auto w-[min(92vw,820px)]">
         <div className="text-center">
           <p className="eyebrow" data-reveal>

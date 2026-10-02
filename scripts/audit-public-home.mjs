@@ -62,12 +62,34 @@ for (const marker of ['grid-column:2/span 2', 'grid-column:4/span 2', 'scroll-sn
 for (const selector of ['html:has(#ncr-public-home)', 'body:has(#ncr-public-home)', '#root:has(#ncr-public-home)']) {
   assert.ok(css.toString().includes(selector), `Sticky scroll ancestor missing: ${selector}`);
 }
+const integratedCss = css.toString();
+assert.ok(integratedCss.includes('.product-carousel.is-pinned{height:332dvh}'), 'Pinned carousel must end after four compact transitions');
+assert.ok(integratedCss.includes('.is-pinned .product-sticky{flex-direction:column;height:100dvh'), 'Pinned viewport must use dynamic viewport height');
+const story = read(`${base}/components/Story.tsx`);
+assert.ok(story.includes('calc(100dvh + 5 * 72dvh)'), 'Story scroll length must match its five stages');
+assert.ok(story.includes('sstep(0.35, 0.75, Math.abs(s - i))'), 'Story chapters must overlap during transitions');
+assert.ok(story.includes('1 - sstep(0.18, 0.68, s)'), 'Hero and first chapter must overlap');
+const chapterOpacity = (stage, chapter) => 1 - Math.max(0, Math.min(1, (Math.abs(stage - chapter) - 0.35) / 0.4)) ** 2 * (3 - 2 * Math.max(0, Math.min(1, (Math.abs(stage - chapter) - 0.35) / 0.4)));
+for (let stage = 0.5; stage <= 5; stage += 0.01) {
+  assert.ok(Math.max(...[1, 2, 3, 4, 5].map(chapter => chapterOpacity(stage, chapter))) >= 0.5, `Empty story transition at ${stage.toFixed(2)}`);
+}
+assert.equal(chapterOpacity(5, 5), 1, 'Last story chapter must remain fully visible at release');
+const product = read(`${base}/components/Produit.tsx`);
+assert.ok(product.includes('(window.scrollY - g.top) / g.travel * 4'), 'Four product transitions must fill the exact sticky travel');
+assert.ok(product.includes('1 - distance * 0.45'), 'At least one product mockup must remain visible throughout the travel');
+assert.ok(read(`${base}/components/Faq.tsx`).includes('pb-16 pt-24 lg:pb-20 lg:pt-28'), 'FAQ exit spacing must stay compact');
+assert.ok(read(`${base}/components/Final.tsx`).includes('min-h-[100dvh]') && read(`${base}/components/Final.tsx`).includes('justify-center'), 'Final CTA must be visible when its section enters');
 
 // Fingerprints originate from the final V3 source, not from the integrated scene.
 const prototype = JSON.parse(read('scripts/public-home-prototype.json'));
 for (const [file, expected] of Object.entries(prototype.files)) {
   const source = read(`${base}/${file}`);
-  const canonical = file === 'three/ui.ts' ? source.replaceAll('NCRHomeInter', 'Inter') : source;
+  let canonical = file === 'three/ui.ts' ? source.replaceAll('NCRHomeInter', 'Inter') : source;
+  if (file === 'components/Story.tsx') canonical = canonical
+    .replace('        // Keep neighbouring chapters overlapped: at the midpoint both remain\n        // visible, so fast and slow scrolling can never expose an empty stage.\n        const op = i === 0 ? 1 - sstep(0.18, 0.68, s) : 1 - sstep(0.35, 0.75, Math.abs(s - i));', '        const op = i === 0 ? 1 - sstep(0.1, 0.4, s) : 1 - sstep(0.2, 0.42, Math.abs(s - i));')
+    .replace('style={{ height: "calc(100dvh + 5 * 72dvh)" }}', 'style={{ height: `${100 + 5 * 95}svh` }}')
+    .replace('h-[100dvh]', 'h-[100svh]');
+  if (file === 'components/Final.tsx') canonical = canonical.replace('min-h-[100dvh] w-[min(92vw,900px)] flex-col items-center justify-center pb-16 pt-24 text-center', 'min-h-[100svh] w-[min(92vw,900px)] flex-col items-center justify-end pb-20 pt-32 text-center lg:min-h-[108svh]');
   assert.equal(createHash('sha256').update(canonical).digest('hex'), expected, `Validated V3 differs: ${file}`);
 }
 console.log(`Public home isolation contract passed: ${rules} scoped CSS rules, routes, shared catalog, lazy runtime and cleanup.`);
