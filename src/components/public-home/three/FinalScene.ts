@@ -83,6 +83,7 @@ export class FinalScene {
   private camera = new THREE.PerspectiveCamera(35, 1, 0.5, 80);
   private envRT: THREE.WebGLRenderTarget;
   private logo = new THREE.Group();
+  private logoHolder = new THREE.Group();
   private rings: THREE.Mesh[] = [];
   private dust!: THREE.Points;
   private glow!: THREE.Mesh;
@@ -145,6 +146,8 @@ export class FinalScene {
       roughness: 0.22,
       clearcoat: 1,
       clearcoatRoughness: 0.12,
+      transparent: true,
+      opacity: 0.76,
     });
     const U = 0.0076; // unités monde par unité du symbole
     const cx0 = LOGO.barW / 2;
@@ -185,14 +188,22 @@ export class FinalScene {
     });
     const dot = new THREE.Mesh(
       new THREE.SphereGeometry(LOGO.dot.r * U, 40, 28),
-      new THREE.MeshStandardMaterial({ color: 0x0a6cff, emissive: 0x0a6cff, emissiveIntensity: 0.9, roughness: 0.25 })
+      new THREE.MeshStandardMaterial({
+        color: 0x0a6cff,
+        emissive: 0x0a6cff,
+        emissiveIntensity: 0.72,
+        roughness: 0.25,
+        transparent: true,
+        opacity: 0.82,
+      })
     );
     dot.scale.z = 0.62;
     dot.position.set((LOGO.dot.x - cx0) * U, -(LOGO.dot.y - cy0) * U, 0);
     this.logo.add(dot);
-    const holder = new THREE.Group();
-    holder.add(this.logo);
-    scene.add(holder);
+    this.logoHolder.add(this.logo);
+    this.logoHolder.scale.setScalar(0.88);
+    this.logoHolder.position.y = mobile ? -0.62 : -0.78;
+    scene.add(this.logoHolder);
 
     // halo
     this.glow = new THREE.Mesh(
@@ -314,11 +325,12 @@ export class FinalScene {
 
     this.logo.rotation.y = Math.sin(this.time * 0.45) * 0.45 + this.smx * 0.15;
     this.logo.rotation.x = Math.sin(this.time * 0.35) * 0.05;
-    this.logo.parent!.position.y = Math.sin(this.time * 0.8) * 0.05;
+    const logoBaseY = this.o.mobile ? -0.62 : -0.78;
+    this.logoHolder.position.y = logoBaseY + Math.sin(this.time * 0.8) * 0.04;
     this.rings.forEach((r, i) => (r.rotation.z += dt * (0.05 + i * 0.03) * (i % 2 ? -1 : 1)));
     this.dust.rotation.y += dt * 0.02;
     const gm = this.glow.material as THREE.MeshBasicMaterial;
-    gm.opacity = 0.75 + Math.sin(this.time * 0.7) * 0.1;
+    gm.opacity = 0.48 + Math.sin(this.time * 0.7) * 0.06;
 
     this.renderer.render(this.scene, this.camera);
   };

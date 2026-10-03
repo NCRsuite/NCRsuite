@@ -56,18 +56,28 @@ export default function Final({ effects, views, onFail }: Props) {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-1/2 bg-gradient-to-t from-night via-night/70 to-transparent" />
 
       <div className="relative mx-auto flex min-h-[100svh] w-[min(92vw,900px)] flex-col items-center justify-center pb-16 pt-24 text-center">
-        <h2
-          id="final-title"
-          data-reveal
-          className="text-[clamp(2.3rem,6.4vw,5.25rem)] font-semibold leading-[1.03] tracking-[-0.04em]"
-        >
-          Passez à une
-          <br />
-          gestion plus simple.
-        </h2>
-        <p data-reveal data-delay="0.08" className="mt-5 max-w-xl text-[1.05rem] leading-relaxed text-slate-400">
-          Présentez votre activité. Après validation, découvrez la formule Professionnelle pendant 7 jours, sans carte bancaire.
-        </p>
+        <div className="relative isolate">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -z-10"
+            style={{
+              inset: "-3.5rem -6rem -3rem",
+              background: "radial-gradient(ellipse at center, rgba(5, 7, 12, 0.82) 0%, rgba(5, 7, 12, 0.58) 48%, rgba(5, 7, 12, 0) 78%)",
+            }}
+          />
+          <h2
+            id="final-title"
+            data-reveal
+            className="text-[clamp(2.3rem,6.4vw,5.25rem)] font-semibold leading-[1.03] tracking-[-0.04em]"
+          >
+            Passez à une
+            <br />
+            gestion plus simple.
+          </h2>
+          <p data-reveal data-delay="0.08" className="mt-5 max-w-xl text-[1.05rem] leading-relaxed text-slate-400">
+            Présentez votre activité. Après validation, découvrez la formule Professionnelle pendant 7 jours, sans carte bancaire.
+          </p>
+        </div>
         <div data-reveal data-delay="0.14" className="mt-9 flex w-full flex-col items-center gap-6">
           <a href={TRIAL_URL} className="btn btn-light !h-14 !px-8 !text-base">
             Demander mon essai gratuit

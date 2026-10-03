@@ -18,7 +18,8 @@
   "optimizationBase": "ef16c67ed3988950587935aa722bf4a724c843f4",
   "optimizedFiles": {
     "three/StoryScene.ts": "ce313e55906bb63df6903c916ab44eb07f8d80e462760669218c8bf64a31db64",
-    "three/FinalScene.ts": "864b1e1762e0b2aa581a76e55a1f733e15e6c4bc93fc93d20e8fc92e5c1c28f0",
-    "three/common.ts": "f1f9c048ef0049bdd6e210a6f547ccbfcfe997fc1606ff9a7860c5485d4288aa"
+    "three/FinalScene.ts": "0877e805848702390c6040abffabbd900b6c524469765a8e7f66e95c45beefe4",
+    "three/common.ts": "f1f9c048ef0049bdd6e210a6f547ccbfcfe997fc1606ff9a7860c5485d4288aa",
+    "components/Final.tsx": "6d6bc4e3d33a958840d0bb2774aa88d800ae0a5af5b9e09be0de33fd4edcc9a4"
   }
 }
