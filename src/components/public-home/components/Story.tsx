@@ -224,7 +224,11 @@ export default function Story({ activeVertical, onSelect, effects, views, images
         />
 
         <div className="pointer-events-none absolute inset-x-0 top-0 pt-[5.5rem] lg:pt-28 [@media(max-height:820px)]:lg:!pt-24">
-          <div ref={(el) => { blocks.current[0] = el; }} className="will-change-transform">
+          <div ref={(el) => { blocks.current[0] = el; }} className="will-change-transform" style={{
+            // This veil shares the text's scroll opacity, leaving the following
+            // 3D chapters untouched. No blur, opaque panel or extra animation.
+            background: "radial-gradient(ellipse at 50% 42%, rgba(244,246,250,0.94) 0%, rgba(244,246,250,0.8) 42%, rgba(244,246,250,0) 74%)",
+          }}>
             <HeroText active={activeVertical} onSelect={onSelect} onDiscover={() => go(1)} />
           </div>
         </div>

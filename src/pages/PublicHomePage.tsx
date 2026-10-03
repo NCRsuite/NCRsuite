@@ -32,12 +32,24 @@ export function PublicHomePage() {
   }, [navigate]);
   return <>
     <PageMetadata title="NCR Suite — Une plateforme, cinq expériences métier" description="Formation, sécurité privée, nettoyage, restauration, coiffure et beauté : une plateforme de gestion commune, des outils adaptés à votre activité." path="/" image="/og/ncr-suite-og-v2221.webp" index />
-    {state !== 'ready' && <main aria-busy={state === 'loading'}>
-      <h1>NCR Suite — Une plateforme, cinq expériences métier</h1>
-      <p>Formation, Sécurité privée, Nettoyage, Restauration, Coiffure &amp; Beauté.</p>
-      <p>Un socle commun pour vos clients, équipes, plannings et documents.</p>
-      <Link to="/connexion">Connexion</Link>{' · '}<Link to="/demande-acces?essai=7">Essai gratuit de 7 jours</Link>
-      {state === 'error' && <p role="status">La présentation immersive n’a pas pu se charger. Les accès ci-dessus restent disponibles.</p>}
+    {state !== 'ready' && <main aria-busy={state === 'loading'} data-public-home-startup={state} style={{
+      position: 'fixed', inset: 0, zIndex: 2147483646, display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', gap: 18, padding: 24, boxSizing: 'border-box',
+      overflowY: 'auto', background: '#080d12', color: '#fff', textAlign: 'center',
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', lineHeight: 1.5,
+    }}>
+      <img src="/brand/ncr-suite-icon.png" alt="" width={72} height={72} style={{ width: 72, height: 72, borderRadius: 8, objectFit: 'cover' }} />
+      {state === 'loading' ? <>
+        <strong style={{ margin: 0, fontSize: 22 }}>NCR Suite</strong>
+        <span role="status" style={{ fontSize: 12, color: '#8e9aa4' }}>Chargement de la présentation…</span>
+      </> : <>
+        <h1 style={{ margin: 0, maxWidth: 640, fontSize: 24 }}>NCR Suite — Une plateforme, cinq expériences métier</h1>
+        <p role="status" style={{ margin: 0, maxWidth: 480 }}>La présentation immersive n’a pas pu se charger. Les accès ci-dessous restent disponibles.</p>
+        <nav aria-label="Accès NCR Suite" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 24 }}>
+          <Link style={{ color: '#fff', textDecoration: 'underline', padding: 12 }} to="/connexion">Connexion</Link>
+          <Link style={{ color: '#fff', textDecoration: 'underline', padding: 12 }} to="/demande-acces?essai=7">Essai gratuit de 7 jours</Link>
+        </nav>
+      </>}
     </main>}
     <div id="ncr-public-home" className="ncr-public-home">{Component && <Component navigate={navigate} />}</div>
   </>;
