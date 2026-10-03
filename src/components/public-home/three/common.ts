@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { renderRatio } from "./motion";
 
 export const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -8,13 +9,10 @@ export const sstep = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 
-/** Définition de rendu : pleine densité de pixels de l'appareil (iPhone ×3), plafonnée par un budget de pixels. */
+/** Fixed device tier avoids resolution oscillation during a scroll gesture. */
 export function applyPixelRatio(renderer: THREE.WebGLRenderer, cssW: number, cssH: number, mobile: boolean) {
-  const dpr = window.devicePixelRatio || 1;
-  const wanted = mobile ? Math.min(dpr, 1.25) : Math.min(dpr, 1.5);
-  const budget = mobile ? 2e6 : 4e6;
-  const cap = Math.sqrt(budget / Math.max(1, cssW * cssH));
-  renderer.setPixelRatio(Math.max(1, Math.min(wanted, cap)));
+  const ratio = renderRatio(window.devicePixelRatio, cssW, cssH, mobile, navigator.hardwareConcurrency || 0);
+  if (Math.abs(renderer.getPixelRatio() - ratio) > 0.001) renderer.setPixelRatio(ratio);
 }
 
 /** Format compact (téléphone / petite tablette portrait) : interface et appareil en portrait dédiés. */

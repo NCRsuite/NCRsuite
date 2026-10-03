@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import postcss from 'postcss';
+import './test-public-home-motion.mjs';
 const read = path => fs.readFileSync(path,'utf8');
 const base='src/components/public-home';
 const page=read('src/pages/PublicHomePage.tsx');
@@ -90,6 +91,7 @@ for (const [file, expected] of Object.entries(prototype.files)) {
     .replace('style={{ height: "calc(100dvh + 5 * 72dvh)" }}', 'style={{ height: `${100 + 5 * 95}svh` }}')
     .replace('h-[100dvh]', 'h-[100svh]');
   if (file === 'components/Final.tsx') canonical = canonical.replace('min-h-[100svh] w-[min(92vw,900px)] flex-col items-center justify-center pb-16 pt-24 text-center', 'min-h-[100svh] w-[min(92vw,900px)] flex-col items-center justify-end pb-20 pt-32 text-center lg:min-h-[108svh]');
-  assert.equal(createHash('sha256').update(canonical).digest('hex'), expected, `Validated V3 differs: ${file}`);
+  assert.equal(createHash('sha256').update(canonical).digest('hex'), prototype.optimizedFiles?.[file] ?? expected, `Validated public home differs: ${file}`);
 }
+assert.ok(integratedCss.includes('.h-\\[100svh\\]{height:100svh}') && integratedCss.includes('.min-h-\\[100svh\\]{min-height:100svh}'), 'Stable viewport utilities must exist in generated CSS');
 console.log(`Public home isolation contract passed: ${rules} scoped CSS rules, routes, shared catalog, lazy runtime and cleanup.`);

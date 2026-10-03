@@ -3,6 +3,7 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { VERTICALS } from "../verticals";
 import { buildFloaters } from "./ui";
 import { applyPixelRatio, canvasTexture, clamp, createRenderer, disposeScene, lerp, radialTexture, sstep } from "./common";
+import { advanceStage, screenBlend, smoothPhase } from "./motion";
 
 interface KF {
   dist: number;
@@ -40,6 +41,7 @@ interface FloaterDef {
   delay: number;
 }
 const PX = 256; // pixels logiques par unité monde
+const CURSOR_TARGETS = [[-1.77, 0.8], [-0.83, 0.5], [1.61, 1.12], [1.3, -0.1], [0.3, -0.42], [-1.77, 0.45]];
 const FLOATERS: FloaterDef[] = VERTICALS.flatMap((_, i) => [
   { stage: i + 1, key: `vertical-${i}-0`, to: [-0.9, 0.8, 0.65] as V3, rot: [0, 0.08, 0] as V3, delay: 0 },
   { stage: i + 1, key: `vertical-${i}-1`, to: [0.95, 0.05, 1.1] as V3, rot: [0, -0.1, 0] as V3, delay: 1 },
@@ -71,6 +73,11 @@ export class StoryScene {
   private device = new THREE.Group();
   private screenProgress = 0;
   private accentColor = new THREE.Color();
+  private accents = [new THREE.Color("#61728c"), ...VERTICALS.map(v => new THREE.Color(v.accent))];
+  private heroProgress = 0;
+  private viewX = NaN;
+  private viewY = NaN;
+  private resizePending = false;
   private screens: THREE.Mesh[] = [];
   private overlays: THREE.MeshBasicMaterial[] = [];
   private floaters: FloaterRuntime[] = [];
@@ -111,6 +118,9 @@ export class StoryScene {
     this.devW = this.compact ? 3.04 : 4.22;
     this.devH = this.compact ? 3.74 : 2.74;
     this.fscale = this.compact ? 0.8 : 1;
+    this.s = clamp(o.getProgress() * 5, 0, 5);
+    this.heroProgress = o.getHeroView();
+    this.intro = this.s > 0.01 ? 1 : 0;
     const { renderer, envMap, envRT } = createRenderer(o.canvas, o.mobile, 0.9);
     this.renderer = renderer;
     this.envRT = envRT;
@@ -118,7 +128,7 @@ export class StoryScene {
     this.scene.environmentIntensity = 0.85;
     this.build();
     this.resize();
-    this.ro = new ResizeObserver(() => this.resize());
+    this.ro = new ResizeObserver(() => { this.resizePending = true; });
     this.ro.observe(o.canvas);
     if (!o.mobile) window.addEventListener("pointermove", this.onMove, { passive: true });
     document.addEventListener("visibilitychange", this.onVisibility);
@@ -253,7 +263,7 @@ export class StoryScene {
     device.add(this.cursor);
 
     // cartes flottantes
-    const tex = buildFloaters(mobile ? 2 : 3);
+    const tex = buildFloaters(mobile ? 1.5 : 2);
     const sx = this.compact ? 0.72 : mobile ? 0.8 : 1;
     const sy = this.compact ? 1.45 : 1;
     const sz = this.compact ? 0.9 : 1;
@@ -283,6 +293,7 @@ export class StoryScene {
     const h = c.clientHeight || 1;
     this.w = w;
     this.h = h;
+    this.viewX = this.viewY = NaN;
     applyPixelRatio(this.renderer, w, h, this.o.mobile);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
@@ -342,6 +353,7 @@ export class StoryScene {
     const dt = clamp((now - this.last) / 1000, 0, 0.05);
     this.last = now;
     this.time += dt;
+    if (this.resizePending) { this.resizePending = false; this.resize(); }
 
     this.intro = Math.min(1, this.intro + dt / 2.2);
     const ie = 1 - Math.pow(1 - this.intro, 3);
@@ -350,25 +362,28 @@ export class StoryScene {
       if (hb && Math.abs(hb - this.lastHB) > 1) this.layoutHero();
     }
     const target = this.o.getProgress() * 5;
-    this.s += (target - this.s) * (1 - Math.exp(-dt * 5.5));
-    if (Math.abs(target - this.s) < 0.0005) this.s = target;
+    this.s = advanceStage(this.s, target, dt);
     const s = clamp(this.s, 0, 5);
     this.smx += (this.mx - this.smx) * (1 - Math.exp(-dt * 3));
     this.smy += (this.my - this.smy) * (1 - Math.exp(-dt * 3));
 
     // interpolation des keyframes
     const i = clamp(Math.floor(s), 0, 4);
-    const tt = sstep(0.2, 0.8, s - i);
+    const tt = smoothPhase(s - i);
     const a = this.eff[i];
     const b = this.eff[i + 1];
-    const L = (k: number) => lerp(a[k], b[k], tt);
-    const dist = L(0) + (1 - ie) * 2.6;
-    const az = L(1) + this.smx * 0.09 + (1 - ie) * 0.3;
-    const el = L(2) - this.smy * 0.045;
+    const dist = lerp(a[0], b[0], tt) + (1 - ie) * 2.6;
+    const az = lerp(a[1], b[1], tt) + this.smx * 0.09 + (1 - ie) * 0.3;
+    const el = lerp(a[2], b[2], tt) - this.smy * 0.045;
     const ce = Math.cos(el);
     this.camera.position.set(dist * Math.sin(az) * ce, dist * Math.sin(el), dist * Math.cos(az) * ce);
     this.camera.lookAt(0, 0, 0);
-    this.camera.setViewOffset(this.w, this.h, -L(3) * this.w, -L(4) * this.h, this.w, this.h);
+    const viewX = -lerp(a[3], b[3], tt) * this.w;
+    const viewY = -lerp(a[4], b[4], tt) * this.h;
+    if (viewX !== this.viewX || viewY !== this.viewY) {
+      this.camera.setViewOffset(this.w, this.h, viewX, viewY, this.w, this.h);
+      this.viewX = viewX; this.viewY = viewY;
+    }
 
     // appareil en lévitation
     const bob = Math.sin(this.time * 0.9) * 0.05;
@@ -379,19 +394,21 @@ export class StoryScene {
     (this.shadow.material as THREE.MeshBasicMaterial).opacity = 0.9 - bob * 2;
 
     // vues : fondu enchaîné cumulatif
-    const screenTarget = s < 0.45 ? this.o.getHeroView() : s;
-    this.screenProgress += (screenTarget - this.screenProgress) * (1 - Math.exp(-dt * 9));
-    this.overlays.forEach((m, k) => {
-      const chapter = k + 1;
-      m.opacity = sstep(chapter - 0.6, chapter - 0.4, this.screenProgress);
-    });
+    this.heroProgress = advanceStage(this.heroProgress, this.o.getHeroView(), dt);
+    // Blend out the hero selection continuously; the narrative then uses the
+    // same damped stage as the camera and onFrame, without a second lag.
+    this.screenProgress = lerp(this.heroProgress, s, smoothPhase(s / 0.85));
+    for (let k = 0; k < this.overlays.length; k++) this.overlays[k].opacity = screenBlend(this.screenProgress, k + 1);
     // Draw only the top opaque screen and the one currently fading over it.
     let opaque = 0;
-    this.overlays.forEach((m, k) => { if (m.opacity >= 1) opaque = k + 1; });
-    this.screens.forEach((mesh, k) => { mesh.visible = k === opaque || (k > opaque && (mesh.material as THREE.MeshBasicMaterial).opacity > 0); });
-    const colorIndex = s < 0.45 ? this.o.getHeroView() - 1 : Math.round(s) - 1;
-    const accent = this.accentColor.set(VERTICALS[colorIndex]?.accent ?? "#61728c");
-    (this.halo.material as THREE.MeshBasicMaterial).color.lerp(accent, 1 - Math.exp(-dt * 4));
+    for (let k = 0; k < this.overlays.length; k++) if (this.overlays[k].opacity >= 1) opaque = k + 1;
+    for (let k = 0; k < this.screens.length; k++) {
+      const mesh = this.screens[k];
+      mesh.visible = k === opaque || (k > opaque && (mesh.material as THREE.MeshBasicMaterial).opacity > 0);
+    }
+    const colorIndex = clamp(Math.floor(this.screenProgress), 0, 4);
+    this.accentColor.lerpColors(this.accents[colorIndex], this.accents[colorIndex + 1], screenBlend(this.screenProgress, colorIndex + 1));
+    (this.halo.material as THREE.MeshBasicMaterial).color.copy(this.accentColor);
 
     // cartes : séparation en couches
     for (const f of this.floaters) {
@@ -400,7 +417,7 @@ export class StoryScene {
       av = sstep(f.def.delay * 0.12, 1, av);
       f.mesh.visible = av > 0.004;
       if (!f.mesh.visible) continue;
-      const e = 1 - Math.pow(1 - av, 3);
+      const e = smoothPhase(av);
       const pz = f.to[2] * e;
       f.mesh.position.set(
         lerp(f.from[0], f.to[0], e) + this.smx * 0.11 * pz,
@@ -413,12 +430,11 @@ export class StoryScene {
     }
 
     // curseur : trajectoire entre quelques cibles de l'interface
-    const T: [number, number][] = [[-1.77, 0.8], [-0.83, 0.5], [1.61, 1.12], [1.3, -0.1], [0.3, -0.42], [-1.77, 0.45]];
     const ph = this.time * 0.26;
-    const ci = Math.floor(ph) % T.length;
+    const ci = Math.floor(ph) % CURSOR_TARGETS.length;
     const cf = sstep(0, 0.55, ph - Math.floor(ph));
-    const A = T[ci];
-    const B = T[(ci + 1) % T.length];
+    const A = CURSOR_TARGETS[ci];
+    const B = CURSOR_TARGETS[(ci + 1) % CURSOR_TARGETS.length];
     this.cursor.position.x = lerp(A[0], B[0], cf);
     this.cursor.position.y = lerp(A[1], B[1], cf) + Math.sin(cf * Math.PI) * 0.12;
     const cm = this.cursor.material as THREE.MeshBasicMaterial;

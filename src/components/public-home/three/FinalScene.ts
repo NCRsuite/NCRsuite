@@ -97,6 +97,9 @@ export class FinalScene {
   private smy = 0;
   private w = 1;
   private h = 1;
+  private narrow = false;
+  private fit = 0;
+  private resizePending = false;
   private ro: ResizeObserver;
   private onMove = (e: PointerEvent) => {
     if (e.pointerType !== "mouse") return;
@@ -113,7 +116,7 @@ export class FinalScene {
     this.scene.fog = new THREE.Fog(0x05070c, 12, 30);
     this.build();
     this.resize();
-    this.ro = new ResizeObserver(() => this.resize());
+    this.ro = new ResizeObserver(() => { this.resizePending = true; });
     this.ro.observe(o.canvas);
     if (!o.mobile) window.addEventListener("pointermove", this.onMove, { passive: true });
     document.addEventListener("visibilitychange", this.onVisibility);
@@ -269,6 +272,10 @@ export class FinalScene {
     applyPixelRatio(this.renderer, this.w, this.h, this.o.mobile);
     this.renderer.setSize(this.w, this.h, false);
     this.camera.aspect = this.w / this.h;
+    this.narrow = window.innerWidth < 1024;
+    const tanH = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
+    this.fit = 2.6 / (0.6 * 2 * tanH * this.camera.aspect);
+    this.camera.setViewOffset(this.w, this.h, 0, (this.narrow ? 0.14 : 0.1) * this.h, this.w, this.h);
     this.camera.updateProjectionMatrix();
   }
 
@@ -293,20 +300,17 @@ export class FinalScene {
     const dt = Math.min(0.05, Math.max(0, (now - this.last) / 1000));
     this.last = now;
     this.time += dt;
+    if (this.resizePending) { this.resizePending = false; this.resize(); }
     this.p += (this.o.getProgress() - this.p) * (1 - Math.exp(-dt * 5));
     this.smx += (this.mx - this.smx) * (1 - Math.exp(-dt * 3));
     this.smy += (this.my - this.smy) * (1 - Math.exp(-dt * 3));
 
     const e = sstep(0, 1, this.p);
-    const narrow = window.innerWidth < 1024;
-    const tanH = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
-    const fit = 2.6 / (0.6 * 2 * tanH * this.camera.aspect); // garder le logo lisible en portrait
-    const dist = Math.max(lerp(15, 10, e), narrow ? fit : 0);
+    const dist = Math.max(lerp(15, 10, e), this.narrow ? this.fit : 0);
     const az = Math.sin(this.time * 0.18) * 0.12 + this.smx * 0.1;
     const el = 0.06 - this.smy * 0.04 + (1 - e) * 0.12;
     this.camera.position.set(dist * Math.sin(az), dist * Math.sin(el), dist * Math.cos(az));
     this.camera.lookAt(0, 0, 0);
-    this.camera.setViewOffset(this.w, this.h, 0, (narrow ? 0.14 : 0.1) * this.h, this.w, this.h);
 
     this.logo.rotation.y = Math.sin(this.time * 0.45) * 0.45 + this.smx * 0.15;
     this.logo.rotation.x = Math.sin(this.time * 0.35) * 0.05;
