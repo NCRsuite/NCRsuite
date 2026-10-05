@@ -1,11 +1,14 @@
 /*
  * NCR UI 2026
  * Couche visuelle réversible de NCR Suite.
- * IMPORTANT : aucun sélecteur ne doit agir hors de html[data-ncr-ui-2026="true"].
+ * Tokens/body activate while the real .app-shell is mounted. This document
+ * scope also reaches portals outside #root, without renaming Beauty anchors.
+ * Public/standalone inheritance is frozen in ncrUi2026LegacySurfaces.css.
+ * :where keeps specificity unchanged; preserve the order of business sheets.
  * Rollback immédiat : passer NCR_UI_2026_ENABLED à false dans src/config/ui2026.ts.
  */
 
-html[data-ncr-ui-2026="true"] {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) {
   --ncr26-brand: #1267ea;
   --ncr26-brand-hover: #0c58cf;
   --ncr26-brand-strong: #0848ad;
@@ -29,12 +32,29 @@ html[data-ncr-ui-2026="true"] {
   --ncr26-success: #16845b;
   --ncr26-warning: #a76512;
   --ncr26-danger: #c43d4d;
+  --ncr26-success-soft: color-mix(in srgb, var(--ncr26-success) 5%, var(--ncr26-surface));
+  --ncr26-warning-soft: color-mix(in srgb, var(--ncr26-warning) 5%, var(--ncr26-surface));
+  --ncr26-danger-soft: color-mix(in srgb, var(--ncr26-danger) 5%, var(--ncr26-surface));
+
+  --ncr26-font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ncr26-font-control: .84rem;
+  --ncr26-font-compact: .78rem;
+  --ncr26-font-caption: .72rem;
+  --ncr26-line-body: 1.5;
+  --ncr26-line-control: 1.15;
+  --ncr26-border-width: 1px;
+  --ncr26-focus-color: var(--ncr26-brand-strong);
+  --ncr26-focus-width: 2px;
+  --ncr26-focus-offset: 3px;
+  --ncr26-disabled-opacity: .6;
+  --ncr26-pressed-offset: 1px;
 
   --ncr26-radius-xs: 8px;
   --ncr26-radius-sm: 11px;
   --ncr26-radius-md: 14px;
   --ncr26-radius-lg: 18px;
   --ncr26-radius-xl: 22px;
+  --ncr26-radius-pill: 999px;
 
   --ncr26-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.035);
   --ncr26-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.045), 0 8px 24px rgba(15, 23, 42, 0.035);
@@ -66,7 +86,7 @@ html[data-ncr-ui-2026="true"] {
 }
 
 @supports (color: oklch(60% .15 250)) {
-  html[data-ncr-ui-2026="true"] {
+  html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) {
     --ncr26-brand: oklch(59% 0.19 255);
     --ncr26-brand-hover: oklch(54% 0.2 255);
     --ncr26-brand-strong: oklch(47% 0.18 255);
@@ -90,7 +110,7 @@ html[data-ncr-ui-2026="true"] {
  * cette valeur devient alors automatiquement la couleur d'interface.
  * Les couleurs sémantiques succès / alerte / danger restent indépendantes.
  */
-html[data-ncr-ui-2026="true"][data-business-theme="formation"] {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell))[data-business-theme="formation"] {
   --business-accent: var(--tenant-brand-color, #3370EC);
   --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 76%, #000);
   --accent: var(--tenant-brand-color, #3370EC);
@@ -103,7 +123,7 @@ html[data-ncr-ui-2026="true"][data-business-theme="formation"] {
   --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 22%, transparent);
 }
 
-html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell))[data-business-theme="nettoyage"] {
   --business-accent: var(--tenant-brand-color, #44946E);
   --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #44946E) 76%, #000);
   --accent: var(--tenant-brand-color, #44946E);
@@ -116,7 +136,7 @@ html[data-ncr-ui-2026="true"][data-business-theme="nettoyage"] {
   --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #44946E) 22%, transparent);
 }
 
-html[data-ncr-ui-2026="true"][data-business-theme="securite"] {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell))[data-business-theme="securite"] {
   --business-accent: #9B1C1C;
   --business-accent-strong: #7F1414;
   --accent: #9B1C1C;
@@ -129,7 +149,7 @@ html[data-ncr-ui-2026="true"][data-business-theme="securite"] {
   --ncr26-ring: color-mix(in srgb, #9B1C1C 22%, transparent);
 }
 
-html[data-ncr-ui-2026="true"][data-business-theme="coiffure"] {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell))[data-business-theme="coiffure"] {
   --business-accent: var(--tenant-brand-color, #5C194B);
   --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 76%, #000);
   --accent: var(--tenant-brand-color, #5C194B);
@@ -142,7 +162,7 @@ html[data-ncr-ui-2026="true"][data-business-theme="coiffure"] {
   --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 22%, transparent);
 }
 
-html[data-ncr-ui-2026="true"][data-business-theme="restauration"] {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell))[data-business-theme="restauration"] {
   --business-accent: var(--tenant-brand-color, #B78324);
   --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #B78324) 76%, #000);
   --accent: var(--tenant-brand-color, #B78324);
@@ -156,13 +176,13 @@ html[data-ncr-ui-2026="true"][data-business-theme="restauration"] {
 }
 
 /* ===== App foundation ===== */
-html[data-ncr-ui-2026="true"] body {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) body {
   background:
     radial-gradient(circle at 72% -15%, rgba(18, 103, 234, 0.045), transparent 34rem),
     var(--ncr26-bg);
   color: var(--ncr26-text);
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  line-height: 1.5;
+  font-family: var(--ncr26-font-family);
+  line-height: var(--ncr26-line-body);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -251,7 +271,7 @@ html[data-ncr-ui-2026="true"] .app-shell .context-switcher-copy strong {
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .context-switcher-menu {
-  border: 1px solid var(--ncr26-border);
+  border: var(--ncr26-border-width) solid var(--ncr26-border);
   border-radius: var(--ncr26-radius-lg);
   background: rgba(255, 255, 255, .98);
   box-shadow: var(--ncr26-shadow-float);
@@ -270,7 +290,7 @@ html[data-ncr-ui-2026="true"] .app-shell .context-switcher-options button:hover 
 
 /* Navigation search */
 html[data-ncr-ui-2026="true"] .app-shell .navigation-search {
-  border: 1px solid var(--ncr26-border);
+  border: var(--ncr26-border-width) solid var(--ncr26-border);
   border-radius: var(--ncr26-radius-sm);
   background: var(--ncr26-surface-soft);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
@@ -347,13 +367,13 @@ html[data-ncr-ui-2026="true"] .app-shell .main-nav a.active::before {
   top: 25%;
   width: 3px;
   height: 50%;
-  border-radius: 999px;
+  border-radius: var(--ncr26-radius-pill);
   background: var(--ncr26-brand);
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .nav-badge {
-  border-radius: 999px;
-  border: 1px solid var(--ncr26-border);
+  border-radius: var(--ncr26-radius-pill);
+  border: var(--ncr26-border-width) solid var(--ncr26-border);
   background: var(--ncr26-surface);
   color: var(--ncr26-text-soft);
   box-shadow: var(--ncr26-shadow-xs);
@@ -366,7 +386,7 @@ html[data-ncr-ui-2026="true"] .app-shell .nav-badge.notification {
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .sidebar-subscription-link {
-  border: 1px solid var(--ncr26-border);
+  border: var(--ncr26-border-width) solid var(--ncr26-border);
   border-radius: var(--ncr26-radius-md);
   background: linear-gradient(135deg, var(--ncr26-brand-pale), var(--ncr26-surface));
   box-shadow: var(--ncr26-shadow-xs);
@@ -483,7 +503,7 @@ html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(.kpi-card, 
 }
 
 /* ===== Buttons ===== */
-html[data-ncr-ui-2026="true"] .app-shell :where(.primary-button, button.primary, .button-primary) {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :where(.primary-button, button.primary, .button-primary) {
   min-height: var(--ncr26-control-h);
   padding-inline: 15px;
   gap: 8px;
@@ -492,41 +512,41 @@ html[data-ncr-ui-2026="true"] .app-shell :where(.primary-button, button.primary,
   color: #fff;
   background: linear-gradient(180deg, color-mix(in srgb, var(--ncr26-brand) 92%, #fff), var(--ncr26-brand));
   box-shadow: 0 1px 2px rgba(11, 54, 115, .15), inset 0 1px rgba(255,255,255,.18);
-  font-size: .84rem;
+  font-size: var(--ncr26-font-control);
   font-weight: 650;
-  line-height: 1.15;
+  line-height: var(--ncr26-line-control);
   letter-spacing: -.01em;
   transition: transform var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease), filter var(--ncr26-fast) var(--ncr26-ease);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell :where(.primary-button, button.primary, .button-primary):hover:not(:disabled) {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :where(.primary-button, button.primary, .button-primary):hover:not(:disabled):where(:not([aria-disabled="true"])) {
   background: linear-gradient(180deg, color-mix(in srgb, var(--ncr26-brand-hover) 91%, #fff), var(--ncr26-brand-hover));
   box-shadow: 0 5px 15px rgba(18, 103, 234, .18), inset 0 1px rgba(255,255,255,.16);
   transform: translateY(-1px);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell :where(.primary-button, button.primary, .button-primary):active:not(:disabled) {
-  transform: translateY(1px) scale(.995);
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :where(.primary-button, button.primary, .button-primary):active:not(:disabled):where(:not([aria-disabled="true"])) {
+  transform: translateY(var(--ncr26-pressed-offset)) scale(.995);
   box-shadow: 0 1px 3px rgba(18, 103, 234, .13);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell :where(.secondary-button, button.secondary, .button-secondary) {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :where(.secondary-button, button.secondary, .button-secondary) {
   min-height: var(--ncr26-control-h);
   padding-inline: 15px;
   gap: 8px;
-  border: 1px solid var(--ncr26-border-strong);
+  border: var(--ncr26-border-width) solid var(--ncr26-border-strong);
   border-radius: var(--ncr26-radius-sm);
   color: var(--ncr26-text-soft);
   background: var(--ncr26-surface);
   box-shadow: var(--ncr26-shadow-xs);
-  font-size: .84rem;
+  font-size: var(--ncr26-font-control);
   font-weight: 620;
-  line-height: 1.15;
+  line-height: var(--ncr26-line-control);
   letter-spacing: -.008em;
   transition: color var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), transform var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell :where(.secondary-button, button.secondary, .button-secondary):hover:not(:disabled) {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :where(.secondary-button, button.secondary, .button-secondary):hover:not(:disabled):where(:not([aria-disabled="true"])) {
   color: var(--ncr26-text);
   background: var(--ncr26-brand-pale);
   border-color: color-mix(in srgb, var(--ncr26-brand) 24%, var(--ncr26-border));
@@ -534,60 +554,75 @@ html[data-ncr-ui-2026="true"] .app-shell :where(.secondary-button, button.second
   transform: translateY(-1px);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell .icon-button {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) .icon-button {
   border-radius: var(--ncr26-radius-sm);
   border-color: transparent;
   color: var(--ncr26-text-soft);
   transition: color var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease), transform var(--ncr26-fast) var(--ncr26-ease);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell .icon-button:hover:not(:disabled) {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) .icon-button:hover:not(:disabled):where(:not([aria-disabled="true"])) {
   color: var(--ncr26-text);
   background: var(--ncr26-surface-muted);
   transform: translateY(-1px);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell :where(.compact-button, button.compact) {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :where(.compact-button, button.compact) {
   min-height: var(--ncr26-control-h-compact);
   padding-inline: 12px;
   border-radius: 10px;
-  font-size: .78rem;
+  font-size: var(--ncr26-font-compact);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell :where(.danger-button, button.danger) {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :where(.danger-button, button.danger) {
   min-height: var(--ncr26-control-h);
   padding-inline: 15px;
   gap: 8px;
   border: 1px solid color-mix(in srgb, var(--ncr26-danger) 28%, var(--ncr26-border));
   border-radius: var(--ncr26-radius-sm);
   color: var(--ncr26-danger);
-  background: color-mix(in srgb, var(--ncr26-danger) 5%, var(--ncr26-surface));
+  background: var(--ncr26-danger-soft);
   box-shadow: var(--ncr26-shadow-xs);
-  font-size: .84rem;
+  font-size: var(--ncr26-font-control);
   font-weight: 630;
   transition: transform var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease), border-color var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell :where(.danger-button, button.danger):hover:not(:disabled) {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :where(.danger-button, button.danger):hover:not(:disabled):where(:not([aria-disabled="true"])) {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--ncr26-danger) 42%, var(--ncr26-border));
   background: color-mix(in srgb, var(--ncr26-danger) 8%, var(--ncr26-surface));
   box-shadow: var(--ncr26-shadow-sm);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell button:disabled {
-  opacity: .52;
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :is(button:disabled, button[aria-disabled="true"], a[aria-disabled="true"]) {
+  opacity: var(--ncr26-disabled-opacity);
+  transform: none;
+  box-shadow: none;
   cursor: not-allowed;
   filter: saturate(.7);
 }
 
+/* Compact controls keep density on desktop; touch targets expand on mobile.
+ * Calendar slots and appointment cards are intentionally excluded. */
+@media (max-width: 900px), (pointer: coarse) {
+  html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :where(.compact-button, button.compact, .icon-button) {
+    min-width: var(--ncr26-control-h);
+    min-height: var(--ncr26-control-h);
+  }
+}
+
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell, .ncr-confirm-dialog) :where(.secondary-button, .danger-button, .icon-button):active:not(:disabled):where(:not([aria-disabled="true"])) {
+  transform: translateY(var(--ncr26-pressed-offset));
+}
+
 /* ===== Form controls ===== */
-html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell .premium-route-stage, .ncr-confirm-dialog) :where(
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
   select,
   textarea
 ) {
-  border: 1px solid var(--ncr26-border-strong);
+  border: var(--ncr26-border-width) solid var(--ncr26-border-strong);
   border-radius: var(--ncr26-radius-sm);
   color: var(--ncr26-text);
   background-color: var(--ncr26-surface);
@@ -595,7 +630,7 @@ html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(
   transition: border-color var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell .premium-route-stage, .ncr-confirm-dialog) :where(
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
   select
 ) {
@@ -604,45 +639,58 @@ html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(
   font: inherit;
 }
 
-html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage textarea {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell .premium-route-stage, .ncr-confirm-dialog) textarea {
   min-height: 104px;
   padding: 11px 13px;
   font: inherit;
-  line-height: 1.5;
+  line-height: var(--ncr26-line-body);
   resize: vertical;
 }
 
-html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(input, select, textarea):focus {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell .premium-route-stage, .ncr-confirm-dialog) :where(input, select, textarea):focus {
   outline: none;
   border-color: color-mix(in srgb, var(--ncr26-brand) 58%, var(--ncr26-border));
   box-shadow: 0 0 0 3px var(--ncr26-ring);
   background: var(--ncr26-surface);
 }
 
-html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(input, textarea)::placeholder {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell .premium-route-stage, .ncr-confirm-dialog) :where(input, textarea)::placeholder {
   color: var(--ncr26-text-muted);
   opacity: .78;
 }
 
-html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(input, select, textarea):disabled {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell .premium-route-stage, .ncr-confirm-dialog) :where(input, select, textarea):disabled {
   color: var(--ncr26-text-muted);
   background: var(--ncr26-surface-muted);
   cursor: not-allowed;
 }
 
-html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage label {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell .premium-route-stage, .ncr-confirm-dialog) label {
   color: var(--ncr26-text-soft);
   font-weight: 590;
 }
 
+/* Prevent input zoom on touch screens without resizing calendar cards. */
+@media (max-width: 900px), (pointer: coarse) {
+  html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell .premium-route-stage, .ncr-confirm-dialog) :where(input, select, textarea) {
+    font-size: max(16px, 1em);
+  }
+}
+
+@media (max-width: 640px) {
+  html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) .ncr-confirm-dialog {
+    --ncr26-control-h: 46px;
+  }
+}
+
 /* Checkboxes / radios */
-html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(input[type="checkbox"], input[type="radio"]) {
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell .premium-route-stage, .ncr-confirm-dialog) :where(input[type="checkbox"], input[type="radio"]) {
   accent-color: var(--ncr26-brand);
 }
 
 /* ===== Tables / dense data ===== */
 html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(.table-wrapper, .table-container, .data-table-wrapper) {
-  border: 1px solid var(--ncr26-border);
+  border: var(--ncr26-border-width) solid var(--ncr26-border);
   border-radius: var(--ncr26-radius-lg);
   background: var(--ncr26-surface);
   box-shadow: var(--ncr26-shadow-xs);
@@ -662,7 +710,7 @@ html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage table th {
   padding: 12px 14px;
   color: var(--ncr26-text-muted);
   border-bottom-color: var(--ncr26-border);
-  font-size: .72rem;
+  font-size: var(--ncr26-font-caption);
   font-weight: 670;
   line-height: 1.25;
   letter-spacing: .035em;
@@ -688,9 +736,9 @@ html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage table tbody tr:hov
 html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(.badge, .pill, .chip, .status-badge, [class*="status-pill"]) {
   min-height: 24px;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--ncr26-radius-pill);
   border-color: var(--ncr26-border);
-  font-size: .72rem;
+  font-size: var(--ncr26-font-caption);
   font-weight: 630;
   line-height: 1.1;
   letter-spacing: -.004em;
@@ -714,7 +762,7 @@ html[data-ncr-ui-2026="true"] .app-shell :where(.modal-overlay, .dialog-overlay,
 }
 
 html[data-ncr-ui-2026="true"] .app-shell :where([role="dialog"], .modal, .dialog, .avatar-crop-dialog) {
-  border: 1px solid var(--ncr26-border);
+  border: var(--ncr26-border-width) solid var(--ncr26-border);
   border-radius: var(--ncr26-radius-xl);
   background: var(--ncr26-surface);
   box-shadow: var(--ncr26-shadow-float);
@@ -809,9 +857,9 @@ html[data-ncr-ui-2026="true"] .app-shell .mobile-organization-option:active {
 }
 
 /* ===== Focus accessibility ===== */
-html[data-ncr-ui-2026="true"] .app-shell :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--ncr26-brand) 72%, #fff);
-  outline-offset: 3px;
+html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) :is(.app-shell .premium-route-stage, .app-shell, .ncr-confirm-dialog) :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: var(--ncr26-focus-width) solid var(--ncr26-focus-color);
+  outline-offset: var(--ncr26-focus-offset);
 }
 
 /* ===== Modern responsive composition ===== */
@@ -832,7 +880,7 @@ html[data-ncr-ui-2026="true"] .app-shell :where(a, button, input, select, textar
 }
 
 @media (max-width: 900px) {
-  html[data-ncr-ui-2026="true"] body {
+  html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) body {
     background: var(--ncr26-bg);
   }
 
@@ -893,9 +941,9 @@ html[data-ncr-ui-2026="true"] .app-shell :where(a, button, input, select, textar
 
 /* ===== Motion safety ===== */
 @media (prefers-reduced-motion: reduce) {
-  html[data-ncr-ui-2026="true"] .app-shell *,
-  html[data-ncr-ui-2026="true"] .app-shell *::before,
-  html[data-ncr-ui-2026="true"] .app-shell *::after {
+  html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) *,
+  html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) *::before,
+  html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) *::after {
     scroll-behavior: auto !important;
     animation-duration: .001ms !important;
     animation-iteration-count: 1 !important;

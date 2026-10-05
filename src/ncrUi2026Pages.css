@@ -68,19 +68,19 @@ html[data-ncr-ui-2026="true"] .app-shell .warning-message {
 html[data-ncr-ui-2026="true"] .app-shell .error-message {
   border-color: color-mix(in srgb, var(--ncr26-danger) 24%, var(--ncr26-border));
   color: color-mix(in srgb, var(--ncr26-danger) 82%, var(--ncr26-text));
-  background: color-mix(in srgb, var(--ncr26-danger) 5%, var(--ncr26-surface));
+  background: var(--ncr26-danger-soft);
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .success-message {
   border-color: color-mix(in srgb, var(--ncr26-success) 24%, var(--ncr26-border));
   color: color-mix(in srgb, var(--ncr26-success) 82%, var(--ncr26-text));
-  background: color-mix(in srgb, var(--ncr26-success) 5%, var(--ncr26-surface));
+  background: var(--ncr26-success-soft);
 }
 
 html[data-ncr-ui-2026="true"] .app-shell .warning-message {
   border-color: color-mix(in srgb, var(--ncr26-warning) 25%, var(--ncr26-border));
   color: color-mix(in srgb, var(--ncr26-warning) 84%, var(--ncr26-text));
-  background: color-mix(in srgb, var(--ncr26-warning) 5%, var(--ncr26-surface));
+  background: var(--ncr26-warning-soft);
 }
 
 /* ===== KPI / stat system ===== */

@@ -21,6 +21,8 @@ import { OrganizationProvider } from './contexts/OrganizationContext';
 import { PlatformAdminProvider } from './contexts/PlatformAdminContext';
 import { ConfirmDialogProvider } from './contexts/ConfirmDialogContext';
 import { PublicMetierCoiffureCompanyPage } from './pages/PublicMetierCoiffureCompanyPage';
+// Frozen inheritance for public/standalone surfaces; keep before the app foundation.
+import './ncrUi2026LegacySurfaces.css';
 import './ncrUi2026.css';
 import './ncrUi2026Pages.css';
 import './ncrUi2026TrainingDashboard.css';

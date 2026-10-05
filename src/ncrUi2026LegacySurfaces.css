@@ -1,0 +1,176 @@
+/* Compatibility baseline frozen at audit commit 9a5857b.
+ * Public landing, authentication and standalone portals keep their existing
+ * inherited tokens/body rendering. Do not evolve app UI in this file.
+ * Deliberately independent from the app tokens: migrate a surface only after
+ * its own visual comparison. :where keeps the original cascade specificity.
+ */
+
+html[data-ncr-ui-2026="true"]:where(:not(:has(.app-shell))) {
+  --ncr26-brand: #1267ea;
+  --ncr26-brand-hover: #0c58cf;
+  --ncr26-brand-strong: #0848ad;
+  --ncr26-brand-soft: #eef5ff;
+  --ncr26-brand-pale: #f6f9ff;
+
+  --ncr26-bg: #f5f7fa;
+  --ncr26-bg-elevated: #f8fafc;
+  --ncr26-surface: #ffffff;
+  --ncr26-surface-soft: #f8fafc;
+  --ncr26-surface-muted: #f2f5f8;
+  --ncr26-surface-glass: rgba(255, 255, 255, 0.84);
+
+  --ncr26-text: #142033;
+  --ncr26-text-soft: #506078;
+  --ncr26-text-muted: #758399;
+  --ncr26-border: #e3e8ef;
+  --ncr26-border-strong: #d4dce7;
+  --ncr26-ring: rgba(18, 103, 234, 0.2);
+
+  --ncr26-success: #16845b;
+  --ncr26-warning: #a76512;
+  --ncr26-danger: #c43d4d;
+
+  --ncr26-radius-xs: 8px;
+  --ncr26-radius-sm: 11px;
+  --ncr26-radius-md: 14px;
+  --ncr26-radius-lg: 18px;
+  --ncr26-radius-xl: 22px;
+
+  --ncr26-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.035);
+  --ncr26-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.045), 0 8px 24px rgba(15, 23, 42, 0.035);
+  --ncr26-shadow-md: 0 8px 30px rgba(15, 23, 42, 0.075), 0 1px 3px rgba(15, 23, 42, 0.055);
+  --ncr26-shadow-float: 0 18px 56px rgba(15, 23, 42, 0.14), 0 2px 8px rgba(15, 23, 42, 0.06);
+
+  --ncr26-space-1: 4px;
+  --ncr26-space-2: 8px;
+  --ncr26-space-3: 12px;
+  --ncr26-space-4: 16px;
+  --ncr26-space-5: 20px;
+  --ncr26-space-6: 24px;
+  --ncr26-space-7: 32px;
+  --ncr26-space-8: 40px;
+  --ncr26-space-9: 48px;
+
+  --ncr26-control-h: 44px;
+  --ncr26-control-h-compact: 36px;
+  --ncr26-content-max: 1560px;
+  --ncr26-page-gutter: clamp(18px, 2.2vw, 34px);
+
+  --ncr26-fast: 140ms;
+  --ncr26-ui: 190ms;
+  --ncr26-slow: 280ms;
+  --ncr26-ease: cubic-bezier(.2, .8, .2, 1);
+
+  color-scheme: light;
+  background: var(--ncr26-bg);
+}
+
+@supports (color: oklch(60% .15 250)) {
+  html[data-ncr-ui-2026="true"]:where(:not(:has(.app-shell))) {
+    --ncr26-brand: oklch(59% 0.19 255);
+    --ncr26-brand-hover: oklch(54% 0.2 255);
+    --ncr26-brand-strong: oklch(47% 0.18 255);
+    --ncr26-brand-soft: oklch(97% 0.022 255);
+    --ncr26-brand-pale: oklch(98.4% 0.012 255);
+    --ncr26-bg: oklch(97.4% 0.006 255);
+    --ncr26-bg-elevated: oklch(98.4% 0.004 255);
+    --ncr26-surface-soft: oklch(98.6% 0.004 255);
+    --ncr26-surface-muted: oklch(96.6% 0.006 255);
+    --ncr26-text: oklch(28% 0.035 255);
+    --ncr26-text-soft: oklch(48% 0.033 255);
+    --ncr26-text-muted: oklch(61% 0.025 255);
+    --ncr26-border: oklch(91.5% 0.012 255);
+    --ncr26-border-strong: oklch(86.5% 0.018 255);
+  }
+}
+
+/* ===== Business accent bridge =====
+ * Les offres standards utilisent toujours la couleur UI de leur métier.
+ * Une offre Métier en marque blanche peut fournir --tenant-brand-color :
+ * cette valeur devient alors automatiquement la couleur d'interface.
+ * Les couleurs sémantiques succès / alerte / danger restent indépendantes.
+ */
+html[data-ncr-ui-2026="true"]:where(:not(:has(.app-shell)))[data-business-theme="formation"] {
+  --business-accent: var(--tenant-brand-color, #3370EC);
+  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 76%, #000);
+  --accent: var(--tenant-brand-color, #3370EC);
+  --primary-action: var(--tenant-brand-color, #3370EC);
+  --ncr26-brand: var(--tenant-brand-color, #3370EC);
+  --ncr26-brand-hover: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 86%, #000);
+  --ncr26-brand-strong: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 72%, #000);
+  --ncr26-brand-soft: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #3370EC) 22%, transparent);
+}
+
+html[data-ncr-ui-2026="true"]:where(:not(:has(.app-shell)))[data-business-theme="nettoyage"] {
+  --business-accent: var(--tenant-brand-color, #44946E);
+  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #44946E) 76%, #000);
+  --accent: var(--tenant-brand-color, #44946E);
+  --primary-action: var(--tenant-brand-color, #44946E);
+  --ncr26-brand: var(--tenant-brand-color, #44946E);
+  --ncr26-brand-hover: color-mix(in srgb, var(--tenant-brand-color, #44946E) 86%, #000);
+  --ncr26-brand-strong: color-mix(in srgb, var(--tenant-brand-color, #44946E) 72%, #000);
+  --ncr26-brand-soft: color-mix(in srgb, var(--tenant-brand-color, #44946E) 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, var(--tenant-brand-color, #44946E) 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #44946E) 22%, transparent);
+}
+
+html[data-ncr-ui-2026="true"]:where(:not(:has(.app-shell)))[data-business-theme="securite"] {
+  --business-accent: #9B1C1C;
+  --business-accent-strong: #7F1414;
+  --accent: #9B1C1C;
+  --primary-action: #9B1C1C;
+  --ncr26-brand: #9B1C1C;
+  --ncr26-brand-hover: #871717;
+  --ncr26-brand-strong: #7F1414;
+  --ncr26-brand-soft: color-mix(in srgb, #9B1C1C 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, #9B1C1C 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, #9B1C1C 22%, transparent);
+}
+
+html[data-ncr-ui-2026="true"]:where(:not(:has(.app-shell)))[data-business-theme="coiffure"] {
+  --business-accent: var(--tenant-brand-color, #5C194B);
+  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 76%, #000);
+  --accent: var(--tenant-brand-color, #5C194B);
+  --primary-action: var(--tenant-brand-color, #5C194B);
+  --ncr26-brand: var(--tenant-brand-color, #5C194B);
+  --ncr26-brand-hover: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 86%, #000);
+  --ncr26-brand-strong: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 72%, #000);
+  --ncr26-brand-soft: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #5C194B) 22%, transparent);
+}
+
+html[data-ncr-ui-2026="true"]:where(:not(:has(.app-shell)))[data-business-theme="restauration"] {
+  --business-accent: var(--tenant-brand-color, #B78324);
+  --business-accent-strong: color-mix(in srgb, var(--tenant-brand-color, #B78324) 76%, #000);
+  --accent: var(--tenant-brand-color, #B78324);
+  --primary-action: var(--tenant-brand-color, #B78324);
+  --ncr26-brand: var(--tenant-brand-color, #B78324);
+  --ncr26-brand-hover: color-mix(in srgb, var(--tenant-brand-color, #B78324) 86%, #000);
+  --ncr26-brand-strong: color-mix(in srgb, var(--tenant-brand-color, #B78324) 72%, #000);
+  --ncr26-brand-soft: color-mix(in srgb, var(--tenant-brand-color, #B78324) 11%, #fff);
+  --ncr26-brand-pale: color-mix(in srgb, var(--tenant-brand-color, #B78324) 5%, #fff);
+  --ncr26-ring: color-mix(in srgb, var(--tenant-brand-color, #B78324) 22%, transparent);
+}
+
+/* ===== App foundation ===== */
+html[data-ncr-ui-2026="true"]:where(:not(:has(.app-shell))) body {
+  background:
+    radial-gradient(circle at 72% -15%, rgba(18, 103, 234, 0.045), transparent 34rem),
+    var(--ncr26-bg);
+  color: var(--ncr26-text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height: 1.5;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+
+@media (max-width: 900px) {
+  html[data-ncr-ui-2026="true"]:where(:not(:has(.app-shell))) body {
+    background: var(--ncr26-bg);
+  }
+}
