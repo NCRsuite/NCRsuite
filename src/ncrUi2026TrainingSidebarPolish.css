@@ -46,7 +46,9 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: rgba(255,255,255,.96);
+    background: var(--ncr26-surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border-right: 1px solid var(--ncr26-border);
     box-shadow: 10px 0 36px rgba(15,23,42,.025);
   }
@@ -143,6 +145,7 @@
   ) .app-shell > .sidebar .navigation-group-trigger {
     box-sizing: border-box;
     padding-right: 8px;
+    min-height: var(--ncr26-control-h);
   }
 
   html[data-ncr-ui-2026="true"]:is(

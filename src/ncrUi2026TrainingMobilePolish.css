@@ -1201,53 +1201,7 @@
     gap: 7px;
   }
 
-  /* =======================================================
-     NAVIGATION BASSE
-     ======================================================= */
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
-    min-height: 68px;
-    padding-top: 5px;
-    padding-bottom: 6px;
-    border: 1px solid color-mix(in srgb, var(--ncr26-border-strong) 88%, transparent);
-    border-radius: 28px;
-    background: rgba(255,255,255,.94);
-    box-shadow: 0 12px 34px rgba(15,23,42,.11), 0 2px 8px rgba(15,23,42,.04);
-    overflow: visible;
-  }
 
-  @supports (backdrop-filter: blur(18px)) {
-    html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
-      background: rgba(255,255,255,.88);
-      backdrop-filter: saturate(135%) blur(18px);
-      -webkit-backdrop-filter: saturate(135%) blur(18px);
-    }
-  }
-
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav > :where(a, button) {
-    min-height: 48px;
-    gap: 3px;
-    padding-block: 3px;
-  }
-
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav > :where(a, button) > span:not(.mobile-create-action) {
-    max-width: 72px;
-    overflow: hidden;
-    font-size: .64rem;
-    line-height: 1.1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav .mobile-create-action > span {
-    transform: translateY(-2px) scale(.92);
-    transform-origin: center;
-    box-shadow: 0 7px 18px rgba(18,103,234,.20), inset 0 1px rgba(255,255,255,.2);
-  }
-
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav .mobile-create-action > small {
-    margin-top: -2px;
-    font-size: .63rem;
-  }
 }
 
 @media (max-width: 390px) {
@@ -1328,9 +1282,6 @@
     padding-inline: 14px;
   }
 
-  html[data-ncr-ui-2026="true"][data-business-theme="formation"] .app-shell .mobile-bottom-nav {
-    border-radius: 24px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -182,89 +182,55 @@ export function AppShell() {
   useEffect(() => {
     if (!mobileMenuOpen && !mobileAccountOpen) return;
 
+    const dialog = document.getElementById(mobileMenuOpen ? 'mobile-navigation-drawer' : 'mobile-account-sheet');
+    if (!dialog) return;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
+    const previousPadding = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+    const background = Array.from(document.querySelectorAll<HTMLElement>('.app-shell > .sidebar, .app-shell > .main-content, .app-shell > .mobile-bottom-nav'));
+    const previousInert = background.map((element) => element.inert);
+    background.forEach((element) => { element.inert = true; });
+    const focusable = () => Array.from(dialog.querySelectorAll<HTMLElement>('a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]'))
+      .filter((element) => element.getClientRects().length > 0);
+    // Focus the close action, not search: opening the drawer must not summon the mobile keyboard.
+    focusable()[0]?.focus({ preventScroll: true });
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMobileMenuOpen(false);
         setMobileAccountOpen(false);
       }
+      if (event.key === 'Tab') {
+        const elements = focusable();
+        const first = elements[0];
+        const last = elements[elements.length - 1];
+        if (!first) { event.preventDefault(); dialog.focus(); return; }
+        if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+          event.preventDefault(); last.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+          event.preventDefault(); first.focus();
+        }
+      }
     };
+    const desktop = window.matchMedia('(min-width: 901px)');
+    const closeOnDesktop = () => {
+      if (desktop.matches) { setMobileMenuOpen(false); setMobileAccountOpen(false); }
+    };
+    desktop.addEventListener('change', closeOnDesktop);
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPadding;
+      background.forEach((element, i) => { element.inert = previousInert[i]; });
       window.removeEventListener('keydown', onKeyDown);
+      desktop.removeEventListener('change', closeOnDesktop);
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
     };
   }, [mobileMenuOpen, mobileAccountOpen]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const viewport = window.visualViewport;
-    let animationFrame = 0;
-    let delayedTimers: number[] = [];
-
-    const editableSelector = 'input, textarea, select, [contenteditable="true"]';
-
-    function editableFieldIsFocused() {
-      const activeElement = document.activeElement;
-      return activeElement instanceof HTMLElement && Boolean(activeElement.closest(editableSelector));
-    }
-
-    function synchronizeMobileNavigation() {
-      if (window.matchMedia('(min-width: 901px)').matches) {
-        root.style.removeProperty('--mobile-nav-y-compensation');
-        return;
-      }
-
-      const layoutViewportHeight = Math.max(window.innerHeight, root.clientHeight);
-      const visualViewportBottom = viewport
-        ? viewport.offsetTop + viewport.height
-        : layoutViewportHeight;
-      const concealedViewportHeight = Math.max(0, layoutViewportHeight - visualViewportBottom);
-      const compensation = !editableFieldIsFocused() && concealedViewportHeight > 120
-        ? concealedViewportHeight
-        : 0;
-
-      root.style.setProperty('--mobile-nav-y-compensation', `${Math.round(compensation)}px`);
-    }
-
-    function scheduleSynchronization() {
-      window.cancelAnimationFrame(animationFrame);
-      animationFrame = window.requestAnimationFrame(synchronizeMobileNavigation);
-    }
-
-    function scheduleDelayedSynchronizations() {
-      scheduleSynchronization();
-      delayedTimers.forEach((timer) => window.clearTimeout(timer));
-      delayedTimers = [80, 260, 650].map((delay) => window.setTimeout(scheduleSynchronization, delay));
-    }
-
-    scheduleDelayedSynchronizations();
-    viewport?.addEventListener('resize', scheduleDelayedSynchronizations);
-    viewport?.addEventListener('scroll', scheduleSynchronization);
-    window.addEventListener('resize', scheduleDelayedSynchronizations);
-    window.addEventListener('orientationchange', scheduleDelayedSynchronizations);
-    window.addEventListener('pageshow', scheduleDelayedSynchronizations);
-    document.addEventListener('focusin', scheduleDelayedSynchronizations);
-    document.addEventListener('focusout', scheduleDelayedSynchronizations);
-    document.addEventListener('visibilitychange', scheduleDelayedSynchronizations);
-
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      delayedTimers.forEach((timer) => window.clearTimeout(timer));
-      viewport?.removeEventListener('resize', scheduleDelayedSynchronizations);
-      viewport?.removeEventListener('scroll', scheduleSynchronization);
-      window.removeEventListener('resize', scheduleDelayedSynchronizations);
-      window.removeEventListener('orientationchange', scheduleDelayedSynchronizations);
-      window.removeEventListener('pageshow', scheduleDelayedSynchronizations);
-      document.removeEventListener('focusin', scheduleDelayedSynchronizations);
-      document.removeEventListener('focusout', scheduleDelayedSynchronizations);
-      document.removeEventListener('visibilitychange', scheduleDelayedSynchronizations);
-      root.style.removeProperty('--mobile-nav-y-compensation');
-    };
-  }, []);
 
   useEffect(() => {
     if (!organization || !user || !supabase) {
@@ -659,7 +625,7 @@ export function AppShell() {
     : 1;
 
   return (
-    <div className="app-shell app-shell-v265 app-shell-v266 app-shell-v270 app-shell-v271 app-shell-v284">
+    <div className="app-shell app-shell-v265 app-shell-v266 app-shell-v270 app-shell-v271 app-shell-v284" data-navigation-layout="premium">
       <input
         id="profile-avatar-upload"
         className="profile-avatar-input"
@@ -981,7 +947,7 @@ export function AppShell() {
             <small>Planning</small>
           </NavLink>
         )}
-        <button type="button" onClick={() => setMobileMenuOpen(true)} className={mobileMenuOpen ? 'active' : ''}>
+        <button type="button" onClick={() => setMobileMenuOpen(true)} className={mobileMenuOpen ? 'active' : ''} aria-expanded={mobileMenuOpen} aria-controls="mobile-navigation-drawer">
           <Icon name="menu" size={21} />
           <span>Menu</span>
         </button>
@@ -995,6 +961,7 @@ export function AppShell() {
             role="dialog"
             aria-modal="true"
             aria-label="Navigation NCR Suite"
+            tabIndex={-1}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mobile-drawer-header">
@@ -1081,6 +1048,7 @@ export function AppShell() {
             role="dialog"
             aria-modal="true"
             aria-label="Compte et entreprise"
+            tabIndex={-1}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mobile-sheet-handle" />
