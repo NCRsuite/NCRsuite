@@ -1283,9 +1283,12 @@ requireText('src/pages/SubscriptionPage.tsx', [
 ]);
 requireText('src/pages/TrainingDashboardPage.tsx', [
   'training-quality-period-segmented',
-  'training-quality-period-mobile',
+  "[[30, '30 j'], [90, '90 j'], [365, '12 mois']]",
+  'onClick={() => setPeriodDays(value)}',
+  'aria-pressed={periodDays === value}',
   'training-quality-export-actions',
-  '<h1>Bonjour, bienvenue sur {organization.name}</h1>'
+  '<h1>Vue d’ensemble</h1>',
+  'activeSite?.name ?? organization.name'
 ]);
 requireText('supabase/functions/stripe-webhook/index.ts', [
   'constructEventAsync',

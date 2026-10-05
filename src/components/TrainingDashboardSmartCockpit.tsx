@@ -246,8 +246,8 @@ export function TrainingDashboardSmartCockpit({ dashboard, sessions, canManage, 
             </div>
           </div>
 
-          <div className="ncr-smart-todo">
-            <div className="ncr-smart-todo-head"><div><p className="eyebrow">À FAIRE ENSUITE</p><strong>{secondaryIssues.length > 0 ? `${secondaryIssues.length} action${secondaryIssues.length > 1 ? 's' : ''} utile${secondaryIssues.length > 1 ? 's' : ''}` : 'Rien d’urgent'}</strong></div><Icon name="activity" size={19} /></div>
+          <details className="ncr-smart-todo" open={secondaryIssues.length > 0}>
+            <summary className="ncr-smart-todo-head"><div><p className="eyebrow">À FAIRE ENSUITE</p><strong>{secondaryIssues.length > 0 ? `${secondaryIssues.length} action${secondaryIssues.length > 1 ? 's' : ''} utile${secondaryIssues.length > 1 ? 's' : ''}` : 'Rien d’urgent'}</strong></div><Icon name="chevronDown" size={19} /></summary>
             {secondaryIssues.length > 0 ? (
               <div className="ncr-smart-todo-list">
                 {secondaryIssues.map((issue) => (
@@ -261,7 +261,7 @@ export function TrainingDashboardSmartCockpit({ dashboard, sessions, canManage, 
             ) : (
               <div className="ncr-smart-clear-state"><span><Icon name="check" size={18} /></span><div><strong>File d’actions claire</strong><small>Le dashboard ne détecte pas d’autre priorité à traiter.</small></div></div>
             )}
-          </div>
+          </details>
         </article>
 
         <aside className="ncr-smart-side">

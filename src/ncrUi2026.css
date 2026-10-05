@@ -206,9 +206,9 @@ html[data-ncr-ui-2026="true"] .app-shell ::selection {
 
 /* ===== Desktop shell / sidebar ===== */
 html[data-ncr-ui-2026="true"] .app-shell .sidebar {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--ncr26-surface);
   border-right-color: var(--ncr26-border);
-  box-shadow: 10px 0 36px rgba(15, 23, 42, 0.025);
+  box-shadow: none;
 }
 
 @supports (backdrop-filter: blur(18px)) {
@@ -292,8 +292,8 @@ html[data-ncr-ui-2026="true"] .app-shell .context-switcher-options button:hover 
 html[data-ncr-ui-2026="true"] .app-shell .navigation-search {
   border: var(--ncr26-border-width) solid var(--ncr26-border);
   border-radius: var(--ncr26-radius-sm);
-  background: var(--ncr26-surface-soft);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+  background: transparent;
+  box-shadow: none;
   transition: border-color var(--ncr26-fast) var(--ncr26-ease), background var(--ncr26-fast) var(--ncr26-ease), box-shadow var(--ncr26-fast) var(--ncr26-ease);
 }
 
@@ -357,16 +357,18 @@ html[data-ncr-ui-2026="true"] .app-shell .mobile-drawer-nav a:hover {
 html[data-ncr-ui-2026="true"] .app-shell .main-nav a.active,
 html[data-ncr-ui-2026="true"] .app-shell .mobile-drawer-nav a.active {
   color: var(--ncr26-brand-strong);
-  background: var(--ncr26-brand-soft);
-  font-weight: 640;
+  background: var(--ncr26-brand-pale);
+  border-color: transparent;
+  font-weight: 650;
 }
 
-html[data-ncr-ui-2026="true"] .app-shell .main-nav a.active::before {
+html[data-ncr-ui-2026="true"] .app-shell .main-nav a.active::before,
+html[data-ncr-ui-2026="true"] .app-shell .mobile-drawer-nav a.active::before {
   content: "";
   position: absolute;
   left: 0;
   top: 25%;
-  width: 3px;
+  width: 2px;
   height: 50%;
   border-radius: var(--ncr26-radius-pill);
   background: var(--ncr26-brand);
@@ -1050,7 +1052,7 @@ html[data-ncr-ui-2026="true"] .app-shell[data-navigation-layout] .mobile-account
     height: 100dvh;
     padding: env(safe-area-inset-top) 16px max(16px, env(safe-area-inset-bottom));
     gap: var(--ncr26-space-3);
-    border-radius: 0 var(--ncr26-radius-xl) var(--ncr26-radius-xl) 0;
+    border-radius: 0 var(--ncr26-radius-lg) var(--ncr26-radius-lg) 0;
     animation: ncr26-drawer-in var(--ncr26-ui) var(--ncr26-ease);
   }
   html[data-ncr-ui-2026="true"] .app-shell[data-navigation-layout] .mobile-navigation-drawer > * {
@@ -1078,10 +1080,11 @@ html[data-ncr-ui-2026="true"] .app-shell[data-navigation-layout] .mobile-account
     font-size: 16px;
   }
   html[data-ncr-ui-2026="true"] .app-shell[data-navigation-layout] .mobile-drawer-organization {
-    border: 1px solid var(--ncr26-border);
-    border-radius: var(--ncr26-radius-md);
-    background: var(--ncr26-surface-soft);
-    padding: 12px;
+    border: 0;
+    border-bottom: 1px solid var(--ncr26-border);
+    border-radius: 0;
+    background: transparent;
+    padding: 16px 4px;
   }
   html[data-ncr-ui-2026="true"] .app-shell[data-navigation-layout] .mobile-drawer-subscription-card {
     min-height: 56px;

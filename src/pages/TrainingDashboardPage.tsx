@@ -226,12 +226,12 @@ export function TrainingDashboardPage() {
   if (!organization) return null;
 
   return (
-    <div ref={dashboardRef} className="page training-dashboard-page training-quality-dashboard">
+    <div ref={dashboardRef} className="page training-dashboard-page training-quality-dashboard" data-reference-screen="formation">
       <header className="page-header training-quality-header">
         <div>
           <p className="eyebrow">PILOTAGE & CONTRÔLE QUALITÉ</p>
-          <h1>Bonjour, bienvenue sur {organization.name}</h1>
-          <p>{activeSite ? `Suivi opérationnel de l’établissement ${activeSite.name}` : 'Visualise immédiatement ce qui est prêt, incomplet ou bloquant'}</p>
+          <h1>Vue d’ensemble</h1>
+          <p>{activeSite?.name ?? organization.name} · Votre activité, vos priorités.</p>
         </div>
         <div className="header-actions training-quality-actions">
           <div className="training-quality-period-segmented" role="group" aria-label="Période analysée">
@@ -242,11 +242,12 @@ export function TrainingDashboardPage() {
               ))}
             </div>
           </div>
-          <label className="training-quality-period training-quality-period-mobile">Période<select value={periodDays} onChange={(event) => setPeriodDays(Number(event.target.value) as TrainingQualityPeriod)}><option value="30">30 jours</option><option value="90">90 jours</option><option value="365">12 mois</option></select></label>
+
+          <details className="training-dashboard-exports"><summary><Icon name="file" size={17} />Exporter<Icon name="chevronDown" size={14} /></summary>
           <div className="training-quality-export-actions" aria-label="Exporter le tableau de bord">
             <button className="secondary-button" type="button" disabled={Boolean(exporting) || loading} onClick={exportCsv}><Icon name="file" size={17} />{exporting === 'csv' ? 'Export…' : 'CSV'}</button>
             <button className="secondary-button" type="button" disabled={Boolean(exporting) || loading} onClick={() => void exportPdf()}><Icon name="file" size={17} />{exporting === 'pdf' ? 'Préparation…' : 'Rapport PDF'}</button>
-          </div>
+          </div></details>
           {canManage && <Link className="primary-button" to="/sessions?new=1"><Icon name="calendar" size={18} />Créer une session</Link>}
         </div>
       </header>

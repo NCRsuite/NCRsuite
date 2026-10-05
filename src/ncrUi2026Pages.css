@@ -343,3 +343,204 @@ html[data-ncr-ui-2026="true"] .app-shell .premium-route-stage :where(a[class*="c
     transform: none !important;
   }
 }
+
+/* Reference screens: local composition for Beauty appointments and Formation overview.
+ * Opt-in roots keep the validated shell and other business pages unchanged. */
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen] {
+  padding-top: 24px;
+}
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen] > .page-header {
+  z-index: 6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 0 24px;
+  margin: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen] > .page-header::before,
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen] > .page-header::after { display: none; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen] > .page-header h1 {
+  max-width: none;
+  margin: 4px 0 6px;
+  font-size: clamp(1.65rem, 2.6vw, 2.2rem);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: -.035em;
+}
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen] > .page-header p:not(.eyebrow) {
+  max-width: 65ch;
+  margin: 0;
+  font-size: var(--ncr26-font-control);
+  line-height: 1.45;
+  color: var(--ncr26-text-soft);
+}
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen] .eyebrow { font-size: .75rem; letter-spacing: .07em; }
+
+/* Beauty: the planner is the workspace; metrics are a compact context strip. */
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 24px;
+  padding: 16px 0;
+  border-block: 1px solid var(--ncr26-border);
+}
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 0;
+  margin: 0;
+  padding: 0 20px;
+  border: 0;
+  border-left: 1px solid var(--ncr26-border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-summary-card:first-child { border-left: 0; padding-left: 0; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-summary-card strong { font-size: 1.6rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-summary-card :is(span, small) { font-size: .75rem; line-height: 1.4; color: var(--ncr26-text-soft); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .planner-panel { padding: 20px; border-radius: var(--ncr26-radius-lg); box-shadow: var(--ncr26-shadow-xs); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .planner-toolbar { gap: 16px; margin-bottom: 16px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .planner-period-controls h2 { font-size: 1.15rem; line-height: 1.3; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .planner-filters :is(button, select) { min-height: 44px; font-size: .875rem; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form-panel {
+  padding: 24px;
+  margin: 0 0 24px;
+  border: 1px solid var(--ncr26-border);
+  border-radius: var(--ncr26-radius-lg);
+  background: var(--ncr26-surface);
+  box-shadow: var(--ncr26-shadow-xs);
+}
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form > label { min-width: 0; font-size: .875rem; color: var(--ncr26-text-soft); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-client-field { grid-column: auto; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form-section-title {
+  display: flex; align-items: center; gap: 10px;
+  grid-column: 1 / -1;
+  margin: 12px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--ncr26-border);
+  font-size: 1rem;
+}
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form-section-title span { color: var(--ncr26-brand); font-size: .75rem; font-variant-numeric: tabular-nums; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-preview { grid-column: 1 / -1; padding: 12px 0; background: transparent; border: 0; border-radius: 0; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-notes-disclosure { grid-column: 1 / -1; border-block: 1px solid var(--ncr26-border); padding-block: 8px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-notes-disclosure summary { padding-block: 12px; cursor: pointer; font-size: .875rem; font-weight: 600; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-notes-disclosure summary span { color: var(--ncr26-text-muted); font-size: .75rem; font-weight: 400; margin-left: 8px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-booking-summary { grid-column: 1 / -1; display: flex; gap: 12px; align-items: center; padding: 16px; border-radius: var(--ncr26-radius-sm); background: var(--ncr26-brand-pale); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-booking-summary div { display: grid; gap: 4px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-booking-summary span { font-size: .875rem; color: var(--ncr26-text-soft); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form > .page-message { grid-column: 1 / -1; }
+
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form label { display: block; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form label > :is(select, input, textarea) { display: block; width: 100%; margin-top: 8px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-client-search { display: grid; gap: 6px; margin-block: 8px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-client-search small { font-size: .75rem; line-height: 1.4; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"]:has(.appointment-form-panel) > .appointment-planning-hero { display: none; }
+
+/* Both legacy day lists render the same cards. Keep the primary list and its add action. */
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .day-planner + .appointment-mobile-agenda { display: none; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-card { box-shadow: none; border-radius: var(--ncr26-radius-md); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-card .appointment-status { font-size: .75rem; letter-spacing: .02em; }
+
+/* Formation: one analytical toolbar and an operational brief, not a stack of heroes. */
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; width: 100%; gap: 12px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-period-segmented { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; width: auto; padding: 0; background: transparent; border: 0; box-shadow: none; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-period-segmented button { min-height: 44px; min-width: 60px; font-size: .875rem; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-actions > .primary-button { flex: 0 0 auto; width: auto; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-dashboard-exports { position: relative; flex: 0 0 auto; width: auto; margin-left: auto; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-dashboard-exports summary { display: flex; gap: 8px; align-items: center; min-height: 44px; padding: 0 12px; cursor: pointer; border: 1px solid var(--ncr26-border); border-radius: var(--ncr26-radius-sm); background: var(--ncr26-surface); font-size: .875rem; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-dashboard-exports summary::-webkit-details-marker { display: none; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-export-actions { position: absolute; z-index: 5; top: calc(100% + 6px); right: 0; display: grid; gap: 8px; width: 190px; padding: 10px; background: var(--ncr26-surface); border: 1px solid var(--ncr26-border); border-radius: var(--ncr26-radius-sm); box-shadow: var(--ncr26-shadow-md); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-header .ncr-dashboard-clock { position: absolute; top: 0; right: 0; margin: 0; min-width: 0; animation: none; background: transparent; border: 0; border-radius: 0; box-shadow: none; padding: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-cockpit { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr); gap: 28px; padding: 28px; margin: 0 0 28px; border: 1px solid var(--ncr26-border); border-radius: var(--ncr26-radius-lg); background: var(--ncr26-surface); box-shadow: var(--ncr26-shadow-xs); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] :is(.ncr-smart-priority, .ncr-smart-next, .ncr-smart-shortcuts, .ncr-smart-todo) { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; transform: none; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] :is(.ncr-smart-priority, .ncr-smart-next, .ncr-smart-shortcuts)::before,
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] :is(.ncr-smart-priority, .ncr-smart-next, .ncr-smart-shortcuts)::after { display: none; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-priority { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-priority-copy { padding: 0; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-priority h2 { font-size: clamp(1.3rem, 2.1vw, 1.8rem); font-weight: 600; letter-spacing: -.035em; line-height: 1.2; max-width: 32ch; margin-block: 16px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] :is(.ncr-smart-priority-detail, .ncr-smart-next p) { font-size: .875rem; line-height: 1.55; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] :is(.ncr-smart-healthline, .ncr-smart-kicker small, .ncr-smart-clear-state small) { font-size: .75rem; line-height: 1.5; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-side { display: flex; flex-direction: column; gap: 20px; padding-left: 24px; border-left: 1px solid var(--ncr26-border); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-todo { align-self: start; border-top: 1px solid var(--ncr26-border); padding-top: 16px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-clear-state { padding: 12px 0; border: 0; background: transparent; box-shadow: none; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-overview { gap: 0; border-block: 1px solid var(--ncr26-border); border-radius: 0; background: transparent; box-shadow: none; padding: 12px 0; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-overview-card { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 16px; min-height: 0; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] :is(.training-quality-alerts-panel, .training-quality-trend-panel, .training-quality-score-panel) { border: 0; border-top: 1px solid var(--ncr26-border); border-radius: 0; padding: 24px 0; box-shadow: none; background: transparent; }
+
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-score-panel { color: var(--ncr26-text); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-score-panel::before,
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-score-panel::after { display: none; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-score-panel :is(h2, strong) { color: var(--ncr26-text); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-score-panel :is(p:not(.eyebrow), small) { color: var(--ncr26-text-soft); font-size: .8125rem; line-height: 1.5; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-score-panel .eyebrow { color: var(--ncr26-brand); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-score-panel > div:first-child > span { color: var(--ncr26-brand); background: transparent; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-score-lines > span { border: 0; border-top: 1px solid var(--ncr26-border); border-radius: 0; padding: 16px 0; background: transparent; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] :is(.training-quality-chart-group > small, .training-quality-chart-legend) { font-size: .75rem; color: var(--ncr26-text-soft); }
+
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats { gap: 0; margin-block: 24px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats .stat-card { position: relative; display: grid; align-content: start; gap: 12px; padding: 20px; border: 0; border-left: 1px solid var(--ncr26-border); border-radius: 0; background: transparent; box-shadow: none; transform: none; min-height: 0; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats .stat-card:first-child { border-left: 0; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats .stat-card::before,
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats .stat-card::after { display: none; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats .stat-icon { width: 24px; height: 24px; background: transparent; border: 0; box-shadow: none; color: var(--ncr26-brand); border-radius: 0; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats strong { font-size: clamp(1.8rem, 2.7vw, 2.4rem); font-weight: 600; line-height: 1.1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats :is(small, .stat-card > span) { font-size: .8125rem; line-height: 1.45; color: var(--ncr26-text-soft); }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-dashboard-clock::before,
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-dashboard-clock::after { display: none; }
+
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-todo-head { cursor: pointer; min-height: 44px; }
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-todo-head::-webkit-details-marker { display: none; }
+@media (min-width: 1200px) {
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] :is(.training-quality-overview, .training-quality-stats) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (min-width: 901px) {
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-header > div:first-child { max-width: calc(100% - 240px); }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-actions { margin-top: 16px; }
+}
+
+@media (max-width: 900px) {
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen] { padding-top: 20px; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-planning-actions { width: auto; margin: 0; justify-content: flex-start; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-planning-actions .primary-button { min-height: 44px; width: auto; padding-inline: 12px; box-shadow: none; background: var(--ncr26-surface); color: var(--ncr26-brand-strong); border: 1px solid var(--ncr26-border); }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form-panel { padding: 0; border: 0; background: transparent; box-shadow: none; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-client-field { grid-column: 1 / -1; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form-actions { position: sticky; bottom: calc(var(--ncr26-shell-dock) + 24px + env(safe-area-inset-bottom)); z-index: 4; padding: 12px; background: var(--ncr26-surface); border: 1px solid var(--ncr26-border); border-radius: var(--ncr26-radius-sm); box-shadow: var(--ncr26-shadow-sm); }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-cockpit { grid-template-columns: minmax(0, 1fr) minmax(220px, .8fr); }
+}
+@media (max-width: 599px) {
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen] > .page-header { gap: 12px; padding-bottom: 16px; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-planning-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-planning-hero > div:first-child { grid-column: auto; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .planner-filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .planner-filters .segmented-control { grid-column: 1 / -1; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .planner-filters select { min-width: 0; width: 100%; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 0; padding: 16px 0; margin-bottom: 16px; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-summary-card { padding: 0 12px; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-summary-card:nth-child(odd) { border-left: 0; padding-left: 0; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .planner-panel { padding: 12px; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form > label { grid-column: 1 / -1; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-form > :is(.appointment-date-field, .appointment-time-field) { grid-column: auto; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-actions { gap: 8px; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-period-segmented { width: 100%; justify-content: space-between; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-dashboard-exports { margin-left: 0; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-export-actions { left: 0; right: auto; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-actions > .primary-button { flex: 1; width: auto; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-cockpit { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 20px 16px; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 20px; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats .stat-card:nth-child(odd) { border-left: 0; }
+  html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-side { padding-left: 0; border-left: 0; border-top: 1px solid var(--ncr26-border); padding-top: 20px; }
+}

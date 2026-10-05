@@ -247,3 +247,161 @@ Shell et navigation validés par l’utilisateur comme base de travail. Relectur
 TypeScript et build de la passe finale réussis (log `/tmp/ncr-phase2b1-build.log`) ; cinq tests de protection CSS relancés avec succès au checkpoint. `git diff --check` réussi. Vite arrêté et lien temporaire `node_modules` retiré pour laisser un dépôt propre après commit. Les dépendances, builds et preuves complètes restent hors dépôt.
 
 Commit local autorisé : `refactor(ui): premium app shell and navigation`. Périmètre : six sources UI, ce journal et deux captures avant/après, soit neuf fichiers. Aucun push ni déploiement. `main` conservée à `63fa0563b51816197b4f6dbbc4de0b5a2a506670`.
+
+## Phase 3A — Écrans de référence Beauty et Formation (5 octobre 2026)
+
+Base : `5a6677160025b51d832f4f23d932129efcb74fea`, branche `refactor/premium-app-experience`. Proposition implémentée et contrôlée, **en attente de validation visuelle utilisateur**, sans commit.
+
+### Décisions Beauty
+
+- L’agenda devient la surface principale : en-tête compact, contexte établissement, bouton « Nouveau » secondaire sur mobile et indicateurs regroupés en une bande. Le dock reste le point d’entrée primaire au pouce ; aucune entrée du shell supprimée.
+- Création/modification inline conservée pour préserver les handlers et le retour dans le planning. Pendant la saisie, le titre du formulaire remplace le titre de page redondant. Deux sections explicites : client/prestation puis créneau/confirmation. Date et heure côte à côte sur téléphone ; grille sur desktop.
+- Recherche client correctement labellisée, sélection et compatibilité collaborateur conservées. Notes facultatives repliées en création et ouvertes en modification ; résumé client/date/heure/prestation avant validation, durée et prix toujours présents. Erreur affichée à proximité de la confirmation, sans doublon. Footer de confirmation sticky sur mobile/tablette, avec réserve pour le dock et safe area.
+- Doublon **observé** en vue jour mobile : les deux listes héritées affichaient le même rendez-vous et ses actions. La copie mobile est masquée uniquement lorsque la liste principale est présente, sur cette page Beauty. DOM/classes et actions de la liste principale conservés, notamment « Ajouter sur cette journée » et les indisponibilités. Statuts des cartes jour portés à 12 px.
+- Pas de réécriture de l’agenda semaine, de la sélection de créneau ou des transitions de statut.
+
+### Décisions Formation
+
+- « Vue d’ensemble » remplace le grand message de bienvenue. L’organisation/établissement reste identifié dans le contexte et le shell.
+- Un seul contrôle de période, avec les mêmes 30/90/365 jours et le même handler. Exports CSV/PDF regroupés sous « Exporter », création de session toujours directe et soumise à la même permission.
+- Smart Cockpit exprimé par la typographie, l’espace et les séparateurs, plutôt que plusieurs cartes imbriquées. Priorité à gauche, prochaine activité et raccourcis à droite sur tablette/desktop ; une colonne sur téléphone.
+- « À faire ensuite » se replie lorsqu’il n’y a aucun élément secondaire et s’ouvre par défaut lorsqu’il en existe. Calculs, classement, alertes et destinations inchangés.
+- Barre d’actions sur une ligne à 768 px ; horloge replacée dans le header desktop, sans consommer une ligne supplémentaire.
+
+### Patterns et maintien du périmètre
+
+Quatre sources UI : `src/pages/AppointmentsPage.tsx`, `src/pages/TrainingDashboardPage.tsx`, `src/components/TrainingDashboardSmartCockpit.tsx`, `src/ncrUi2026Pages.css`. Les règles de composition sont explicitement limitées à `data-reference-screen="beauty"` ou `"formation"` dans le shell. Aucun nouveau fichier CSS, aucune dépendance, aucun changement du shell validé. Tokens NCR UI 2026, icônes, boutons, messages et contrôles natifs existants réutilisés.
+
+Deux contrôles statiques ont été adaptés dans `scripts/phase1-static-audit.mjs` et `scripts/phase1-critical-flows.mjs` : ils exigeaient littéralement l’ancien message de bienvenue et le select mobile redondant. Ils vérifient désormais les trois périodes, le handler, l’état `aria-pressed`, le titre et le contexte organisation. Les gardes de la baseline publique restent intactes.
+
+Patterns éventuellement généralisables **après validation** : bande d’indicateurs, header à contexte court, exports secondaires regroupés, sections opérationnelles sans encadrements imbriqués, notes facultatives et récapitulatif avant confirmation. Ils ne sont pas propagés aux trois autres métiers.
+
+### Confrontation aux références UX
+
+Recherche effectuée pendant cette passe, sans prétendre à une certification ni à un classement des produits de 2026. Les principes sont durables, parfois publiés bien avant 2026 :
+
+- [Nielsen Norman Group — Progressive Disclosure](https://www.nngroup.com/articles/progressive-disclosure/) : réserver la place principale aux actions courantes, rendre les fonctions secondaires accessibles sans les supprimer. Application aux notes, exports et file secondaire du cockpit.
+- [GOV.UK — Check answers](https://design-system.service.gov.uk/patterns/check-answers/) : permettre de relire avant de confirmer. Adaptation en résumé inline, sans imposer une étape supplémentaire au professionnel qui enchaîne les rendez-vous.
+- Les principes tactiles et focus W3C documentés en 2B.1 restent la référence. Contrôles principaux visés à 44 px, palette et motion existantes conservées. Pas de nouveau blur, bounce ou animation décorative ; pas de prétention à un audit WCAG exhaustif.
+
+### Tests réellement exécutés
+
+| Contrôle | Résultat et limites |
+|---|---|
+| Références connectées | AZZERA CUT et AZZERA ACADEMY, compte test autorisé |
+| Pages principales responsive | 360 / 390 / 430 / 768 / 1440 CSS px finalement mesurés sur les deux pages ; aucun débordement global. Une première passe avait mesuré 391/431 avant recalibration |
+| Formulaire Beauty | Contrôlé à 360 / 391 / 431 / 768 / 1440, puis capture mobile finale à 390. Champs, résumé, notes et confirmation accessibles ; pas de débordement global |
+| Scroll | Bas des sections atteignable au-dessus du dock dans les mesures ; sidebar desktop indépendante et navigation mobile conservée. Scroll horizontal de la semaine hérité, sans refonte de sa logique |
+| Beauty validation | Soumission vide bloquée par validation native ; recherche « nacer » et sélection client ; prestation/collaborateur ; date/heure via saisie native clavier ; erreur de créneau déjà occupé affichée |
+| Beauty cycle réel | Rendez-vous créé le 7 octobre 2026 à 10 h, Art nail, client test ; succès et passage de 8 à 9 RDV actifs observés. Modification des notes et statut en attente persistés ; confirmation puis annulation avec motif via la modale. Retour à 8 RDV actifs et 205 € observé. Le rendez-vous annulé reste dans les données du compte test |
+| Beauty navigation | Semaine → actions rapides → modifier → vue jour ; filtre Confirmé donnant l’état vide ; retour semaine ; doublon de liste corrigé |
+| Formation | Périodes 30/90 jours avec valeurs recalculées ; ouverture/fermeture du détail secondaire ; CTA « Créer une session » ouvre le formulaire existant, fermé sans créer de donnée |
+| Exports Formation | Menu et boutons accessibles, CSV/PDF déclenchés, pas d’erreur console observée. **Réception et contenu des fichiers non confirmés** : l’attente de téléchargement du navigateur a expiré et aucune fenêtre PDF exploitable n’a été remontée |
+| Shell | Drawer mobile ouvert/fermé ; changement d’organisation mobile et desktop ; liens et états actifs conservés. Sources shell inchangées |
+| Console | Aucune erreur enregistrée dans l’onglet de validation et l’onglet vitrine lors du contrôle |
+| TypeScript / production | `npm run build` réussi : audits statiques, parcours critiques, release readiness, `tsc -b`, Vite et génération SEO. Avertissement de taille du bundle existant |
+| Protection CSS | `node --test scripts/ui-foundations.test.mjs` : 5/5 réussis. `src/styles.css` et les deux CSS publics strictement identiques à HEAD |
+| Vitrine | Rendu public inspecté sur l’origine locale non connectée 127.0.0.1. Police NCR Public Inter, aucune racine de référence métier, pas de débordement aux largeurs effectivement obtenues 860 / 1536 / 2880. **Pas de nouvelle validation mobile exacte de la vitrine dans cette passe** : l’override y était multiplié par deux |
+| Git / secrets | `.env.local` ignoré et absent de l’index, contenu jamais lu. Pas de fichier Supabase, route, API, permission ou règle d’offre modifié ; aucun changement de main |
+
+La saisie automatisée `fill` des champs date/heure n’actualisait pas le state React dans cet environnement. La saisie native clavier a déclenché les handlers existants et mis à jour le résumé. Aucun contournement par JavaScript, accès direct aux données ou modification backend utilisé.
+
+### Comparaisons visuelles
+
+Captures avant/après à 390 et 1440 CSS px. Les exports image du navigateur incluent des marges ; celles-ci sont recadrées. Les vues desktop sont cadrées sur la zone de travail, sans pied de compte. La définition des exports desktop est limitée par le navigateur : se fier également à la version locale ouverte. Les données actives sont comparables ; le test a ajouté un rendez-vous ensuite annulé et incrémenté les notifications.
+
+![Formation mobile avant/après](captures/phase-3a/formation-avant-apres-390.jpg)
+![Formation desktop avant/après](captures/phase-3a/formation-avant-apres-1440.jpg)
+![Beauty mobile avant/après](captures/phase-3a/beauty-avant-apres-390.jpg)
+![Beauty desktop avant/après](captures/phase-3a/beauty-avant-apres-1440.jpg)
+![Entrée du formulaire Beauty mobile](captures/phase-3a/beauty-formulaire-390.jpg)
+
+### Compromis et limites
+
+- Le formulaire reste inline et se parcourt verticalement ; les sélections natives sont conservées pour éviter un nouveau système de combobox/bottom sheets fragile. Il n’est pas transformé en wizard à étapes obligatoires.
+- L’agenda semaine garde sa dette de densité et certains très petits textes hérités. Ce lot améliore son entrée et ses actions ; il ne constitue pas une validation finale de toute la grille agenda.
+- Données Formation sans urgence secondaire : rendu urgent ouvert déduit de la condition conservée, pas reproduit artificiellement. Toutes les variantes rôle/offre, établissement Métier, appareils iOS réels, clavier virtuel, safe areas matérielles, PWA installée, lecteur d’écran et reduced-motion système restent non testés.
+- Aucun indicateur métier ni handler de sauvegarde/export recalculé ou réécrit. Aucune infrastructure distante modifiée. Les tests UI ont uniquement modifié le rendez-vous test via l’application.
+- Logs et preuves détaillées : `/tmp/ncr-phase3a/`, build final `/tmp/ncr-phase3a-build-final.log`. Métadonnées TypeScript remises à HEAD et build déplacé hors dépôt après vérification. Vite reste lancé pour la validation utilisateur ; lien temporaire `node_modules` non versionné.
+- HEAD reste `5a6677160025b51d832f4f23d932129efcb74fea`, main reste `63fa0563b51816197b4f6dbbc4de0b5a2a506670`. Aucun commit, push ni déploiement. Ne pas généraliser ces patterns avant validation visuelle.
+
+
+## Phase 3A.1 — Direction artistique : hiérarchie éditoriale et surfaces sobres
+
+Passe réalisée le 5 octobre 2026 sur la branche `refactor/premium-app-experience`, par-dessus les changements 3A encore non commités. À valider visuellement. Cette passe ne modifie que quatre feuilles CSS et la documentation ; aucun nouveau changement TSX, route, permission, calcul, donnée ou élément Supabase.
+
+### Ce qui change par rapport à 3A
+
+- **Dashboard Beauty** : suppression de l'encadrement du hero et des cartes KPI répétées. Label métier avec filet discret, titre plus affirmé, informations de contexte regroupées et CTA toujours accessibles. Hero mobile mesuré à environ 225 px aux trois petites largeurs ; les deux boutons tiennent sur une ligne, avec environ 44 px de hauteur. Les accès rapides deviennent des lignes espacées avec séparateurs. Les prochains rendez-vous gardent horaires, montants et statuts, avec une accentuation sobre du premier. Les textes de synthèse sont relevés à 12–14 px au lieu des miniatures héritées. L'agenda lui-même n'est pas refondu.
+- **Formation** : le Smart Cockpit devient la surface blanche principale, avec une priorité typographique claire et des séparateurs internes. Les KPI secondaires deviennent une bande sans accumulation de cartes ; quatre colonnes sur grand desktop, deux sur téléphone/tablette. L'horloge perd sa carte décorative. Les zones d'analyse restent plus discrètes que le cockpit. Correction du contraste de la synthèse qualité : ses anciens textes blancs étaient illisibles après le passage à une surface claire en 3A. Descriptions à 13 px et légendes du graphique à 12 px.
+- **Navigation** : états actifs plus pâles et repère vertical de 2 px ; lien dashboard desktop sans gradient ni ombre. Le bloc organisation du drawer devient une ligne ouverte avec séparation basse. Recherche plus sobre. Structure, dimensions tactiles principales, routes, groupes, scroll et mécanismes du shell conservés.
+
+Le choix esthétique consiste à réserver la surface la plus présente à la priorité de travail, puis à organiser les informations secondaires par la taille des caractères, le rythme et les filets. L'accent Beauty et les tokens NCR existants restent les seuls repères chromatiques. Aucun nouvel effet glass, animation décorative, bibliothèque ou design system parallèle.
+
+### Fichiers propres à cette passe
+
+| Fichier | Rôle |
+|---|---|
+| `src/beautyUniverse.css` | Consolidation des anciennes couches du dashboard en règles source ; surfaces de configuration/centre conservées |
+| `src/ncrUi2026Pages.css` | Ajustement de la composition Formation déjà introduite en 3A, KPI et contraste de la synthèse |
+| `src/ncrUi2026.css` | Finition des états actifs, recherche et organisation du drawer |
+| `src/ncrUi2026TrainingSidebarPolish.css` | Finition du lien dashboard partagé entre métiers |
+| `docs/premium-redesign/07_PROGRESS.md` et `captures/phase-3a1/` | Suivi et cinq comparaisons avant/après |
+
+Les fichiers TSX et les deux scripts de contrôle déjà modifiés en 3A restent dans le working tree ; ils ne constituent pas de nouvelles modifications fonctionnelles de 3A.1. Aucun empilement d'une nouvelle section Beauty versionnée.
+
+### Vérifications réellement réalisées
+
+| Contrôle | Résultat |
+|---|---|
+| Beauty connecté, AZZERA CUT | 360 / 390 / 430 / 768 / 1440 **CSS px mesurés**, rendu et scroll contrôlés, débordement global nul |
+| Formation connectée, AZZERA ACADEMY | Même série de cinq largeurs exactes, débordement global nul ; cockpit, KPI, graphique et synthèse vérifiés |
+| Drawer | Ouverture/fermeture aux quatre largeurs mobiles/tablette ; comparaison Formation à 390 px ; navigation basse préservée |
+| Navigation et sidebar | Changements d'organisation par l'interface ; état actif conservé, sidebar desktop immobile pendant le scroll du contenu |
+| CTA Beauty | Ouverture réelle de « Nouveau rendez-vous », formulaire existant visible, fermeture sans sauvegarde |
+| Données | Aucune création, modification ou suppression pendant cette passe |
+| TypeScript et production | `npm run build` réussi : contrôles statiques, parcours critiques, release readiness, `tsc -b`, Vite et SEO. Avertissement existant de taille du bundle |
+| Tests des fondations | `node --test scripts/ui-foundations.test.mjs` : 5/5 réussis |
+| Console | Aucune erreur enregistrée dans les onglets application et vitrine contrôlés |
+| Vitrine locale non connectée | Rendu inspecté à 480 et 1440 CSS px, sans débordement ni racine app-shell. Le navigateur impose ici un minimum réel de 480 px ; aucune prétention à un contrôle public exact à 360/390/430 pendant cette passe |
+| CSS publics | `src/styles.css`, `public/ncr-suite-showcase-v2925.css`, `public/ncr-suite-app-v2925.css` identiques octet pour octet à HEAD |
+| Git et secrets | `.env.local` ignoré, absent de l'index, jamais lu. Scan de signatures de secrets du diff sans résultat ; `git diff --check` réussi |
+
+Captures avant/après prises avec les mêmes largeurs CSS, marges de l'export navigateur recadrées et échelle rétablie pour comparaison. Les desktops sont cadrés sur le contenu et le drawer avant le pied de compte. La résolution native de l'export limite leur netteté ; la version locale est laissée ouverte pour apprécier le rendu réel.
+
+![Dashboard Beauty mobile avant/après](captures/phase-3a1/beauty-avant-apres-390.jpg)
+![Dashboard Beauty desktop avant/après](captures/phase-3a1/beauty-avant-apres-1440.jpg)
+![Formation mobile avant/après](captures/phase-3a1/formation-avant-apres-390.jpg)
+![Formation desktop avant/après](captures/phase-3a1/formation-avant-apres-1440.jpg)
+![Drawer Formation avant/après](captures/phase-3a1/drawer-avant-apres-390.jpg)
+
+### Limites et état de livraison
+
+- Pas de nouvelle validation exhaustive des pages Sécurité, Nettoyage et Restauration ; les changements partagés de navigation restent purement CSS. Toutes les offres/rôles et le centre Beauty Métier ne sont pas couverts par ce compte de référence.
+- Variantes Formation urgentes non reproduites ; états testés avec les données disponibles. Tests physiques iOS, clavier virtuel, PWA installée et lecteur d'écran non réalisés. Reduced-motion conservé dans les règles et ajouté aux transitions Beauty, sans simulation système supplémentaire.
+- La synthèse basse Formation a été revue après correction du contraste ; les comparaisons ci-dessus montrent principalement le haut des pages. Captures et mesures complémentaires : `/tmp/ncr-phase3a1/`. Build final : `build-verified.log` dans ce dossier.
+- Artefacts du build déplacés hors dépôt et métadonnées TypeScript rétablies. Le lien local `node_modules` reste non versionné. Vite reste disponible pour la validation.
+- HEAD inchangé : `5a6677160025b51d832f4f23d932129efcb74fea`. Main inchangée : `63fa0563b51816197b4f6dbbc4de0b5a2a506670`. Aucun commit, push ou déploiement. Travail arrêté pour validation visuelle.
+
+
+## Checkpoint final 3A / 3A.1 — Non-régression et commit local
+
+Validation effectuée le 5 octobre 2026 après acceptation de la direction visuelle. Aucune nouvelle modification esthétique ou applicative pendant ce checkpoint.
+
+| Métier / écran | 390 px | 768 px | 1440 px |
+|---|---|---|---|
+| Sécurité / Planning agents | Conforme au périmètre CSS | Conforme au périmètre CSS | Conforme au périmètre CSS |
+| Nettoyage / Planning interventions | Conforme au périmètre CSS | Conforme au périmètre CSS | Conforme au périmètre CSS |
+| Restauration / Commandes | Conforme au périmètre CSS | Conforme au périmètre CSS | Conforme au périmètre CSS |
+
+Largeurs CSS réellement mesurées, débordement global nul dans les neuf cas. Header, typography, couleurs métier, surfaces, boutons et états actifs inspectés ; drawers ouverts/fermés sur téléphone et tablette. Scroll du menu Restauration jusqu'aux commandes et aux réglages, bas des contenus mobile/tablette accessible au-dessus du dock. Sidebar desktop à top=0 après scroll. Les tableaux/plannings et rangées de choix gardent leur scroll interne ; pas de nouvelle superposition bloquante observée. Aucun formulaire sauvegardé, aucune commande envoyée ou donnée créée/modifiée/supprimée pendant ce contrôle. La commande déjà ouverte a uniquement été consultée. Nettoyage est testé sans agent actif : action Planifier désactivée avec explication, variante dense non couverte.
+
+**Observation hors périmètre** : après passage depuis Sécurité en marque blanche, le logo et/ou le titre « Azzera Protect » peuvent persister dans le shell d'un autre métier, alors que le sélecteur d'entreprise et son drawer identifient correctement l'espace actif. Ce résidu DOM est observé, pas corrigé. Le mécanisme `MetierRuntimeBranding.tsx` modifie directement images/titre et les restaure lors du nettoyage ; fichier strictement identique à HEAD. Les CSS 3A.1 ne modifient ni nom d'entreprise, ni src/alt d'image, ni document.title. [Inférence] Le résidu relève du cycle de personnalisation existant et non des changements CSS du lot. À traiter séparément ; aucune extrapolation sur les accès ou données entre entreprises.
+
+Validation technique : `npm run build` réussi (audits statiques, parcours critiques, release readiness, TypeScript `tsc -b`, Vite, SEO), `node --test scripts/ui-foundations.test.mjs` 5/5, aucune erreur console enregistrée. Avertissements non bloquants Vite sur taille de chunk et durée de plugin. `git diff --check` réussi. Les deux scripts de contrôle modifiés en 3A vérifient les nouveaux libellés/contrôles visuels sans supprimer les gardes fonctionnelles.
+
+CSS publics `src/styles.css`, `public/ncr-suite-showcase-v2925.css`, `public/ncr-suite-app-v2925.css` identiques octet pour octet à la base. `.env.local` ignoré et absent de l'index ; contenu non lu. Relecture du diff : changements de présentation et interactions UI seulement, aucun changement de calcul métier, route, permission, infrastructure Supabase ou fichier de données. Les essais métier autorisés de 3A restent ceux décrits dans la section précédente ; aucune donnée de base exportée/versionnée. Scan de signatures de secrets sans résultat.
+
+Preuves temporaires : `/tmp/ncr-phase3-final/` (neuf captures et mesures JSON), log `/tmp/ncr-phase3-final-build.log`. Captures non ajoutées au dépôt pour éviter des vues de compte inutiles ; les comparaisons 3A/3A.1 sont conservées. Build déplacé hors dépôt, métadonnées TypeScript rétablies. Le lien de dépendances `node_modules` est exclu localement de Git, sans changement du `.gitignore` versionné.
+
+Commit local demandé : `refactor(ui): premium reference screens for beauty and training`. Contenu : sept fichiers UI, deux scripts de contrôle, ce suivi et dix captures des phases 3A/3A.1. Main demeure `63fa0563b51816197b4f6dbbc4de0b5a2a506670`. Aucun push ni déploiement.

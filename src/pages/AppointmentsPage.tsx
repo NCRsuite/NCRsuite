@@ -1288,15 +1288,23 @@ export function AppointmentsPage() {
     );
   }
 
+  const summaryClient = appointmentClientOptions.find((client) => client.id === form.clientId);
+  const notesField = (
+    <label className="appointment-notes-field">
+      Notes internes
+      <textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} rows={3} placeholder="Préférence, information utile, consigne…" />
+    </label>
+  );
+
   return (
-    <div className="page appointments-page appointments-planning-premium">
+    <div className="page appointments-page appointments-planning-premium" data-reference-screen={coiffureUiMode ? "beauty" : undefined}>
       <header className="page-header appointment-planning-hero">
         <div>
           <p className="eyebrow">PLANNING</p>
           <h1>Rendez-vous</h1>
-          <p>{personalView ? 'Consultez les rendez-vous qui vous sont attribués et mettez leur statut à jour.' : `Planifiez l’activité ${activeSite ? `de ${activeSite.name}` : 'de tous les établissements'} sans double réservation.`}</p>
+          <p>{personalView ? 'Consultez les rendez-vous qui vous sont attribués et mettez leur statut à jour.' : coiffureUiMode ? (activeSite?.name ?? 'Agenda de tous les établissements') : `Planifiez l’activité ${activeSite ? `de ${activeSite.name}` : 'de tous les établissements'} sans double réservation.`}</p>
         </div>
-        {canEditAppointments && <div className="appointment-planning-actions">{beautyMode && selectedEnseigneId && <button className="secondary-button" type="button" onClick={() => openAvailabilityForm()}><Icon name="lock" size={17} />Bloquer du temps</button>}<button className="primary-button" type="button" onClick={() => openCreateForm()}><Icon name="calendar" size={18} />Nouveau rendez-vous</button></div>}
+        {canEditAppointments && <div className="appointment-planning-actions">{beautyMode && selectedEnseigneId && <button className="secondary-button" type="button" onClick={() => openAvailabilityForm()}><Icon name="lock" size={17} />Bloquer du temps</button>}<button className="primary-button" type="button" onClick={() => openCreateForm()}><Icon name="plus" size={18} />{coiffureUiMode ? 'Nouveau' : 'Nouveau rendez-vous'}</button></div>}
       </header>
 
       {beautyMode && availabilityFormOpen && canEditAppointments && selectedEnseigneId && (
@@ -1330,6 +1338,7 @@ export function AppointmentsPage() {
             <button type="button" className="secondary-button" onClick={closeForm}>Fermer</button>
           </div>
           <form className="appointment-form" onSubmit={saveAppointment}>
+            {coiffureUiMode && <h3 className="appointment-form-section-title"><span>01</span> Client & prestation</h3>}
             {organization?.plan === 'metier' && (
               <label>
                 Établissement <span aria-hidden="true">*</span>
@@ -1339,23 +1348,24 @@ export function AppointmentsPage() {
                 </select>
               </label>
             )}
-            <label className="appointment-client-field">
-              Client <span aria-hidden="true">*</span>
+            <div className="appointment-client-field">
+              <label htmlFor="appointment-client">Client <span aria-hidden="true">*</span></label>
               {coiffureUiMode && <span className="appointment-client-search">
                 <input
                   type="search"
                   value={clientSearch}
                   onChange={(event) => setClientSearch(event.target.value)}
-                  placeholder="Rechercher par nom, e-mail ou téléphone…"
+                  aria-label="Rechercher un client"
+                  placeholder="Nom, e-mail ou téléphone…"
                   autoComplete="off"
                 />
                 <small>{clientSearchBusy ? 'Recherche…' : clientSearch.trim().length > 0 && clientSearch.trim().length < 2 ? 'Saisissez au moins 2 caractères' : 'Recherchez par nom, e-mail ou téléphone'}</small>
               </span>}
-              <select value={form.clientId} onChange={(event) => setForm((current) => ({ ...current, clientId: event.target.value }))} required>
+              <select id="appointment-client" value={form.clientId} onChange={(event) => setForm((current) => ({ ...current, clientId: event.target.value }))} required>
                 <option value="">Sélectionner un client</option>
                 {appointmentClientOptions.map((client) => <option key={client.id} value={client.id}>{fullClientName(client)}{client.phone ? ` · ${client.phone}` : ''}</option>)}
               </select>
-            </label>
+            </div>
             <label>
               Prestation <span aria-hidden="true">*</span>
               <select value={form.serviceId} onChange={(event) => setForm((current) => ({ ...current, serviceId: event.target.value }))} required>
@@ -1370,6 +1380,7 @@ export function AppointmentsPage() {
                 {compatibleStaff.map((member) => <option key={member.id} value={member.id}>{member.display_name}</option>)}
               </select>
             </label>
+            {coiffureUiMode && <h3 className="appointment-form-section-title"><span>02</span> Créneau & confirmation</h3>}
             <label>
               Statut initial
               <select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as AppointmentFormState['status'] }))}>
@@ -1377,11 +1388,11 @@ export function AppointmentsPage() {
                 <option value="pending">En attente</option>
               </select>
             </label>
-            <label>
+            <label className="appointment-date-field">
               Date <span aria-hidden="true">*</span>
               <input type="date" value={form.date} onChange={(event) => setForm((current) => ({ ...current, date: event.target.value }))} required />
             </label>
-            <label>
+            <label className="appointment-time-field">
               Heure <span aria-hidden="true">*</span>
               <input type="time" step="900" value={form.time} onChange={(event) => setForm((current) => ({ ...current, time: event.target.value }))} required />
             </label>
@@ -1389,10 +1400,16 @@ export function AppointmentsPage() {
               <span>Durée et tarif</span>
               <strong>{form.serviceId ? `${serviceById.get(form.serviceId)?.duration_minutes ?? 0} min · ${currencyFormatter.format((serviceById.get(form.serviceId)?.price_cents ?? 0) / 100)}` : 'À définir'}</strong>
             </div>
-            <label className="appointment-notes-field">
-              Notes internes
-              <textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} rows={3} placeholder="Préférence, information utile, consigne…" />
-            </label>
+            {coiffureUiMode ? <details className="appointment-notes-disclosure" open={editingId ? true : undefined}>
+              <summary>Notes internes <span>Facultatif</span></summary>
+              {notesField}
+            </details> : notesField}
+            {coiffureUiMode && <div className="appointment-booking-summary" aria-live="polite">
+              <Icon name="calendar" size={20} />
+              <div><strong>{summaryClient ? fullClientName(summaryClient) : 'Récapitulatif du rendez-vous'}</strong>
+              <span>{form.date ? new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' }).format(new Date(`${form.date}T12:00:00`)) : 'Date à définir'} · {form.time || 'Heure à définir'}{form.serviceId ? ` · ${serviceById.get(form.serviceId)?.name ?? ''}` : ''}</span></div>
+            </div>}
+            {coiffureUiMode && error && <div className="error-message page-message" role="alert">{error}</div>}
             <div className="form-actions appointment-form-actions">
               <button className="secondary-button" type="button" onClick={closeForm}>Annuler</button>
               <button className="primary-button" type="submit" disabled={saving || clients.length === 0 || services.length === 0 || staff.length === 0} aria-busy={saving}>
@@ -1408,7 +1425,7 @@ export function AppointmentsPage() {
         </section>
       )}
 
-      {error && <div className="error-message page-message" role="alert">{error}</div>}
+      {error && !(coiffureUiMode && formOpen) && <div className="error-message page-message" role="alert">{error}</div>}
       {success && <div className="success-message page-message" role="status">{success}</div>}
 
       <section className="appointment-summary-grid" aria-label="Résumé des rendez-vous">
