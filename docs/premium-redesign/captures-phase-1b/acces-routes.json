@@ -1,0 +1,22 @@
+[
+  {
+    "requested": "/",
+    "final": "http://127.0.0.1:5173/demande-acces",
+    "heading": []
+  },
+  {
+    "requested": "/rendez-vous",
+    "final": "http://127.0.0.1:5173/demande-acces",
+    "heading": []
+  },
+  {
+    "requested": "/planning",
+    "final": "http://127.0.0.1:5173/demande-acces",
+    "heading": []
+  },
+  {
+    "requested": "/commandes",
+    "final": "http://127.0.0.1:5173/demande-acces",
+    "heading": []
+  }
+]

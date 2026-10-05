@@ -1,0 +1,42 @@
+[
+  {
+    "requested": 360,
+    "dpr": 0.9600000381469728,
+    "height": 844,
+    "scrollWidth": 360,
+    "width": 360,
+    "filename": "landing-360-css.jpg"
+  },
+  {
+    "requested": 390,
+    "dpr": 0.9600000381469728,
+    "height": 844,
+    "scrollWidth": 389,
+    "width": 389,
+    "filename": "landing-390-css.jpg"
+  },
+  {
+    "requested": 430,
+    "dpr": 0.9600000381469728,
+    "height": 844,
+    "scrollWidth": 430,
+    "width": 430,
+    "filename": "landing-430-css.jpg"
+  },
+  {
+    "requested": 768,
+    "dpr": 0.9600000381469728,
+    "height": 844,
+    "scrollWidth": 767,
+    "width": 767,
+    "filename": "landing-768-css.jpg"
+  },
+  {
+    "requested": 1440,
+    "dpr": 0.9600000381469728,
+    "height": 900,
+    "scrollWidth": 1439,
+    "width": 1439,
+    "filename": "landing-1440-css.jpg"
+  }
+]
