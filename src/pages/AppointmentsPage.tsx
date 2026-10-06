@@ -1,4 +1,4 @@
-import { type CSSProperties, type MouseEvent as ReactMouseEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { type CSSProperties, type MouseEvent as ReactMouseEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
@@ -336,6 +336,28 @@ export function AppointmentsPage() {
   const [staffFilter, setStaffFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all');
   const [weekQuickAppointmentId, setWeekQuickAppointmentId] = useState<string | null>(null);
+  const weekViewportRef = useRef<HTMLDivElement>(null);
+  const weekQuickSheetRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!weekQuickAppointmentId) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const sheet = weekQuickSheetRef.current;
+    const controls = () => Array.from(sheet?.querySelectorAll<HTMLElement>('button:not(:disabled), [href], [tabindex="0"]') ?? []);
+    controls()[0]?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setWeekQuickAppointmentId(null);
+      if (event.key !== 'Tab') return;
+      const buttons = controls();
+      const first = buttons[0];
+      const last = buttons[buttons.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => { document.removeEventListener('keydown', onKeyDown); previousFocus?.focus({ preventScroll: true }); };
+  }, [weekQuickAppointmentId]);
+
 
   const canEditAppointments = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
   const canChangeStatus = ['owner', 'admin', 'manager', 'employee'].includes(organization?.role ?? 'viewer');
@@ -745,7 +767,18 @@ export function AppointmentsPage() {
     return slots;
   }, [weekPlannerBounds]);
 
-  const weekPlannerHeight = (weekPlannerBounds.endMinute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE;
+  // Presentation scale only; slot calculation and hit testing share the same scale.
+  const weekGridPixelsPerMinute = coiffureUiMode ? 3.2 : WEEK_GRID_PX_PER_MINUTE;
+  const weekDayLayouts = weekDays.map((day) => layoutOverlappingAppointments(visibleAppointments.filter((row) => sameDay(new Date(row.starts_at), day))));
+  const weekColumnTemplate = coiffureUiMode ? '60px ' + weekDayLayouts.map((rows) => `${Math.max(220, ...rows.map((row) => row.laneCount * 170))}px`).join(' ') : undefined;
+  const weekPlannerHeight = (weekPlannerBounds.endMinute - weekPlannerBounds.startMinute) * weekGridPixelsPerMinute;
+
+  useEffect(() => {
+    const viewport = weekViewportRef.current;
+    if (!coiffureUiMode || loading || viewMode !== 'week' || !viewport || viewport.clientWidth >= 900) return;
+    const selectedHeader = viewport.querySelector<HTMLElement>('[data-selected-day="true"]');
+    if (selectedHeader) viewport.scrollLeft = Math.max(0, selectedHeader.offsetLeft - 60);
+  }, [coiffureUiMode, loading, viewMode, selectedDate]);
 
   const todayCount = beautyMode && !demoMode
     ? todayAppointmentCount
@@ -1209,7 +1242,7 @@ export function AppointmentsPage() {
     if (!canEditAppointments) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const relativeY = clamp(event.clientY - rect.top, 0, rect.height);
-    const minute = weekPlannerBounds.startMinute + relativeY / WEEK_GRID_PX_PER_MINUTE;
+    const minute = weekPlannerBounds.startMinute + relativeY / weekGridPixelsPerMinute;
     const roundedMinute = clamp(Math.round(minute / 15) * 15, weekPlannerBounds.startMinute, weekPlannerBounds.endMinute - 15);
     const slotMinute = Math.floor(roundedMinute / WEEK_SLOT_MINUTES) * WEEK_SLOT_MINUTES;
     const state = weekSlotState(day, slotMinute);
@@ -1482,10 +1515,11 @@ export function AppointmentsPage() {
 
             <div className="beauty-week-mobile-hint" role="note">
               <Icon name="calendar" size={14} />
-              <span>Balayez horizontalement pour parcourir toute la semaine. Touchez un jour pour ouvrir sa vue détaillée.</span>
+              <span>Faites défiler les jours et les heures. Touchez un rendez-vous pour ses détails, un jour pour sa liste.</span>
             </div>
 
-            <div className="beauty-week-planner" style={{ '--week-grid-height': `${weekPlannerHeight}px` } as CSSProperties}>
+            <div ref={weekViewportRef} className="beauty-week-viewport" role="region" aria-label="Agenda semaine, défilement horizontal et vertical" tabIndex={0}>
+            <div className="beauty-week-planner" style={{ '--week-grid-height': `${weekPlannerHeight}px`, gridTemplateColumns: weekColumnTemplate } as CSSProperties}>
               <div className="beauty-week-header-time">HEURE</div>
               {weekDays.map((day) => {
                 const dayRows = visibleAppointments.filter((row) => sameDay(new Date(row.starts_at), day));
@@ -1493,6 +1527,7 @@ export function AppointmentsPage() {
                   key={`head-${day.toISOString()}`}
                   type="button"
                   className={`beauty-week-day-header${sameDay(day, new Date()) ? ' today' : ''}`}
+                  data-selected-day={sameDay(day, selectedDate)}
                   onClick={() => { setSelectedDate(day); setViewMode('day'); }}
                 >
                   <span>{day.toLocaleDateString('fr-FR', { weekday: 'short' })}</span>
@@ -1503,17 +1538,14 @@ export function AppointmentsPage() {
 
               <div className="beauty-week-time-axis" style={{ height: weekPlannerHeight }}>
                 {weekPlannerSlots.filter((minute) => minute % 60 === 0).map((minute) => (
-                  <span key={minute} style={{ top: (minute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE }}>
+                  <span key={minute} style={{ top: (minute - weekPlannerBounds.startMinute) * weekGridPixelsPerMinute }}>
                     {timeFromMinutes(minute)}
                   </span>
                 ))}
               </div>
 
               {weekDays.map((day) => {
-                const dayAppointments = visibleAppointments
-                  .filter((row) => sameDay(new Date(row.starts_at), day))
-                  .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
-                const laidOutAppointments = layoutOverlappingAppointments(dayAppointments);
+                const laidOutAppointments = weekDayLayouts[weekDays.indexOf(day)];
                 const dayBlocks = visibleAvailabilityBlocks
                   .filter((block) => overlapsDay(block, day))
                   .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
@@ -1536,8 +1568,8 @@ export function AppointmentsPage() {
                         key={minute}
                         className={`beauty-week-slot ${weekSlotState(day, minute)}`}
                         style={{
-                          top: (minute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE,
-                          height: WEEK_SLOT_MINUTES * WEEK_GRID_PX_PER_MINUTE
+                          top: (minute - weekPlannerBounds.startMinute) * weekGridPixelsPerMinute,
+                          height: WEEK_SLOT_MINUTES * weekGridPixelsPerMinute
                         }}
                       />
                     ))}
@@ -1557,8 +1589,8 @@ export function AppointmentsPage() {
                       type="button"
                       className={`beauty-week-unavailability kind-${block.kind}${block.staff_id ? ' staff-only' : ' whole-site'}`}
                       style={{
-                        top: (startMinute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE,
-                        height: Math.max(22, (endMinute - startMinute) * WEEK_GRID_PX_PER_MINUTE)
+                        top: (startMinute - weekPlannerBounds.startMinute) * weekGridPixelsPerMinute,
+                        height: Math.max(22, (endMinute - startMinute) * weekGridPixelsPerMinute)
                       }}
                       onClick={(event) => { event.stopPropagation(); openEditAvailability(block); }}
                       title={`${block.label || availabilityKindLabels[block.kind]}${member ? ` · ${member.display_name}` : ''}`}
@@ -1582,15 +1614,16 @@ export function AppointmentsPage() {
                     return <button
                       type="button"
                       key={appointment.id}
-                      className={`beauty-week-appointment status-${appointment.status}`}
+                      className={`beauty-week-appointment status-${appointment.status}${duration < 30 ? ' short' : duration >= 45 ? ' long' : ''}`}
                       style={{
                         '--appointment-color': member?.color || '#8b5cf6',
-                        top: (startMinute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE + 2,
-                        height: Math.max(28, duration * WEEK_GRID_PX_PER_MINUTE - 4),
+                        top: (startMinute - weekPlannerBounds.startMinute) * weekGridPixelsPerMinute + 2,
+                        height: Math.max(28, duration * weekGridPixelsPerMinute - 4),
                         left: `calc(${lane * laneWidth}% + 2px)`,
                         width: `calc(${laneWidth}% - 4px)`
                       } as CSSProperties}
-                      title={`${timeFormatter.format(start)}–${timeFormatter.format(end)} · ${fullClientName(client)} · ${appointmentServiceLabel(appointment)} · ${member?.display_name ?? ''}`}
+                      title={`${timeFormatter.format(start)}–${timeFormatter.format(end)} · ${fullClientName(client)} · ${appointmentServiceLabel(appointment)} · ${member?.display_name ?? ''} · ${statusLabels[appointment.status]}`}
+                      aria-label={`${timeFormatter.format(start)}–${timeFormatter.format(end)}, ${fullClientName(client)}, ${appointmentServiceLabel(appointment)}, ${member?.display_name ?? 'Équipe'}, ${appointmentDurationMinutes(appointment)} minutes, ${statusLabels[appointment.status]}`}
                       onClick={(event) => {
                         event.stopPropagation();
                         if (canChangeStatus) {
@@ -1605,20 +1638,21 @@ export function AppointmentsPage() {
                         }
                       }}
                     >
-                      <span className="beauty-week-appointment-time">{timeFormatter.format(start)}</span>
+                      <span className="beauty-week-appointment-time">{timeFormatter.format(start)}<em>{statusLabels[appointment.status]}</em></span>
                       <strong>{fullClientName(client)}</strong>
                       <span className="beauty-week-appointment-service">{appointmentServiceLabel(appointment)}</span>
-                      <small>{member?.display_name ?? 'Équipe'} · {appointmentDurationMinutes(appointment)} min</small>
+                      <small><span className="beauty-week-staff-name">{member?.display_name ?? 'Équipe'}</span><b>{appointmentDurationMinutes(appointment)} min</b></small>
                     </button>;
                   })}
 
                   {showNow && <span
                     className="beauty-week-now-line"
-                    style={{ top: (nowMinute - weekPlannerBounds.startMinute) * WEEK_GRID_PX_PER_MINUTE }}
+                    style={{ top: (nowMinute - weekPlannerBounds.startMinute) * weekGridPixelsPerMinute }}
                     aria-label="Heure actuelle"
                   ><i/></span>}
                 </div>;
               })}
+            </div>
             </div>
           </div>
         ) : (
@@ -1644,6 +1678,7 @@ export function AppointmentsPage() {
       {coiffureUiMode && viewMode === 'week' && weekQuickAppointment && (
         <div className="beauty-week-quick-backdrop" role="presentation" onClick={() => setWeekQuickAppointmentId(null)}>
           <section
+            ref={weekQuickSheetRef}
             className="beauty-week-quick-sheet"
             role="dialog"
             aria-modal="true"
@@ -1655,7 +1690,7 @@ export function AppointmentsPage() {
                 <span className={`beauty-week-quick-current status-${weekQuickAppointment.status}`}>{statusLabels[weekQuickAppointment.status]}</span>
                 <h3>{fullClientName(clientById.get(weekQuickAppointment.client_id))}</h3>
                 <p>
-                  {timeFormatter.format(new Date(weekQuickAppointment.starts_at))}
+                  {timeFormatter.format(new Date(weekQuickAppointment.starts_at))}–{timeFormatter.format(new Date(weekQuickAppointment.ends_at))} · {appointmentDurationMinutes(weekQuickAppointment)} min
                   {' · '}
                   {appointmentServiceLabel(weekQuickAppointment)}
                   {' · '}

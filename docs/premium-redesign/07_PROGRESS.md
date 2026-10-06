@@ -405,3 +405,45 @@ CSS publics `src/styles.css`, `public/ncr-suite-showcase-v2925.css`, `public/ncr
 Preuves temporaires : `/tmp/ncr-phase3-final/` (neuf captures et mesures JSON), log `/tmp/ncr-phase3-final-build.log`. Captures non ajoutées au dépôt pour éviter des vues de compte inutiles ; les comparaisons 3A/3A.1 sont conservées. Build déplacé hors dépôt, métadonnées TypeScript rétablies. Le lien de dépendances `node_modules` est exclu localement de Git, sans changement du `.gitignore` versionné.
 
 Commit local demandé : `refactor(ui): premium reference screens for beauty and training`. Contenu : sept fichiers UI, deux scripts de contrôle, ce suivi et dix captures des phases 3A/3A.1. Main demeure `63fa0563b51816197b4f6dbbc4de0b5a2a506670`. Aucun push ni déploiement.
+
+## Phase 4 — Agenda Beauty premium — 6 octobre 2026
+
+Base : `7cd61c593e7bc3b239b24c35b53635260661a35f`, branche `refactor/premium-app-experience`. Lot limité à la présentation de l'agenda et ses interactions UI. Aucun changement de gestion des rendez-vous, droits, routes, disponibilités ou infrastructure Supabase.
+
+### Fichiers et choix UX
+
+- `src/pages/AppointmentsPage.tsx` : échelle temporelle Beauty de 3,2 px/minute, partagée avec le calcul du point cliqué pour conserver l'heure de création ; largeur des jours adaptée aux rendez-vous simultanés (220 px minimum, 170 px par couloir). L'architecture reste une semaine par jours, sans inventer une vue par collaborateurs. Positionnement initial sur le jour sélectionné sur petit écran. Statut textuel, durée séparée du nom, libellé accessible complet. Fiche rapide : début/fin/durée, focus clavier, Échap et restitution du focus.
+- `src/beautyAppointmentWeekPlanner.css` : consolidation des règles existantes. Surface calme, repères horaires et dates sticky, distinction libre/occupé/pause/hors horaires, statuts par couleur et texte. Clients 14 px, informations usuelles 12 px. Les rendez-vous de 15 min conservent une hauteur de 44 px : heure/statut/client en priorité, autres informations dans la fiche au toucher ou la liste du jour. Les rendez-vous longs permettent deux lignes de prestation/collaborateur. Contrôles et fermeture de fiche à 44 px, safe area et mouvement réduit pris en compte.
+- `src/beautyMobileResponsive.css` : retrait des seules anciennes surcharges `.beauty-week-*`, désormais consolidées dans leur source. Comparaison structurée : autres sélecteurs/déclarations et contextes média inchangés.
+- `src/ncrUi2026Pages.css` : badge de statut de la liste Beauty restauré à 12 px. `!important` nécessaire contre la règle héritée à 7 px du CSS public gelé ; exception strictement limitée à l'écran Beauty.
+- Ce fichier de suivi.
+
+Le calendrier possède volontairement son propre défilement horizontal et vertical, borné en hauteur ; la page défile autour. Ce compromis conserve simultanément les dates et les heures pendant le parcours d'une journée. Ce n'est pas une suppression de tout scroll imbriqué. En cas de simultanéité, le jour s'élargit et les couloirs supplémentaires se parcourent horizontalement au lieu de comprimer leur texte. Pas de dépendance ajoutée ni d'effet coûteux répété sur les cartes.
+
+### Validation connectée réelle
+
+Tests via l'interface de l'espace test AZZERA CUT, offre Professionnelle. Création d'un collaborateur fictif « Camille Atelier — test agenda » sans compte/invitation, de deux prestations de test (15 et 90 min), puis de trois rendez-vous le 6 octobre (15, 30 et 90 min). Équipe finale : deux collaborateurs ; journée : onze rendez-vous non annulés. Les données de test sont laissées disponibles pour la validation visuelle, sans export ni versionnement.
+
+[VÉRIFIÉ VISUELLEMENT] Largeurs CSS exactes 360, 390, 430, 768 et 1440 px ; DPR 1 et visualViewport.scale 1 sur localhost. Débordement global mesuré : 0 dans les cinq cas. Vue semaine, en-têtes/heures sticky, défilements, bottom bar, fiche rapide et texte long contrôlés. Fin du calendrier accessible au-dessus de la navigation mobile après scroll de page. Tablette : agenda borné avec défilement interne ; desktop : sidebar stable et plusieurs jours visibles, sans élargissement artificiel des jours peu chargés.
+
+[VÉRIFIÉ VISUELLEMENT] Journée dense et journée vide, rendez-vous simultanés, noms longs, créneaux courts/longs, plages libres, pauses récurrentes et horaires fermés. Création, édition des notes, passage « Pas venu », filtres équipe/statut, navigation semaine/jour et retour à aujourd'hui réussis. Clic sur une plage libre du mercredi à 11 h : formulaire ouvert au bon jour et à 11 h, puis fermé sans sauvegarde. Fiche rapide : ouverture/fermeture, Échap et retour du focus au rendez-vous vérifiés. Les statuts Confirmé et Pas venu ont été réellement observés ; un filtre Terminé sans résultat a vérifié l'état vide, pas une carte terminée.
+
+[VÉRIFIÉ VISUELLEMENT] Dashboard Beauty revu à 360 et 1440 px : composition conservée, sans débordement ; ses chiffres reflètent les données de test ajoutées. Landing ouverte séparément en session publique : rendu observé sans anomalie ; contrôle complémentaire octet pour octet des trois CSS publics identiques à HEAD.
+
+### Tests et limites
+
+- `npm run build` réussi : audit statique, parcours critiques statiques, release readiness, TypeScript `tsc -b`, Vite et SEO. Avertissement non bloquant sur la taille de chunks, sans nouvelle dépendance.
+- `node --test scripts/ui-foundations.test.mjs` : 5/5 réussis. `git diff --check` réussi. Console du navigateur : aucune erreur enregistrée au contrôle final.
+- [NON TESTÉ] Absence dédiée : contrôle de blocage du temps non accessible dans ce mode/offre, sans contournement. Pauses récurrentes effectivement testées. Très nombreuses équipes, appareils iOS physiques, gestes natifs et benchmark de fluidité non couverts. Respect de `prefers-reduced-motion` contrôlé dans le CSS, sans changement du réglage système.
+- Anomalie antérieure « Terminer refusé » conservée comme baseline, non corrigée et non réexécutée pour fabriquer un état terminé. Aucune promesse de correction métier.
+- Captures temporaires hors dépôt : `/tmp/ncr-phase4/before-agenda-390.jpg`, `/tmp/ncr-phase4/after-final-390.jpg`, `/tmp/ncr-phase4/after-360.jpg`, `/tmp/ncr-phase4/after-430.jpg`, `/tmp/ncr-phase4/after-768.jpg`, `/tmp/ncr-phase4/after-1440.jpg`, `/tmp/ncr-phase4/long-sheet-360.jpg`. Mesures : `/tmp/ncr-phase4/validation.json`. Avant/après : échelle temporelle volontairement différente et rendez-vous de test supplémentaires.
+- `.env.local` ignoré et absent de l'index ; contenu jamais lu. CSS publics inchangés, pas de fichier Supabase modifié. Artefacts de build déplacés dans `/tmp/ncr-phase4/production-build`, métadonnées TypeScript rétablies.
+- HEAD reste `7cd61c593e7bc3b239b24c35b53635260661a35f`, main reste `63fa0563b51816197b4f6dbbc4de0b5a2a506670`. Aucun commit, push ou déploiement. Lot laissé non commité pour validation visuelle.
+
+## Checkpoint Phase 4 — validation et commit local
+
+Diff final limité aux quatre fichiers UI de l'agenda ci-dessus et à ce suivi. Aucun changement métier imprévu, route, permission ou infrastructure Supabase. Styles mobiles hors agenda comparés structurellement : identiques. Les trois CSS publics restent identiques octet pour octet à HEAD après build. `.env.local` ignoré et absent de l'index, contenu non lu ; aucune signature de secret détectée dans les ajouts.
+
+Validation visuelle Phase 4 conservée sans modification applicative depuis : agenda aux cinq largeurs, shell et dashboard Beauty contrôlés. Aucun nouveau test de données pendant ce checkpoint. `npm run build` relancé avec succès (TypeScript, audits statiques, Vite et SEO) ; `node --test scripts/ui-foundations.test.mjs` : 5/5 ; `git diff --check` réussi. Avertissement non bloquant de taille de chunks. Artefacts de build retirés du dépôt, métadonnées TypeScript rétablies.
+
+Commit local autorisé : `refactor(beauty): premium agenda experience`. Branche `refactor/premium-app-experience` ; main conservée à `63fa0563b51816197b4f6dbbc4de0b5a2a506670`. Aucun push ni déploiement.

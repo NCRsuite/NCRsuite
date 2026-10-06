@@ -61,82 +61,6 @@
   }
 
   /* Agenda semaine : priorité à la lisibilité, avec défilement horizontal assumé. */
-  .beauty-week-planner-shell {
-    margin-inline: 0;
-    padding-left: max(0px, env(safe-area-inset-left));
-    padding-right: max(0px, env(safe-area-inset-right));
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-  }
-
-  .beauty-week-planner {
-    grid-template-columns: 54px repeat(7, 122px);
-    width: max-content;
-    min-width: 908px;
-    border-radius: 15px;
-  }
-
-  .beauty-week-day-header {
-    min-height: 62px;
-    touch-action: manipulation;
-  }
-
-  .beauty-week-day-header > span {
-    font-size: 9px;
-  }
-
-  .beauty-week-day-header > strong {
-    font-size: 18px;
-  }
-
-  .beauty-week-day-header.today > strong {
-    width: 28px;
-    height: 28px;
-  }
-
-  .beauty-week-day-header > small {
-    display: block;
-    font-size: 8px;
-  }
-
-  .beauty-week-time-axis > span {
-    right: 5px;
-    font-size: 8px;
-  }
-
-  .beauty-week-day-column {
-    touch-action: pan-x pan-y pinch-zoom;
-  }
-
-  .beauty-week-appointment {
-    min-height: 30px;
-    padding: 4px 5px;
-    border-radius: 8px;
-  }
-
-  .beauty-week-appointment-time {
-    font-size: 9px;
-  }
-
-  .beauty-week-appointment > strong {
-    font-size: 10px;
-    line-height: 1.15;
-  }
-
-  .beauty-week-appointment-service {
-    font-size: 9px;
-  }
-
-  .beauty-week-appointment > small {
-    display: block;
-    font-size: 8px;
-  }
-
-  .beauty-week-unavailability > span {
-    font-size: 8px;
-  }
 
   /* Dashboard Coiffure : composition mobile premium et lisible. */
   html[data-beauty-metier="true"] .beauty-universe-page .beauty-hero {
@@ -517,17 +441,6 @@
 }
 
 @media (max-width: 430px) {
-  .beauty-week-appointment-service {
-    display: block;
-  }
-
-  .beauty-week-appointment > strong {
-    font-size: 10px;
-  }
-
-  .beauty-week-day-header > span {
-    font-size: 9px;
-  }
 
   .beauty-crm-stats,
   .beauty-accounting-kpis,
@@ -551,48 +464,6 @@
 /* Les CSS des routes lazy peuvent être injectés après ce fichier.
    Ces règles plus spécifiques garantissent les corrections critiques. */
 @media (max-width: 640px) {
-  html[data-beauty-ui="true"] .beauty-week-planner-shell {
-    margin-inline: -8px;
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-planner {
-    grid-template-columns: 36px repeat(7, minmax(0, 1fr));
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header {
-    min-height: 58px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header > span {
-    font-size: 7px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header > strong {
-    font-size: 15px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header > small {
-    display: none;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-time-axis > span {
-    font-size: 6px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment-time {
-    font-size: 6px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment > strong {
-    font-size: 7px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment-service,
-  html[data-beauty-ui="true"] .beauty-week-unavailability > span {
-    font-size: 6px;
-  }
 
   html[data-beauty-metier="true"] .beauty-accounting-table-wrap {
     overflow: visible;
@@ -646,202 +517,10 @@
   }
 }
 
-@media (max-width: 430px) {
-  html[data-beauty-ui="true"] .beauty-week-appointment-service {
-    display: none;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment > strong {
-    font-size: 7.5px;
-  }
-}
-
 
 /* NCR Suite · Coiffure mobile usability V2 */
-.beauty-week-mobile-hint{display:none}
-
-@media (max-width:900px){
-  html[data-beauty-ui="true"] .beauty-week-planner-shell{
-    display:block;
-    overflow-x:auto;
-    overflow-y:visible;
-    overscroll-behavior-x:contain;
-    -webkit-overflow-scrolling:touch;
-    scroll-snap-type:x proximity;
-    scrollbar-gutter:stable;
-    padding-bottom:6px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-planner-legend{
-    position:sticky;
-    left:0;
-    width:max-content;
-    min-width:min(100%,760px);
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-mobile-hint{
-    position:sticky;
-    left:0;
-    display:flex;
-    align-items:flex-start;
-    gap:7px;
-    width:min(100%,520px);
-    margin:0 0 8px;
-    padding:8px 10px;
-    border:1px solid #e5e9ed;
-    border-radius:10px;
-    background:#f8fafb;
-    color:#65717d;
-    font-size:10px;
-    font-weight:700;
-    line-height:1.4;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-mobile-hint svg{
-    flex:0 0 auto;
-    margin-top:1px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-planner{
-    width:100%;
-    min-width:820px;
-    grid-template-columns:48px repeat(7,minmax(108px,1fr));
-    border-radius:14px;
-    overflow:visible;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-header-time{
-    position:sticky;
-    left:0;
-    top:0;
-    z-index:14;
-    background:#fbfcfd;
-    box-shadow:1px 0 0 #e6e9ed;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-time-axis{
-    position:sticky;
-    left:0;
-    z-index:11;
-    background:#fafbfc;
-    box-shadow:1px 0 0 #e4e7eb;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header{
-    scroll-snap-align:start;
-    min-height:64px;
-    padding:6px 4px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-column{
-    scroll-snap-align:start;
-    cursor:pointer;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header>span{
-    font-size:9px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header>strong{
-    font-size:18px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header>small{
-    display:block;
-    font-size:8px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-time-axis>span{
-    right:6px;
-    font-size:8px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment{
-    min-height:32px;
-    padding:4px 5px;
-    border-radius:7px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment-time{
-    font-size:8px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment>strong{
-    font-size:10px;
-    line-height:1.15;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment-service{
-    display:block;
-    font-size:8px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-unavailability>span{
-    font-size:8px;
-  }
-}
 
 @media (max-width:640px){
-  html[data-beauty-ui="true"] .beauty-week-planner-shell{
-    margin-inline:0;
-    padding-inline:0;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-planner{
-    min-width:800px;
-    grid-template-columns:46px repeat(7,minmax(106px,1fr));
-    border:1px solid #e4e7eb;
-    border-radius:13px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-header-time,
-  html[data-beauty-ui="true"] .beauty-week-day-header{
-    min-height:62px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-header-time{
-    font-size:8px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header>span{
-    font-size:9px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header>strong{
-    font-size:18px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header.today>strong{
-    width:28px;
-    height:28px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header>small{
-    display:block;
-    font-size:8px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-time-axis>span{
-    right:5px;
-    font-size:8px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment-time{
-    font-size:8px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment>strong{
-    font-size:10px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment-service{
-    display:block;
-    font-size:8px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-unavailability>span{
-    font-size:8px;
-  }
 
   /* Clients / fiche pro */
   html[data-beauty-metier="true"] .client-table .client-identity strong{
@@ -1151,41 +830,8 @@
   }
 }
 
-@media (max-width:430px){
-  html[data-beauty-ui="true"] .beauty-week-appointment-service{
-    display:block;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-appointment>strong{
-    font-size:10px;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header>span{
-    font-size:9px;
-  }
-}
-
 
 /* NCR Suite · Coiffure week horizontal no-overlap V5 */
-@media (max-width:900px){
-  html[data-beauty-ui="true"] .beauty-week-planner-shell{
-    scroll-snap-type:none !important;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-day-header,
-  html[data-beauty-ui="true"] .beauty-week-day-column{
-    scroll-snap-align:none !important;
-  }
-}
 
 
 /* NCR Suite · Coiffure agenda full-grid horizontal swipe V8 */
-@media (max-width:900px){
-  html[data-beauty-ui="true"] .beauty-week-day-column{
-    touch-action:pan-x pan-y pinch-zoom !important;
-  }
-
-  html[data-beauty-ui="true"] .beauty-week-planner{
-    touch-action:pan-x pan-y pinch-zoom;
-  }
-}

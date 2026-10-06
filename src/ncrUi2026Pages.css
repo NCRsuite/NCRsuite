@@ -452,7 +452,8 @@ html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"]:h
 /* Both legacy day lists render the same cards. Keep the primary list and its add action. */
 html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .day-planner + .appointment-mobile-agenda { display: none; }
 html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-card { box-shadow: none; border-radius: var(--ncr26-radius-md); }
-html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-card .appointment-status { font-size: .75rem; letter-spacing: .02em; }
+/* Required against the inherited 7px !important rule in the frozen public baseline. */
+html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="beauty"] .appointment-card .appointment-status { font-size: .75rem !important; line-height: 1.4; letter-spacing: .02em; }
 
 /* Formation: one analytical toolbar and an operational brief, not a stack of heroes. */
 html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; width: 100%; gap: 12px; }
