@@ -545,3 +545,101 @@ html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"
   html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .training-quality-stats .stat-card:nth-child(odd) { border-left: 0; }
   html[data-ncr-ui-2026="true"] .app-shell .page[data-reference-screen="formation"] .ncr-smart-side { padding-left: 0; border-left: 0; border-top: 1px solid var(--ncr26-border); padding-top: 20px; }
 }
+
+/* Restauration: service workspace and operational dashboard. Public legacy CSS stays frozen. */
+
+html[data-ncr-ui-2026="true"] .app-shell .restaurant-orders-page { overflow-x:clip; overflow-y:visible; }
+
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) { color:var(--ncr26-text); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) > .page-header { padding:20px 0; border:0; border-bottom:1px solid var(--ncr26-border); border-radius:0; background:transparent; box-shadow:none; gap:16px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) > .page-header::before, html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) > .page-header::after { display:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) > .page-header h1 { font-size:clamp(1.8rem,3vw,2.6rem); line-height:1.12; letter-spacing:-.035em; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) > .page-header p:not(.eyebrow) { max-width:65ch; font-size:14px; line-height:1.5; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-service-header-badge { background:transparent; border:0; border-radius:0; padding:0; box-shadow:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-service-header-badge span { font-size:12px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-service-header-badge strong { font-size:15px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,.78fr); gap:20px; align-items:start; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-tables { grid-column:1/-1; position:static; max-height:none; padding:16px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-table-list { display:flex; gap:8px; overflow-x:auto; padding:4px 0; scrollbar-width:thin; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-table-card { flex:0 0 180px; min-height:64px; border-radius:var(--ncr26-radius-sm); box-shadow:none; background:var(--ncr26-surface); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-table-card.active { border-color:var(--ncr26-brand); background:var(--ncr26-brand-pale); box-shadow:inset 0 0 0 1px var(--ncr26-brand); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-table-symbol { width:30px; height:30px; font-size:18px; background:transparent; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-table-card strong { font-size:14px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-table-card small { font-size:12px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-premium-panel { border:1px solid var(--ncr26-border); border-radius:var(--ncr26-radius-md); box-shadow:none; background:var(--ncr26-surface); min-width:0; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-menu, html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-note { padding:20px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-note { position:sticky; top:20px; max-height:calc(100dvh - 40px); overflow-y:auto; scrollbar-width:thin; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-menu-heading, html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-note-header { gap:12px; padding-bottom:16px; margin-bottom:16px; border-bottom:1px solid var(--ncr26-border); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) :is(.restaurant-order-menu-heading,.restaurant-order-note-header,.panel-header) h2 { font-size:20px; letter-spacing:-.025em; line-height:1.2; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-current-table-chip { padding:8px 10px; border-radius:var(--ncr26-radius-xs); background:var(--ncr26-surface-muted); box-shadow:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-current-table-chip :is(span,strong) { font-size:12px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-search { min-height:44px; border-color:var(--ncr26-border); border-radius:var(--ncr26-radius-sm); color:var(--ncr26-text-soft); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-search input { font-size:16px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-category-tabs { display:flex; flex-wrap:nowrap; overflow-x:auto; gap:8px; padding-bottom:8px; scrollbar-width:thin; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-category-tabs button { min-height:44px; flex-shrink:0; border-radius:var(--ncr26-radius-sm); font-size:13px; box-shadow:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-category-tabs button.active { background:var(--ncr26-brand); border-color:var(--ncr26-brand); color:white; box-shadow:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-product-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-product-grid button.restaurant-order-product-card { display:flex; flex-direction:column; align-items:stretch; justify-content:space-between; gap:12px; min-height:156px; padding:14px; border:1px solid var(--ncr26-border); border-radius:var(--ncr26-radius-sm); background:var(--ncr26-surface); box-shadow:none; transition:background var(--ncr26-fast),border-color var(--ncr26-fast); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-product-grid button.restaurant-order-product-card::after { display:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-product-grid button.restaurant-order-product-card:hover { transform:none; border-color:var(--ncr26-brand); background:var(--ncr26-brand-pale); box-shadow:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-product-grid button.restaurant-order-product-card:active { transform:none; background:var(--ncr26-brand-soft); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-product-icon { width:28px; height:28px; border-radius:8px; font-size:18px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-product-add { width:28px; height:28px; background:var(--ncr26-brand); box-shadow:none; font-size:20px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-product-copy > strong { font-size:15px; color:var(--ncr26-text); overflow-wrap:anywhere; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-product-copy > small { font-size:12px; color:var(--ncr26-text-soft); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-product-card-bottom { flex-wrap:wrap; align-items:end; margin-top:auto; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-product-card-bottom > span { font-size:12px; color:var(--ncr26-text-soft); max-width:100%; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-product-card-bottom > b { font-size:16px; color:var(--ncr26-text); margin-left:auto; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-line-list { gap:0; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-line { grid-template-columns:minmax(0,1fr) auto; padding:16px 0; border:0; border-bottom:1px solid var(--ncr26-border); border-radius:0; box-shadow:none; background:transparent; gap:10px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-line-main { grid-column:1/-1; padding-right:44px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-line-main > strong { font-size:15px; color:var(--ncr26-text); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-line-main small { font-size:12px; color:var(--ncr26-text-soft); overflow-wrap:anywhere; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-line-course { font-size:12px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-quantity { grid-column:1; grid-row:2; justify-self:start; padding:0; border:1px solid var(--ncr26-border); border-radius:var(--ncr26-radius-sm); background:var(--ncr26-surface); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-quantity button { width:44px; height:44px; min-height:44px; box-shadow:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-line-price { grid-column:2; grid-row:2; justify-self:end; font-size:16px; align-self:center; color:var(--ncr26-text); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-remove { position:absolute; top:12px; right:0; min-width:44px; min-height:44px; font-size:22px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-line textarea { grid-column:1/-1; min-height:72px; width:100%; font-size:16px; line-height:1.45; border-color:var(--ncr26-border); border-radius:var(--ncr26-radius-sm); background:var(--ncr26-surface); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-line textarea:disabled { display:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-total { border-radius:0; padding:18px 0; background:transparent; border-top:1px solid var(--ncr26-border); box-shadow:none; color:var(--ncr26-text); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-total strong { color:var(--ncr26-text); font-size:28px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-total small { font-size:12px; color:var(--ncr26-text-muted); }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-actions { display:grid; gap:10px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-actions button { width:100%; min-height:48px; font-size:14px; justify-content:center; box-shadow:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-payment-note { background:transparent; border:0; padding:12px 0 0; font-size:12px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-payment-note strong, html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-note-header > div > span { font-size:12px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-status-pill { align-self:start; min-height:0; height:auto; width:auto; padding:5px 10px; border-radius:var(--ncr26-radius-sm); font-size:12px; line-height:1.4; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-switch { display:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) > .stats-grid { gap:0; background:var(--ncr26-surface); border:1px solid var(--ncr26-border); border-radius:var(--ncr26-radius-md); overflow:hidden; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) > .stats-grid .stat-card { border:0; border-right:1px solid var(--ncr26-border); border-radius:0; box-shadow:none; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) > .stats-grid .stat-card :is(span,small) { font-size:12px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-record-card { border:0; border-bottom:1px solid var(--ncr26-border); border-radius:0; box-shadow:none; padding:16px 8px; }
+html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-record-main :is(span,small), html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-priority-list small { font-size:12px; }
+@media(max-width:1000px) {
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-layout { grid-template-columns:minmax(0,1fr); gap:12px; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-switch { display:flex; gap:6px; position:sticky; top:64px; z-index:12; padding:8px; border:1px solid var(--ncr26-border); border-radius:var(--ncr26-radius-sm); background:var(--ncr26-surface); box-shadow:var(--ncr26-shadow-sm); }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-switch button { display:flex; justify-content:center; align-items:center; gap:8px; min-height:48px; padding:8px 12px; border:0; border-radius:var(--ncr26-radius-xs); background:transparent; color:var(--ncr26-text-soft); font:inherit; font-size:14px; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-switch button:last-child { flex:1; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-switch button[aria-pressed="true"] { color:var(--ncr26-brand); background:var(--ncr26-brand-pale); font-weight:650; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-switch button:disabled { opacity:.5; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-layout[data-order-pane="menu"] .restaurant-order-note, html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-layout[data-order-pane="note"] .restaurant-order-menu { display:none; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-note { position:static; max-height:none; overflow:visible; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-product-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media(max-width:600px) {
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) > .page-header { padding:16px 0; }
+ html[data-ncr-ui-2026="true"] .app-shell .restaurant-dashboard-page > .stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ html[data-ncr-ui-2026="true"] .app-shell .restaurant-dashboard-page > .stats-grid .stat-card { min-height:0; padding:16px; border-bottom:1px solid var(--ncr26-border); }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) > .page-header h1 { font-size:28px; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-service-header-badge { display:flex; align-items:center; gap:8px; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-menu, html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-note, html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-tables { padding:14px; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-tables .panel-header { margin-bottom:8px; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-table-card { flex-basis:170px; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-product-grid button.restaurant-order-product-card { padding:12px; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-switch { gap:2px; padding:6px; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-switch button { gap:6px; padding:8px; font-size:13px; }
+ html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-menu-heading { flex-wrap:wrap; }
+}
+@media(prefers-reduced-motion:reduce) { html[data-ncr-ui-2026="true"] .app-shell :is(.restaurant-orders-page,.restaurant-dashboard-page) .restaurant-order-product-grid button.restaurant-order-product-card { transition:none; } }
