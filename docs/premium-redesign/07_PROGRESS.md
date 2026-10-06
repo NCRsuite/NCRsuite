@@ -534,3 +534,27 @@ Preuves temporaires hors dépôt : `/tmp/ncr-phase6a/beauty-refus.png`, `securit
 Diff final limité à `MetierRuntimeBranding.tsx`, `MetierBrandSwitcher.tsx` et ce suivi (diagnostics Phase 6A conservés sans correction distante). Aucun changement applicatif depuis la validation connectée décrite ci-dessus : changements d'entreprise et d'enseigne sans rechargement, actualisation nom/logo/couleurs/contexte, contrôle ciblé des cinq métiers et du shell. Aucun nouveau scénario de données exécuté pendant ce checkpoint.
 
 Build production et TypeScript relancés avec succès ; cinq tests de protection CSS réussis, diff sans erreur de whitespace. CSS publics identiques à la base, `.env.local` ignoré et absent de l'index, contenu non lu. Aucun secret détecté dans le diff, aucun fichier Supabase ni règle métier modifié. Commit local autorisé : `fix(ui): synchronize branding with active organization`. Main conservée à `63fa0563b51816197b4f6dbbc4de0b5a2a506670`. Aucun push ni déploiement.
+
+## Finalisation Beauty 6B.1 — 6 octobre 2026
+
+### Application distante déjà réalisée et vérifiée
+
+Préflight ciblé : sept triggers AFTER sur `appointments`, un sur `clients`, ainsi que leurs appels indirects lus avant application. Aucun conflit sur les six champs de portée contrôlés. L'appel indirect de parrainage ne réécrit que la provenance du rendez-vous et son horodatage, pas sa portée.
+
+1. **B — prévention**, version distante `20261006172644`, appliquée en premier : héritage à l'INSERT et contrôles finaux non différables sur rendez-vous et client. Aucun changement des RPC existantes ni des policies métier.
+2. **Cinq tests B réussis** : création via `save_appointment` en Professionnelle sans enseigne explicite → héritage du client ; création cohérente → succès ; combinaison contradictoire → refus ; mise à jour de statut cohérente via `set_appointment_status` → succès ; fidélité inchangée. Les scénarios positifs ont utilisé le contexte authentifié du compte test, le scénario contradictoire un INSERT contrôlé. Fixtures et effets transactionnels annulés par **ROLLBACK**. Ces tests SQL ne sont pas présentés comme des créations effectuées dans le navigateur.
+3. **A — réparation**, version distante `20261006173457`, appliquée après succès de B : exactement **7 rendez-vous réparés**. Seuls `company_id` et l'horodatage technique `updated_at` peuvent différer ; comparaison JSON des autres champs : zéro modification. Empreintes des clients, collaborateurs, prestations et rendez-vous déjà rattachés inchangées. Zéro ledger et zéro état de fidélité créé par la réparation. Sauvegarde avant/après dans la table privée `phase6b1_beauty_repair_backup`, accès publics révoqués et RLS activée.
+4. **Test réel Terminer réussi** dans l'application locale connectée, AZZERA CUT, rendez-vous réparé du 6 octobre à 09:00, via le sélecteur de statut de la vue Jour. Confirmation affichée et statut distant `completed`. Exactement **une écriture `appointment_credit` : +1 visite, 0 point**, dans l'enseigne du client ; état de fidélité actif associé. Aucune erreur console enregistrée. Capture hors dépôt : `/tmp/ncr-beauty-final/terminer-succes.png`. Ce changement de statut est le test autorisé post-réparation, distinct des seules modifications de champs réalisées par A.
+
+**Sécurité reste volontairement inchangée et non appliquée.** Diagnostic conservé dans `phase-6b-supabase-fixes.md` pour une intervention future : validation des sept rattachements site → marque, mécanisme d'attribution des futurs sites et revue des RPC `SECURITY DEFINER` restent nécessaires. La proposition initiale Beauty de ce document est explicitement marquée comme historique et remplacée par les deux migrations finales.
+
+### Traçabilité locale et checkpoint
+
+Les fichiers locaux suivants reproduisent octet pour octet les chaînes SQL des deux appels d'application réussis, récupérées dans l'historique local de cette conversation ; aucun nouveau diagnostic ni appel Supabase pendant cette finalisation :
+
+- `supabase/migrations/20261006172644_beauty_appointment_company_prevention_6b1.sql` — SHA-256 `39de0cb0ddd1acd1209b80075a6d9210a87be4466b8d50e009c8871f60ab0072`.
+- `supabase/migrations/20261006173457_beauty_appointment_company_repair_6b1.sql` — SHA-256 `1188800ab1105c60305b95447ea82915d0b1ebef333c1055c59d4f9673587cc1`.
+
+Les versions reprennent celles déjà constatées dans l'historique distant. Aucun SQL supplémentaire ajouté et aucune migration réappliquée. Aucun fichier applicatif modifié.
+
+Validation locale finale : `tsc -b` réussi ; `npm run build` réussi (audits statiques, parcours critiques, release readiness, TypeScript, Vite et génération SEO) ; `node --test scripts/ui-foundations.test.mjs` : **5/5**. Avertissement non bloquant de taille des chunks. Journaux dans `/tmp/ncr-beauty-final/{typescript-final,build-final,tests-final}.log`. Artefacts de build déplacés hors dépôt et métadonnées TypeScript rétablies. CSS publics et `src/styles.css` identiques à HEAD ; `.env.local` ignoré, non versionné et non lu ; aucun secret détecté dans les fichiers du lot. Main inchangée à `63fa0563b51816197b4f6dbbc4de0b5a2a506670`. Aucun changement Supabase supplémentaire, aucun push ni déploiement. Commit local autorisé : `fix(beauty): enforce appointment company consistency`.
