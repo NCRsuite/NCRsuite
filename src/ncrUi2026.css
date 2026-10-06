@@ -936,7 +936,7 @@ html[data-ncr-ui-2026="true"] .app-shell[data-navigation-layout] .mobile-account
     height: calc(var(--ncr26-shell-dock) + env(safe-area-inset-bottom));
     min-height: 0;
     box-sizing: border-box;
-    padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    padding: 6px max(8px, env(safe-area-inset-right)) calc(2px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
     border: 0;
     border-top: 1px solid var(--ncr26-border);
     border-radius: 0;
@@ -1126,6 +1126,12 @@ html[data-ncr-ui-2026="true"] .app-shell[data-navigation-layout] .mobile-account
     max-height: calc(100dvh - 16px - env(safe-area-inset-top));
     border-radius: var(--ncr26-radius-xl) var(--ncr26-radius-xl) 0 0;
     padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 599px) {
+  html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) {
+    --ncr26-shell-dock: 72px;
   }
 }
 
