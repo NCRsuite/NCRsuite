@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { supabase } from '../lib/supabase';
 
@@ -50,10 +50,29 @@ function normalizeRuntimePayload(value: unknown): RuntimeBranding | null {
 
 export function MetierRuntimeBranding() {
   const { organization } = useOrganization();
-  const [branding, setBranding] = useState<RuntimeBranding | null>(null);
+  const [resolved, setResolved] = useState<{ scope: string | undefined; value: RuntimeBranding | null } | null>(null);
+  const [selected, setSelected] = useState<{ scope: string; value: RuntimeBranding } | null>(null);
+  const branding = selected && selected.scope === organization?.id && organization?.plan === 'metier' && organization.white_label_enabled
+    ? selected.value
+    : resolved?.scope === organization?.id ? resolved?.value : null;
+
+  useLayoutEffect(() => {
+    const onSelection = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      const value = normalizeRuntimePayload(detail?.branding);
+      if (detail?.organizationId === organization?.id && value) {
+        setSelected({ scope: detail.organizationId, value });
+      }
+    };
+    window.addEventListener('ncr:metier-brand-selected', onSelection);
+    return () => window.removeEventListener('ncr:metier-brand-selected', onSelection);
+  }, [organization?.id]);
 
   useEffect(() => {
     let active = true;
+    const setBranding = (value: RuntimeBranding | null) => {
+      if (active) setResolved({ scope: organization?.id, value });
+    };
 
     async function resolveBranding() {
       if (!supabase) {
@@ -113,9 +132,9 @@ export function MetierRuntimeBranding() {
 
     void resolveBranding();
     return () => { active = false; };
-  }, [organization?.id, organization?.plan, organization?.white_label_enabled, organization?.show_ncr_branding, organization?.logo_url]);
+  }, [organization?.id, organization?.plan, organization?.white_label_enabled, organization?.show_ncr_branding, organization?.logo_url, organization?.primary_color]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!branding?.white_label_enabled) return;
     const activeBranding = branding;
 
@@ -153,6 +172,8 @@ export function MetierRuntimeBranding() {
     if (faviconLogo && favicon) favicon.href = faviconLogo;
 
     const restore = new Map<HTMLImageElement, { src: string; alt: string; style: string | null }>();
+
+    const previousTexts = new Map<HTMLElement, string>();
 
     function remember(image: HTMLImageElement) {
       if (!restore.has(image)) {
@@ -192,6 +213,10 @@ export function MetierRuntimeBranding() {
     }
 
     function applyBranding() {
+      document.querySelectorAll<HTMLElement>('.mobile-header-company strong').forEach((node) => {
+        if (!previousTexts.has(node)) previousTexts.set(node, node.textContent ?? '');
+        if (node.textContent !== activeBranding.brand_name) node.textContent = activeBranding.brand_name;
+      });
       const compactLogoUrl = activeBranding.compact_logo_url || activeBranding.logo_url;
       const mainLogoUrl = activeBranding.logo_url || compactLogoUrl;
 
@@ -217,11 +242,15 @@ export function MetierRuntimeBranding() {
     return () => {
       observer.disconnect();
       restore.forEach((original, image) => {
-        if (!image.isConnected) return;
+        // React may already have rendered the next company's image.
+        if (!image.isConnected || image.alt !== activeBranding.brand_name) return;
         image.src = original.src;
         image.alt = original.alt;
         if (original.style === null) image.removeAttribute('style');
         else image.setAttribute('style', original.style);
+      });
+      previousTexts.forEach((text, node) => {
+        if (node.isConnected && node.textContent === activeBranding.brand_name) node.textContent = text;
       });
       document.title = originalTitle;
       if (favicon && originalFavicon) favicon.href = originalFavicon;
@@ -233,7 +262,7 @@ export function MetierRuntimeBranding() {
       if (previousMetierWhiteLabel) root.dataset.metierWhiteLabel = previousMetierWhiteLabel;
       else delete root.dataset.metierWhiteLabel;
     };
-  }, [branding?.brand_id, branding?.brand_name, branding?.logo_url, branding?.compact_logo_url, branding?.primary_color, branding?.white_label_enabled]);
+  }, [organization?.id, branding?.brand_id, branding?.brand_name, branding?.logo_url, branding?.compact_logo_url, branding?.primary_color, branding?.white_label_enabled]);
 
   return null;
 }

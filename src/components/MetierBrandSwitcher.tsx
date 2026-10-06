@@ -30,6 +30,7 @@ function brandLogo(brand: AccessibleBrand | null) {
 
 export function MetierBrandSwitcher() {
   const { organization, activeSiteId, selectSite } = useOrganization();
+  const [brandsScope, setBrandsScope] = useState<string | null>(null);
   const [brands, setBrands] = useState<AccessibleBrand[]>([]);
   const [sites, setSites] = useState<AccessibleSite[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
@@ -70,6 +71,7 @@ export function MetierBrandSwitcher() {
 
       const nextBrands = (Array.isArray(brandResult.data) ? brandResult.data : []) as AccessibleBrand[];
       const nextSites = (Array.isArray(siteResult.data) ? siteResult.data : []) as AccessibleSite[];
+      setBrandsScope(organization.id);
       setBrands(nextBrands);
       setSites(nextSites);
 
@@ -89,8 +91,8 @@ export function MetierBrandSwitcher() {
   }, [organization?.id, organization?.plan, reloadVersion]);
 
   const selectedBrand = useMemo(
-    () => brands.find((brand) => brand.id === selectedBrandId) ?? brands.find((brand) => brand.is_primary) ?? brands[0] ?? null,
-    [brands, selectedBrandId]
+    () => brandsScope === organization?.id ? brands.find((brand) => brand.id === selectedBrandId) ?? brands.find((brand) => brand.is_primary) ?? brands[0] ?? null : null,
+    [brands, selectedBrandId, brandsScope, organization?.id]
   );
 
   useEffect(() => {
@@ -148,66 +150,20 @@ export function MetierBrandSwitcher() {
 
   useEffect(() => {
     if (!organization || organization.plan !== 'metier' || organization.white_label_enabled !== true || !selectedBrand) return;
-    const root = document.documentElement;
-    const previousColor = root.style.getPropertyValue('--tenant-brand-color');
-    const previousTitle = document.title;
-    const logoUrl = brandLogo(selectedBrand);
-    const mainLogoUrl = selectedBrand.logo_url || logoUrl;
-    const previousImages = new Map<HTMLImageElement, { src: string; alt: string }>();
-    const previousTexts = new Map<HTMLElement, string>();
-
-    root.dataset.metierWhiteLabel = 'true';
-    root.style.setProperty('--tenant-brand-color', selectedBrand.primary_color);
-    if (document.title !== selectedBrand.name) document.title = selectedBrand.name;
-
-    function apply() {
-      if (logoUrl) {
-        document.querySelectorAll<HTMLImageElement>('.sidebar .brand.brand-horizontal img, .mobile-drawer-header img, .mobile-header-company img, .loading-screen img').forEach((image) => {
-          if (!previousImages.has(image)) previousImages.set(image, { src: image.src, alt: image.alt });
-          if (image.src !== logoUrl) image.src = logoUrl;
-          if (image.alt !== selectedBrand.name) image.alt = selectedBrand.name;
-        });
+    // One runtime owns DOM branding; the switcher only publishes the selection.
+    window.dispatchEvent(new CustomEvent('ncr:metier-brand-selected', { detail: {
+      organizationId: organization.id,
+      branding: {
+        brand_id: selectedBrand.id,
+        brand_name: selectedBrand.name,
+        logo_url: selectedBrand.logo_url,
+        compact_logo_url: selectedBrand.compact_logo_url,
+        primary_color: selectedBrand.primary_color,
+        white_label_enabled: true,
+        show_ncr_branding: organization.show_ncr_branding !== false
       }
-      if (mainLogoUrl) {
-        document.querySelectorAll<HTMLImageElement>('.showcase-brand img, .auth-wordmark').forEach((image) => {
-          if (!previousImages.has(image)) previousImages.set(image, { src: image.src, alt: image.alt });
-          if (image.src !== mainLogoUrl) image.src = mainLogoUrl;
-          if (image.alt !== selectedBrand.name) image.alt = selectedBrand.name;
-        });
-      }
-      document.querySelectorAll<HTMLElement>('.mobile-header-company strong').forEach((node) => {
-        if (!previousTexts.has(node)) previousTexts.set(node, node.textContent ?? '');
-        if (node.textContent !== selectedBrand.name) node.textContent = selectedBrand.name;
-      });
-      const favicon = document.querySelector<HTMLLinkElement>('link[rel~="icon"]');
-      if (favicon && logoUrl && favicon.href !== logoUrl) favicon.href = logoUrl;
-    }
-
-    apply();
-    let scheduled = false;
-    const observer = new MutationObserver(() => {
-      if (scheduled) return;
-      scheduled = true;
-      window.requestAnimationFrame(() => {
-        scheduled = false;
-        apply();
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => {
-      observer.disconnect();
-      previousImages.forEach((previous, image) => {
-        if (image.isConnected) {
-          image.src = previous.src;
-          image.alt = previous.alt;
-        }
-      });
-      previousTexts.forEach((text, node) => { if (node.isConnected && node.textContent !== text) node.textContent = text; });
-      if (document.title !== previousTitle) document.title = previousTitle;
-      if (previousColor) root.style.setProperty('--tenant-brand-color', previousColor);
-      else root.style.removeProperty('--tenant-brand-color');
-    };
-  }, [organization?.id, organization?.plan, organization?.white_label_enabled, selectedBrand?.id, selectedBrand?.primary_color, selectedBrand?.logo_url, selectedBrand?.compact_logo_url]);
+    } }));
+  }, [organization?.id, organization?.plan, organization?.white_label_enabled, organization?.show_ncr_branding, selectedBrand?.id, selectedBrand?.name, selectedBrand?.primary_color, selectedBrand?.logo_url, selectedBrand?.compact_logo_url]);
 
   function chooseBrand(brand: AccessibleBrand) {
     if (!organization) return;
