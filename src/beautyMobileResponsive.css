@@ -748,6 +748,12 @@
     gap:10px;
   }
 
+  @media (max-width: 599px) {
+    html[data-ncr-ui-2026="true"][data-beauty-ui="true"] .app-shell .notification-page .notification-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
   html[data-beauty-ui="true"] .app-shell .settings-page :is(
     .settings-form,
     .settings-public-page-shortcut

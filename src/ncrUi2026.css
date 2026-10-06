@@ -1131,7 +1131,14 @@ html[data-ncr-ui-2026="true"] .app-shell[data-navigation-layout] .mobile-account
 
 @media (max-width: 599px) {
   html[data-ncr-ui-2026="true"]:where(:has(.app-shell)) {
-    --ncr26-shell-dock: 72px;
+    --ncr26-shell-dock: 60px;
+  }
+  html[data-ncr-ui-2026="true"] .app-shell[data-navigation-layout] > .mobile-bottom-nav {
+    padding-top: 5px;
+  }
+  html[data-ncr-ui-2026="true"] .app-shell[data-navigation-layout] .mobile-bottom-nav > :is(a, button) {
+    grid-template-rows: 32px 14px;
+    height: 52px;
   }
 }
 
