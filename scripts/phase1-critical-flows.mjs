@@ -1,3 +1,4 @@
+import './audit-public-home.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -76,17 +77,7 @@ requireText('src/components/AppErrorBoundary.tsx', [
 ]);
 requireText('public/manifest.webmanifest', ['"start_url": "/connexion?source=pwa"']);
 requireText('src/App.tsx', ['runsAsInstalledPwa']);
-requireText('src/pages/PublicHomePage.tsx', [
-  'public-home-v291',
-  'public-home-v292',
-  'public-home-v293',
-  'public-home-v294',
-  'public-home-v295',
-  'public-home-v296',
-  'public-flow-transmission',
-  'Essai gratuit de 7 jours',
-  'essai=7'
-]);
+// PublicHomePage's new isolation/route/lifecycle contract is validated by audit-public-home.mjs.
 requireText('src/pages/PublicSolutionPage.tsx', [
   'public-solution-v291',
   'public-solution-v292',
@@ -1325,17 +1316,7 @@ requireText('src/config/publicOfferCatalog.ts', [
   'monthlyPriceCents: 14990',
   'monthlyPriceCents: 990'
 ]);
-requireText('src/pages/PublicHomePage.tsx', [
-  'public-home-v230',
-  'public-home-v231',
-  'public-home-v232',
-  'public-flow-rail',
-  'public-flow-transmission',
-  'public-flow-top',
-  'public-platform-card',
-  'public-offer-business-tabs',
-  'public-offer-catalog'
-]);
+// PublicHomePage's new isolation/route/lifecycle contract is validated by audit-public-home.mjs.
 requireText('src/pages/LoginPage.tsx', [
   "to=\"/mot-de-passe-oublie\"",
   "to=\"/demande-acces\"",
