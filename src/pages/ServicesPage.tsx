@@ -162,6 +162,8 @@ export function ServicesPage() {
 
   const formOpen = searchParams.get('new') === '1' || editingId !== null;
   const canManage = ['owner', 'admin', 'manager'].includes(organization?.role ?? 'viewer');
+  const serviceImagesEnabled = organization?.business_type === 'coiffure'
+    && ['professionnelle', 'metier'].includes(organization.plan);
 
   useEffect(() => {
     if (!organization) return;
@@ -315,10 +317,10 @@ export function ServicesPage() {
     setRemoveImage(true);
   }
 
-  async function uploadServiceImage(serviceId: string, file: File) {
-    if (!organization || !selectedEnseigneId || !supabase) throw new Error('Le service de fichiers est indisponible.');
+  async function uploadServiceImage(service: ServiceRecord, file: File) {
+    if (!organization || !serviceImagesEnabled || !canManage || !supabase) throw new Error('Le service de fichiers est indisponible.');
     const normalized = await convertAppleImageIfNeeded(file);
-    const path = `${organization.id}/beauty-service-${selectedEnseigneId}-${serviceId}-${Date.now()}.${imageExtension(normalized)}`;
+    const path = `${organization.id}/beauty-service-${service.company_id ?? 'organization'}-${service.id}-${Date.now()}.${imageExtension(normalized)}`;
     const { error: uploadError } = await supabase.storage
       .from('organization-branding')
       .upload(path, normalized, { contentType: normalized.type, cacheControl: '3600', upsert: false });
@@ -441,14 +443,18 @@ export function ServicesPage() {
       }
 
       let mediaWarning = '';
-      if (!demoMode && supabase && beautyMode && selectedEnseigneId && (imageFile || removeImage)) {
+      if (!demoMode && supabase && serviceImagesEnabled && (imageFile || removeImage)) {
         try {
-          const nextImageUrl = imageFile ? await uploadServiceImage(saved.id, imageFile) : null;
-          const { data: mediaSaved, error: mediaError } = await supabase.from('services')
+          const nextImageUrl = imageFile ? await uploadServiceImage(saved, imageFile) : null;
+          let mediaRequest = supabase.from('services')
             .update({ image_url: nextImageUrl })
             .eq('organization_id', organization.id)
-            .eq('company_id', selectedEnseigneId)
-            .eq('id', saved.id)
+            .eq('id', saved.id);
+          // Keep the server-returned brand scope, including legacy unassigned services.
+          mediaRequest = saved.company_id
+            ? mediaRequest.eq('company_id', saved.company_id)
+            : mediaRequest.is('company_id', null);
+          const { data: mediaSaved, error: mediaError } = await mediaRequest
             .select('id,company_id,name,category_name,description,duration_minutes,price_cents,image_url,online_booking_enabled,booking_min_notice_hours,booking_max_days_ahead,booking_buffer_before_minutes,booking_buffer_after_minutes,booking_weekdays,booking_start_time,booking_end_time,active,created_at')
             .single();
           if (mediaError) throw mediaError;
@@ -570,9 +576,9 @@ export function ServicesPage() {
                 <p className="beauty-booking-rules-note">NCR combine automatiquement ces règles avec les horaires du collaborateur et les rendez-vous déjà pris. Les règles de l’enseigne restent le garde-fou global.</p>
               </div>
             </details>}
-            {beautyMode && <div className="beauty-service-media full-field">
+            {serviceImagesEnabled && <div className="beauty-service-media full-field">
               <div className="beauty-service-media-preview">{imagePreview ? <img src={imagePreview} alt="Aperçu de la prestation" /> : <span className="beauty-service-media-placeholder"><Icon name="camera" size={26} />Aucune photo</span>}</div>
-              <div className="beauty-service-media-copy"><strong>Photo de la prestation</strong><small>Facultative. Elle sera affichée sur la page publique de l’enseigne et pendant le choix de la prestation.</small><div className="beauty-service-media-actions"><label className="secondary-button compact-button"><Icon name="camera" size={15} />{imagePreview ? 'Remplacer' : 'Ajouter une photo'}<input hidden type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif,image/*" onChange={(event) => { selectImage(event.target.files?.[0] ?? null); event.currentTarget.value = ''; }} /></label>{imagePreview && <button type="button" className="danger-text-button" onClick={removeServiceImage}>Retirer</button>}{imageFile && <span className="beauty-service-media-file">{imageFile.name}</span>}</div></div>
+              <div className="beauty-service-media-copy"><strong>Photo de la prestation</strong><small>Facultative. Elle sera affichée sur la page publique de l’enseigne et pendant le choix de la prestation.</small><div className="beauty-service-media-actions"><label className="secondary-button compact-button"><Icon name="camera" size={15} />{imagePreview ? 'Remplacer la photo' : 'Ajouter une photo'}<input aria-label="Photo de la prestation" hidden type="file" accept="image/png,image/jpeg,image/webp,image/heic,image/heif,image/*" onChange={(event) => { selectImage(event.target.files?.[0] ?? null); event.currentTarget.value = ''; }} /></label>{imagePreview && <button type="button" className="danger-text-button" onClick={removeServiceImage}>Retirer</button>}{imageFile && <span className="beauty-service-media-file">{imageFile.name}</span>}</div></div>
             </div>}
             <div className="form-actions full-field"><button className="secondary-button" type="button" onClick={closeForm}>Annuler</button><button className="primary-button" type="submit" disabled={saving} aria-busy={saving}>{saving ? 'Enregistrement…' : editingId ? 'Enregistrer les modifications' : 'Enregistrer la prestation'}</button></div>
           </form>
@@ -598,7 +604,7 @@ export function ServicesPage() {
         {loading || enseigneLoading ? <div className="list-state beauty-loading-state" aria-busy="true">Chargement des prestations…</div> : filteredServices.length === 0 ? (
           <div className="list-state empty-service-state"><div className="empty-icon"><Icon name="sparkles" size={30} /></div><h3>{services.length === 0 ? 'Aucune prestation pour le moment' : 'Aucun résultat'}</h3><p>{services.length === 0 ? (beautyMode && selectedEnseigne ? `Aucune prestation n’est encore rattachée à ${selectedEnseigne.name}.` : 'Créez votre catalogue avant d’ajouter les collaborateurs et les rendez-vous.') : 'Modifiez votre recherche ou le filtre sélectionné.'}</p>{services.length === 0 && canManage && (!beautyMode || selectedEnseigneId) && <button className="primary-button" type="button" onClick={openCreateForm}>Créer la première prestation</button>}</div>
         ) : (
-          <div className="beauty-service-category-groups">{groupedFilteredServices.map(([category, categoryServices]) => <section className="beauty-service-category-group" key={category}><div className="beauty-service-category-heading"><div><span>CATÉGORIE</span><h3>{category}</h3></div><small>{categoryServices.length} prestation{categoryServices.length > 1 ? 's' : ''}</small></div><div className="services-grid">{categoryServices.map((service) => <article className={`service-card${service.active ? '' : ' inactive'}`} key={service.id}>{beautyMode && <div className={`service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="camera" size={28} />}</div>}<div className="service-card-topline"><div className="service-card-icon"><Icon name="sparkles" size={22} /></div><div className="beauty-service-card-chips">{beautyMode && <><span className="beauty-service-category-chip">{service.category_name || 'Autres'}</span><span className={`beauty-service-booking-chip ${service.online_booking_enabled === false ? 'manual' : 'online'}`}>{service.online_booking_enabled === false ? 'Sur demande' : 'En ligne'}</span></>}<span className={`status-chip ${service.active ? 'active' : 'inactive'}`}>{service.active ? 'Active' : 'Inactive'}</span></div></div><div className="service-card-content"><h3>{service.name}</h3><p>{service.description || 'Aucune description renseignée.'}</p></div><div className="service-card-details"><span><Icon name="calendar" size={16} />{formatDuration(service.duration_minutes)}</span><strong>{currencyFormatter.format(service.price_cents / 100)}</strong></div>{canManage && <div className="service-card-actions"><button className="secondary-button compact-button" type="button" onClick={() => openEditForm(service)}>Modifier</button><button className={`icon-text-button ${service.active ? 'danger' : ''}`} type="button" disabled={busyId === service.id} aria-busy={busyId === service.id} onClick={() => void toggleServiceStatus(service)}>{busyId === service.id ? 'Mise à jour…' : service.active ? 'Désactiver' : 'Réactiver'}</button></div>}</article>)}</div></section>)}</div>
+          <div className="beauty-service-category-groups">{groupedFilteredServices.map(([category, categoryServices]) => <section className="beauty-service-category-group" key={category}><div className="beauty-service-category-heading"><div><span>CATÉGORIE</span><h3>{category}</h3></div><small>{categoryServices.length} prestation{categoryServices.length > 1 ? 's' : ''}</small></div><div className="services-grid">{categoryServices.map((service) => <article className={`service-card${service.active ? '' : ' inactive'}`} key={service.id}>{serviceImagesEnabled && <div className={`service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="camera" size={28} />}</div>}<div className="service-card-topline"><div className="service-card-icon"><Icon name="sparkles" size={22} /></div><div className="beauty-service-card-chips">{beautyMode && <><span className="beauty-service-category-chip">{service.category_name || 'Autres'}</span><span className={`beauty-service-booking-chip ${service.online_booking_enabled === false ? 'manual' : 'online'}`}>{service.online_booking_enabled === false ? 'Sur demande' : 'En ligne'}</span></>}<span className={`status-chip ${service.active ? 'active' : 'inactive'}`}>{service.active ? 'Active' : 'Inactive'}</span></div></div><div className="service-card-content"><h3>{service.name}</h3><p>{service.description || 'Aucune description renseignée.'}</p></div><div className="service-card-details"><span><Icon name="calendar" size={16} />{formatDuration(service.duration_minutes)}</span><strong>{currencyFormatter.format(service.price_cents / 100)}</strong></div>{canManage && <div className="service-card-actions"><button className="secondary-button compact-button" type="button" onClick={() => openEditForm(service)}>Modifier</button><button className={`icon-text-button ${service.active ? 'danger' : ''}`} type="button" disabled={busyId === service.id} aria-busy={busyId === service.id} onClick={() => void toggleServiceStatus(service)}>{busyId === service.id ? 'Mise à jour…' : service.active ? 'Désactiver' : 'Réactiver'}</button></div>}</article>)}</div></section>)}</div>
         )}
       </section>
     </div>

@@ -6,6 +6,7 @@ import { useOrganization } from '../contexts/OrganizationContext';
 import { useBeautyEnseigneContext } from '../hooks/useBeautyEnseigneContext';
 import { useConfirmDialog } from '../contexts/ConfirmDialogContext';
 import { supabase } from '../lib/supabase';
+import { useBeautyPrimaryPlanningSite } from '../hooks/useBeautyPrimaryPlanningSite';
 
 type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
 type ViewMode = 'week' | 'day';
@@ -305,6 +306,10 @@ export function AppointmentsPage() {
   const { demoMode } = useAuth();
   const { beautyMode, selectedEnseigne, selectedEnseigneId } = useBeautyEnseigneContext();
   const { confirm } = useConfirmDialog();
+  const professionalBeauty = organization?.business_type === 'coiffure' && organization.plan === 'professionnelle';
+  const primaryPlanning = useBeautyPrimaryPlanningSite(organization?.id, professionalBeauty && !demoMode);
+  const availabilityCompanyId = beautyMode ? selectedEnseigneId : primaryPlanning.site?.company_id ?? null;
+  const availabilityEnabled = beautyMode || professionalBeauty;
   const [searchParams, setSearchParams] = useSearchParams();
   const [clients, setClients] = useState<ClientRecord[]>([]);
   const [services, setServices] = useState<ServiceRecord[]>([]);
@@ -372,6 +377,8 @@ export function AppointmentsPage() {
   const defaultBeautySiteId = activeSiteId && beautySites.some((site) => site.id === activeSiteId)
     ? activeSiteId
     : beautySites.find((site) => site.is_primary)?.id ?? beautySites[0]?.id ?? '';
+  const availabilitySites = useMemo(() => beautyMode ? beautySites : primaryPlanning.site ? [primaryPlanning.site] : [], [beautyMode, beautySites, primaryPlanning.site]);
+  const defaultAvailabilitySiteId = beautyMode ? defaultBeautySiteId : primaryPlanning.site?.id ?? '';
   const appointmentSites = beautyMode ? beautySites : sites;
   const effectivePlanningSiteId = beautyMode
     ? (activeSiteId && beautySites.some((site) => site.id === activeSiteId)
@@ -515,11 +522,12 @@ export function AppointmentsPage() {
       : [];
     const appointmentItemRows = itemResults.flatMap((result) => (result.data ?? []) as AppointmentServiceItemRecord[]);
 
-    const blocksResult = beautyMode && selectedEnseigneId
+    const blocksResult = availabilityEnabled && availabilityCompanyId
       ? await supabase.from('beauty_availability_blocks')
         .select('id,company_id,site_id,staff_id,kind,label,starts_at,ends_at,all_day,active,created_at')
         .eq('organization_id', organizationId)
-        .eq('company_id', selectedEnseigneId)
+        .eq('company_id', availabilityCompanyId)
+        .in('site_id', availabilitySites.map((site) => site.id))
         .eq('active', true)
         .gt('ends_at', rangeStart.toISOString())
         .lt('starts_at', rangeEnd.toISOString())
@@ -581,7 +589,7 @@ export function AppointmentsPage() {
       }
     }
     setLoading(false);
-  }, [organization, demoMode, effectivePlanningSiteId, beautyMode, selectedEnseigneId, planningWeekKey]);
+  }, [organization, demoMode, effectivePlanningSiteId, beautyMode, selectedEnseigneId, planningWeekKey, availabilityEnabled, availabilityCompanyId, availabilitySites]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -639,16 +647,16 @@ export function AppointmentsPage() {
   }, [beautyMode, defaultBeautySiteId, activeSiteId, sites, appointmentSites]);
 
   useEffect(() => {
-    if (!beautyMode || !selectedEnseigneId) {
+    if (!availabilityEnabled || !availabilityCompanyId) {
       setAvailabilityFormOpen(false);
       setEditingAvailabilityId(null);
       setAvailabilityBlocks([]);
       return;
     }
-    setAvailabilityForm((current) => current.siteId && beautySites.some((site) => site.id === current.siteId)
+    setAvailabilityForm((current) => current.siteId && availabilitySites.some((site) => site.id === current.siteId)
       ? current
-      : emptyAvailabilityForm(defaultBeautySiteId));
-  }, [beautyMode, selectedEnseigneId, defaultBeautySiteId, beautySites]);
+      : emptyAvailabilityForm(defaultAvailabilitySiteId));
+  }, [availabilityEnabled, availabilityCompanyId, defaultAvailabilitySiteId, availabilitySites]);
 
   const appointmentClientOptions = useMemo(() => {
     if (!coiffureUiMode) return clients;
@@ -692,8 +700,9 @@ export function AppointmentsPage() {
   const compatibleStaff = useMemo(() => {
     if (!form.serviceId) return staff;
     const allowed = new Set(staffServices.filter((row) => row.service_id === form.serviceId).map((row) => row.staff_id));
-    return staff.filter((row) => allowed.has(row.id) && (!form.siteId || row.site_id === form.siteId));
-  }, [staff, staffServices, form.serviceId, form.siteId]);
+    const targetSiteId = professionalBeauty ? primaryPlanning.site?.id : form.siteId;
+    return staff.filter((row) => allowed.has(row.id) && (!targetSiteId || row.site_id === targetSiteId));
+  }, [staff, staffServices, form.serviceId, form.siteId, professionalBeauty, primaryPlanning.site?.id]);
 
   useEffect(() => {
     if (form.staffId && !compatibleStaff.some((row) => row.id === form.staffId)) {
@@ -708,9 +717,9 @@ export function AppointmentsPage() {
   }), [appointments, staffFilter, statusFilter]);
 
   const availabilityStaff = useMemo(() => {
-    const allowedSites = new Set(beautySites.map((site) => site.id));
+    const allowedSites = new Set(availabilitySites.map((site) => site.id));
     return staff.filter((member) => allowedSites.has(member.site_id ?? '') && (!availabilityForm.siteId || member.site_id === availabilityForm.siteId));
-  }, [staff, beautySites, availabilityForm.siteId]);
+  }, [staff, availabilitySites, availabilityForm.siteId]);
 
   const visibleAvailabilityBlocks = useMemo(() => availabilityBlocks.filter((block) => {
     if (effectivePlanningSiteId && block.site_id !== effectivePlanningSiteId) return false;
@@ -848,11 +857,11 @@ export function AppointmentsPage() {
   }
 
   function openAvailabilityForm(date = selectedDate, staffId = '') {
-    if (!beautyMode || !selectedEnseigneId || !canEditAppointments || !defaultBeautySiteId) return;
+    if (!availabilityEnabled || !availabilityCompanyId || !canEditAppointments || !defaultAvailabilitySiteId) return;
     setEditingId(null);
     setSearchParams({});
     const member = staff.find((row) => row.id === staffId);
-    const siteId = member?.site_id && beautySites.some((site) => site.id === member.site_id) ? member.site_id : defaultBeautySiteId;
+    const siteId = member?.site_id && availabilitySites.some((site) => site.id === member.site_id) ? member.site_id : defaultAvailabilitySiteId;
     const next = emptyAvailabilityForm(siteId, date);
     next.staffId = staffId;
     setAvailabilityForm(next);
@@ -891,14 +900,14 @@ export function AppointmentsPage() {
   function closeAvailabilityForm() {
     setEditingAvailabilityId(null);
     setAvailabilityFormOpen(false);
-    setAvailabilityForm(emptyAvailabilityForm(defaultBeautySiteId, selectedDate));
+    setAvailabilityForm(emptyAvailabilityForm(defaultAvailabilitySiteId, selectedDate));
     setError('');
   }
 
   async function saveAvailabilityBlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!organization || !beautyMode || !selectedEnseigneId || !canEditAppointments) return;
-    if (!availabilityForm.siteId || !beautySites.some((site) => site.id === availabilityForm.siteId)) {
+    if (!organization || !availabilityEnabled || !availabilityCompanyId || !canEditAppointments) return;
+    if (!availabilityForm.siteId || !availabilitySites.some((site) => site.id === availabilityForm.siteId)) {
       setError('Sélectionnez un lieu appartenant à cette enseigne.');
       return;
     }
@@ -938,7 +947,7 @@ export function AppointmentsPage() {
         const existing = availabilityBlocks.find((row) => row.id === editingAvailabilityId);
         const saved: AvailabilityBlockRecord = {
           id: existing?.id ?? crypto.randomUUID(),
-          company_id: selectedEnseigneId,
+          company_id: availabilityCompanyId,
           site_id: availabilityForm.siteId,
           staff_id: availabilityForm.staffId || null,
           kind: availabilityForm.kind,
@@ -953,11 +962,11 @@ export function AppointmentsPage() {
         const allRows = allRaw ? JSON.parse(allRaw) as AvailabilityBlockRecord[] : [];
         const nextAll = existing ? allRows.map((row) => row.id === saved.id ? saved : row) : [...allRows, saved];
         localStorage.setItem(`ncr-suite-demo-beauty-blocks-${organization.id}`, JSON.stringify(nextAll));
-        setAvailabilityBlocks(nextAll.filter((row) => row.company_id === selectedEnseigneId && row.active));
+        setAvailabilityBlocks(nextAll.filter((row) => row.company_id === availabilityCompanyId && row.active));
       } else {
         const { error: saveError } = await supabase.rpc('save_beauty_availability_block', {
           p_organization_id: organization.id,
-          p_company_id: selectedEnseigneId,
+          p_company_id: availabilityCompanyId,
           p_site_id: availabilityForm.siteId,
           p_staff_id: availabilityForm.staffId || null,
           p_kind: availabilityForm.kind,
@@ -974,7 +983,7 @@ export function AppointmentsPage() {
       setSuccess(editingAvailabilityId ? 'L’indisponibilité a bien été modifiée.' : 'L’indisponibilité a bien été ajoutée au planning.');
       setEditingAvailabilityId(null);
       setAvailabilityFormOpen(false);
-      setAvailabilityForm(emptyAvailabilityForm(defaultBeautySiteId));
+      setAvailabilityForm(emptyAvailabilityForm(defaultAvailabilitySiteId));
     } catch (caught) {
       const message = typeof caught === 'object' && caught && 'message' in caught ? String(caught.message) : 'Une erreur inconnue est survenue.';
       setError(`Enregistrement impossible : ${message}`);
@@ -984,7 +993,7 @@ export function AppointmentsPage() {
   }
 
   async function removeAvailabilityBlock(block: AvailabilityBlockRecord) {
-    if (!organization || !selectedEnseigneId || !canEditAppointments) return;
+    if (!organization || !availabilityCompanyId || !canEditAppointments) return;
     const decision = await confirm({
       title: 'Retirer cette indisponibilité ?',
       message: `« ${block.label || availabilityKindLabels[block.kind]} » redeviendra disponible à la réservation selon les horaires et les autres contraintes du planning.`,
@@ -1001,11 +1010,11 @@ export function AppointmentsPage() {
         const allRows = raw ? JSON.parse(raw) as AvailabilityBlockRecord[] : [];
         const nextAll = allRows.map((row) => row.id === block.id ? { ...row, active: false } : row);
         localStorage.setItem(`ncr-suite-demo-beauty-blocks-${organization.id}`, JSON.stringify(nextAll));
-        setAvailabilityBlocks(nextAll.filter((row) => row.company_id === selectedEnseigneId && row.active));
+        setAvailabilityBlocks(nextAll.filter((row) => row.company_id === availabilityCompanyId && row.active));
       } else {
         const { error: removeError } = await supabase.rpc('set_beauty_availability_block_active', {
           p_organization_id: organization.id,
-          p_company_id: selectedEnseigneId,
+          p_company_id: availabilityCompanyId,
           p_block_id: block.id,
           p_active: false
         });
@@ -1054,8 +1063,8 @@ export function AppointmentsPage() {
       && end > new Date(row.starts_at));
     if (overlapsAppointment) return 'Ce créneau est déjà occupé pour ce collaborateur.';
 
-    const overlapsBlockedTime = beautyMode && availabilityBlocks.some((block) => block.active
-      && block.site_id === form.siteId
+    const overlapsBlockedTime = availabilityEnabled && availabilityBlocks.some((block) => block.active
+      && (block.site_id === (professionalBeauty ? primaryPlanning.site?.id : form.siteId))
       && (block.staff_id === null || block.staff_id === member.id)
       && start < new Date(block.ends_at)
       && end > new Date(block.starts_at));
@@ -1066,6 +1075,10 @@ export function AppointmentsPage() {
   async function saveAppointment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!organization || !canEditAppointments) return;
+    if (professionalBeauty && !demoMode && !primaryPlanning.site) {
+      setError('L’établissement principal doit être chargé avant de créer le rendez-vous.');
+      return;
+    }
     if (organization.plan === 'metier' && !form.siteId) {
       setError('Sélectionnez un établissement.');
       return;
@@ -1111,10 +1124,10 @@ export function AppointmentsPage() {
         localStorage.setItem(`ncr-suite-demo-appointments-${organization.id}`, JSON.stringify(next));
         setAppointments(next);
       } else {
-        const { error: saveError } = await supabase.rpc(organization.plan === 'metier' ? 'save_appointment_v2' : 'save_appointment', {
+        const { error: saveError } = await supabase.rpc(organization.plan === 'metier' || professionalBeauty ? 'save_appointment_v2' : 'save_appointment', {
           p_organization_id: organization.id,
           p_appointment_id: editingId,
-          ...(organization.plan === 'metier' ? { p_site_id: form.siteId } : {}),
+          ...(organization.plan === 'metier' ? { p_site_id: form.siteId } : professionalBeauty && primaryPlanning.site ? { p_site_id: primaryPlanning.site.id } : {}),
           p_client_id: form.clientId,
           p_service_id: form.serviceId,
           p_staff_id: form.staffId,
@@ -1321,6 +1334,11 @@ export function AppointmentsPage() {
     );
   }
 
+  const previewService = serviceById.get(form.serviceId);
+  const previewStart = new Date(`${form.date}T${form.time}:00`);
+  const previewEnd = previewService && Number.isFinite(previewStart.getTime())
+    ? new Date(previewStart.getTime() + previewService.duration_minutes * 60_000) : null;
+
   const summaryClient = appointmentClientOptions.find((client) => client.id === form.clientId);
   const notesField = (
     <label className="appointment-notes-field">
@@ -1337,13 +1355,13 @@ export function AppointmentsPage() {
           <h1>Rendez-vous</h1>
           <p>{personalView ? 'Consultez les rendez-vous qui vous sont attribués et mettez leur statut à jour.' : coiffureUiMode ? (activeSite?.name ?? 'Agenda de tous les établissements') : `Planifiez l’activité ${activeSite ? `de ${activeSite.name}` : 'de tous les établissements'} sans double réservation.`}</p>
         </div>
-        {canEditAppointments && <div className="appointment-planning-actions">{beautyMode && selectedEnseigneId && <button className="secondary-button" type="button" onClick={() => openAvailabilityForm()}><Icon name="lock" size={17} />Bloquer du temps</button>}<button className="primary-button" type="button" onClick={() => openCreateForm()}><Icon name="plus" size={18} />{coiffureUiMode ? 'Nouveau' : 'Nouveau rendez-vous'}</button></div>}
+        {canEditAppointments && <div className="appointment-planning-actions">{availabilityEnabled && availabilityCompanyId && <button className="secondary-button" type="button" onClick={() => openAvailabilityForm()}><Icon name="lock" size={17} />Bloquer du temps</button>}<button className="primary-button" type="button" onClick={() => openCreateForm()}><Icon name="plus" size={18} />{coiffureUiMode ? 'Nouveau' : 'Nouveau rendez-vous'}</button></div>}
       </header>
 
-      {beautyMode && availabilityFormOpen && canEditAppointments && selectedEnseigneId && (
+      {availabilityEnabled && availabilityFormOpen && canEditAppointments && availabilityCompanyId && (
         <section className="panel beauty-availability-panel">
           <div className="panel-header">
-            <div><p className="eyebrow">DISPONIBILITÉS · {selectedEnseigne?.name}</p><h2>{editingAvailabilityId ? 'Modifier l’indisponibilité' : 'Bloquer du temps'}</h2><small>Ces périodes disparaissent automatiquement de la réservation en ligne.</small></div>
+            <div><p className="eyebrow">DISPONIBILITÉS · {selectedEnseigne?.name ?? primaryPlanning.site?.name}</p><h2>{editingAvailabilityId ? 'Modifier l’indisponibilité' : 'Bloquer du temps'}</h2><small>Ces périodes sont bloquées pour les nouvelles réservations. Les rendez-vous déjà pris sont conservés.</small></div>
             <button type="button" className="secondary-button" onClick={closeAvailabilityForm}>Fermer</button>
           </div>
           <form className="beauty-availability-form" onSubmit={saveAvailabilityBlock}>
@@ -1351,7 +1369,11 @@ export function AppointmentsPage() {
               {(Object.keys(availabilityKindLabels) as AvailabilityBlockKind[]).map((kind) => <button type="button" key={kind} className={availabilityForm.kind === kind ? 'active' : ''} onClick={() => setAvailabilityForm((current) => ({ ...current, kind, staffId: kind === 'closure' ? '' : current.staffId }))}><span><Icon name={kind === 'leave' ? 'users' : kind === 'closure' ? 'building' : 'lock'} size={18} /></span><strong>{availabilityKindLabels[kind]}</strong><small>{availabilityKindDescriptions[kind]}</small></button>)}
             </div>
             <div className="beauty-availability-fields">
-              <label>Lieu <span aria-hidden="true">*</span><select value={availabilityForm.siteId} onChange={(event) => setAvailabilityForm((current) => ({ ...current, siteId: event.target.value, staffId: '' }))} required><option value="">Sélectionner un lieu</option>{beautySites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.is_primary ? ' · Principal' : ''}</option>)}</select></label>
+              <div className="beauty-availability-presets" aria-label="Période rapide">
+                <button type="button" className="secondary-button compact-button" onClick={() => setAvailabilityForm(current => ({ ...current, allDay: true, endDate: current.startDate }))}>Une journée</button>
+                <button type="button" className="secondary-button compact-button" onClick={() => setAvailabilityForm(current => ({ ...current, allDay: true, endDate: dateToInput(addDays(new Date(`${current.startDate}T12:00:00`), 6)) }))}>Une semaine</button>
+              </div>
+              <label>Lieu <span aria-hidden="true">*</span><select disabled={availabilitySites.length === 1} value={availabilityForm.siteId} onChange={(event) => setAvailabilityForm((current) => ({ ...current, siteId: event.target.value, staffId: '' }))} required><option value="">Sélectionner un lieu</option>{availabilitySites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.is_primary ? ' · Principal' : ''}</option>)}</select></label>
               {availabilityForm.kind !== 'closure' && <label>Collaborateur {availabilityForm.kind === 'leave' && <span aria-hidden="true">*</span>}<select value={availabilityForm.staffId} onChange={(event) => setAvailabilityForm((current) => ({ ...current, staffId: event.target.value }))} required={availabilityForm.kind === 'leave'}><option value="">{availabilityForm.kind === 'leave' ? 'Sélectionner un collaborateur' : 'Tout le lieu'}</option>{availabilityStaff.map((member) => <option key={member.id} value={member.id}>{member.display_name}</option>)}</select></label>}
               <label>Du <span aria-hidden="true">*</span><input type="date" value={availabilityForm.startDate} onChange={(event) => setAvailabilityForm((current) => ({ ...current, startDate: event.target.value, endDate: current.endDate < event.target.value ? event.target.value : current.endDate }))} required /></label>
               <label>Au <span aria-hidden="true">*</span><input type="date" min={availabilityForm.startDate} value={availabilityForm.endDate} onChange={(event) => setAvailabilityForm((current) => ({ ...current, endDate: event.target.value }))} required /></label>
@@ -1363,6 +1385,8 @@ export function AppointmentsPage() {
           </form>
         </section>
       )}
+
+      {professionalBeauty && primaryPlanning.error && <div className="error-message page-message" role="alert">{primaryPlanning.error} Les blocages de périodes sont indisponibles.</div>}
 
       {formOpen && (
         <section className="panel appointment-form-panel">
@@ -1432,6 +1456,7 @@ export function AppointmentsPage() {
             <div className="appointment-preview">
               <span>Durée et tarif</span>
               <strong>{form.serviceId ? `${serviceById.get(form.serviceId)?.duration_minutes ?? 0} min · ${currencyFormatter.format((serviceById.get(form.serviceId)?.price_cents ?? 0) / 100)}` : 'À définir'}</strong>
+              {previewEnd && <small>Créneau calculé : {timeFormatter.format(previewStart)}–{timeFormatter.format(previewEnd)}{previewStart.toDateString() !== previewEnd.toDateString() ? ' (le lendemain)' : ''}</small>}
             </div>
             {coiffureUiMode ? <details className="appointment-notes-disclosure" open={editingId ? true : undefined}>
               <summary>Notes internes <span>Facultatif</span></summary>
@@ -1440,7 +1465,7 @@ export function AppointmentsPage() {
             {coiffureUiMode && <div className="appointment-booking-summary" aria-live="polite">
               <Icon name="calendar" size={20} />
               <div><strong>{summaryClient ? fullClientName(summaryClient) : 'Récapitulatif du rendez-vous'}</strong>
-              <span>{form.date ? new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' }).format(new Date(`${form.date}T12:00:00`)) : 'Date à définir'} · {form.time || 'Heure à définir'}{form.serviceId ? ` · ${serviceById.get(form.serviceId)?.name ?? ''}` : ''}</span></div>
+              <span>{form.date ? new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' }).format(new Date(`${form.date}T12:00:00`)) : 'Date à définir'} · {previewEnd ? `${timeFormatter.format(previewStart)}–${timeFormatter.format(previewEnd)}` : form.time || 'Heure à définir'}{form.serviceId ? ` · ${serviceById.get(form.serviceId)?.name ?? ''}` : ''}</span></div>
             </div>}
             {coiffureUiMode && error && <div className="error-message page-message" role="alert">{error}</div>}
             <div className="form-actions appointment-form-actions">
@@ -1667,7 +1692,7 @@ export function AppointmentsPage() {
                 <div className="empty-icon"><Icon name="calendar" size={30} /></div>
                 <h3>Aucun rendez-vous ce jour-là</h3>
                 <p>{selectedDayAvailabilityBlocks.length > 0 ? 'Aucun rendez-vous n’est planifié sur les périodes encore disponibles.' : 'La journée est libre pour les filtres sélectionnés.'}</p>
-                {canEditAppointments && <div className="empty-appointments-actions">{beautyMode && <button className="secondary-button" type="button" onClick={() => openAvailabilityForm(selectedDate)}>Bloquer du temps</button>}<button className="primary-button" type="button" onClick={() => openCreateForm(selectedDate, '09:00')}>Créer un rendez-vous</button></div>}
+                {canEditAppointments && <div className="empty-appointments-actions">{availabilityEnabled && availabilityCompanyId && <button className="secondary-button" type="button" onClick={() => openAvailabilityForm(selectedDate)}>Bloquer du temps</button>}<button className="primary-button" type="button" onClick={() => openCreateForm(selectedDate, '09:00')}>Créer un rendez-vous</button></div>}
               </div>
             ) : <div className="day-appointment-list">{selectedDayAppointments.map(appointmentCard)}</div>}
           </div>
