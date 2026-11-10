@@ -106,14 +106,6 @@ html[data-beauty-center-context='true'] .mobile-account-sheet .metier-brand-mobi
   color: #202329 !important;
 }
 
-.company-public-page .company-public-hero.has-banner a.company-public-client-link {
-  color: #fff !important;
-}
-
-.company-public-page .company-public-hero.has-banner a.company-public-book-button {
-  color: #18191d !important;
-}
-
 @media (max-width: 900px) {
   html[data-beauty-center-context='true'] .mobile-drawer-organization > span:nth-child(2) small {
     max-width: 210px;

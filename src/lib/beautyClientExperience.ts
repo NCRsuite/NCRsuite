@@ -51,3 +51,16 @@ export function durationBetween(start: string, end: string) {
   const minutes = Math.max(0, Math.round((Date.parse(end) - Date.parse(start)) / 60000));
   return minutes >= 60 ? `${Math.floor(minutes / 60)} h${minutes % 60 ? ` ${minutes % 60}` : ''}` : `${minutes} min`;
 }
+
+/** Redirect only a server-resolved company, never an organization guessed from its slug. */
+export function canonicalBeautyBookingPath(
+  legacy: { id: string; slug: string },
+  company: { id: string; public_slug: string } | null | undefined,
+  search: string,
+  hash: string,
+) {
+  if (!company || company.id !== legacy.id || company.public_slug !== legacy.slug
+    || !/^[a-zA-Z0-9_-]+$/.test(company.public_slug)) return null;
+  const anchor = hash === '#reservation' ? '#reserver' : hash === '#salon-infos' ? '#infos' : hash;
+  return `/salon/${encodeURIComponent(company.public_slug)}${search}${anchor}`;
+}

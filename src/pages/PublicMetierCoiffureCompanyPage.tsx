@@ -279,6 +279,14 @@ export function PublicMetierCoiffureCompanyPage() {
   }, [user?.id, slug]);
 
   useEffect(() => {
+    // The section does not exist until the public page has loaded.
+    const anchor = location.hash.slice(1);
+    if (!data || !['reserver', 'prestations', 'equipe', 'avis', 'infos', 'a-propos'].includes(anchor)) return;
+    const frame = requestAnimationFrame(() => document.getElementById(anchor)?.scrollIntoView({ block: 'start' }));
+    return () => cancelAnimationFrame(frame);
+  }, [data?.company.id, location.hash]);
+
+  useEffect(() => {
     if (!data) return;
     const params = new URLSearchParams(location.search);
     const requestedService = params.get('service');
@@ -620,7 +628,7 @@ export function PublicMetierCoiffureCompanyPage() {
           <div><strong>{data.company.name}</strong><small>Coiffure & beauté</small></div>
         </div>
         <div className="company-public-nav-actions">
-          <Link className="company-public-client-link" to={clientLoginPath}><Icon name="users" size={16} /> Mon espace</Link>
+          <Link className="company-public-client-link" aria-label="Mon espace client" to={clientLoginPath}><Icon name="users" size={16} /> Mon espace</Link>
           {data.company.booking_enabled && <a className="company-public-book-button" href="#reserver"><Icon name="calendar" size={16} /> Prendre rendez-vous</a>}
         </div>
       </div>

@@ -5,7 +5,7 @@ import ts from 'typescript';
 
 const source = await readFile(new URL('../src/lib/beautyClientExperience.ts', import.meta.url), 'utf8');
 const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } }).outputText;
-const { readableBrand, bookingError, isBookingConfirmation, createSubmissionGate, clientReturnPath, durationBetween } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`);
+const { readableBrand, bookingError, isBookingConfirmation, createSubmissionGate, clientReturnPath, durationBetween, canonicalBeautyBookingPath } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString('base64')}`);
 
 test('one submission reaches the server while another is pending', async () => {
   const submit = createSubmissionGate();
@@ -50,4 +50,21 @@ test('brand actions remain readable while the configured identity is retained', 
 test('duration is measured from instants, including a daylight-saving transition', () => {
   assert.equal(durationBetween('2026-10-16T08:00:00Z','2026-10-16T08:15:00Z'),'15 min');
   assert.equal(durationBetween('2026-10-25T02:30:00+02:00','2026-10-25T03:00:00+01:00'),'1 h 30');
+});
+
+test('legacy QR links preserve every query parameter and translate only known anchors', () => {
+  const legacy = {id: 'company-a', slug: 'salon-a'};
+  const company = {id: 'company-a', public_slug: 'salon-a'};
+  const query = '?site=site-a&service=cut&staff=staff-a&date=2026-11-12&src=qr&ref=ABC&embed=1&extra=a%2Bb';
+  assert.equal(canonicalBeautyBookingPath(legacy, company, query, '#reservation'), `/salon/salon-a${query}#reserver`);
+  assert.equal(canonicalBeautyBookingPath(legacy, company, '', '#salon-infos'), '/salon/salon-a#infos');
+  assert.equal(canonicalBeautyBookingPath(legacy, company, '?services=a,b', '#prestations'), '/salon/salon-a?services=a,b#prestations');
+  assert.equal(canonicalBeautyBookingPath(legacy, company, '', ''), '/salon/salon-a');
+});
+test('no redirect to a namesake company or an unverified public page', () => {
+  const legacy = {id: 'org-a', slug: 'salon-a'};
+  for (const company of [null, undefined, {id:'other-company', public_slug:'salon-a'}, {id:'org-a', public_slug:'other-salon'}]) {
+    assert.equal(canonicalBeautyBookingPath(legacy, company, '', ''), null);
+  }
+  assert.equal(canonicalBeautyBookingPath({id:'a',slug:'../admin'}, {id:'a',public_slug:'../admin'}, '', ''), null);
 });

@@ -396,3 +396,27 @@ Retour arrière : préserver les protections de sécurité ; en cas de défaut c
 - Vérification finale locale après alignement des noms : **23/23 tests PostgreSQL PASS**, diff sans erreur, aucun motif de secret détecté parmi les 21 fichiers, `.env.local` non versionné. Branche propre après commit. Aucun changement de navigation professionnelle, de landing générale ou de CSS public généré.
 - L'utilisateur a autorisé le passage de cette version sur `main` après réussite des contrôles. Le point de retour frontend reste `c2f0d28514846a12a0f38d460c8d67338e7cc300` ; les protections SQL ne doivent jamais être annulées avec le frontend. Le résultat du déploiement de production et son hash final seront rapportés après observation dans le compte rendu de cette intervention.
 
+
+
+## 2026-11-10 — Parcours public unique et header de l'enseigne
+
+Correction locale, sans publication ni modification Supabase.
+
+- `/reserver/:slug` reste accessible pour les QR déjà imprimés. Le résolveur public existant fournit le slug d'enseigne ; une seconde lecture vérifie l'identité de la page cible avant remplacement de l'adresse par `/salon/:slug`. Aucun slug Azzera codé en dur. Les configurations historiques sans page d'enseigne correspondante gardent leur réservation existante.
+- Tous les paramètres de requête sont conservés sans réécriture (établissement, prestation(s), professionnel, date, QR/widget, parrainage, intégration). `#reservation` devient `#reserver` et `#salon-infos` devient `#infos`. Défilement vers la section après chargement effectif des données ; remplacement d'historique pour éviter une boucle avec Retour.
+- Header : les liens n'avaient plus de display/padding/radius/alignement propres. Deux règles héritées de `beautyCenterSwitcher.css` imposaient en plus blanc sur blanc et noir sur prune. Ces deux règles contradictoires sont retirées ; boutons alignés, hauteur 46 px, padding 11/16 px, rayon 12 px, libellé accessible sur mobile.
+- Finition de cette seule page : fond neutre chaud, titre de réservation ramené à 26–34 px (28 px mobile), suppression du halo décoratif sans photo. Identité, photographies, catégories, prestations, équipe, avis et informations configurées conservés.
+
+Fichiers : `src/pages/PublicBookingPage.tsx`, `src/pages/PublicMetierCoiffureCompanyPage.tsx`, `src/lib/beautyClientExperience.ts`, `src/publicMetierCoiffureCompany.css`, `src/beautyCenterSwitcher.css`, `scripts/beauty-client-experience.test.mjs`, ce document.
+
+Vérifications :
+- 9/9 tests unitaires PASS : paramètres/ancres, refus d'une destination d'identité différente ou non vérifiée, protections de soumission et retours de connexion existants.
+- TypeScript, build production et contrôles statiques inclus PASS. Warning de taille de bundle préexistant.
+- Navigateur local avec lectures publiques réelles : ancien lien `/reserver/nail?src=qr#reservation` redirigé ; site + prestation + date conservés, disponibilité réelle et récapitulatif 30 min / 25 euros affichés ; aucune soumission. Boutons du header testés, formulaire de connexion ouvert avec retour vers le bon salon.
+- Largeurs CSS réellement mesurées 360/390/430/768/1440 : `scrollWidth === clientWidth`. Composition en une colonne sous 820 px, deux colonnes desktop ; header 48 px et actions 46 px. Dimensions calibrées sur les mesures DOM car le facteur de zoom du navigateur intégré différait de sa consigne. Captures représentatives `/tmp/ncr-beauty-salon-390.jpg` et `/tmp/ncr-beauty-salon-desktop.jpg` ; les simulations ne remplacent pas un essai physique iPhone.
+- Aucune erreur console capturée sur le parcours public. Aucun changement de SQL, RPC, RLS, Auth, données, soumission, logique de disponibilité, offre, identité client ou fidélité. Aucun changement de landing/professionnel ni des CSS publics générés. `.env.local` reste ignoré et non versionné ; `main` inchangée.
+- Limites : pas de nouvelle réservation réelle ni de connexion client/activation complète pendant cette correction. Les anciens QR restent des liens de compatibilité côté navigateur, pas des redirections HTTP serveur. Ni commit, ni push, ni déploiement effectués pour ce lot.
+
+### Publication autorisée — 10 novembre 2026
+
+Après validation utilisateur, publication de ce seul correctif autorisée. Préflight : branche Beauty, main locale/distante et branche distante à `86c238535c05aa9ec9a7642135baf5211af8fd66`, aucun travail externe à intégrer. Diff limité aux sept fichiers ci-dessus ; aucune migration ni configuration modifiée ; `.env.local` exclu. Les 9 tests ciblés repassent ; build/TypeScript final déjà validés sur ce même code. Le résultat du déploiement automatique et du contrôle en production sera communiqué après observation. Point de retour frontend : `86c238535c05aa9ec9a7642135baf5211af8fd66` ; aucun retour arrière SQL nécessaire ou autorisé pour ce lot.

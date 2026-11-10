@@ -1,6 +1,6 @@
 import { CSSProperties, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { bookingError, createSubmissionGate, isBookingConfirmation, readableBrand, durationBetween } from '../lib/beautyClientExperience';
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { bookingError, canonicalBeautyBookingPath, createSubmissionGate, isBookingConfirmation, readableBrand, durationBetween } from '../lib/beautyClientExperience';
 import { Icon } from '../components/Icon';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -161,6 +161,8 @@ function emptyCustomerForm(): CustomerForm {
 export function PublicBookingPage() {
   const { user } = useAuth();
   const { slug = '' } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const submitOnce = useRef(createSubmissionGate());
   const [pageData, setPageData] = useState<PublicBookingPageData | null>(null);
@@ -197,6 +199,19 @@ export function PublicBookingPage() {
         setPageError('Cette page de réservation est introuvable ou temporairement désactivée.');
       } else {
         const typed = data as PublicBookingPageData;
+        // The existing public resolver also maps old organization slugs to their
+        // authorized primary company. Confirm its identity before leaving this route.
+        const { data: companyPage, error: companyError } = await supabase.rpc(
+          'get_public_metier_coiffure_company_page', { p_slug: typed.organization.slug },
+        );
+        if (!active) return;
+        const destination = !companyError && canonicalBeautyBookingPath(
+          typed.organization, companyPage?.company, location.search, location.hash,
+        );
+        if (destination) {
+          navigate(destination, { replace: true });
+          return;
+        }
         setPageData(typed);
         setSiteId(typed.sites.find((site) => site.is_primary)?.id ?? typed.sites[0]?.id ?? '');
         const requestedSite = searchParams.get('site');
