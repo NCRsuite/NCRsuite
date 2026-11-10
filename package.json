@@ -4,27 +4,34 @@
   "version": "2.29.25",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "node scripts/generate-public-showcase-css.mjs && node scripts/phase1-static-audit-entry.mjs && node scripts/phase1-critical-flows.mjs && node scripts/phase1-release-readiness.mjs && tsc -b && vite build && node scripts/generate-seo-pages.mjs",
+    "dev": "node scripts/build-public-home.mjs && vite",
+    "build": "node scripts/build-public-home.mjs && node scripts/generate-public-showcase-css.mjs && node scripts/phase1-static-audit-entry.mjs && node scripts/phase1-critical-flows.mjs && node scripts/phase1-release-readiness.mjs && tsc -b && vite build && node scripts/generate-seo-pages.mjs",
     "preview": "vite preview",
     "audit:phase1": "node scripts/phase1-static-audit-entry.mjs",
     "test:critical": "node scripts/phase1-critical-flows.mjs",
-    "test:release": "node scripts/phase1-release-readiness.mjs"
+    "test:release": "node scripts/phase1-release-readiness.mjs",
+    "build:public-home": "node scripts/build-public-home.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.110.2",
+    "gsap": "3.15.0",
     "jsqr": "^1.4.0",
+    "lucide-react": "1.49.0",
     "pdf-lib": "1.17.1",
     "qrcode": "^1.5.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-router-dom": "6.30.4"
+    "react-router-dom": "6.30.4",
+    "three": "0.186.0"
   },
   "devDependencies": {
     "@types/qrcode": "1.5.5",
     "@types/react": "18.3.31",
     "@types/react-dom": "18.3.7",
+    "@types/three": "0.186.0",
     "@vitejs/plugin-react": "6.0.3",
+    "esbuild": "0.28.2",
+    "postcss": "8.5.18",
     "typescript": "5.9.3",
     "vite": "8.1.4"
   },
