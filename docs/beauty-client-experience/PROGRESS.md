@@ -420,3 +420,28 @@ Vérifications :
 ### Publication autorisée — 10 novembre 2026
 
 Après validation utilisateur, publication de ce seul correctif autorisée. Préflight : branche Beauty, main locale/distante et branche distante à `86c238535c05aa9ec9a7642135baf5211af8fd66`, aucun travail externe à intégrer. Diff limité aux sept fichiers ci-dessus ; aucune migration ni configuration modifiée ; `.env.local` exclu. Les 9 tests ciblés repassent ; build/TypeScript final déjà validés sur ce même code. Le résultat du déploiement automatique et du contrôle en production sera communiqué après observation. Point de retour frontend : `86c238535c05aa9ec9a7642135baf5211af8fd66` ; aucun retour arrière SQL nécessaire ou autorisé pour ce lot.
+
+
+## 2026-11-10 — Prestations compactes, navigation et réglages de cadrage
+
+Retouches locales sur `refactor/beauty-client-experience`, depuis `f39de06624c90c28f893ac44130b581020e5ebd2`. Aucune publication pour ce nouveau lot.
+
+- Catalogue public : vignettes latérales 80 × 80 px jusqu’à 820 px, 110 × 90 px sur desktop ; nom, durée et prix hiérarchisés. Images configurées et gestion des prestations conservées, sélection annoncée avec `aria-pressed`. Les petites vignettes du sélecteur de réservation ne sont pas agrandies.
+- Navigation publique : la bande blanche pleine largeur devient un groupe d’onglets compact à largeur utile, avec les mêmes cinq entrées et conditions. L’état actif suit l’ancre sélectionnée. Le sticky était bloqué par les conteneurs racine à overflow hidden/auto ; le comportement de scroll du document est rétabli uniquement en présence de `.company-public-page`, selon le pattern existant du shell.
+- Paramètres Beauty : description au-dessus des deux aperçus ; modes Paysage/Portrait côte à côte si la place le permet, empilés sinon. Chaque curseur dispose de sa propre ligne, d’un libellé de 13 px et d’une valeur distincte. Sélecteurs des règles de réservation portés à 44 px de hauteur, sans changer leurs valeurs, règles ou événements.
+- Grande photo du salon, cadrages enregistrés, sources des images, réservation, droits et protections de sécurité inchangés. Aucun enregistrement de paramètres ni aucune réservation soumis.
+
+Fichiers : `src/publicMetierCoiffureCompany.css`, `src/beautyServiceImages.css`, `src/metierCoiffurePublicPages.css`, `src/beautyPublicBookingBaseline.css`, `src/pages/PublicMetierCoiffureCompanyPage.tsx`, `src/pages/SettingsPage.tsx`, ce document.
+
+Vérifications navigateur local connecté :
+- Catalogue et paramètres contrôlés à 360/390/430/768/1440 px réellement mesurés : `document.documentElement.scrollWidth === document.documentElement.clientWidth`. Curseurs dans le viewport, sans chevauchement ; navigation publique sticky au bord supérieur pendant le scroll.
+- Six curseurs testés au clavier puis rétablis : Paysage X 50→51→50, Y 50→51→50, zoom 100→105→100 ; Portrait X 73→74→73, Y 50→51→50, zoom 100→105→100. Transformation de l’aperçu vérifiée. Aucun bouton Enregistrer activé.
+- Clic catalogue Dépose gel : sélection reflétée dans le parcours de réservation et récapitulatif 30 min / 25 euros, puis désélection. Aucune soumission. Onglet Prestations actif et ancre testés.
+- Aucune erreur console capturée sur ces contrôles. Captures : `/tmp/ncr-beauty-services-mobile.jpg`, `/tmp/ncr-beauty-services-desktop.jpg`, `/tmp/ncr-beauty-crop-settings-mobile.jpg`, `/tmp/ncr-beauty-crop-settings-desktop.jpg`.
+- 9/9 tests existants du parcours Beauty PASS. TypeScript et build production PASS ; avertissement de taille de bundle préexistant.
+- Limites : simulation navigateur, pas de nouvelle validation physique iPhone/Safari ; persistance des cadrages volontairement non retestée pour ne pas modifier la configuration réelle.
+- Aucun SQL, RPC, migration, donnée, landing générale ou CSS public généré modifié. `.env.local` privé ; main conservée à la base stable. Aucun commit, push ou déploiement pour ce lot.
+
+### Publication de ces retouches autorisée — 10 novembre 2026
+
+Après validation locale et « Go pour la prod », préflight confirmé : branche Beauty, main locale/distante et branche distante à `f39de06624c90c28f893ac44130b581020e5ebd2`, aucun autre travail local. Sept fichiers uniquement, aucun changement Supabase/public généré/configuration ; `.env.local` ignoré et non suivi. Les 9 tests repassent ; TypeScript/build final du code validé PASS. Publication par fast-forward sans nouvelle modification applicative. Point de retour frontend : `f39de06624c90c28f893ac44130b581020e5ebd2`. Le résultat Cloudflare et le contrôle de la version servie seront communiqués après observation.

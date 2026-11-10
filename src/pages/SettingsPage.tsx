@@ -569,7 +569,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="page settings-page">
+    <div className={`page settings-page${isHairBusiness ? " beauty-settings" : ""}`}>
       <header className="page-header">
         <div>
           <p className="eyebrow">ADMINISTRATION</p>
@@ -1177,9 +1177,9 @@ export function SettingsPage() {
                           />
                         </figure>
                         <div className="metier-public-cover-controls">
-                          <label>Horizontal <b>{bannerLandscapeX}%</b><input type="range" min="0" max="100" step="1" value={bannerLandscapeX} onChange={(event) => setBannerLandscapeX(Number(event.target.value))} disabled={!canManage} /></label>
-                          <label>Vertical <b>{bannerLandscapeY}%</b><input type="range" min="0" max="100" step="1" value={bannerLandscapeY} onChange={(event) => setBannerLandscapeY(Number(event.target.value))} disabled={!canManage} /></label>
-                          <label>Zoom <b>{bannerLandscapeZoom}%</b><input type="range" min="100" max="250" step="5" value={bannerLandscapeZoom} onChange={(event) => setBannerLandscapeZoom(Number(event.target.value))} disabled={!canManage} /></label>
+                          <label>Horizontal <b>{bannerLandscapeX}%</b><input type="range" min="0" max="100" step="1" aria-label="Position horizontale — Paysage" value={bannerLandscapeX} onChange={(event) => setBannerLandscapeX(Number(event.target.value))} disabled={!canManage} /></label>
+                          <label>Vertical <b>{bannerLandscapeY}%</b><input type="range" min="0" max="100" step="1" aria-label="Position verticale — Paysage" value={bannerLandscapeY} onChange={(event) => setBannerLandscapeY(Number(event.target.value))} disabled={!canManage} /></label>
+                          <label>Zoom <b>{bannerLandscapeZoom}%</b><input type="range" min="100" max="250" step="5" aria-label="Zoom — Paysage" value={bannerLandscapeZoom} onChange={(event) => setBannerLandscapeZoom(Number(event.target.value))} disabled={!canManage} /></label>
                         </div>
                       </section>
 
@@ -1204,9 +1204,9 @@ export function SettingsPage() {
                           />
                         </figure>
                         <div className="metier-public-cover-controls">
-                          <label>Horizontal <b>{bannerPortraitX}%</b><input type="range" min="0" max="100" step="1" value={bannerPortraitX} onChange={(event) => setBannerPortraitX(Number(event.target.value))} disabled={!canManage} /></label>
-                          <label>Vertical <b>{bannerPortraitY}%</b><input type="range" min="0" max="100" step="1" value={bannerPortraitY} onChange={(event) => setBannerPortraitY(Number(event.target.value))} disabled={!canManage} /></label>
-                          <label>Zoom <b>{bannerPortraitZoom}%</b><input type="range" min="100" max="250" step="5" value={bannerPortraitZoom} onChange={(event) => setBannerPortraitZoom(Number(event.target.value))} disabled={!canManage} /></label>
+                          <label>Horizontal <b>{bannerPortraitX}%</b><input type="range" min="0" max="100" step="1" aria-label="Position horizontale — Portrait" value={bannerPortraitX} onChange={(event) => setBannerPortraitX(Number(event.target.value))} disabled={!canManage} /></label>
+                          <label>Vertical <b>{bannerPortraitY}%</b><input type="range" min="0" max="100" step="1" aria-label="Position verticale — Portrait" value={bannerPortraitY} onChange={(event) => setBannerPortraitY(Number(event.target.value))} disabled={!canManage} /></label>
+                          <label>Zoom <b>{bannerPortraitZoom}%</b><input type="range" min="100" max="250" step="5" aria-label="Zoom — Portrait" value={bannerPortraitZoom} onChange={(event) => setBannerPortraitZoom(Number(event.target.value))} disabled={!canManage} /></label>
                         </div>
                       </section>
                     </div>

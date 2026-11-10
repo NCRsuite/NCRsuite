@@ -646,11 +646,11 @@ export function PublicMetierCoiffureCompanyPage() {
 
     <nav className="company-public-tabs" aria-label="Navigation de l’enseigne">
       <div>
-        <a href="#reserver" className="active">Réserver</a>
-        <a href="#prestations">Prestations</a>
-        {data.staff.length > 0 && <a href="#equipe">Équipe</a>}
-        <a href="#avis">Avis</a>
-        <a href="#infos">Infos</a>
+        <a href="#reserver" className={(location.hash || '#reserver') === '#reserver' ? 'active' : undefined} aria-current={(location.hash || '#reserver') === '#reserver' ? 'location' : undefined}>Réserver</a>
+        <a href="#prestations" className={(location.hash || '#reserver') === '#prestations' ? 'active' : undefined} aria-current={(location.hash || '#reserver') === '#prestations' ? 'location' : undefined}>Prestations</a>
+        {data.staff.length > 0 && <a href="#equipe" className={(location.hash || '#reserver') === '#equipe' ? 'active' : undefined} aria-current={(location.hash || '#reserver') === '#equipe' ? 'location' : undefined}>Équipe</a>}
+        <a href="#avis" className={(location.hash || '#reserver') === '#avis' ? 'active' : undefined} aria-current={(location.hash || '#reserver') === '#avis' ? 'location' : undefined}>Avis</a>
+        <a href="#infos" className={(location.hash || '#reserver') === '#infos' ? 'active' : undefined} aria-current={(location.hash || '#reserver') === '#infos' ? 'location' : undefined}>Infos</a>
       </div>
     </nav>
 
@@ -728,7 +728,7 @@ export function PublicMetierCoiffureCompanyPage() {
       <section className="company-public-section" id="prestations">
         <div className="company-public-section-heading"><p className="eyebrow">PRESTATIONS</p><h2>Tout ce que propose {data.company.name}</h2><p>Durée et tarif sont affichés clairement avant toute réservation.</p></div>
         <div className="company-public-service-category-groups">
-          {serviceGroups.map(([category, services]) => <section className="company-public-service-category" key={category}><div className="company-public-service-category-head"><div><span>CATÉGORIE</span><h3>{category}</h3></div><small>{services.length} prestation{services.length > 1 ? 's' : ''}</small></div><div className="company-public-service-grid">{services.map((service) => <button type="button" key={service.id} className={serviceIds.includes(service.id) ? 'active' : ''} onClick={() => { chooseService(service.id); document.getElementById('reserver')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }}><span className={`company-public-service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" loading="lazy" decoding="async" /> : <Icon name="camera" size={28} />}</span><div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}</div><span><small>{durationLabel(service.duration_minutes)}</small><b>{currency.format(service.price_cents / 100)}</b></span></button>)}</div></section>)}
+          {serviceGroups.map(([category, services]) => <section className="company-public-service-category" key={category}><div className="company-public-service-category-head"><div><span>CATÉGORIE</span><h3>{category}</h3></div><small>{services.length} prestation{services.length > 1 ? 's' : ''}</small></div><div className="company-public-service-grid">{services.map((service) => <button type="button" key={service.id} className={serviceIds.includes(service.id) ? 'active' : ''} aria-pressed={serviceIds.includes(service.id)} onClick={() => { chooseService(service.id); document.getElementById('reserver')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }}><span className={`company-public-service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" loading="lazy" decoding="async" /> : <Icon name="camera" size={28} />}</span><div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}</div><span className="company-public-service-meta"><small>{durationLabel(service.duration_minutes)}</small><b>{currency.format(service.price_cents / 100)}</b></span></button>)}</div></section>)}
           {data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}
         </div>
       </section>
