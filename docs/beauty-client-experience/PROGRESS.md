@@ -387,4 +387,12 @@ Scénarios conservés dans `scripts/fixtures/beauty-production-security-check.sq
 
 Retour arrière : préserver les protections de sécurité ; en cas de défaut commercial, suspendre l'accès concerné et appliquer une correction en avant conservant l'identité et le site autorisés. Ne jamais réinstaller le rapprochement vulnérable. La sauvegarde est un dernier recours avec maintenance et réapplication des protections avant réouverture, pas un rollback ordinaire testé.
 
-Publication GitHub et résultat Cloudflare : à compléter après observation, sans présumer du succès du déploiement.
+### Publication et validation de la preview
+
+- Commit applicatif publié : `2f2fa5d548fc02c20b3934808f760ac6b11e0d7b`, branche `refactor/beauty-client-experience`, 21 fichiers (design déjà validé, corrections, tests et suivi).
+- Cloudflare Pages : **preview déployée avec succès** à https://d181bdd2.ncrsuite.pages.dev ; alias https://refactor-beauty-client-exper.ncrsuite.pages.dev .
+- Contrôle navigateur réel sur `/salon/nail` : page publique, identité, prestations, sélection, calcul durée/prix et disponibilités réelles du professionnel affichés ; aucune erreur console capturée. Aucune réservation envoyée et aucune donnée réelle modifiée. Les parcours authentifiés complets restent distincts des tests transactionnels SQL décrits plus haut.
+- Les trois fichiers SQL locaux correspondent exactement aux entrées distantes : MD5 `71a9206c13d6e94a984dd9b6bf866904`, `1b890cce461bf79185b65117bf752c0a`, `87d193042af97da9782353b2276e1cec` dans l'ordre sécurité / site / offre. Le workflow GitHub compile uniquement ; aucun rejeu SQL automatique configuré dans les workflows du dépôt.
+- Vérification finale locale après alignement des noms : **23/23 tests PostgreSQL PASS**, diff sans erreur, aucun motif de secret détecté parmi les 21 fichiers, `.env.local` non versionné. Branche propre après commit. Aucun changement de navigation professionnelle, de landing générale ou de CSS public généré.
+- L'utilisateur a autorisé le passage de cette version sur `main` après réussite des contrôles. Le point de retour frontend reste `c2f0d28514846a12a0f38d460c8d67338e7cc300` ; les protections SQL ne doivent jamais être annulées avec le frontend. Le résultat du déploiement de production et son hash final seront rapportés après observation dans le compte rendu de cette intervention.
+
