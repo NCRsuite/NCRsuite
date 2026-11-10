@@ -1,5 +1,6 @@
-import { FormEvent, type CSSProperties, useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { FormEvent, type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { readableBrand, clientReturnPath, durationBetween } from '../lib/beautyClientExperience';
 import { BeautyClientReviewModal } from '../components/BeautyClientReviewModal';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
@@ -182,6 +183,13 @@ function loyaltyEntryLabel(type: string) {
 
 export function CoiffureClientPortalPage() {
   const { user, signIn, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnPath = clientReturnPath(searchParams.get('returnTo'));
+  const dashboardRequest = useRef(0);
+  const accountsRequest = useRef(0);
+  const reviewRequest = useRef(0);
+  const growthRequest = useRef(0);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [accounts, setAccounts] = useState<PortalAccount[]>([]);
@@ -205,7 +213,12 @@ export function CoiffureClientPortalPage() {
   const [runtimeBrandAccent, setRuntimeBrandAccent] = useState<string | null>(null);
 
   const loadAccounts = useCallback(async () => {
+    const request = ++accountsRequest.current;
     if (!user || !supabase) {
+      ++dashboardRequest.current;
+      setSelectedAccountId('');
+      setGrowthState(null);
+      setReferralLink(null);
       setAccounts([]);
       setDashboard(null);
       setReviewStates([]);
@@ -216,7 +229,8 @@ export function CoiffureClientPortalPage() {
     setLoading(true);
     setError('');
     const { data, error: rpcError } = await supabase.rpc('current_coiffure_client_portal_accounts');
-    if (rpcError) setError(rpcError.message);
+    if (request !== accountsRequest.current) return;
+    if (rpcError) { setAccounts([]); setDashboard(null); setError(rpcError.message); }
     else {
       const rows = (data ?? []) as PortalAccount[];
       setAccounts(rows);
@@ -225,10 +239,11 @@ export function CoiffureClientPortalPage() {
         : rows[0]?.account_id ?? '');
     }
     setLoading(false);
-  }, [user]);
+  }, [user?.id]);
 
   const loadDashboard = useCallback(async () => {
-    if (!selectedAccountId || !supabase) {
+    const request = ++dashboardRequest.current;
+    if (!user || !selectedAccountId || !supabase) {
       setDashboard(null);
       setCompletedAppointmentCount(0);
       return;
@@ -239,7 +254,8 @@ export function CoiffureClientPortalPage() {
       supabase.rpc('coiffure_client_portal_dashboard', { p_account_id: selectedAccountId }),
       supabase.rpc('coiffure_client_completed_appointments', { p_account_id: selectedAccountId })
     ]);
-    if (rpcError) setError(rpcError.message);
+    if (request !== dashboardRequest.current) return;
+    if (rpcError) { setDashboard(null); setError(rpcError.message); }
     else {
       const next = data as PortalDashboard;
       setDashboard(next);
@@ -250,23 +266,26 @@ export function CoiffureClientPortalPage() {
       setMarketingOptIn(Boolean(next.client.marketing_opt_in));
     }
     setLoading(false);
-  }, [selectedAccountId]);
+  }, [selectedAccountId, user?.id]);
 
   const loadReviewState = useCallback(async () => {
-    if (!selectedAccountId || !supabase) {
+    const request = ++reviewRequest.current;
+    if (!user || !selectedAccountId || !supabase) {
       setReviewStates([]);
       return;
     }
     const { data, error: rpcError } = await supabase.rpc('coiffure_client_review_state', { p_account_id: selectedAccountId });
+    if (request !== reviewRequest.current) return;
     if (rpcError) {
       setError(rpcError.message);
       return;
     }
     setReviewStates((Array.isArray(data) ? data : []) as ReviewState[]);
-  }, [selectedAccountId]);
+  }, [selectedAccountId, user?.id]);
 
   const loadGrowthState = useCallback(async () => {
-    if (!selectedAccountId || !supabase) {
+    const request = ++growthRequest.current;
+    if (!user || !selectedAccountId || !supabase) {
       setGrowthState(null);
       setReferralLink(null);
       return;
@@ -275,13 +294,14 @@ export function CoiffureClientPortalPage() {
       supabase.rpc('coiffure_client_growth_state', { p_account_id: selectedAccountId }),
       supabase.rpc('get_or_create_beauty_referral_link', { p_account_id: selectedAccountId })
     ]);
+    if (request !== growthRequest.current) return;
     if (growthError) {
       setError(growthError.message);
       return;
     }
     setGrowthState((growthData ?? null) as ClientGrowthState | null);
     if (!referralError) setReferralLink((referralData ?? null) as ReferralLinkState | null);
-  }, [selectedAccountId]);
+  }, [selectedAccountId, user?.id]);
 
   useEffect(() => { void loadAccounts(); }, [loadAccounts]);
   useEffect(() => { void loadDashboard(); void loadReviewState(); void loadGrowthState(); }, [loadDashboard, loadReviewState, loadGrowthState]);
@@ -331,8 +351,8 @@ export function CoiffureClientPortalPage() {
   const availableRewards = useMemo(() => dashboard?.rewards.filter((reward) => reward.status === 'available') ?? [], [dashboard]);
   const pastRewards = useMemo(() => dashboard?.rewards.filter((reward) => reward.status !== 'available') ?? [], [dashboard]);
   const loyaltyHistory = useMemo(() => dashboard?.history ?? [], [dashboard]);
-  const accent = runtimeBrandAccent || '#5C194B';
-  const style = { '--beauty-client-accent': accent } as CSSProperties;
+  const brand = readableBrand(runtimeBrandAccent || dashboard?.organization.primary_color);
+  const style = { '--beauty-client-accent': brand.color, '--beauty-client-ink': brand.ink } as CSSProperties;
   const bookingPath = dashboard?.organization.slug ? `/salon/${dashboard.organization.slug}#reserver` : '/reserver/';
   const publicPagePath = dashboard?.organization.slug ? `/salon/${dashboard.organization.slug}` : '/';
   const pointsProgress = dashboard?.settings.points_enabled
@@ -398,7 +418,7 @@ export function CoiffureClientPortalPage() {
   }
 
   async function cancelAppointment(appointment: PortalAppointment) {
-    if (!supabase || !appointment.public_token || !appointment.can_cancel) return;
+    if (!supabase || !appointment.public_token || !appointment.can_cancel || busyAppointmentId) return;
     if (!window.confirm('Annuler ce rendez-vous ?')) return;
     setBusyAppointmentId(appointment.id);
     setError('');
@@ -421,15 +441,18 @@ export function CoiffureClientPortalPage() {
     setError('');
     try {
       await signIn(email, password);
+      setPassword('');
+      if (returnPath) navigate(returnPath, { replace: true });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Connexion impossible.');
+      const detail = caught instanceof Error ? caught.message : 'Connexion impossible. Vérifiez votre connexion et réessayez.';
+      setError(/Invalid login credentials/i.test(detail) ? 'Adresse e-mail ou mot de passe incorrect.' : detail);
     }
     setPending(false);
   }
 
   async function saveProfile(event: FormEvent) {
     event.preventDefault();
-    if (!supabase || !selectedAccountId) return;
+    if (!supabase || !selectedAccountId || pending) return;
     setPending(true);
     setError('');
     setSuccess('');
@@ -457,8 +480,8 @@ export function CoiffureClientPortalPage() {
           <label>Mot de passe<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password"/></label>
           <button className="beauty-client-login-button" disabled={pending}>{pending ? 'Connexion…' : 'Ouvrir mon espace'}</button>
         </form>
-        {error && <div className="beauty-client-message error">{error}</div>}
-        <div className="beauty-client-login-footer"><Link to="/connexion">Accès professionnel</Link><span>·</span><a href="mailto:contact@ncr-suite.fr">Besoin d’aide ?</a></div>
+        {error && <div className="beauty-client-message error" role="alert">{error}</div>}
+        <div className="beauty-client-login-footer"><Link to="/mot-de-passe-oublie?client=beauty">Mot de passe oublié ?</Link><span>·</span><a href="mailto:contact@ncr-suite.fr">Besoin d’aide ?</a></div>
       </section>
     </div>;
   }
@@ -482,42 +505,34 @@ export function CoiffureClientPortalPage() {
           <div><strong>{dashboard.organization.name}</strong><small>Votre espace client</small></div>
         </div>
         <div className="beauty-client-top-actions">
-          {accounts.length > 1 && <select className="beauty-client-company-switch" value={selectedAccountId} onChange={(event) => { setSelectedAccountId(event.target.value); setTab('home'); }}>{accounts.map((account) => <option key={account.account_id} value={account.account_id}>{account.organization_name}</option>)}</select>}
+          {accounts.length > 1 && <select aria-label="Choisir mon enseigne" className="beauty-client-company-switch" value={selectedAccountId} onChange={(event) => { ++dashboardRequest.current; setDashboard(null); setGrowthState(null); setReferralLink(null); setReviewStates([]); setError(''); setSuccess(''); setSelectedAccountId(event.target.value); setTab('home'); }}>{accounts.map((account) => <option key={account.account_id} value={account.account_id}>{account.organization_name}</option>)}</select>}
           <Link className="beauty-client-page-link" to={publicPagePath}><Icon name="eye" size={16}/><span>Voir l’enseigne</span></Link>
           <button className="beauty-client-icon-action" onClick={() => void signOut()}><Icon name="logout" size={17}/><span>Déconnexion</span></button>
         </div>
       </div>
     </header>
 
-    <nav className="beauty-client-tabs"><div className="beauty-client-tabs-inner">
-      <button className={tab === 'home' ? 'active' : ''} onClick={() => setTab('home')}><Icon name="home" size={17}/>Accueil</button>
-      <button className={tab === 'appointments' ? 'active' : ''} onClick={() => setTab('appointments')}><Icon name="calendar" size={17}/>Rendez-vous</button>
-      <button className={tab === 'rewards' ? 'active' : ''} onClick={() => setTab('rewards')}><Icon name="sparkles" size={17}/>Avantages{availableRewards.length > 0 && <b>{availableRewards.length}</b>}</button>
-      <button className={tab === 'profile' ? 'active' : ''} onClick={() => setTab('profile')}><Icon name="users" size={17}/>Profil</button>
+    <nav className="beauty-client-tabs" aria-label="Navigation client"><div className="beauty-client-tabs-inner">
+      <button aria-current={tab === 'home' ? 'page' : undefined} className={tab === 'home' ? 'active' : ''} onClick={() => setTab('home')}><Icon name="home" size={17}/>Accueil</button>
+      <button aria-current={tab === 'appointments' ? 'page' : undefined} className={tab === 'appointments' ? 'active' : ''} onClick={() => setTab('appointments')}><Icon name="calendar" size={17}/>Rendez-vous</button>
+      <button aria-current={tab === 'rewards' ? 'page' : undefined} className={tab === 'rewards' ? 'active' : ''} onClick={() => setTab('rewards')}><Icon name="sparkles" size={17}/>Avantages{availableRewards.length > 0 && <b>{availableRewards.length}</b>}</button>
+      <button aria-current={tab === 'profile' ? 'page' : undefined} className={tab === 'profile' ? 'active' : ''} onClick={() => setTab('profile')}><Icon name="users" size={17}/>Profil</button>
     </div></nav>
 
     <main className="beauty-client-main">
-      {error && <div className="beauty-client-message error">{error}</div>}
-      {success && <div className="beauty-client-message success">{success}</div>}
+      {error && <div className="beauty-client-message error" role="alert">{error}</div>}
+      {success && <div className="beauty-client-message success" role="status">{success}</div>}
 
       {tab === 'home' && <>
         <section className="beauty-client-welcome">
-          <div className="beauty-client-welcome-copy">
-            <p className="beauty-client-eyebrow">BONJOUR {dashboard.client.first_name.toUpperCase()}</p>
-            <h1>{nextAppointment ? 'Votre prochain rendez-vous approche' : 'Bienvenue dans votre espace'}</h1>
-            <p>{dashboard.settings.program_description || `Retrouvez ici vos rendez-vous et vos avantages chez ${dashboard.organization.name}.`}</p>
-            <div className="beauty-client-welcome-actions"><Link className="beauty-client-primary" to={bookingPath}><Icon name="calendar" size={16}/>Prendre rendez-vous</Link><Link className="beauty-client-secondary" to={publicPagePath}><Icon name="eye" size={16}/>Voir la page de l’enseigne</Link></div>
-          </div>
-          <aside className="beauty-client-identity-card">
-            <div className="beauty-client-identity-top">{dashboard.organization.logo_url ? <img src={dashboard.organization.logo_url} alt=""/> : <span>{dashboard.organization.name.slice(0, 1).toUpperCase()}</span>}<div><strong>{dashboard.organization.name}</strong><small>Enseigne liée à votre dossier client</small></div></div>
-            <div className="beauty-client-identity-address"><Icon name="map" size={17}/><span>{dashboard.organization.address || 'Adresse disponible sur la page de l’enseigne'}</span></div>
-          </aside>
+          <div><p className="beauty-client-eyebrow">MON ESPACE · {dashboard.organization.name}</p><h1>Bonjour {dashboard.client.first_name}</h1><p>Votre prochain moment au salon, en toute simplicité.</p></div>
+          {nextAppointment && <Link className="beauty-client-primary" to={bookingPath}><Icon name="plus" size={17}/>Réserver de nouveau</Link>}
         </section>
 
         <section className="beauty-client-dashboard-grid">
-          <article className="beauty-client-card">
+          <article className="beauty-client-card beauty-client-main-appointment">
             <div className="beauty-client-card-head"><div><p className="beauty-client-eyebrow">MES RDV</p><h2>{nextAppointment ? 'Prochain rendez-vous' : 'Aucun rendez-vous à venir'}</h2></div><button onClick={() => setTab('appointments')}>Tout voir</button></div>
-            {nextAppointment ? <div className="beauty-client-next"><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(nextAppointment.starts_at))}</strong><small>{monthShort.format(new Date(nextAppointment.starts_at)).replace('.', '')}</small></span><div><h3>{nextAppointment.service_name}</h3><p>{dateTime(nextAppointment.starts_at)}<br/>avec {nextAppointment.staff_name}{nextAppointment.site_name ? ` · ${nextAppointment.site_name}` : ''}</p></div>{nextAppointment.public_token && <div className="beauty-client-next-actions">{nextAppointment.can_reschedule && <Link to={`/reservation/${nextAppointment.public_token}?action=reschedule`}>Modifier</Link>}{nextAppointment.can_cancel && <button type="button" disabled={busyAppointmentId === nextAppointment.id} onClick={() => void cancelAppointment(nextAppointment)}>{busyAppointmentId === nextAppointment.id ? 'Annulation…' : 'Annuler'}</button>}{!nextAppointment.can_reschedule && !nextAppointment.can_cancel && <Link to={`/reservation/${nextAppointment.public_token}`}>Voir</Link>}</div>}</div> : <div className="beauty-client-empty"><Icon name="calendar" size={25}/><p>Réservez votre prochain créneau directement auprès de votre enseigne.</p><Link to={bookingPath}>Réserver maintenant</Link></div>}
+            {nextAppointment ? <div className="beauty-client-next"><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(nextAppointment.starts_at))}</strong><small>{monthShort.format(new Date(nextAppointment.starts_at)).replace('.', '')}</small></span><div><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${nextAppointment.status}`}>{appointmentLabels[nextAppointment.status]}</em><small>{durationBetween(nextAppointment.starts_at, nextAppointment.ends_at)}{nextAppointment.amount_cents != null ? ` · ${money.format(nextAppointment.amount_cents / 100)}` : ''}</small></div><h3>{nextAppointment.service_name}</h3><p>{dateTime(nextAppointment.starts_at)}<br/>avec {nextAppointment.staff_name}{nextAppointment.site_name ? ` · ${nextAppointment.site_name}` : ''}</p></div>{nextAppointment.public_token && <div className="beauty-client-next-actions">{nextAppointment.can_reschedule && <Link to={`/reservation/${nextAppointment.public_token}?action=reschedule`}>Modifier</Link>}{nextAppointment.can_cancel && <button type="button" disabled={busyAppointmentId === nextAppointment.id} onClick={() => void cancelAppointment(nextAppointment)}>{busyAppointmentId === nextAppointment.id ? 'Annulation…' : 'Annuler'}</button>}{!nextAppointment.can_reschedule && !nextAppointment.can_cancel && <Link to={`/reservation/${nextAppointment.public_token}`}>Voir</Link>}</div>}</div> : <div className="beauty-client-empty"><p>Réservez votre prochain créneau directement auprès de votre enseigne.</p><Link className="beauty-client-primary" to={bookingPath}><Icon name="calendar" size={17}/>Prendre rendez-vous</Link></div>}
             {latestCompleted && <div className="beauty-client-rebook"><div><strong>Envie de reprendre rendez-vous ?</strong><small>Dernière prestation : {latestCompleted.service_name} avec {latestCompleted.staff_name}</small></div><div className="beauty-client-appointment-actions"><Link to={rebookPath(latestCompleted)}>Reprendre RDV →</Link>{latestReviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(latestCompleted)}>Donner mon avis</button>}{growthState?.google_review_url && <a className="beauty-client-google-review" href={growthState.google_review_url} target="_blank" rel="noreferrer"><Icon name="sparkles" size={14}/> Avis Google</a>}{latestReviewState?.review_id && <span className="beauty-client-review-published"><b>★ {latestReviewState.rating}</b> Avis publié</span>}</div></div>}
           </article>
 
@@ -529,21 +544,21 @@ export function CoiffureClientPortalPage() {
             <button className="beauty-client-primary beauty-client-referral-share" type="button" onClick={() => void shareReferral()}><Icon name="users" size={15}/>Partager mon lien</button>
           </article>}
 
-          <article className="beauty-client-card">
+          {(dashboard.settings.program_active || availableRewards.length > 0) && <article className="beauty-client-card">
             <div className="beauty-client-card-head"><div><p className="beauty-client-eyebrow">FIDÉLITÉ</p><h2>{availableRewards.length > 0 ? `${availableRewards.length} avantage${availableRewards.length > 1 ? 's' : ''} disponible${availableRewards.length > 1 ? 's' : ''}` : 'Votre fidélité'}</h2></div><button onClick={() => setTab('rewards')}>{loyaltyCardEnabled ? 'Voir ma carte' : 'Voir mes avantages'}</button></div>
             {dashboard.settings.program_active ? <div className="beauty-client-balance-list">
               {dashboard.settings.points_enabled && <div className="beauty-client-balance-item"><div className="beauty-client-balance-top"><strong>{dashboard.balance.points} pts</strong><small>Objectif {dashboard.settings.points_reward_threshold}</small></div><div className="beauty-client-progress"><span style={{ width: `${pointsProgress}%` }}/></div><small>{Math.max(0, dashboard.settings.points_reward_threshold - dashboard.balance.points)} point(s) avant le prochain avantage</small></div>}
               {dashboard.settings.visits_enabled && <div className="beauty-client-balance-item"><div className="beauty-client-balance-top"><strong>{dashboard.balance.visits}/{dashboard.settings.visits_required}</strong><small>passages</small></div><div className="beauty-client-progress"><span style={{ width: `${visitsProgress}%` }}/></div><small>{Math.max(0, dashboard.settings.visits_required - dashboard.balance.visits)} passage(s) restant(s)</small></div>}
               {!dashboard.settings.points_enabled && !dashboard.settings.visits_enabled && <div className="beauty-client-empty"><Icon name="sparkles" size={25}/><p>Vos avantages personnalisés apparaîtront ici.</p></div>}
             </div> : <div className="beauty-client-empty"><Icon name="sparkles" size={25}/><p>Le programme fidélité de cette enseigne n’est pas actif.</p></div>}
-          </article>
+          </article>}
         </section>
       </>}
 
       {tab === 'appointments' && <section>
         <div className="beauty-client-section-head"><div><p className="beauty-client-eyebrow">RENDEZ-VOUS</p><h1>Mes rendez-vous</h1></div><Link className="beauty-client-primary" to={bookingPath}><Icon name="plus" size={16}/>Nouveau rendez-vous</Link></div>
         <div className="beauty-client-appointment-group"><h2>À venir</h2><div className="beauty-client-appointment-list">{upcoming.map((appointment) => <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}{appointment.site_name ? ` · ${appointment.site_name}` : ''}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}</div></div><div className="beauty-client-appointment-actions">{appointment.public_token && appointment.can_reschedule && <Link className="primary" to={`/reservation/${appointment.public_token}?action=reschedule`}>Modifier</Link>}{appointment.public_token && appointment.can_cancel && <button type="button" className="beauty-client-cancel-action" disabled={busyAppointmentId === appointment.id} onClick={() => void cancelAppointment(appointment)}>{busyAppointmentId === appointment.id ? 'Annulation…' : 'Annuler'}</button>}{appointment.public_token && !appointment.can_reschedule && !appointment.can_cancel && <Link to={`/reservation/${appointment.public_token}`}>Voir</Link>}</div></article>)}{upcoming.length === 0 && <div className="beauty-client-empty"><Icon name="calendar" size={26}/><p>Aucun rendez-vous à venir.</p><Link to={bookingPath}>Prendre rendez-vous</Link></div>}</div></div>
-        <div className="beauty-client-appointment-group"><h2>Historique</h2><div className="beauty-client-appointment-list">{history.map((appointment) => { const reviewState = reviewByAppointment.get(appointment.id); return <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}{reviewState?.review_id && <span className="beauty-client-review-published"><b>★ {reviewState.rating}</b> Avis vérifié</span>}</div></div><div className="beauty-client-appointment-actions">{appointment.status === 'completed' && <Link to={rebookPath(appointment)}>Reprendre RDV</Link>}{appointment.status === 'completed' && reviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(appointment)}>Donner mon avis</button>}{appointment.status === 'completed' && growthState?.google_review_url && <a className="beauty-client-google-review" href={growthState.google_review_url} target="_blank" rel="noreferrer"><Icon name="sparkles" size={14}/> Avis Google</a>}</div></article>; })}{history.length === 0 && <div className="beauty-client-empty"><p>Aucun historique pour le moment.</p></div>}</div></div>
+        <div className="beauty-client-appointment-group"><h2>Passés et annulés</h2><div className="beauty-client-appointment-list">{history.map((appointment) => { const reviewState = reviewByAppointment.get(appointment.id); return <article className="beauty-client-appointment" key={appointment.id}><span className="beauty-client-date-badge"><strong>{dayNumber.format(new Date(appointment.starts_at))}</strong><small>{monthShort.format(new Date(appointment.starts_at)).replace('.', '')}</small></span><div><h3>{appointment.service_name}</h3><p>{dateTime(appointment.starts_at)} · {appointment.staff_name}{appointment.site_name ? ` · ${appointment.site_name}` : ''}</p><div className="beauty-client-appointment-meta"><em className={`beauty-client-status ${appointment.status}`}>{appointmentLabels[appointment.status]}</em>{appointment.amount_cents != null && <small>{money.format(appointment.amount_cents / 100)}</small>}{reviewState?.review_id && <span className="beauty-client-review-published"><b>★ {reviewState.rating}</b> Avis vérifié</span>}</div></div><div className="beauty-client-appointment-actions">{appointment.status === 'completed' && <Link to={rebookPath(appointment)}>Reprendre RDV</Link>}{appointment.status === 'completed' && reviewState?.can_review && <button className="beauty-client-review-action" onClick={() => setReviewingAppointment(appointment)}>Donner mon avis</button>}{appointment.status === 'completed' && growthState?.google_review_url && <a className="beauty-client-google-review" href={growthState.google_review_url} target="_blank" rel="noreferrer"><Icon name="sparkles" size={14}/> Avis Google</a>}</div></article>; })}{history.length === 0 && <div className="beauty-client-empty"><p>Aucun historique pour le moment.</p></div>}</div></div>
       </section>}
 
       {tab === 'rewards' && <section>
@@ -657,11 +672,11 @@ export function CoiffureClientPortalPage() {
       </section>}
     </main>
 
-    <nav className="beauty-client-mobile-nav">
-      <button className={tab === 'home' ? 'active' : ''} onClick={() => setTab('home')}><Icon name="home" size={17}/>Accueil</button>
-      <button className={tab === 'appointments' ? 'active' : ''} onClick={() => setTab('appointments')}><Icon name="calendar" size={17}/>RDV</button>
-      <button className={tab === 'rewards' ? 'active' : ''} onClick={() => setTab('rewards')}><Icon name="sparkles" size={17}/>Avantages</button>
-      <button className={tab === 'profile' ? 'active' : ''} onClick={() => setTab('profile')}><Icon name="users" size={17}/>Profil</button>
+    <nav className="beauty-client-mobile-nav" aria-label="Navigation client mobile">
+      <button aria-current={tab === 'home' ? 'page' : undefined} className={tab === 'home' ? 'active' : ''} onClick={() => setTab('home')}><Icon name="home" size={17}/>Accueil</button>
+      <button aria-current={tab === 'appointments' ? 'page' : undefined} className={tab === 'appointments' ? 'active' : ''} onClick={() => setTab('appointments')}><Icon name="calendar" size={20}/>Rendez-vous</button>
+      <button aria-current={tab === 'rewards' ? 'page' : undefined} className={tab === 'rewards' ? 'active' : ''} onClick={() => setTab('rewards')}><Icon name="sparkles" size={17}/>Avantages</button>
+      <button aria-current={tab === 'profile' ? 'page' : undefined} className={tab === 'profile' ? 'active' : ''} onClick={() => setTab('profile')}><Icon name="users" size={17}/>Profil</button>
     </nav>
 
     {reviewingAppointment && <BeautyClientReviewModal

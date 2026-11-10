@@ -2,6 +2,8 @@ import { FormEvent, type CSSProperties, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
+import { readableBrand } from '../lib/beautyClientExperience';
+import '../beautyClientPortal.css';
 import { supabase } from '../lib/supabase';
 
 interface InvitationDetails {
@@ -49,7 +51,7 @@ export function CoiffureClientPortalInvitationPage() {
 
   async function authenticate(event: FormEvent) {
     event.preventDefault();
-    if (!details || !supabase) return;
+    if (!details || !supabase || pending) return;
     setPending(true); setError(''); setMessage('');
     try {
       if (mode === 'login') {
@@ -74,7 +76,7 @@ export function CoiffureClientPortalInvitationPage() {
           navigate('/espace-client-coiffure', { replace: true });
           return;
         } else {
-          setMessage('Compte créé. Confirme ton adresse depuis l’e-mail reçu, puis reviens sur cette page : l’activation se terminera automatiquement après connexion.');
+          setMessage('Compte créé. Confirme ton adresse depuis l’e-mail reçu, puis reviens sur cette page : connecte-toi puis sélectionne « Activer mon espace client ».');
         }
       }
     } catch (caught) {
@@ -83,7 +85,7 @@ export function CoiffureClientPortalInvitationPage() {
   }
 
   async function acceptInvitation() {
-    if (!supabase || !token) return;
+    if (!supabase || !token || pending) return;
     setPending(true); setError('');
     const { error: rpcError } = await supabase.rpc('accept_coiffure_client_portal_invitation', { p_token: token });
     if (rpcError) { setError(rpcError.message); setPending(false); }
@@ -92,10 +94,10 @@ export function CoiffureClientPortalInvitationPage() {
 
   const emailMatches = Boolean(user?.email && details?.invited_email && user.email.toLowerCase() === details.invited_email.toLowerCase());
   const available = details?.invitation_status === 'pending';
-  const accent = details?.organization_primary_color || '#c026d3';
+  const accent = readableBrand(details?.organization_primary_color).ink;
 
-  return <div className="hair-client-public-shell" style={{ '--hair-accent': accent } as CSSProperties}>
-    <div className="hair-client-public-glow"/>
+  return <div className="hair-client-public-shell beauty-client-invitation" style={{ '--hair-accent': accent } as CSSProperties}>
+
     <section className="hair-client-invitation-card">
       <div className="hair-client-brand">{details?.organization_logo_url ? <img src={details.organization_logo_url} alt=""/> : <span><Icon name="scissors" size={25}/></span>}<div><strong>{details?.organization_name || 'Espace client Coiffure'}</strong><small>Propulsé par NCR Suite</small></div></div>
       {loading ? <div className="hair-client-loading"><span/><p>Vérification de l’invitation…</p></div> : details ? <>

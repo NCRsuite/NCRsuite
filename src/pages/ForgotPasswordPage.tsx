@@ -1,11 +1,13 @@
 import { FormEvent, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { PageMetadata } from '../components/PageMetadata';
 import { PublicSiteHeader } from '../components/PublicSiteHeader';
 import { supabase } from '../lib/supabase';
 
 export function ForgotPasswordPage() {
+  const [searchParams] = useSearchParams();
+  const loginPath = searchParams.get('client') === 'beauty' ? '/espace-client-coiffure' : '/connexion';
   const [email, setEmail] = useState('');
   const [pending, setPending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -36,7 +38,7 @@ export function ForgotPasswordPage() {
           {sent ? (
             <>
               <p>Si cette adresse correspond à un compte autorisé, un lien NCR Suite vient d’être envoyé par <strong>contact@ncr-suite.fr</strong>.</p>
-              <Link className="public-primary-action full" to="/connexion">Revenir à la connexion</Link>
+              <Link className="public-primary-action full" to={loginPath}>Revenir à la connexion</Link>
             </>
           ) : (
             <form onSubmit={submit}>
@@ -46,7 +48,7 @@ export function ForgotPasswordPage() {
               <button className="public-primary-action full" disabled={pending}>{pending ? 'Vérification…' : 'Recevoir un lien sécurisé'}</button>
             </form>
           )}
-          <Link className="auth-simple-back" to="/connexion">Retour</Link>
+          <Link className="auth-simple-back" to={loginPath}>Retour</Link>
         </section>
       </main>
     </div>

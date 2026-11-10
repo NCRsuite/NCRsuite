@@ -1,8 +1,9 @@
-import { CSSProperties, FormEvent, useEffect, useMemo, useState } from 'react';
+import { CSSProperties, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { BeautyPublicReviews } from '../components/BeautyPublicReviews';
 import { Icon } from '../components/Icon';
 import { useAuth } from '../contexts/AuthContext';
+import { bookingError, createSubmissionGate, durationBetween, isBookingConfirmation, readableBrand } from '../lib/beautyClientExperience';
 import { supabase } from '../lib/supabase';
 import '../beautyVerifiedReviews.css';
 import '../beautyMultiServiceBooking.css';
@@ -204,6 +205,7 @@ export function PublicMetierCoiffureCompanyPage() {
   const [activationStatus, setActivationStatus] = useState<PortalActivationStatus | null>(null);
   const [activationBusy, setActivationBusy] = useState(false);
   const [activationMessage, setActivationMessage] = useState('');
+  const submitOnce = useRef(createSubmissionGate());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [referralMessage, setReferralMessage] = useState('');
@@ -282,6 +284,10 @@ export function PublicMetierCoiffureCompanyPage() {
     const requestedService = params.get('service');
     const requestedServices = (params.get('services') || '').split(',').map((id) => id.trim()).filter(Boolean);
     const requestedStaff = params.get('staff');
+    const requestedSite = params.get('site');
+    const requestedDate = params.get('date');
+    if (requestedSite && data.sites.some((site) => site.id === requestedSite)) setSiteId(requestedSite);
+    if (requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate)) setDate(requestedDate);
     const validRequestedServices = requestedServices.filter((id) => data.services.some((service) => service.id === id)).slice(0, 6);
     if (validRequestedServices.length > 0) setServiceIds(validRequestedServices);
     else if (requestedService && data.services.some((service) => service.id === requestedService)) setServiceIds([requestedService]);
@@ -463,10 +469,13 @@ export function PublicMetierCoiffureCompanyPage() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!supabase || !data || selectedServices.length === 0 || !selectedSlot || !siteId) return;
+    const client = supabase;
+    await submitOnce.current(async () => {
     setSaving(true);
+    try {
     setError('');
     const { data: bookingData, error: requestError } = portalIdentity
-      ? await supabase.rpc('create_coiffure_client_portal_booking_v2', {
+      ? await client.rpc('create_coiffure_client_portal_booking_v2', {
           p_account_id: portalIdentity.account_id,
           p_site_id: siteId,
           p_service_ids: serviceIds,
@@ -475,7 +484,7 @@ export function PublicMetierCoiffureCompanyPage() {
           p_notes: notes || null,
           p_privacy_consent: consent
         })
-      : await supabase.rpc('create_public_metier_coiffure_company_booking_v2', {
+      : await client.rpc('create_public_metier_coiffure_company_booking_v2', {
           p_slug: data.company.public_slug,
           p_site_id: siteId,
           p_service_ids: serviceIds,
@@ -489,17 +498,13 @@ export function PublicMetierCoiffureCompanyPage() {
           p_website: website || null,
           p_privacy_consent: consent
         });
-    if (requestError) {
-      setSaving(false);
-      setError(requestError.message);
-      setSelectedSlot(null);
-      return;
-    }
-
+    if (requestError) throw requestError;
+    if (!isBookingConfirmation(bookingData)) throw new Error('Réponse du serveur non vérifiable. Consultez vos rendez-vous avant de réessayer.');
     const booking = bookingData as BookingResult;
     setResult(booking);
     setReferralMessage('');
 
+    try {
     if (booking?.token && !portalIdentity) {
       const originDetail = trackedOrigin === 'qr_code'
         ? 'QR de réservation'
@@ -508,7 +513,7 @@ export function PublicMetierCoiffureCompanyPage() {
           : trackedOrigin === 'direct_link'
             ? 'Lien direct de réservation'
             : 'Page publique';
-      await supabase.rpc('tag_public_beauty_booking_origin', {
+      await client.rpc('tag_public_beauty_booking_origin', {
         p_token: booking.token,
         p_origin: trackedOrigin,
         p_detail: originDetail,
@@ -517,7 +522,7 @@ export function PublicMetierCoiffureCompanyPage() {
     }
 
     if (referralCode && booking?.token) {
-      const { data: referralData } = await supabase.rpc('register_public_booking_referral', {
+      const { data: referralData } = await client.rpc('register_public_booking_referral', {
         p_token: booking.token,
         p_code: referralCode
       });
@@ -526,15 +531,23 @@ export function PublicMetierCoiffureCompanyPage() {
         setReferralMessage('Parrainage enregistré. Les avantages seront validés après votre premier rendez-vous terminé.');
       }
     }
-    setSaving(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch { setReferralMessage('Le rendez-vous est enregistré. Certaines informations complémentaires n’ont pas pu être enregistrées ; contactez le salon si nécessaire.'); }
+    window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    } catch (caught) {
+      setError(bookingError(caught)); setSelectedSlot(null);
+      const { data: refreshedSlots } = await client.rpc('get_public_metier_coiffure_company_multi_slots', { p_slug: data.company.public_slug, p_site_id: siteId, p_service_ids: serviceIds, p_date: date, p_staff_id: staffId === 'any' ? null : staffId });
+      setSlots(Array.isArray(refreshedSlots) ? refreshedSlots as Slot[] : []);
+    }
+    finally { setSaving(false); }
+    });
   }
 
   if (loading) return <div className="company-public-state"><img src="/brand/ncr-suite-icon.png" alt="" /><p>Chargement de l’enseigne…</p></div>;
   if (pageError || !data) return <div className="company-public-state company-public-error"><h1>Page indisponible</h1><p>{pageError}</p><Link to="/" className="secondary-button">Retour à NCR Suite</Link></div>;
 
   const style = {
-    '--company-accent': data.company.primary_color,
+    '--company-accent': readableBrand(data.company.primary_color).ink,
+    '--company-brand': data.company.primary_color,
     '--company-banner-landscape-x': `${data.company.banner_position_x ?? 50}%`,
     '--company-banner-landscape-y': `${data.company.banner_position_y ?? 50}%`,
     '--company-banner-landscape-zoom': String((data.company.banner_landscape_zoom ?? 100) / 100),
@@ -549,6 +562,12 @@ export function PublicMetierCoiffureCompanyPage() {
     data.settings.max_days_ahead || 90
   );
   const maxDate = dateInput(addDays(new Date(), effectiveMaxDays));
+  const returnSelection = new URLSearchParams(location.search);
+  if (siteId) returnSelection.set('site', siteId);
+  if (serviceIds.length) returnSelection.set('services', serviceIds.join(','));
+  if (staffId !== 'any') returnSelection.set('staff', staffId);
+  returnSelection.set('date', date);
+  const clientLoginPath = `/espace-client-coiffure?returnTo=${encodeURIComponent(`${location.pathname}?${returnSelection.toString()}#reserver`)}`;
   const bookingStep = serviceIds.length === 0 ? 1 : !date ? 2 : !selectedSlot ? 3 : 4;
 
   if (result) {
@@ -557,12 +576,13 @@ export function PublicMetierCoiffureCompanyPage() {
         <div className="company-public-success-mark">✓</div>
         <p className="eyebrow">RENDEZ-VOUS ENREGISTRÉ</p>
         <h1>{result.status === 'confirmed' ? 'Votre rendez-vous est confirmé' : 'Votre demande a bien été envoyée'}</h1>
-        <p>{result.company_name} vous attend le <strong>{fullDate.format(new Date(result.starts_at))}</strong> à <strong>{shortTime.format(new Date(result.starts_at))}</strong>.</p>
+        <p>{result.status === 'confirmed' ? `${result.company_name} vous attend le` : 'Le salon doit encore confirmer votre demande pour le'} <strong>{fullDate.format(new Date(result.starts_at))}</strong> à <strong>{shortTime.format(new Date(result.starts_at))}</strong>.</p>
         {referralMessage && <div className="company-public-referral-success"><Icon name="users" size={17}/><span>{referralMessage}</span></div>}
         <div className="company-public-recap">
           <span><small>{(result.service_count ?? 1) > 1 ? 'Prestations' : 'Prestation'}</small><strong>{result.service_name}</strong></span>
           <span><small>Avec</small><strong>{result.staff_name}</strong></span>
-          <span><small>Lieu</small><strong>{result.site_name}</strong></span>
+          <span><small>Lieu</small><strong>{result.site_name}</strong><small>{result.site_address}</small></span>
+          <span><small>Durée</small><strong>{durationBetween(result.starts_at, result.ends_at)}</strong></span>
           <span><small>Tarif</small><strong>{currency.format(result.amount_cents / 100)}</strong></span>
         </div>
         {activationStatus && <section className="company-public-activation-card">
@@ -600,7 +620,7 @@ export function PublicMetierCoiffureCompanyPage() {
           <div><strong>{data.company.name}</strong><small>Coiffure & beauté</small></div>
         </div>
         <div className="company-public-nav-actions">
-          <Link className="company-public-client-link" to="/espace-client-coiffure"><Icon name="users" size={16} /> Mon espace</Link>
+          <Link className="company-public-client-link" to={clientLoginPath}><Icon name="users" size={16} /> Mon espace</Link>
           {data.company.booking_enabled && <a className="company-public-book-button" href="#reserver"><Icon name="calendar" size={16} /> Prendre rendez-vous</a>}
         </div>
       </div>
@@ -608,7 +628,7 @@ export function PublicMetierCoiffureCompanyPage() {
         <div className="company-public-hero-badges"><span>Coiffure & beauté</span>{data.company.booking_enabled && <span className="available"><i /> Réservation en ligne</span>}</div>
         <h1>{data.company.name}</h1>
         <p className="company-public-tagline">{data.company.tagline || 'Votre moment beauté, simplement.'}</p>
-        {data.company.description && <p className="company-public-description">{data.company.description}</p>}
+        {data.company.description && <details className="company-public-description"><summary>Découvrir le salon</summary><p>{data.company.description}</p></details>}
         <div className="company-public-contact-row">
           {selectedSite && <a href="#infos"><Icon name="map" size={16} /> {[selectedSite.address, selectedSite.postal_code, selectedSite.city].filter(Boolean).join(' ') || selectedSite.name}</a>}
           {data.company.phone && <a href={`tel:${data.company.phone}`}><Icon name="phone" size={16} /> {data.company.phone}</a>}
@@ -627,11 +647,6 @@ export function PublicMetierCoiffureCompanyPage() {
     </nav>
 
     <main className="company-public-content">
-      {data.sites.length > 0 && <section className="company-public-info-grid" id="infos">
-        <article><span className="company-public-info-icon"><Icon name="map" size={20} /></span><div><small>Adresse</small><strong>{selectedSite?.name || data.sites[0].name}</strong><p>{[selectedSite?.address, selectedSite?.postal_code, selectedSite?.city].filter(Boolean).join(' ')}</p></div></article>
-        <article><span className="company-public-info-icon"><Icon name="clock" size={20} /></span><div><small>Horaires</small><strong>{data.company.hours_text || 'Sur rendez-vous'}</strong>{data.company.practical_info && <p>{data.company.practical_info}</p>}</div></article>
-      </section>}
-
       <section className="company-public-booking" id="reserver">
         <div className="company-public-booking-head">
           <div><p className="eyebrow">RÉSERVATION</p><h2>{data.company.booking_enabled ? 'Choisissez votre rendez-vous' : 'Réservation temporairement fermée'}</h2><p>{data.settings.welcome_text || (data.company.booking_enabled ? 'Un parcours simple, étape par étape.' : 'Contactez directement l’enseigne pour toute demande.')}</p></div>
@@ -640,12 +655,13 @@ export function PublicMetierCoiffureCompanyPage() {
 
         {referralCode && <div className="company-public-referral-invite"><Icon name="users" size={17}/><div><strong>Parrainage actif</strong><small>Votre invitation est prise en compte. Les avantages seront validés après votre premier rendez-vous terminé.</small></div></div>}
 
-        {data.company.booking_enabled ? <div className="company-public-booking-flow">
+        {error && <div className="error-message" role="alert">{error}</div>}
+        {data.company.booking_enabled ? <fieldset disabled={saving} className="company-public-booking-flow">
           {data.sites.length > 1 && <div className="company-public-site-choice"><label>Lieu<select value={siteId} onChange={(event) => { setSiteId(event.target.value); setStaffId('any'); setSelectedSlot(null); }}>{data.sites.map((site) => <option key={site.id} value={site.id}>{site.name}{site.city ? ` · ${site.city}` : ''}</option>)}</select></label></div>}
 
           <section className="company-public-book-step open">
             <div className="company-public-step-title"><span>1</span><div><strong>Choisissez vos prestations</strong><small>{selectedServices.length > 0 ? `${selectedServices.length} prestation${selectedServices.length > 1 ? 's' : ''} · ${durationLabel(selectedDuration)} · ${currency.format(selectedAmount / 100)}` : 'Sélectionnez une ou plusieurs prestations'}</small></div></div>
-            <div className="company-public-booking-category-groups">{serviceGroups.map(([category, services]) => <section className="company-public-booking-category" key={category}><div className="company-public-booking-category-head"><strong>{category}</strong><small>{services.length} prestation{services.length > 1 ? 's' : ''}</small></div><div className="company-public-booking-services">{services.map((service) => { const selected = serviceIds.includes(service.id); return <button type="button" key={service.id} className={selected ? 'active' : ''} onClick={() => chooseService(service.id)}><span className="company-public-service-thumb">{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="sparkles" size={20} />}</span><span className="company-public-service-copy"><strong>{service.name}</strong>{service.description && <small>{service.description}</small>}</span><b>{durationLabel(service.duration_minutes)} · {currency.format(service.price_cents / 100)}</b><em>{selected ? '✓' : '+'}</em></button>; })}</div></section>)}{data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}</div>
+            <div className="company-public-booking-category-groups">{serviceGroups.map(([category, services]) => <section className="company-public-booking-category" key={category}><div className="company-public-booking-category-head"><strong>{category}</strong><small>{services.length} prestation{services.length > 1 ? 's' : ''}</small></div><div className="company-public-booking-services">{services.map((service) => { const selected = serviceIds.includes(service.id); return <button type="button" key={service.id} className={selected ? 'active' : ''} onClick={() => chooseService(service.id)}><span className="company-public-service-thumb">{service.image_url ? <img src={service.image_url} alt="" loading="lazy" decoding="async" /> : <Icon name="sparkles" size={20} />}</span><span className="company-public-service-copy"><strong>{service.name}</strong>{service.description && <small>{service.description}</small>}</span><b>{durationLabel(service.duration_minutes)} · {currency.format(service.price_cents / 100)}</b><em>{selected ? '✓' : '+'}</em></button>; })}</div></section>)}{data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}</div>
             {selectedServices.length > 0 && <div className="company-public-multi-selection"><div className="company-public-multi-selection-head"><div><span>Votre rendez-vous</span><strong>{selectedServices.length} prestation{selectedServices.length > 1 ? 's' : ''}</strong></div><button type="button" onClick={clearServices}>Tout retirer</button></div><div className="company-public-multi-selection-items">{selectedServices.map((service, index) => <div key={service.id}><span>{index + 1}</span><div><strong>{service.name}</strong><small>{durationLabel(service.duration_minutes)}</small></div><b>{currency.format(service.price_cents / 100)}</b><button type="button" aria-label={`Retirer ${service.name}`} onClick={() => chooseService(service.id)}>×</button></div>)}</div><footer><span>Durée estimée <strong>{durationLabel(selectedDuration)}</strong></span><span>Total <strong>{currency.format(selectedAmount / 100)}</strong></span></footer></div>}
           </section>
 
@@ -689,18 +705,22 @@ export function PublicMetierCoiffureCompanyPage() {
                 {!portalIdentity && <label className="company-public-honeypot" aria-hidden="true">Site web<input value={website} onChange={(event) => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" /></label>}
                 <label className="company-public-consent full"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required /><span>{data.settings.privacy_notice || 'J’accepte que mes coordonnées soient utilisées pour organiser et suivre mon rendez-vous.'}</span></label>
               </div>
-              {error && <div className="error-message" role="alert">{error}</div>}
               <button className="company-public-confirm" type="submit" disabled={saving}>{saving ? 'Réservation…' : data.settings.confirmation_mode === 'manual' ? 'Envoyer ma demande' : 'Confirmer mon rendez-vous'}</button>
               {data.settings.cancellation_policy && <p className="company-public-policy">{data.settings.cancellation_policy}</p>}
             </form>
           </section>}
-        </div> : <div className="company-public-contact-card"><strong>Besoin d’un rendez-vous ?</strong><p>La réservation en ligne est temporairement désactivée.</p>{data.company.phone && <a href={`tel:${data.company.phone}`} className="primary-button">Appeler l’enseigne</a>}</div>}
+        </fieldset> : <div className="company-public-contact-card"><strong>Besoin d’un rendez-vous ?</strong><p>La réservation en ligne est temporairement désactivée.</p>{data.company.phone && <a href={`tel:${data.company.phone}`} className="primary-button">Appeler l’enseigne</a>}</div>}
       </section>
+
+      {data.sites.length > 0 && <section className="company-public-info-grid" id="infos">
+        <article><span className="company-public-info-icon"><Icon name="map" size={20} /></span><div><small>Adresse</small><strong>{selectedSite?.name || data.sites[0].name}</strong><p>{[selectedSite?.address, selectedSite?.postal_code, selectedSite?.city].filter(Boolean).join(' ')}</p></div></article>
+        <article><span className="company-public-info-icon"><Icon name="clock" size={20} /></span><div><small>Horaires</small><strong>{data.company.hours_text || 'Sur rendez-vous'}</strong>{data.company.practical_info && <p>{data.company.practical_info}</p>}</div></article>
+      </section>}
 
       <section className="company-public-section" id="prestations">
         <div className="company-public-section-heading"><p className="eyebrow">PRESTATIONS</p><h2>Tout ce que propose {data.company.name}</h2><p>Durée et tarif sont affichés clairement avant toute réservation.</p></div>
         <div className="company-public-service-category-groups">
-          {serviceGroups.map(([category, services]) => <section className="company-public-service-category" key={category}><div className="company-public-service-category-head"><div><span>CATÉGORIE</span><h3>{category}</h3></div><small>{services.length} prestation{services.length > 1 ? 's' : ''}</small></div><div className="company-public-service-grid">{services.map((service) => <button type="button" key={service.id} className={serviceIds.includes(service.id) ? 'active' : ''} onClick={() => { chooseService(service.id); document.getElementById('reserver')?.scrollIntoView({ behavior: 'smooth' }); }}><span className={`company-public-service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" /> : <Icon name="camera" size={28} />}</span><div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}</div><span><small>{durationLabel(service.duration_minutes)}</small><b>{currency.format(service.price_cents / 100)}</b></span></button>)}</div></section>)}
+          {serviceGroups.map(([category, services]) => <section className="company-public-service-category" key={category}><div className="company-public-service-category-head"><div><span>CATÉGORIE</span><h3>{category}</h3></div><small>{services.length} prestation{services.length > 1 ? 's' : ''}</small></div><div className="company-public-service-grid">{services.map((service) => <button type="button" key={service.id} className={serviceIds.includes(service.id) ? 'active' : ''} onClick={() => { chooseService(service.id); document.getElementById('reserver')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }}><span className={`company-public-service-card-image${service.image_url ? '' : ' fallback'}`}>{service.image_url ? <img src={service.image_url} alt="" loading="lazy" decoding="async" /> : <Icon name="camera" size={28} />}</span><div><strong>{service.name}</strong>{service.description && <p>{service.description}</p>}</div><span><small>{durationLabel(service.duration_minutes)}</small><b>{currency.format(service.price_cents / 100)}</b></span></button>)}</div></section>)}
           {data.services.length === 0 && <div className="company-public-empty">Les prestations seront bientôt disponibles en ligne.</div>}
         </div>
       </section>

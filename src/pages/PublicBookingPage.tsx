@@ -1,7 +1,9 @@
-import { CSSProperties, FormEvent, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { CSSProperties, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { bookingError, createSubmissionGate, isBookingConfirmation, readableBrand, durationBetween } from '../lib/beautyClientExperience';
 import { Icon } from '../components/Icon';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { downloadCalendarFile, googleCalendarUrl, outlookCalendarUrl } from '../lib/calendar';
 
 interface PublicOrganization {
@@ -110,9 +112,11 @@ interface CustomerForm {
 interface PortalAccountSummary {
   account_id: string;
   organization_id: string;
+  client_id: string;
 }
 
 interface PortalDashboardPrefill {
+  organization: { id: string; slug: string };
   client: {
     first_name: string;
     last_name: string | null;
@@ -120,6 +124,11 @@ interface PortalDashboardPrefill {
     phone: string | null;
   };
 }
+
+type BookingIdentity = PortalDashboardPrefill['client'] & {
+  account_id: string;
+  company_id: string;
+};
 
 const currencyFormatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
 const fullDateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -150,7 +159,10 @@ function emptyCustomerForm(): CustomerForm {
 }
 
 export function PublicBookingPage() {
+  const { user } = useAuth();
   const { slug = '' } = useParams();
+  const [searchParams] = useSearchParams();
+  const submitOnce = useRef(createSubmissionGate());
   const [pageData, setPageData] = useState<PublicBookingPageData | null>(null);
   const [loadingPage, setLoadingPage] = useState(true);
   const [pageError, setPageError] = useState('');
@@ -162,6 +174,7 @@ export function PublicBookingPage() {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<AvailableSlot | null>(null);
   const [customer, setCustomer] = useState<CustomerForm>(emptyCustomerForm);
+  const [portalAccountId, setPortalAccountId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<BookingResult | null>(null);
@@ -186,7 +199,13 @@ export function PublicBookingPage() {
         const typed = data as PublicBookingPageData;
         setPageData(typed);
         setSiteId(typed.sites.find((site) => site.is_primary)?.id ?? typed.sites[0]?.id ?? '');
-        setDate(dateToInput(new Date()));
+        const requestedSite = searchParams.get('site');
+        if (typed.sites.some((site) => site.id === requestedSite)) setSiteId(requestedSite!);
+        const requestedService = searchParams.get('service');
+        if (typed.services.some((service) => service.id === requestedService)) setServiceId(requestedService!);
+        const requestedStaff = searchParams.get('staff');
+        if (typed.staff.some((member) => member.id === requestedStaff)) setStaffChoice(requestedStaff!);
+        setDate(searchParams.get('date') || dateToInput(new Date()));
       }
       setLoadingPage(false);
     }
@@ -196,11 +215,29 @@ export function PublicBookingPage() {
 
   useEffect(() => {
     let active = true;
+    setPortalAccountId(null);
+    setCustomer(emptyCustomerForm);
     async function prefillFromClientPortal() {
-      if (!supabase || !pageData) return;
+      if (!supabase || !pageData || !user) return;
 
       const { data: authData } = await supabase.auth.getUser();
       if (!active || !authData.user) return;
+
+      // A company page returns a company ID, not the parent organization ID.
+      // Resolve the verified account in that precise context before the legacy organization path.
+      const { data: identity, error: identityError } = await supabase.rpc('get_current_coiffure_client_booking_identity', {
+        p_slug: pageData.organization.slug
+      });
+      if (!active) return;
+      if (identityError) return;
+      const known = identity as BookingIdentity | null;
+      if (known && known.company_id === pageData.organization.id) {
+        setPortalAccountId(known.account_id);
+        setCustomer((current) => ({ ...current, firstName: known.first_name || '',
+          lastName: known.last_name || '', email: known.email || '',
+          phone: known.phone || '' }));
+        return;
+      }
 
       const { data: accountData, error: accountError } = await supabase.rpc('current_coiffure_client_portal_accounts');
       if (!active || accountError) return;
@@ -214,7 +251,9 @@ export function PublicBookingPage() {
       });
       if (!active || dashboardError || !dashboardData) return;
 
-      const portalClient = (dashboardData as PortalDashboardPrefill).client;
+      const portalDashboard = dashboardData as PortalDashboardPrefill;
+      if (portalDashboard.organization.id !== pageData.organization.id) return;
+      const portalClient = portalDashboard.client;
       setCustomer((current) => ({
         ...current,
         firstName: current.firstName || portalClient.first_name || '',
@@ -226,7 +265,7 @@ export function PublicBookingPage() {
 
     void prefillFromClientPortal();
     return () => { active = false; };
-  }, [pageData]);
+  }, [pageData, user?.id]);
 
   const availableServices = useMemo(() => {
     if (!pageData) return [];
@@ -264,7 +303,7 @@ export function PublicBookingPage() {
       setSelectedSlot(null);
       setSlots([]);
       setError('');
-      if (!supabase || !pageData || !serviceId || !date) return;
+      if (!supabase || !pageData || !serviceId || !date) { setLoadingSlots(false); return; }
       setLoadingSlots(true);
       const { data, error: slotsError } = await supabase.rpc('get_public_available_slots_v2', {
         p_slug: pageData.organization.slug,
@@ -297,10 +336,18 @@ export function PublicBookingPage() {
   async function submitBooking(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase || !pageData || !selectedService || !selectedSlot) return;
+    const client = supabase;
+    await submitOnce.current(async () => {
     setSaving(true);
     setError('');
     try {
-      const { data, error: bookingError } = await supabase.rpc('create_public_booking_v3', {
+      const { data, error: bookingError } = portalAccountId
+        ? await client.rpc('create_coiffure_client_portal_booking_v2', {
+          p_account_id: portalAccountId, p_site_id: siteId || null, p_service_ids: [selectedService.id],
+          p_staff_id: selectedSlot.staff_id, p_starts_at: selectedSlot.slot_start,
+          p_notes: customer.notes, p_privacy_consent: customer.consent
+        })
+        : await client.rpc('create_public_booking_v3', {
         p_slug: pageData.organization.slug,
         p_site_id: siteId || null,
         p_service_id: selectedService.id,
@@ -315,12 +362,13 @@ export function PublicBookingPage() {
         p_privacy_consent: customer.consent
       });
       if (bookingError) throw bookingError;
+      if (!isBookingConfirmation(data)) throw new Error('Réponse du serveur non vérifiable. Consultez vos rendez-vous avant de réessayer.');
       setResult(data as BookingResult);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'La réservation a échoué.';
+      const message = bookingError(caught);
       setError(message);
-      const { data } = await supabase.rpc('get_public_available_slots_v2', {
+      const { data } = await client.rpc('get_public_available_slots_v2', {
         p_slug: pageData.organization.slug,
         p_site_id: siteId || null,
         p_service_id: selectedService.id,
@@ -332,6 +380,7 @@ export function PublicBookingPage() {
     } finally {
       setSaving(false);
     }
+    });
   }
 
   if (loadingPage) {
@@ -349,7 +398,15 @@ export function PublicBookingPage() {
     );
   }
 
+  const brand = readableBrand(pageData.organization.primary_color);
+  const returnParams = new URLSearchParams();
+  if (serviceId) returnParams.set('service', serviceId);
+  if (siteId) returnParams.set('site', siteId);
+  if (staffChoice !== 'any') returnParams.set('staff', staffChoice);
+  if (date) returnParams.set('date', date);
+  const loginPath = `/espace-client-coiffure?returnTo=${encodeURIComponent(`/reserver/${slug}?${returnParams}#reservation`)}`;
   const publicStyle = {
+    '--beauty-action': brand.ink,
     '--accent': pageData.organization.primary_color,
     '--public-banner-landscape-x': `${pageData.organization.banner_position_x ?? 50}%`,
     '--public-banner-landscape-y': `${pageData.organization.banner_position_y ?? 50}%`,
@@ -359,6 +416,7 @@ export function PublicBookingPage() {
     '--public-banner-portrait-zoom': String((pageData.organization.banner_portrait_zoom ?? 100) / 100),
   } as CSSProperties;
   const selectedSite = pageData.sites.find((site) => site.id === siteId) ?? null;
+  const displayedAddress = selectedSite ? [selectedSite.address, selectedSite.postal_code, selectedSite.city].filter(Boolean).join(' ') : pageData.organization.address;
   const hasSiteChoice = pageData.sites.length > 1;
   const stepOffset = hasSiteChoice ? 1 : 0;
 
@@ -369,10 +427,10 @@ export function PublicBookingPage() {
       description: `Rendez-vous à ${result.site_name || pageData.organization.name} avec ${result.staff_name}. Gestion : ${window.location.origin}${manageUrl}`,
       startsAt: result.starts_at,
       endsAt: result.ends_at,
-      location: result.site_address || pageData.organization.address || result.site_name || pageData.organization.name
+      location: result.site_name ? (result.site_address || result.site_name) : (pageData.organization.address || pageData.organization.name)
     };
     return (
-      <div className="public-booking-page coiffure-public-booking-premium" style={publicStyle}>
+      <div className="public-booking-page beauty-booking" style={publicStyle}>
         <header className="public-booking-brand">
           <div className="public-business-mark">{pageData.organization.logo_url ? <img src={pageData.organization.logo_url} alt="" /> : pageData.organization.name.slice(0, 1).toUpperCase()}</div>
           <div><strong>{pageData.organization.name}</strong><span>Réservation en ligne</span></div>
@@ -386,7 +444,7 @@ export function PublicBookingPage() {
             <div className="public-booking-recap">
               <div><span>Prestation</span><strong>{result.service_name}</strong></div>
               <div><span>Date</span><strong>{fullDateFormatter.format(new Date(result.starts_at))}</strong></div>
-              <div><span>Heure</span><strong>{timeFormatter.format(new Date(result.starts_at))}</strong></div>
+              <div><span>Heure · durée</span><strong>{timeFormatter.format(new Date(result.starts_at))} · {durationBetween(result.starts_at, result.ends_at)}</strong></div>
               <div><span>Avec</span><strong>{result.staff_name}</strong></div>
               <div><span>Tarif</span><strong>{currencyFormatter.format(result.amount_cents / 100)}</strong></div>
               <div><span>Statut</span><strong>{result.status === 'confirmed' ? 'Confirmé' : 'En attente'}</strong></div>
@@ -416,7 +474,7 @@ export function PublicBookingPage() {
   }
 
   return (
-    <div className="public-booking-page coiffure-public-booking-premium" style={publicStyle}>
+    <div className="public-booking-page beauty-booking" style={publicStyle}>
       <header className="public-booking-brand coiffure-public-booking-nav">
         <div className="coiffure-public-booking-nav-inner">
           <div className="coiffure-public-booking-brand">
@@ -424,54 +482,21 @@ export function PublicBookingPage() {
             <div><strong>{pageData.organization.name}</strong><span>Coiffure & beauté</span></div>
           </div>
           <div className="coiffure-public-booking-nav-actions">
-            <Link className="coiffure-public-client-link" to="/espace-client-coiffure"><Icon name="users" size={16}/> Mon espace</Link>
+            <Link className="coiffure-public-client-link" to={loginPath}><Icon name="users" size={16}/> Mon espace</Link>
             <a className="coiffure-public-book-link" href="#reservation"><Icon name="calendar" size={16}/> Prendre rendez-vous</a>
           </div>
         </div>
       </header>
 
       <main className="public-booking-container">
-        <section className={`public-booking-hero coiffure-public-booking-hero ${pageData.organization.banner_url ? 'with-banner' : ''}`}>
-          {pageData.organization.banner_url && (
-            <span className="public-booking-hero-media" aria-hidden="true">
-              <img src={pageData.organization.banner_url} alt="" />
-            </span>
-          )}
-          <div className="coiffure-public-hero-badges">
-            <span>Coiffure & beauté</span>
-            <span className="available"><i/> Réservation en ligne</span>
-          </div>
-          <h1>{pageData.organization.name}</h1>
-          <p className="coiffure-public-tagline">{pageData.organization.tagline || 'Votre moment beauté, simplement.'}</p>
-          <p className="coiffure-public-welcome">{pageData.settings.welcome_text || 'Sélectionnez une prestation, un professionnel et une disponibilité. Aucun compte client n’est nécessaire.'}</p>
-          <div className="coiffure-public-hero-actions">
-            <a className="coiffure-public-hero-primary" href="#reservation"><Icon name="calendar" size={17}/> Réserver maintenant</a>
-            <Link className="coiffure-public-hero-secondary" to="/espace-client-coiffure"><Icon name="users" size={17}/> Mon espace client</Link>
+        <section className={`beauty-salon-intro${pageData.organization.banner_url ? "" : " without-photo"}`}>
+          {pageData.organization.banner_url && <div className="beauty-salon-photo"><img src={pageData.organization.banner_url} alt={`Le salon ${pageData.organization.name}`} /></div>}
+          <div className="beauty-salon-copy"><p className="eyebrow">COIFFURE & BEAUTÉ</p><h1>{pageData.organization.name}</h1>
+            {pageData.organization.tagline && <p className="beauty-salon-tagline">{pageData.organization.tagline}</p>}
+            {pageData.settings.welcome_text && <details className="beauty-salon-description"><summary>Découvrir le salon</summary><p>{pageData.settings.welcome_text}</p></details>}
+            <a className="beauty-practical-link" href="#salon-infos"><Icon name="map" size={16}/>Adresse et informations pratiques</a>
           </div>
         </section>
-
-        {(selectedSite?.address || pageData.organization.address || pageData.organization.hours_text || pageData.organization.practical_info) && (
-          <section className="public-business-information">
-            {(selectedSite?.address || pageData.organization.address) && (
-              <div className="public-business-info-item">
-                <span className="public-business-info-icon"><Icon name="map" size={18} /></span>
-                <div><span>Adresse</span><strong>{selectedSite?.address || pageData.organization.address}</strong></div>
-              </div>
-            )}
-            {pageData.organization.hours_text && (
-              <div className="public-business-info-item">
-                <span className="public-business-info-icon"><Icon name="clock" size={18} /></span>
-                <div><span>Horaires</span><strong>{pageData.organization.hours_text}</strong></div>
-              </div>
-            )}
-            {pageData.organization.practical_info && (
-              <div className="public-business-info-item">
-                <span className="public-business-info-icon"><Icon name="info" size={18} /></span>
-                <div><span>Informations pratiques</span><strong>{pageData.organization.practical_info}</strong></div>
-              </div>
-            )}
-          </section>
-        )}
 
         <section className="coiffure-public-booking-intro" id="reservation">
           <div>
@@ -479,14 +504,10 @@ export function PublicBookingPage() {
             <h2>Choisissez votre rendez-vous</h2>
             <p>Un parcours simple, étape par étape.</p>
           </div>
-          <div className="coiffure-public-step-meter" aria-label="Parcours de réservation">
-            <span className={serviceId ? "done" : "active"}>1</span><i className={serviceId ? "done" : ""}/>
-            <span className={serviceId ? (selectedSlot ? "done" : "active") : ""}>2</span><i className={selectedSlot ? "done" : ""}/>
-            <span className={selectedSlot ? "active" : ""}>3</span>
-          </div>
         </section>
 
-        <div className="public-booking-grid coiffure-public-booking-grid">
+        {error && <div className="error-message" role="alert">{error}</div>}
+        <fieldset disabled={saving} className="public-booking-grid coiffure-public-booking-grid">
           {hasSiteChoice && (
             <section className="public-booking-panel public-site-panel">
               <div className="public-step-heading"><span>1</span><div><h2>Votre établissement</h2><p>Choisissez le site dans lequel vous souhaitez être reçu.</p></div></div>
@@ -518,8 +539,8 @@ export function PublicBookingPage() {
             {availableServices.length === 0 && <div className="info-message">Aucune prestation n’est encore proposée en ligne.</div>}
           </section>
 
-          <section className={`public-booking-panel ${!serviceId ? 'disabled-panel' : ''}`}>
-            <div className="public-step-heading"><span>{2 + stepOffset}</span><div><h2>Votre préférence</h2><p>Choisissez une personne ou laissez NCR Suite trouver une disponibilité.</p></div></div>
+          <section hidden={!serviceId} className={`public-booking-panel ${!serviceId ? 'disabled-panel' : ''}`}>
+            <div className="public-step-heading"><span>{2 + stepOffset}</span><div><h2>Votre préférence</h2><p>Choisissez votre professionnel, ou le premier disponible.</p></div></div>
             <div className="public-staff-grid">
               <button type="button" className={`public-staff-choice ${staffChoice === 'any' ? 'selected' : ''}`} onClick={() => setStaffChoice('any')} disabled={!serviceId}>
                 <div className="public-staff-avatar">∞</div><div><strong>Peu importe</strong><small>Le premier professionnel disponible</small></div>
@@ -533,7 +554,7 @@ export function PublicBookingPage() {
             </div>
           </section>
 
-          <section className={`public-booking-panel ${!serviceId ? 'disabled-panel' : ''}`}>
+          <section hidden={!serviceId} className={`public-booking-panel ${!serviceId ? 'disabled-panel' : ''}`}>
             <div className="public-step-heading"><span>{3 + stepOffset}</span><div><h2>Date et heure</h2><p>Seuls les créneaux réellement disponibles sont proposés.</p></div></div>
             <label className="public-date-field">
               <span className="public-date-label">Date souhaitée</span>
@@ -562,23 +583,24 @@ export function PublicBookingPage() {
             </div>
           </section>
 
-          <section className={`public-booking-panel public-customer-panel ${!selectedSlot ? 'disabled-panel' : ''}`}>
+          <section hidden={!selectedSlot} className={`public-booking-panel public-customer-panel ${!selectedSlot ? 'disabled-panel' : ''}`}>
             <div className="public-step-heading"><span>{4 + stepOffset}</span><div><h2>Vos coordonnées</h2><p>Une adresse e-mail ou un téléphone est nécessaire.</p></div></div>
             {selectedService && selectedSlot && (
               <div className="public-selection-summary">
                 <Icon name="calendar" size={20} />
                 <div><strong>{selectedService.name}</strong><span>{fullDateFormatter.format(new Date(selectedSlot.slot_start))} à {timeFormatter.format(new Date(selectedSlot.slot_start))} · {selectedSlot.staff_name}</span></div>
-                <b>{currencyFormatter.format(selectedService.price_cents / 100)}</b>
+                <b>{formatDuration(selectedService.duration_minutes)} · {currencyFormatter.format(selectedService.price_cents / 100)}</b>
               </div>
             )}
             <form className="public-customer-form" onSubmit={submitBooking}>
-              <label>Prénom <span aria-hidden="true">*</span><input required minLength={2} maxLength={80} autoComplete="given-name" value={customer.firstName} onChange={(event) => setCustomer((current) => ({ ...current, firstName: event.target.value }))} disabled={!selectedSlot} /></label>
-              <label>Nom<input maxLength={100} autoComplete="family-name" value={customer.lastName} onChange={(event) => setCustomer((current) => ({ ...current, lastName: event.target.value }))} disabled={!selectedSlot} /></label>
-              <label>E-mail<input type="email" autoComplete="email" value={customer.email} onChange={(event) => setCustomer((current) => ({ ...current, email: event.target.value }))} disabled={!selectedSlot} placeholder="vous@exemple.fr" /></label>
-              <label>Téléphone<input type="tel" autoComplete="tel" value={customer.phone} onChange={(event) => setCustomer((current) => ({ ...current, phone: event.target.value }))} disabled={!selectedSlot} placeholder="06 00 00 00 00" /></label>
+              <p className="full-field beauty-form-hint">Vérifiez votre sélection ci-dessus. Vous pouvez encore modifier la prestation, le professionnel ou le créneau sans perdre vos coordonnées.{portalAccountId && <> Vos coordonnées sont celles de votre dossier client ; vous pouvez les consulter dans <Link to="/espace-client-coiffure">votre profil</Link>.</>}</p>
+              <label>Prénom <span aria-hidden="true">*</span><input required minLength={2} maxLength={80} autoComplete="given-name" readOnly={Boolean(portalAccountId)} value={customer.firstName} onChange={(event) => setCustomer((current) => ({ ...current, firstName: event.target.value }))} disabled={!selectedSlot} /></label>
+              <label>Nom<input maxLength={100} autoComplete="family-name" readOnly={Boolean(portalAccountId)} value={customer.lastName} onChange={(event) => setCustomer((current) => ({ ...current, lastName: event.target.value }))} disabled={!selectedSlot} /></label>
+              <label>E-mail<input type="email" autoComplete="email" readOnly={Boolean(portalAccountId)} value={customer.email} onChange={(event) => setCustomer((current) => ({ ...current, email: event.target.value }))} disabled={!selectedSlot} placeholder="vous@exemple.fr" /></label>
+              <label>Téléphone<input type="tel" autoComplete="tel" readOnly={Boolean(portalAccountId)} value={customer.phone} onChange={(event) => setCustomer((current) => ({ ...current, phone: event.target.value }))} disabled={!selectedSlot} placeholder="06 00 00 00 00" /></label>
               <label className="full-field">Message facultatif<textarea rows={3} maxLength={1000} value={customer.notes} onChange={(event) => setCustomer((current) => ({ ...current, notes: event.target.value }))} disabled={!selectedSlot} placeholder="Une précision utile pour le rendez-vous…" /></label>
               <label className="public-honeypot" aria-hidden="true">Site internet<input tabIndex={-1} autoComplete="off" value={customer.website} onChange={(event) => setCustomer((current) => ({ ...current, website: event.target.value }))} /></label>
-              {error && <div className="error-message full-field" role="alert">{error}</div>}
+
               <div className="public-consent-box full-field">
                 <label className="public-consent-check">
                   <input
@@ -609,7 +631,30 @@ export function PublicBookingPage() {
               </div>
             </form>
           </section>
-        </div>
+        </fieldset>
+        {(displayedAddress || pageData.organization.hours_text || pageData.organization.practical_info) && (
+          <section className="public-business-information" id="salon-infos">
+            {(displayedAddress) && (
+              <div className="public-business-info-item">
+                <span className="public-business-info-icon"><Icon name="map" size={18} /></span>
+                <div><span>{selectedSite ? `Lieu du rendez-vous · ${selectedSite.name}` : 'Adresse du salon'}</span><strong>{displayedAddress}</strong></div>
+              </div>
+            )}
+            {pageData.organization.hours_text && (
+              <div className="public-business-info-item">
+                <span className="public-business-info-icon"><Icon name="clock" size={18} /></span>
+                <div><span>Horaires</span><strong>{pageData.organization.hours_text}</strong></div>
+              </div>
+            )}
+            {pageData.organization.practical_info && (
+              <div className="public-business-info-item">
+                <span className="public-business-info-icon"><Icon name="info" size={18} /></span>
+                <div><span>Informations pratiques</span><strong>{pageData.organization.practical_info}</strong></div>
+              </div>
+            )}
+          </section>
+        )}
+
       </main>
       {pageData.organization.show_ncr_branding && <footer className="public-booking-footer">Propulsé par <strong>NCR Suite</strong></footer>}
     </div>

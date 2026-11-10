@@ -1,9 +1,10 @@
-import { CSSProperties, useEffect, useMemo, useState } from 'react';
+import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { supabase } from '../lib/supabase';
 import { downloadCalendarFile, googleCalendarUrl, outlookCalendarUrl } from '../lib/calendar';
 import '../beautyMultiServiceBooking.css';
+import { bookingError, createSubmissionGate, durationBetween, readableBrand } from '../lib/beautyClientExperience';
 
 interface ManagedBooking {
   appointment_id: string;
@@ -72,8 +73,6 @@ const statusLabels: Record<ManagedBooking['status'], string> = {
 };
 
 const currencyFormatter = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
-const dateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-const timeFormatter = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
 function dateToInput(date: Date) {
   const year = date.getFullYear();
@@ -100,21 +99,27 @@ export function PublicBookingManagePage() {
   const [slots, setSlots] = useState<AvailableSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<AvailableSlot | null>(null);
+  const mutateOnce = useRef(createSubmissionGate());
+  const bookingRequest = useRef(0);
   const [busy, setBusy] = useState(false);
 
   async function loadBooking() {
+    const request = ++bookingRequest.current;
     setLoading(true);
     setError('');
-    if (!supabase) {
-      setError('La gestion de réservation n’est pas configurée.');
-      setLoading(false);
-      return;
+    setBooking(null);
+    try {
+      if (!supabase) throw new Error('La gestion de réservation n’est pas configurée.');
+      const { data, error: loadError } = await supabase.rpc('get_public_booking', { p_token: token });
+      if (request !== bookingRequest.current) return;
+      if (loadError) throw loadError;
+      if (!data) throw new Error('Cette réservation est introuvable.');
+      setBooking(data as ManagedBooking);
+    } catch (caught) {
+      if (request === bookingRequest.current) setError(bookingError(caught));
+    } finally {
+      if (request === bookingRequest.current) setLoading(false);
     }
-    const { data, error: loadError } = await supabase.rpc('get_public_booking', { p_token: token });
-    if (loadError) setError(loadError.message);
-    else if (!data) setError('Cette réservation est introuvable.');
-    else setBooking(data as ManagedBooking);
-    setLoading(false);
   }
 
   useEffect(() => { loadBooking(); }, [token]);
@@ -132,12 +137,12 @@ export function PublicBookingManagePage() {
       setSelectedSlot(null);
       if (!rescheduling || !booking || !supabase) return;
       setLoadingSlots(true);
-      const multiService = booking.service_count > 1 && Boolean(booking.company_slug);
+      const multiService = Boolean(booking.company_slug);
       const { data, error: slotsError } = multiService
         ? await supabase.rpc('get_public_metier_coiffure_company_multi_slots', {
             p_slug: booking.company_slug,
             p_site_id: booking.site_id,
-            p_service_ids: booking.service_items.map((item) => item.service_id),
+            p_service_ids: booking.service_items?.length ? booking.service_items.map((item) => item.service_id) : [booking.service_id],
             p_date: date,
             p_staff_id: null
           })
@@ -166,43 +171,40 @@ export function PublicBookingManagePage() {
   }, [slots]);
 
   async function cancelBooking() {
-    if (!supabase || !booking) return;
+    if (!supabase || !booking || busy || !booking.can_cancel) return;
     if (!window.confirm('Confirmer l’annulation de ce rendez-vous ?')) return;
-    setBusy(true);
-    setError('');
-    setSuccess('');
-    const { error: cancelError } = await supabase.rpc('cancel_public_booking', {
-      p_token: token,
-      p_reason: 'Annulation demandée par le client depuis le lien public'
+    const client = supabase;
+    await mutateOnce.current(async () => {
+      setBusy(true); setError(''); setSuccess('');
+      try {
+        const { error: rpcError } = await client.rpc('cancel_public_booking', {
+          p_token: token, p_reason: 'Annulation demandée par le client depuis le lien public'
+        });
+        if (rpcError) throw rpcError;
+        await loadBooking();
+        setSuccess('Le rendez-vous a bien été annulé.');
+      } catch (caught) { setError(bookingError(caught)); }
+      finally { setBusy(false); }
     });
-    if (cancelError) setError(cancelError.message);
-    else {
-      setSuccess('Le rendez-vous a bien été annulé.');
-      await loadBooking();
-    }
-    setBusy(false);
   }
 
   async function saveReschedule() {
-    if (!supabase || !booking || !selectedSlot) return;
-    setBusy(true);
-    setError('');
-    setSuccess('');
-    const { error: rescheduleError } = await supabase.rpc(booking.company_slug ? 'reschedule_public_booking_v3' : 'reschedule_public_booking_v2', {
-      p_token: token,
-      p_site_id: booking.site_id,
-      p_staff_id: selectedSlot.staff_id,
-      p_starts_at: selectedSlot.slot_start
+    if (!supabase || !booking || !selectedSlot || !booking.can_reschedule) return;
+    const client = supabase;
+    await mutateOnce.current(async () => {
+      setBusy(true); setError(''); setSuccess('');
+      try {
+        const { error: rpcError } = await client.rpc(booking.company_slug ? 'reschedule_public_booking_v3' : 'reschedule_public_booking_v2', {
+          p_token: token, p_site_id: booking.site_id,
+          p_staff_id: selectedSlot.staff_id, p_starts_at: selectedSlot.slot_start
+        });
+        if (rpcError) throw rpcError;
+        setRescheduling(false);
+        await loadBooking();
+        setSuccess('Le rendez-vous a bien été déplacé.');
+      } catch (caught) { setError(bookingError(caught)); setSelectedSlot(null); }
+      finally { setBusy(false); }
     });
-    if (rescheduleError) {
-      setError(rescheduleError.message);
-      setSelectedSlot(null);
-    } else {
-      setSuccess('Le rendez-vous a bien été déplacé.');
-      setRescheduling(false);
-      await loadBooking();
-    }
-    setBusy(false);
   }
 
   if (loading) {
@@ -215,25 +217,29 @@ export function PublicBookingManagePage() {
         <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
         <h1>Réservation introuvable</h1>
         <p>{error}</p>
-        <Link className="secondary-button" to="/connexion">Accéder à NCR Suite</Link>
+        <Link className="secondary-button" to="/espace-client-coiffure">Mon espace client</Link>
       </div>
     );
   }
 
-  const style = { '--accent': booking.primary_color } as CSSProperties;
-  const canManage = booking.online_management_enabled && booking.can_cancel && ['pending', 'confirmed'].includes(booking.status);
-  const canReschedule = canManage && booking.can_reschedule;
+  const dateFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: booking.timezone });
+  const timeFormatter = new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: booking.timezone });
+  const style = { '--accent': booking.primary_color, '--beauty-action': readableBrand(booking.primary_color).ink } as CSSProperties;
+  const manageableStatus = booking.online_management_enabled && ['pending', 'confirmed'].includes(booking.status);
+  const canCancel = manageableStatus && booking.can_cancel;
+  const canReschedule = manageableStatus && booking.can_reschedule;
+  const canManage = canCancel || canReschedule;
   const canAddToCalendar = booking.calendar_links_enabled && booking.status === 'confirmed';
   const calendarEvent = {
     title: `${booking.service_name} — ${booking.organization_name}`,
     description: `Rendez-vous avec ${booking.staff_name}. Référence ${booking.appointment_id.slice(0, 8).toUpperCase()}.`,
     startsAt: booking.starts_at,
     endsAt: booking.ends_at,
-    location: booking.site_address || booking.organization_address || booking.site_name || booking.organization_name
+    location: booking.site_id || booking.site_name ? (booking.site_address || booking.site_name || 'Adresse à confirmer auprès du salon') : (booking.organization_address || booking.organization_name)
   };
 
   return (
-    <div className="public-booking-page" style={style}>
+    <div className="public-booking-page beauty-booking" style={style}>
       <header className="public-booking-brand">
         <div className="public-business-mark">{booking.logo_url ? <img src={booking.logo_url} alt="" /> : booking.organization_name.slice(0, 1).toUpperCase()}</div>
         <div><strong>{booking.organization_name}</strong><span>Gestion de votre réservation</span></div>
@@ -259,6 +265,7 @@ export function PublicBookingManagePage() {
             <div className="public-manage-service"><span>{booking.service_count > 1 ? 'Prestations' : 'Prestation'}</span><strong>{booking.service_name}</strong><small>{booking.service_count > 1 ? `${booking.service_count} prestations · ` : ''}Avec {booking.staff_name}{booking.site_name ? ` · ${booking.site_name}` : ''}</small></div>
             <div className="public-manage-price"><span>Tarif</span><strong>{currencyFormatter.format((booking.amount_cents ?? 0) / 100)}</strong></div>
           </div>
+          <div className="public-manage-location"><Icon name="map" size={20}/><div><strong>{booking.site_name || booking.organization_name}</strong>{booking.site_id || booking.site_name ? booking.site_address : booking.organization_address}<br/>{durationBetween(booking.starts_at, booking.ends_at)} · {booking.timezone}</div></div>
           {booking.service_count > 1 && <div className="public-manage-service-items">{booking.service_items.map((item) => <div key={item.service_id}><span>{item.position}</span><div><strong>{item.service_name}</strong><small>{item.duration_minutes} min</small></div><b>{currencyFormatter.format(item.price_cents / 100)}</b></div>)}</div>}
           <div className="public-manage-contact">
             <div><span>Coordonnées de réservation</span><strong>{booking.client_email || booking.client_phone || 'Non renseigné'}</strong></div>
@@ -282,7 +289,7 @@ export function PublicBookingManagePage() {
           {canManage && !rescheduling && (
             <div className="public-success-actions">
               {canReschedule && <button className="primary-button" type="button" onClick={() => setRescheduling(true)}><Icon name="calendar" size={18} />Déplacer le rendez-vous</button>}
-              <button className={canReschedule ? 'secondary-button danger-button' : 'primary-button danger-button'} type="button" onClick={cancelBooking} disabled={busy}>Annuler le rendez-vous</button>
+              {canCancel && <button className={canReschedule ? 'secondary-button danger-button' : 'primary-button danger-button'} type="button" onClick={cancelBooking} disabled={busy}>Annuler le rendez-vous</button>}
             </div>
           )}
 
@@ -291,7 +298,7 @@ export function PublicBookingManagePage() {
           )}
         </section>
 
-        {rescheduling && canManage && (
+        {rescheduling && canReschedule && (
           <section className="public-manage-card public-reschedule-card">
             <div className="public-step-heading"><span>↻</span><div><h2>Choisir un nouveau créneau</h2><p>{booking.service_count > 1 ? 'Toutes vos prestations restent regroupées dans le même rendez-vous. Le professionnel peut changer selon les disponibilités.' : 'La prestation reste identique. Le professionnel peut changer selon les disponibilités.'}</p></div></div>
             <label className="public-date-field">Nouvelle date<input type="date" min={dateToInput(new Date())} max={dateToInput(addDays(new Date(), 365))} value={date} onChange={(event) => setDate(event.target.value)} /></label>
@@ -323,9 +330,9 @@ export function PublicBookingManagePage() {
               <p>{booking.privacy_notice || 'Vos coordonnées sont utilisées uniquement pour organiser, confirmer et suivre ce rendez-vous.'}</p>
             </div>
           </div>
-          {(booking.organization_address || booking.organization_hours_text || booking.organization_practical_info) && (
+          {(booking.site_address || booking.organization_address || booking.organization_hours_text || booking.organization_practical_info) && (
             <div className="public-client-info-grid public-establishment-details">
-              {(booking.site_address || booking.organization_address) && <div><span>Adresse</span><p>{booking.site_address || booking.organization_address}</p></div>}
+              {(booking.site_id || booking.site_name ? booking.site_address : booking.organization_address) && <div><span>Adresse du rendez-vous</span><p>{booking.site_id || booking.site_name ? booking.site_address : booking.organization_address}</p></div>}
               {booking.organization_hours_text && <div><span>Horaires</span><p>{booking.organization_hours_text}</p></div>}
               {booking.organization_practical_info && <div><span>Informations pratiques</span><p>{booking.organization_practical_info}</p></div>}
             </div>
