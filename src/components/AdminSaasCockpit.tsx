@@ -204,10 +204,10 @@ export function AdminSaasCockpit({ onOpenOrganizations, onOpenBilling, onOpenSup
     <div className="admin-saas-cockpit">
       <section className="admin-cockpit-hero admin-cockpit-hero-r53">
         <div>
-          <span className="admin-live-pill"><i /> Plateforme opérationnelle</span>
+          <span className="admin-live-pill"><Icon name="shield" size={14} /> Administration NCR</span>
           <p className="eyebrow">NCR SUITE · PILOTAGE DU JOUR</p>
-          <h1>{attentionCount > 0 ? `${attentionCount} point${attentionCount > 1 ? 's' : ''} à suivre` : 'Tout est sous contrôle'}</h1>
-          <p>{attentionCount > 0 ? 'Le cockpit remonte uniquement ce qui mérite ton attention. Le reste reste disponible sans encombrer l’écran.' : 'Aucune urgence détectée pour le moment. Tu peux te concentrer sur les clients, les essais et le développement commercial.'}</p>
+          <h1>{loading ? 'Chargement du cockpit…' : error ? 'Vue d’ensemble indisponible' : attentionCount > 0 ? `${attentionCount} point${attentionCount > 1 ? 's' : ''} à suivre` : 'Tout est sous contrôle'}</h1>
+          <p>{loading ? 'Récupération des indicateurs et des priorités.' : error ? 'Actualise les données pour retrouver les indicateurs.' : attentionCount > 0 ? 'Tes priorités, tes clients et l’activité de NCR Suite, au même endroit.' : 'Aucune priorité détectée dans les données chargées. Retrouve tes clients et le suivi de leur activité.'}</p>
           {lastLoadedAt && <small className="admin-cockpit-last-update">Dernière actualisation : {lastLoadedAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</small>}
         </div>
         <div className="admin-cockpit-actions">

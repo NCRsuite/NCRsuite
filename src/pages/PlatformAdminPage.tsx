@@ -1,3 +1,4 @@
+import '../platformAdmin.css';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { AdminCreateSpaceModal } from '../components/AdminCreateSpaceModal';
 import { BillingAdminPanel } from '../components/BillingAdminPanel';
@@ -689,6 +690,7 @@ export function PlatformAdminPage() {
 
   return (
     <div className="platform-admin-page">
+      <a className="admin-skip-link" href="#admin-main">Aller au contenu</a>
       <header className="platform-admin-topbar">
         <div className="platform-admin-brand">
           <img src="/brand/ncr-suite-logo-horizontal.png" alt="NCR Suite" />
@@ -720,58 +722,25 @@ export function PlatformAdminPage() {
           )}
         </div>
         <div className="platform-admin-account">
-          {canManage && <button type="button" className="secondary-button platform-admin-create-button" onClick={() => setShowCreateSpace(true)}><Icon name="plus" size={16} /><span>Créer un espace</span></button>}
+          {canManage && <button type="button" aria-label="Créer un espace" className="secondary-button platform-admin-create-button" onClick={() => setShowCreateSpace(true)}><Icon name="plus" size={16} /><span>Créer un espace</span></button>}
           <AdminNotificationCenter onNavigate={openNotificationSection} />
           <span><strong>{user?.user_metadata?.full_name || 'NCR Admin'}</strong><small>{profile?.role === 'super_admin' ? 'Super-administrateur' : 'Support'}</small></span>
           <button className="icon-button" type="button" onClick={() => signOut()} aria-label="Se déconnecter"><Icon name="logout" size={19} /></button>
         </div>
       </header>
 
-      <main className="platform-admin-content">
+        <nav className="platform-admin-tabs admin-saas-tabs admin-primary-nav" aria-label="Navigation principale de l’administration NCR">
+          <button type="button" aria-current={adminSectionGroup(activeSection) === 'cockpit' ? 'page' : undefined} className={adminSectionGroup(activeSection) === 'cockpit' ? 'active' : ''} onClick={() => setActiveSection('cockpit')}><Icon name="home" size={19} /><span><strong>Vue d’ensemble</strong><small>Priorités et pilotage du jour</small></span></button>
+          <button type="button" aria-current={adminSectionGroup(activeSection) === 'clients' ? 'page' : undefined} className={adminSectionGroup(activeSection) === 'clients' ? 'active' : ''} onClick={() => setActiveSection('overview')}><Icon name="building" size={19} /><span><strong>Clients</strong><small>Entreprises et demandes d’accès</small></span></button>
+          <button type="button" aria-current={adminSectionGroup(activeSection) === 'billing' ? 'page' : undefined} className={adminSectionGroup(activeSection) === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}><Icon name="creditCard" size={19} /><span><strong>Abonnements & essais</strong><small>Essais, Stripe, offres et paiements</small></span></button>
+          <button type="button" aria-current={adminSectionGroup(activeSection) === 'support' ? 'page' : undefined} className={adminSectionGroup(activeSection) === 'support' ? 'active' : ''} onClick={() => { setSupportSearchSeed(''); setSupportTicketSeed(''); setActiveSection('support'); }}><Icon name="headset" size={19} /><span><strong>Assistance NCR</strong><small>Conversations et prises en main</small></span></button>
+          <button type="button" aria-current={adminSectionGroup(activeSection) === 'platform' ? 'page' : undefined} className={adminSectionGroup(activeSection) === 'platform' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}><Icon name="tool" size={19} /><span><strong>Plateforme</strong><small>Surveillance et outils avancés</small></span></button>
+        </nav>
+
+      <main className="platform-admin-content" id="admin-main">
         {error && <div className="error-message page-message" role="alert">{error}</div>}
         {message && <div className="success-message page-message" role="status">{message}</div>}
 
-        {profile?.role === 'super_admin' && platformAdminAdvancedSections.has(activeSection) && (
-          <section className="panel" aria-labelledby="super-admin-login-email-title">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">COMPTE SUPER-ADMINISTRATEUR</p>
-                <h2 id="super-admin-login-email-title">Adresse de connexion</h2>
-                <p>Le changement conserve le même compte, le même mot de passe et tous les droits d’administration.</p>
-              </div>
-            </div>
-            <form onSubmit={changeSuperAdminLoginEmail} className="form-grid">
-              <label className="field">
-                <span>Nouvelle adresse e-mail</span>
-                <input
-                  type="email"
-                  autoComplete="email"
-                  value={loginEmail}
-                  onChange={(event) => setLoginEmail(event.target.value)}
-                  placeholder="contact@ncr-suite.fr"
-                  required
-                />
-              </label>
-              <div className="form-actions">
-                <button
-                  type="submit"
-                  className="primary-button"
-                  disabled={changingLoginEmail || loginEmail.trim().toLowerCase() === user?.email?.toLowerCase()}
-                >
-                  {changingLoginEmail ? 'Envoi en cours…' : 'Changer mon e-mail de connexion'}
-                </button>
-              </div>
-            </form>
-          </section>
-        )}
-
-        <nav className="platform-admin-tabs admin-saas-tabs admin-primary-nav" aria-label="Navigation principale de l’administration NCR">
-          <button type="button" className={adminSectionGroup(activeSection) === 'cockpit' ? 'active' : ''} onClick={() => setActiveSection('cockpit')}><Icon name="home" size={19} /><span><strong>Vue d’ensemble</strong><small>Priorités et pilotage du jour</small></span></button>
-          <button type="button" className={adminSectionGroup(activeSection) === 'clients' ? 'active' : ''} onClick={() => setActiveSection('overview')}><Icon name="building" size={19} /><span><strong>Clients</strong><small>Entreprises et demandes d’accès</small></span></button>
-          <button type="button" className={adminSectionGroup(activeSection) === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}><Icon name="creditCard" size={19} /><span><strong>Abonnements & essais</strong><small>Essais, Stripe, offres et paiements</small></span></button>
-          <button type="button" className={adminSectionGroup(activeSection) === 'support' ? 'active' : ''} onClick={() => { setSupportSearchSeed(''); setSupportTicketSeed(''); setActiveSection('support'); }}><Icon name="headset" size={19} /><span><strong>Assistance NCR</strong><small>Conversations et prises en main</small></span></button>
-          <button type="button" className={adminSectionGroup(activeSection) === 'platform' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}><Icon name="tool" size={19} /><span><strong>Plateforme</strong><small>Surveillance et outils avancés</small></span></button>
-        </nav>
 
         <div className="admin-current-zone" aria-live="polite">
           <span>{adminGroupLabels[adminSectionGroup(activeSection)]}</span>
@@ -780,27 +749,27 @@ export function PlatformAdminPage() {
 
         {clientAdminSections.has(activeSection) && (
           <nav className="admin-secondary-nav" aria-label="Gestion des clients">
-            <button type="button" className={activeSection === 'overview' ? 'active' : ''} onClick={() => setActiveSection('overview')}><Icon name="building" size={16} /> Entreprises</button>
-            <button type="button" className={activeSection === 'access' ? 'active' : ''} onClick={() => setActiveSection('access')}><Icon name="users" size={16} /> Demandes d’accès</button>
+            <button type="button" aria-current={activeSection === 'overview' ? 'page' : undefined} className={activeSection === 'overview' ? 'active' : ''} onClick={() => setActiveSection('overview')}><Icon name="building" size={16} /> Entreprises</button>
+            <button type="button" aria-current={activeSection === 'access' ? 'page' : undefined} className={activeSection === 'access' ? 'active' : ''} onClick={() => setActiveSection('access')}><Icon name="users" size={16} /> Demandes d’accès</button>
           </nav>
         )}
 
         {billingAdminSections.has(activeSection) && (
           <nav className="admin-secondary-nav" aria-label="Abonnements et offres">
-            <button type="button" className={activeSection === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}><Icon name="creditCard" size={16} /> Abonnements & essais</button>
-            <button type="button" className={activeSection === 'catalogue' ? 'active' : ''} onClick={() => setActiveSection('catalogue')}><Icon name="clipboard" size={16} /> Catalogue des offres</button>
-            <button type="button" className={activeSection === 'metier' ? 'active' : ''} onClick={() => setActiveSection('metier')}><Icon name="tool" size={16} /> Offres Métier</button>
+            <button type="button" aria-current={activeSection === 'billing' ? 'page' : undefined} className={activeSection === 'billing' ? 'active' : ''} onClick={() => setActiveSection('billing')}><Icon name="creditCard" size={16} /> Abonnements & essais</button>
+            <button type="button" aria-current={activeSection === 'catalogue' ? 'page' : undefined} className={activeSection === 'catalogue' ? 'active' : ''} onClick={() => setActiveSection('catalogue')}><Icon name="clipboard" size={16} /> Catalogue des offres</button>
+            <button type="button" aria-current={activeSection === 'metier' ? 'page' : undefined} className={activeSection === 'metier' ? 'active' : ''} onClick={() => setActiveSection('metier')}><Icon name="tool" size={16} /> Offres Métier</button>
           </nav>
         )}
 
         {platformAdminAdvancedSections.has(activeSection) && (
           <nav className="admin-secondary-nav admin-secondary-nav-scroll" aria-label="Outils avancés de la plateforme">
-            <button type="button" className={activeSection === 'monitoring' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}><Icon name="shield" size={16} /> Surveillance</button>
-            <button type="button" className={activeSection === 'diagnostics' ? 'active' : ''} onClick={() => setActiveSection('diagnostics')}><Icon name="monitor" size={16} /> Diagnostic</button>
-            <button type="button" className={activeSection === 'activity' ? 'active' : ''} onClick={() => setActiveSection('activity')}><Icon name="activity" size={16} /> Journal</button>
-            <button type="button" className={activeSection === 'validation' ? 'active' : ''} onClick={() => setActiveSection('validation')}><Icon name="clipboard" size={16} /> Recette client</button>
-            <button type="button" className={activeSection === 'trainingSav' ? 'active' : ''} onClick={() => setActiveSection('trainingSav')}><Icon name="graduation" size={16} /> SAV Formation</button>
-            <button type="button" className={activeSection === 'push' ? 'active' : ''} onClick={() => setActiveSection('push')}><Icon name="bell" size={16} /> Push</button>
+            <button type="button" aria-current={activeSection === 'monitoring' ? 'page' : undefined} className={activeSection === 'monitoring' ? 'active' : ''} onClick={() => setActiveSection('monitoring')}><Icon name="shield" size={16} /> Surveillance</button>
+            <button type="button" aria-current={activeSection === 'diagnostics' ? 'page' : undefined} className={activeSection === 'diagnostics' ? 'active' : ''} onClick={() => setActiveSection('diagnostics')}><Icon name="monitor" size={16} /> Diagnostic</button>
+            <button type="button" aria-current={activeSection === 'activity' ? 'page' : undefined} className={activeSection === 'activity' ? 'active' : ''} onClick={() => setActiveSection('activity')}><Icon name="activity" size={16} /> Journal</button>
+            <button type="button" aria-current={activeSection === 'validation' ? 'page' : undefined} className={activeSection === 'validation' ? 'active' : ''} onClick={() => setActiveSection('validation')}><Icon name="clipboard" size={16} /> Recette client</button>
+            <button type="button" aria-current={activeSection === 'trainingSav' ? 'page' : undefined} className={activeSection === 'trainingSav' ? 'active' : ''} onClick={() => setActiveSection('trainingSav')}><Icon name="graduation" size={16} /> SAV Formation</button>
+            <button type="button" aria-current={activeSection === 'push' ? 'page' : undefined} className={activeSection === 'push' ? 'active' : ''} onClick={() => setActiveSection('push')}><Icon name="bell" size={16} /> Push</button>
           </nav>
         )}
 
@@ -850,7 +819,7 @@ export function PlatformAdminPage() {
             </div>
 
             <div className="admin-filters">
-              <label className="admin-search-field"><Icon name="search" size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nom, identifiant ou e-mail…" /></label>
+              <label className="admin-search-field"><Icon name="search" size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Rechercher dans les comptes clients" placeholder="Nom, identifiant ou e-mail…" /></label>
               <select value={domainFilter} onChange={(event) => setDomainFilter(event.target.value as 'all' | BusinessType)} aria-label="Filtrer par domaine">
                 <option value="all">Tous les domaines</option>
                 {businessTypeOptions.map((domain) => <option key={domain.id} value={domain.id}>{domain.label} ({domainCounts.get(domain.id) ?? 0})</option>)}
@@ -1097,6 +1066,42 @@ export function PlatformAdminPage() {
           <PushAdminPanel canManage={canManage} />
         )}
 
+        {profile?.role === 'super_admin' && platformAdminAdvancedSections.has(activeSection) && (
+          <details className="admin-account-settings">
+            <summary><Icon name="settings" size={17} /> Mon compte administrateur <span>Adresse de connexion</span></summary>
+            <div className="admin-account-settings-body">
+            <div className="panel-header">
+              <div>
+                <p className="eyebrow">COMPTE SUPER-ADMINISTRATEUR</p>
+                <h2 id="super-admin-login-email-title">Adresse de connexion</h2>
+                <p>Le changement conserve le même compte, le même mot de passe et tous les droits d’administration.</p>
+              </div>
+            </div>
+            <form onSubmit={changeSuperAdminLoginEmail} className="form-grid">
+              <label className="field">
+                <span>Nouvelle adresse e-mail</span>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  value={loginEmail}
+                  onChange={(event) => setLoginEmail(event.target.value)}
+                  placeholder="contact@ncr-suite.fr"
+                  required
+                />
+              </label>
+              <div className="form-actions">
+                <button
+                  type="submit"
+                  className="primary-button"
+                  disabled={changingLoginEmail || loginEmail.trim().toLowerCase() === user?.email?.toLowerCase()}
+                >
+                  {changingLoginEmail ? 'Envoi en cours…' : 'Changer mon e-mail de connexion'}
+                </button>
+              </div>
+            </form>
+            </div>
+          </details>
+        )}
       </main>
 
       {showCreateSpace && (
