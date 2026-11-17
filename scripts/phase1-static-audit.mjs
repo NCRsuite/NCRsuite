@@ -1,3 +1,5 @@
+import { pathToFileURL } from 'node:url';
+await import(pathToFileURL(`${process.cwd()}/scripts/audit-public-home.mjs`).href);
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -620,9 +622,7 @@ if (!commercialLaunchMigration.includes('create table if not exists public.platf
     || !commercialLaunchMigration.includes('ncr-suite-shell-v2.22.0-commercial-launch')) {
   errors.push('La migration V2.22.0 de lancement commercial est incomplete.');
 }
-if (!publicHomePage.includes('<PublicSiteHeader />')
-    || !publicHomePage.includes('Essai gratuit de 7 jours')
-    || !accessRequestPage.includes("functions.invoke('request-platform-access'")
+if (!accessRequestPage.includes("functions.invoke('request-platform-access'")
     || !adminAccessRequestsPanel.includes("functions.invoke('admin-review-access-request'")) {
   errors.push('Le parcours V2.22.0 de presentation et de validation des acces est incomplet.');
 }
@@ -639,10 +639,7 @@ const publicHeader = read('src/components/PublicSiteHeader.tsx');
 const publicFooter = read('src/components/PublicSiteFooter.tsx');
 const runtimeConfig = read('src/config/runtime.ts');
 const serviceWorker = read('public/sw.js');
-if (!publicHomePage.includes('public-hero-canvas')
-    || !publicHomePage.includes('public-business-showcase')
-    || !publicHomePage.includes('/og/ncr-suite-og-v2221.webp')
-    || !publicHeader.includes('/brand/ncr-suite-logo-horizontal.png')
+if (!publicHeader.includes('/brand/ncr-suite-logo-horizontal.png')
     || !publicFooter.includes('public-footer-brand')) {
   errors.push('La vitrine premium V2.22.1 ou son identite officielle est incomplete.');
 }
@@ -651,11 +648,7 @@ if (!publicHomePage.includes('public-hero-canvas')
 const publicStyles = read('src/styles.css');
 const webManifest = read('public/manifest.webmanifest');
 const appErrorBoundary = read('src/components/AppErrorBoundary.tsx');
-if (!publicHomePage.includes('public-home-v2222')
-    || !publicHomePage.includes('public-showcase-intro')
-    || !publicHomePage.includes('public-mobile-signals')
-    || publicHomePage.includes('public-hero-axis')
-    || !publicStyles.includes('public-showcase-exit')
+if (!publicStyles.includes('public-showcase-exit')
     || !publicStyles.includes('.public-primary-action:active')) {
   errors.push('Les animations et interactions premium V2.22.2 sont incompletes.');
 }
@@ -764,12 +757,7 @@ if (!runtimeConfig.includes("APP_VERSION = '2.29.25'")
 if (read('src/main.tsx').includes("import './styles.css'")) {
   errors.push('Le style complet V2.29.25 ne doit pas etre fragmente dans /assets.');
 }
-if (!publicHomePage.includes('public-home-v232')
-    || !publicHomePage.includes('public-offer-business-tabs')
-    || !publicHomePage.includes('public-flow-rail')
-    || !publicHomePage.includes('public-flow-top')
-    || !publicHomePage.includes('public-platform-card')
-    || !publicStyles.includes('.public-home-v232 .public-site-header nav > a:not(.public-access-link):hover')
+if (!publicStyles.includes('.public-home-v232 .public-site-header nav > a:not(.public-access-link):hover')
     || !publicStyles.includes('.public-home-v232 .public-platform-visual.domains')
     || !publicOfferCatalog.includes('monthlyPriceCents: 14990')
     || !publicOfferCatalog.includes('monthlyPriceCents: 990')
@@ -1131,8 +1119,6 @@ if (!subscriptionContractsMigration.includes('create table if not exists public.
 if (!publicUiPremiumMigration.includes("'2.29.1'")
     || !publicUiPremiumMigration.includes('ncr-suite-shell-v2.29.1-public-ui-premium')
     || !publicUiPremiumMigration.includes('platform_release_state')
-    || !publicHomePage.includes('public-home-v291')
-    || !publicHomePage.includes('Essai gratuit de 7 jours')
     || !publicSolutionPage.includes('public-solution-v291')
     || !publicSolutionPage.includes('essai=7')
     || !accessRequestPage.includes('trialRequested')
@@ -1143,7 +1129,6 @@ if (!publicUiPremiumMigration.includes("'2.29.1'")
 }
 if (!publicUiSpacingFixMigration.includes("'2.29.2'")
     || !publicUiSpacingFixMigration.includes('ncr-suite-shell-v2.29.2-public-ui-spacing-fix')
-    || !publicHomePage.includes('public-home-v292')
     || !publicSolutionPage.includes('public-solution-v292')
     || !accessRequestPage.includes('public-form-page-v292')
     || !publicStyles.includes('V2.29.2 - Corrections de cadrage de la vitrine publique')
@@ -1153,7 +1138,6 @@ if (!publicUiSpacingFixMigration.includes("'2.29.2'")
 }
 if (!publicUiAlignmentContrastMigration.includes("'2.29.3'")
     || !publicUiAlignmentContrastMigration.includes('ncr-suite-shell-v2.29.3-public-ui-alignment-contrast')
-    || !publicHomePage.includes('public-home-v293')
     || !publicSolutionPage.includes('public-solution-v293')
     || !accessRequestPage.includes('public-form-page-v293')
     || !publicStyles.includes('V2.29.3 - Alignements, catalogue et contrastes de la vitrine publique')
@@ -1163,7 +1147,6 @@ if (!publicUiAlignmentContrastMigration.includes("'2.29.3'")
 }
 if (!publicFlowSignalMigration.includes("'2.29.4'")
     || !publicFlowSignalMigration.includes('ncr-suite-shell-v2.29.4-public-flow-signal')
-    || !publicHomePage.includes('public-home-v294')
     || !publicStyles.includes('V2.29.4 - Signal automatique du flux public')
     || !publicStyles.includes('@keyframes public-flow-ecg-v294')
     || !publicStyles.includes('.public-home-v294 .public-flow-rail::after')) {
@@ -1171,11 +1154,9 @@ if (!publicFlowSignalMigration.includes("'2.29.4'")
 }
 if (!publicMotionMigration.includes("'2.29.5'")
     || !publicMotionMigration.includes('ncr-suite-shell-v2.29.5-public-motion')
-    || !publicHomePage.includes('public-home-v295')
     || !publicSolutionPage.includes('public-solution-v295')
     || !accessRequestPage.includes('public-form-page-v295')
     || !publicStyles.includes('V2.29.5 - animations publiques actives quel que soit le reglage systeme')
-    || publicHomePage.includes("matchMedia('(prefers-reduced-motion: reduce)')")
     || publicSolutionPage.includes("matchMedia('(prefers-reduced-motion: reduce)')")) {
   errors.push('Le maintien des animations publiques V2.29.5 est incomplet.');
 }
@@ -1216,9 +1197,6 @@ if (!securityPremiumPresenceMigration.includes("'2.29.12'")
 }
 if (!publicFlowTransmissionMigration.includes("'2.29.6'")
     || !publicFlowTransmissionMigration.includes('ncr-suite-shell-v2.29.6-public-flow-transmission')
-    || !publicHomePage.includes('public-home-v296')
-    || !publicHomePage.includes('public-flow-transmission-progress')
-    || !publicHomePage.includes('public-flow-transmission-pulse')
     || !publicSolutionPage.includes('public-solution-v296')
     || !publicStyles.includes('V2.29.6 - transmission progressive du flux public')
     || !publicStyles.includes('@keyframes public-flow-transmission-pulse-v296')

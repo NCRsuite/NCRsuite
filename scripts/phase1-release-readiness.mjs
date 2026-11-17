@@ -1,3 +1,4 @@
+import './audit-public-home.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -465,32 +466,7 @@ requireText('supabase/functions/stripe-webhook/index.ts', [
   'customer.subscription.deleted'
 ]);
 
-requireText('src/pages/PublicHomePage.tsx', [
-  '<PublicSiteHeader />',
-  'NCR Suite',
-  'Essai gratuit de 7 jours',
-  'public-business-grid',
-  'public-business-showcase',
-  'public-hero-canvas',
-  'public-home-v2222',
-  'public-home-v230',
-  'public-home-v231',
-  'public-home-v232',
-  'public-home-v291',
-  'public-home-v292',
-  'public-home-v293',
-  'public-home-v294',
-  'public-home-v295',
-  'public-home-v296',
-  'public-flow-transmission',
-  'public-flow-rail',
-  'public-flow-top',
-  'public-platform-card',
-  'public-offer-business-tabs',
-  'public-showcase-intro',
-  'public-mobile-signals',
-  '/brand/ncr-suite-symbol-v2221.png'
-]);
+// PublicHomePage's new isolation/route/lifecycle contract is validated by audit-public-home.mjs.
 requireText('src/pages/PublicSolutionPage.tsx', [
   'public-solution-v291',
   'public-solution-v292',
