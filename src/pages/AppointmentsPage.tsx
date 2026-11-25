@@ -10,6 +10,17 @@ import { useBeautyPrimaryPlanningSite } from '../hooks/useBeautyPrimaryPlanningS
 
 type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show';
 type ViewMode = 'week' | 'day';
+type AppointmentStatusFilter = 'all' | 'history' | AppointmentStatus;
+
+function matchesAppointmentPlanningFilter(status: AppointmentStatus, filter: AppointmentStatusFilter, beauty: boolean) {
+  if (filter === 'history') return true;
+  if (filter === 'all') return !beauty || status !== 'cancelled';
+  return status === filter;
+}
+
+function canRemoveAppointment(status: AppointmentStatus) {
+  return status === 'pending' || status === 'confirmed';
+}
 
 interface ClientRecord {
   id: string;
@@ -339,8 +350,9 @@ export function AppointmentsPage() {
   const [todayAppointmentCount, setTodayAppointmentCount] = useState(0);
   const [pendingAppointmentCount, setPendingAppointmentCount] = useState(0);
   const [staffFilter, setStaffFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | AppointmentStatus>('all');
+  const [statusFilter, setStatusFilter] = useState<AppointmentStatusFilter>('all');
   const [weekQuickAppointmentId, setWeekQuickAppointmentId] = useState<string | null>(null);
+  const removalInFlightRef = useRef(false);
   const weekViewportRef = useRef<HTMLDivElement>(null);
   const weekQuickSheetRef = useRef<HTMLElement>(null);
 
@@ -712,9 +724,9 @@ export function AppointmentsPage() {
 
   const visibleAppointments = useMemo(() => appointments.filter((appointment) => {
     const staffMatches = staffFilter === 'all' || appointment.staff_id === staffFilter;
-    const statusMatches = statusFilter === 'all' || appointment.status === statusFilter;
+    const statusMatches = matchesAppointmentPlanningFilter(appointment.status, statusFilter, coiffureUiMode);
     return staffMatches && statusMatches;
-  }), [appointments, staffFilter, statusFilter]);
+  }), [appointments, staffFilter, statusFilter, coiffureUiMode]);
 
   const availabilityStaff = useMemo(() => {
     const allowedSites = new Set(availabilitySites.map((site) => site.id));
@@ -1152,15 +1164,17 @@ export function AppointmentsPage() {
     }
   }
 
-  async function changeStatus(appointment: AppointmentRecord, status: AppointmentStatus) {
+  async function changeStatus(appointment: AppointmentRecord, status: AppointmentStatus, removing = false) {
     if (!organization || !canChangeStatus || appointment.status === status) return false;
     let reason: string | null = null;
     if (status === 'cancelled') {
       const client = clientById.get(appointment.client_id);
       const decision = await confirm({
-        title: 'Annuler ce rendez-vous ?',
-        message: `Le rendez-vous de ${fullClientName(client)} sera marqué comme annulé. Le créneau pourra ensuite redevenir disponible selon les règles du planning.`,
-        confirmLabel: 'Annuler le rendez-vous',
+        title: removing ? 'Retirer ce rendez-vous du planning ?' : 'Annuler ce rendez-vous ?',
+        message: removing
+          ? `Le rendez-vous de ${fullClientName(client)} sera annulé et retiré du planning. Son historique restera accessible avec le filtre « Annulé ». Le créneau sera libéré selon les disponibilités du salon. Un e-mail d’annulation pourra être envoyé selon les réglages existants.`
+          : `Le rendez-vous de ${fullClientName(client)} sera marqué comme annulé. Le créneau pourra ensuite redevenir disponible selon les règles du planning.`,
+        confirmLabel: removing ? 'Retirer du planning' : 'Annuler le rendez-vous',
         tone: 'danger',
         inputLabel: 'Motif d’annulation',
         inputPlaceholder: 'Facultatif · ex. empêchement client',
@@ -1197,6 +1211,23 @@ export function AppointmentsPage() {
       return false;
     } finally {
       setBusyId(null);
+    }
+  }
+
+  async function removeFromPlanning(appointment: AppointmentRecord) {
+    if (!coiffureUiMode || !canEditAppointments || !canRemoveAppointment(appointment.status)
+      || busyId !== null || removalInFlightRef.current) return;
+    removalInFlightRef.current = true;
+    // Close the quick sheet before the confirmation dialog to avoid two focus traps.
+    setWeekQuickAppointmentId(null);
+    try {
+      const changed = await changeStatus(appointment, 'cancelled', true);
+      if (changed) {
+        setStatusFilter('all');
+        setSuccess('Rendez-vous retiré du planning. Son historique reste accessible avec le filtre « Annulé ».');
+      }
+    } finally {
+      removalInFlightRef.current = false;
     }
   }
 
@@ -1314,6 +1345,12 @@ export function AppointmentsPage() {
           <div className="appointment-actions">
             {canEditAppointments && appointment.status !== 'cancelled' && appointment.status !== 'completed' && items.length <= 1 && (
               <button type="button" className="secondary-button compact-button" onClick={() => openEditForm(appointment)}>Modifier</button>
+            )}
+            {coiffureUiMode && canEditAppointments && canRemoveAppointment(appointment.status) && (
+              <button type="button" className="secondary-button compact-button" disabled={busyId !== null}
+                aria-busy={busyId === appointment.id} onClick={() => void removeFromPlanning(appointment)}>
+                Retirer du planning
+              </button>
             )}
             {items.length > 1 && <span className="appointment-multi-badge">Multi-prestations</span>}
             <select
@@ -1514,7 +1551,8 @@ export function AppointmentsPage() {
               {staff.map((member) => <option key={member.id} value={member.id}>{member.display_name}</option>)}
             </select>
             <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as typeof statusFilter)} aria-label="Filtrer par statut">
-              <option value="all">Tous les statuts</option>
+              <option value="all">{coiffureUiMode ? "Planning (hors annulés)" : "Tous les statuts"}</option>
+              {coiffureUiMode && <option value="history">Tous, avec les annulés</option>}
               {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </div>
@@ -1758,6 +1796,12 @@ export function AppointmentsPage() {
             </div>
 
             <div className="beauty-week-quick-secondary">
+              {canEditAppointments && canRemoveAppointment(weekQuickAppointment.status) && (
+                <button type="button" disabled={busyId !== null} aria-busy={busyId === weekQuickAppointment.id}
+                  onClick={() => void removeFromPlanning(weekQuickAppointment)}>
+                  <Icon name="close" size={16} /> Retirer du planning
+                </button>
+              )}
               {canEditAppointments && weekQuickAppointment.status !== 'cancelled' && (appointmentItemsById.get(weekQuickAppointment.id)?.length ?? 0) <= 1 && (
                 <button type="button" onClick={() => {
                   const appointment = weekQuickAppointment;

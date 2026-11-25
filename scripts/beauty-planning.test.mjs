@@ -57,3 +57,71 @@ test('other businesses retain their existing booking path',async()=>{
   const {calls}=await submit({professionalBeauty:false});
   assert.equal(calls[0][0],'save_appointment'); assert.equal('p_site_id' in calls[0][1],false);
 });
+
+// Removal uses the existing cancellation RPC; no remote data is touched by these tests.
+function pageFunction(name) {
+  let found;
+  const find = node => {
+    if (ts.isFunctionDeclaration(node) && node.name?.text === name) found = node.getText(ast);
+    ts.forEachChild(node, find);
+  };
+  find(ast); assert.ok(found, name);
+  return ts.transpileModule(found, {compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}}).outputText;
+}
+const filterStatus = new Function(`${pageFunction('matchesAppointmentPlanningFilter')}; return matchesAppointmentPlanningFilter;`)();
+const removable = new Function(`${pageFunction('canRemoveAppointment')}; return canRemoveAppointment;`)();
+const booking = {id:'appointment-a',client_id:'client-a',status:'confirmed'};
+function removalHarness(overrides = {}) {
+  const calls=[], confirmations=[], errors=[], successes=[], filters=[], sheets=[];
+  const scope={
+    organization:{id:'org-a'},canChangeStatus:true,canEditAppointments:true,coiffureUiMode:true,
+    demoMode:false,busyId:null,removalInFlightRef:{current:false},canRemoveAppointment:removable,
+    clientById:new Map([['client-a',{first_name:'Client test'}]]),fullClientName:c=>c.first_name,
+    confirm:async options=>{confirmations.push(options);return {confirmed:true,value:'Doublon saisi par erreur'};},
+    supabase:{rpc:async(...args)=>{calls.push(args);return {error:null};}},loadData:async()=>{},
+    setBusyId:noop,setError:e=>errors.push(e),setSuccess:s=>successes.push(s),
+    setStatusFilter:f=>filters.push(f),setWeekQuickAppointmentId:id=>sheets.push(id),
+    statusLabels:{cancelled:'Annulé'},...overrides
+  };
+  const run=new Function(...Object.keys(scope),`${pageFunction('changeStatus')}\n${pageFunction('removeFromPlanning')}; return removeFromPlanning;`)(...Object.values(scope));
+  return {run,scope,calls,confirmations,errors,successes,filters,sheets};
+}
+test('Beauty planning hides cancelled bookings but retains explicit history and other businesses',()=>{
+  for(const status of ['pending','confirmed','completed','no_show']) assert.equal(filterStatus(status,'all',true),true);
+  assert.equal(filterStatus('cancelled','all',true),false);
+  assert.equal(filterStatus('cancelled','history',true),true);
+  assert.equal(filterStatus('cancelled','cancelled',true),true);
+  assert.equal(filterStatus('confirmed','cancelled',true),false);
+  assert.equal(filterStatus('cancelled','all',false),true);
+});
+test('removal preserves appointment identity, records reason and uses only existing cancellation RPC',async()=>{
+  const h=removalHarness(); await h.run(booking);
+  assert.deepEqual(h.calls,[['set_appointment_status',{p_organization_id:'org-a',p_appointment_id:'appointment-a',p_status:'cancelled',p_cancellation_reason:'Doublon saisi par erreur'}]]);
+  assert.match(h.confirmations[0].message,/historique/); assert.match(h.confirmations[0].message,/e-mail/);
+  assert.deepEqual(h.filters,['all']); assert.deepEqual(h.sheets,[null]); assert.match(h.successes.at(-1),/retiré/);
+});
+test('declining removal makes no request and leaves filters unchanged',async()=>{
+  const h=removalHarness({confirm:async()=>({confirmed:false})}); await h.run(booking);
+  assert.equal(h.calls.length,0); assert.deepEqual(h.filters,[]); assert.deepEqual(h.successes,[]);
+  assert.equal(h.scope.removalInFlightRef.current,false);
+});
+test('failed cancellation does not hide the booking or report success',async()=>{
+  const h=removalHarness({supabase:{rpc:async()=>({error:{message:'Accès refusé'}})}}); await h.run(booking);
+  assert.deepEqual(h.filters,[]); assert.deepEqual(h.successes.filter(Boolean),[]); assert.match(h.errors.at(-1),/Accès refusé/);
+  assert.equal(h.scope.removalInFlightRef.current,false);
+});
+test('removal unavailable for employees, other businesses and completed/cancelled/no-show appointments',async()=>{
+  for(const override of [{canEditAppointments:false},{coiffureUiMode:false},{busyId:'another'}]){
+    const h=removalHarness(override); await h.run(booking); assert.equal(h.confirmations.length,0); assert.equal(h.calls.length,0);
+  }
+  for(const status of ['completed','cancelled','no_show']){
+    const h=removalHarness(); await h.run({...booking,status}); assert.equal(h.confirmations.length,0); assert.equal(h.calls.length,0);
+  }
+});
+test('double tap during confirmation produces only one cancellation request',async()=>{
+  let decide;
+  const h=removalHarness({confirm:()=>new Promise(resolve=>{decide=resolve;})});
+  const first=h.run(booking); await h.run(booking);
+  decide({confirmed:true,value:''}); await first;
+  assert.equal(h.calls.length,1); assert.equal(h.scope.removalInFlightRef.current,false);
+});
